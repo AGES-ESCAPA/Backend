@@ -104,6 +104,7 @@ src/
 - **Banco de Dados**: PostgreSQL
 - **Build**: Maven
 - **Validação**: Bean Validation (`@Valid`)
+- **Qualidade de código**: Checkstyle (executado na fase `validate` do Maven)
 - **Containerização**: Docker + Docker Compose
 - **Testes**: JUnit 5 + Spring Test
 
@@ -159,6 +160,7 @@ A API ficará disponível em: `http://localhost:8080`
 | `mvn clean test` | Remove artefatos antigos e roda testes novamente. | Validação limpa do projeto. |
 | `mvn clean package` | Gera o pacote compilado da aplicação. | Verificação de build final. |
 | `mvn validate` | Valida a estrutura e dependências do Maven. | Para checar a configuração do projeto. |
+| `mvn checkstyle:check` | Roda só as regras de `checkstyle.xml`, sem compilar/testar. | Para checar estilo isoladamente e mais rápido. |
 
 ---
 

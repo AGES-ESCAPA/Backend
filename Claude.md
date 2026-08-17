@@ -67,7 +67,11 @@ src/
 - Testes devem validar comportamento real e não apenas mocks imaginários.
 - A estrutura deve permitir criação rápida de testes isolados para cada caso de uso.
 
-### 4. Commits e Branches
+### 4. Qualidade de Código
+- O Checkstyle (`checkstyle.xml`) roda automaticamente na fase `validate` do Maven e quebra o build em caso de violação (chaves obrigatórias em `if`, variáveis locais `final`, etc.).
+- O `Dockerfile` precisa copiar `checkstyle.xml` (além de `pom.xml`) para o estágio de build, senão `docker compose up --build` falha.
+
+### 5. Commits e Branches
 - **Commits**: `<tipo>(<id_clickup>): <descrição curta>`
 - **Branches**: criadas a partir de **`develop`** no formato `<tipo>/<id_clickup>-<descricao>`
 - **Merge Requests**: sempre para **`develop`**.
@@ -78,9 +82,11 @@ src/
 
 - Prefira composição e injeção de dependência.
 - Use exceções de domínio e tratamento global de erro.
-- Mantenha a API response padronizada.
+- Mantenha a API response padronizada (envelope `ApiResponse` para sucesso, `ApiError` para erro).
 - Valide entradas com `@Valid` e annotations.
 - Conserve nomes consistentes em inglês para classes, métodos e pacotes.
+- Todas as rotas HTTP usam o prefixo `/api/v1`.
+- CORS é restrito às origens definidas em `APP_CORS_ALLOWED_ORIGINS` (aplicado a `/api/**`), nunca liberar `*` em produção.
 
 ---
 
