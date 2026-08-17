@@ -62,11 +62,17 @@ src/
 
 ### 📌 Diretrizes de Arquitetura
 
-1. **Domain (`domain/`)**: entidades puras, sem Spring, sem JPA, sem anotações de framework.
-2. **Application (`application/`)**: casos de uso e interfaces/portas do sistema.
-3. **Adapters (`adapters/`)**: controllers REST, DTOs, tratadores de erro e adaptadores externos.
-4. **Infrastructure (`infrastructure/`)**: persistência, banco, configurações e integração com bibliotecas.
-5. **Regra da Dependência**: todas as dependências devem apontar para o centro, nunca o contrário.
+1. **Domain (`domain/`)**: entidades puras, sem Spring, sem JPA, sem anotações de framework. Exemplo: `User`.
+2. **Application (`application/`)**: casos de uso e interfaces/portas do sistema; depende apenas do `domain`. Exemplo: `CreateUserUseCase`, `UserRepositoryPort`.
+3. **Adapters (`adapters/`)**: controllers REST, DTOs, tratadores de erro e adaptadores externos; sem lógica de negócio. Exemplo: `UserController`, `GlobalExceptionHandler`.
+4. **Infrastructure (`infrastructure/`)**: persistência, banco, configurações e integração com bibliotecas; implementa as portas definidas em `application`. Exemplo: `UserJpaRepository`, `UserRepositoryAdapter`.
+5. **Regra da Dependência**: todas as dependências devem apontar para o centro, nunca o contrário — `adapters` e `infrastructure` dependem de `application`, que depende só de `domain`, e o `domain` não depende de nada.
+
+```text
+adapters ──────┐
+               ├──> application ──> domain
+infrastructure ┘
+```
 
 ---
 

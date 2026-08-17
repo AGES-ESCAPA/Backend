@@ -37,11 +37,19 @@ src/
 └── AGENTS.md
 ```
 
+> 🔑 **Regra da dependência**: as dependências apontam sempre para dentro — `adapters` e `infrastructure` dependem de `application`, que depende apenas de `domain`. O `domain` não depende de nada.
+>
+> ```text
+> adapters ──────┐
+>                ├──> application ──> domain
+> infrastructure ┘
+> ```
+
 ### Onde colocar o código:
-- **Entidades e regras puras**: `domain/`
-- **Fluxos e regras de aplicação**: `application/`
-- **Controllers, DTOs e tratamento de API**: `adapters/`
-- **Persistência e configurações do Spring**: `infrastructure/`
+- **`domain/`** — entidades e regras puras do negócio, sem Spring nem JPA. Exemplo: `User`.
+- **`application/`** — casos de uso e portas (interfaces) de comunicação com o mundo externo; depende só do `domain`. Exemplo: `CreateUserUseCase`, `UserRepositoryPort`.
+- **`adapters/`** — controllers REST, DTOs e tratamento de erros da API; sem lógica de negócio. Exemplo: `UserController`, `CreateUserRequest`, `GlobalExceptionHandler`.
+- **`infrastructure/`** — implementação técnica (JPA, configuração do Spring, integrações externas); implementa as portas definidas em `application`. Exemplo: `UserJpaRepository`, `UserRepositoryAdapter`, `CorsConfig`.
 
 ---
 
