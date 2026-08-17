@@ -150,13 +150,14 @@ public class UserController {
 
 #### 4. Testes
 
+Cada caso de uso tem seu teste, usando um fake de `UserRepositoryPort` em memória compartilhado entre os testes do pacote (`InMemoryUserRepositoryPort`, package-private em `src/test/.../application/usecase/`) em vez de mocks:
+
 ```java
 class CreateUserUseCaseTest {
 
     @Test
     void shouldCreateUserWithNormalizedData() {
-        Map<String, User> users = new HashMap<>();
-        UserRepositoryPort repository = new InMemoryUserRepository(users);
+        UserRepositoryPort repository = new InMemoryUserRepositoryPort();
         CreateUserUseCase useCase = new CreateUserUseCase(repository);
 
         User user = useCase.execute(" maria ", " maria@email.com ", "student");
@@ -176,8 +177,9 @@ class CreateUserUseCaseTest {
 - Todo caso de uso deve ter teste unitário correspondente.
 - Todo endpoint novo deve ter teste de integração ou teste de controller quando aplicável.
 - Validação de entrada deve ocorrer no DTO/controller via Bean Validation.
-- Erros de domínio devem ser transformados em respostas padronizadas da API.
-- O projeto deve continuar funcionando em Maven e em Docker Compose.
+- Erros de domínio devem ser transformados em respostas padronizadas da API (ver `GlobalExceptionHandler`: 400 para validação/regra de domínio, 404 para recurso não encontrado, 409 para conflito de dados, 500 para erro inesperado).
+- O Checkstyle (`checkstyle.xml`) roda na fase `validate` do Maven e quebra o build em caso de violação — rode `mvn checkstyle:check` antes de abrir MR.
+- O projeto deve continuar funcionando em Maven e em Docker Compose (o `Dockerfile` precisa copiar `checkstyle.xml`, não só `pom.xml`, para o build multi-stage não quebrar).
 
 ---
 
