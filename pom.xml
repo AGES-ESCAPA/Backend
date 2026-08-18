@@ -78,6 +78,10 @@
     </dependencies>
 
     <build>
+        <!-- Keeps the artifact name free of the version, so the Dockerfile
+             does not need updating on every version bump. -->
+        <finalName>backend</finalName>
+
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
