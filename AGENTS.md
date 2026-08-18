@@ -28,7 +28,7 @@
 
 A aplicação será executada em ambiente containerizado e deve manter boas práticas de desenvolvimento e deploy:
 
-- Build: `Dockerfile` multi-stage com Java 17
+- Build: `Dockerfile` multi-stage com Java 21
 - Orquestração local: `docker-compose.yml`
 - Banco: PostgreSQL em container
 - CI/CD: GitLab CI e passos de validação de build/test

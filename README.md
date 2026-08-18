@@ -98,8 +98,8 @@ src/
 
 ## 🛠️ Tecnologias Utilizadas
 
-- **Linguagem**: Java 17
-- **Framework**: Spring Boot 3.3.x
+- **Linguagem**: Java 21
+- **Framework**: Spring Boot 3.5.5
 - **Persistência**: Spring Data JPA
 - **Banco de Dados**: PostgreSQL
 - **Build**: Maven
@@ -112,7 +112,7 @@ src/
 
 ## ⚙️ Pré-requisitos
 
-- **Java 17** ou superior
+- **Java 21** ou superior
 - **Maven 3.9+**
 - **Docker** e **Docker Compose** *(opcional, mas recomendado)*
 - **PostgreSQL** local ou em container
