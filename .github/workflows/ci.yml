@@ -45,6 +45,10 @@ jobs:
           # A build that fails before the tests run leaves no reports behind;
           # that is already reported by the build step, not a failure of this one.
           fail-on-empty: 'false'
+          # Publishes a "Test Results" check run, which branch protection requires.
+          # Left at the default, this action only writes the job summary and the
+          # required check stays pending forever.
+          use-actions-summary: 'false'
 
       - name: Upload coverage report
         if: always()
