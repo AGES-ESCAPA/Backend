@@ -28,10 +28,11 @@
 
 A aplicação será executada em ambiente containerizado e deve manter boas práticas de desenvolvimento e deploy:
 
-- Build: `Dockerfile` multi-stage com Java 21
-- Orquestração local: `docker-compose.yml`
-- Banco: PostgreSQL em container
-- CI/CD: GitLab CI e passos de validação de build/test
+- Build: `Dockerfile` multi-stage com Java 21, executado por um usuário não-root
+- Orquestração local: `docker-compose.yml` (o backend só sobe após o healthcheck do banco)
+- Banco: PostgreSQL em container, com schema versionado por migrations Flyway
+- Testes: JUnit 5 + Testcontainers — exigem Docker em execução
+- CI/CD: GitHub Actions (`.github/workflows/ci.yml`), com build, Checkstyle, testes, cobertura Jacoco e build da imagem Docker
 
 ## Arquitetura de Pastas e Responsabilidades
 
