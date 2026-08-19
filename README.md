@@ -98,24 +98,27 @@ src/
 
 ## 🛠️ Tecnologias Utilizadas
 
-- **Linguagem**: Java 17
-- **Framework**: Spring Boot 3.3.x
+- **Linguagem**: Java 21
+- **Framework**: Spring Boot 3.5.5
 - **Persistência**: Spring Data JPA
 - **Banco de Dados**: PostgreSQL
+- **Migrações de banco**: Flyway (scripts versionados em `src/main/resources/db/migration/`)
 - **Build**: Maven
 - **Validação**: Bean Validation (`@Valid`)
+- **Documentação da API**: SpringDoc OpenAPI (Swagger UI)
 - **Qualidade de código**: Checkstyle (executado na fase `validate` do Maven)
+- **Cobertura de testes**: Jacoco (relatório gerado em `target/site/jacoco/`)
 - **Containerização**: Docker + Docker Compose
-- **Testes**: JUnit 5 + Spring Test
+- **Testes**: JUnit 5 + Spring Test + Testcontainers
 
 ---
 
 ## ⚙️ Pré-requisitos
 
-- **Java 17** ou superior
+- **Java 21** ou superior
 - **Maven 3.9+**
-- **Docker** e **Docker Compose** *(opcional, mas recomendado)*
-- **PostgreSQL** local ou em container
+- **Docker** e **Docker Compose** — **obrigatórios para rodar os testes**: os testes de integração sobem um PostgreSQL descartável via Testcontainers, então `mvn test` falha se o Docker não estiver em execução
+- **PostgreSQL** — não precisa instalar: sobe em container pelo `docker-compose.yml`
 - **Git**
 
 ---
@@ -137,13 +140,15 @@ src/
 
 4. **Inicie o banco e a aplicação localmente**:
 
-### Opção A — com Docker Compose
+### Opção A — tudo em containers
    ```bash
    docker compose up --build
    ```
 
-### Opção B — sem Docker
+### Opção B — banco em container, aplicação pelo Maven
+   Útil para desenvolver com hot reload sem reconstruir a imagem a cada mudança:
    ```bash
+   docker compose up -d postgres   # sobe apenas o banco
    mvn spring-boot:run
    ```
 
@@ -156,11 +161,14 @@ A API ficará disponível em: `http://localhost:8080`
 | Comando | O que faz? | Quando usar? |
 |---|---|---|
 | `mvn spring-boot:run` | Inicia a aplicação localmente. | Durante o desenvolvimento. |
-| `mvn test` | Executa todos os testes unitários. | Antes de commit / MR. |
-| `mvn clean test` | Remove artefatos antigos e roda testes novamente. | Validação limpa do projeto. |
+| `mvn test` | Executa os testes unitários e os de integração. **Requer Docker em execução** (Testcontainers). | Antes de commit / MR. |
+| `mvn clean test` | Remove artefatos antigos e roda testes novamente. **Requer Docker.** | Validação limpa do projeto. |
+| `mvn clean verify` | Roda o mesmo que a CI: Checkstyle, testes e relatório de cobertura. **Requer Docker.** | Antes de abrir o MR. |
 | `mvn clean package` | Gera o pacote compilado da aplicação. | Verificação de build final. |
 | `mvn validate` | Valida a estrutura e dependências do Maven. | Para checar a configuração do projeto. |
 | `mvn checkstyle:check` | Roda só as regras de `checkstyle.xml`, sem compilar/testar. | Para checar estilo isoladamente e mais rápido. |
+
+> 📊 Após rodar os testes, o relatório de cobertura do Jacoco fica em `target/site/jacoco/index.html`.
 
 ---
 
@@ -182,6 +190,8 @@ mvn clean package
 > ```
 
 > ⚠️ O build falha se houver violação das regras de `checkstyle.xml` (chaves obrigatórias em `if`, variáveis locais `final`, etc.). Para checar isoladamente: `mvn checkstyle:check`.
+
+> 🐳 **O Docker precisa estar rodando** antes de executar os testes: os de integração sobem um PostgreSQL descartável via Testcontainers. Sem ele, `mvn test` falha na inicialização do container, não por erro no seu código.
 
 ---
 
@@ -300,6 +310,8 @@ docker compose up --build
 ### Endpoints úteis
 - `http://localhost:8080/api/v1/health` → health check da aplicação
 - `http://localhost:8080/api/v1/users` → cadastro e consulta de usuários
+- `http://localhost:8080/swagger-ui/index.html` → documentação interativa da API (Swagger UI)
+- `http://localhost:8080/v3/api-docs` → especificação OpenAPI em JSON
 
 ---
 

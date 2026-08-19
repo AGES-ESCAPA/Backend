@@ -28,10 +28,11 @@
 
 A aplicação será executada em ambiente containerizado e deve manter boas práticas de desenvolvimento e deploy:
 
-- Build: `Dockerfile` multi-stage com Java 17
-- Orquestração local: `docker-compose.yml`
-- Banco: PostgreSQL em container
-- CI/CD: GitLab CI e passos de validação de build/test
+- Build: `Dockerfile` multi-stage com Java 21, executado por um usuário não-root
+- Orquestração local: `docker-compose.yml` (o backend só sobe após o healthcheck do banco)
+- Banco: PostgreSQL em container, com schema versionado por migrations Flyway
+- Testes: JUnit 5 + Testcontainers — exigem Docker em execução
+- CI/CD: GitHub Actions (`.github/workflows/ci.yml`), com build, Checkstyle, testes, cobertura Jacoco e build da imagem Docker
 
 ## Arquitetura de Pastas e Responsabilidades
 
@@ -62,11 +63,17 @@ src/
 
 ### 📌 Diretrizes de Arquitetura
 
-1. **Domain (`domain/`)**: entidades puras, sem Spring, sem JPA, sem anotações de framework.
-2. **Application (`application/`)**: casos de uso e interfaces/portas do sistema.
-3. **Adapters (`adapters/`)**: controllers REST, DTOs, tratadores de erro e adaptadores externos.
-4. **Infrastructure (`infrastructure/`)**: persistência, banco, configurações e integração com bibliotecas.
-5. **Regra da Dependência**: todas as dependências devem apontar para o centro, nunca o contrário.
+1. **Domain (`domain/`)**: entidades puras, sem Spring, sem JPA, sem anotações de framework. Exemplo: `User`.
+2. **Application (`application/`)**: casos de uso e interfaces/portas do sistema; depende apenas do `domain`. Exemplo: `CreateUserUseCase`, `UserRepositoryPort`.
+3. **Adapters (`adapters/`)**: controllers REST, DTOs, tratadores de erro e adaptadores externos; sem lógica de negócio. Exemplo: `UserController`, `GlobalExceptionHandler`.
+4. **Infrastructure (`infrastructure/`)**: persistência, banco, configurações e integração com bibliotecas; implementa as portas definidas em `application`. Exemplo: `UserJpaRepository`, `UserRepositoryAdapter`.
+5. **Regra da Dependência**: todas as dependências devem apontar para o centro, nunca o contrário — `adapters` e `infrastructure` dependem de `application`, que depende só de `domain`, e o `domain` não depende de nada.
+
+```text
+adapters ──────┐
+               ├──> application ──> domain
+infrastructure ┘
+```
 
 ---
 
