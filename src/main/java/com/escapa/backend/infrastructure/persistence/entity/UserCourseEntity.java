@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_courses")
@@ -47,4 +48,17 @@ public class UserCourseEntity {
 
     @Column(name = "conclusion_date")
     private LocalDate conclusionDate;
+
+    @Column(name = "last_access_date")
+    private LocalDateTime lastAccessDate;
+
+    @Column(name = "certificate_issued", nullable = false)
+    private Boolean certificateIssued = false;
+
+    /** Codigo publico usado para validar a autenticidade do certificado emitido. */
+    @Column(name = "certificate_code", unique = true)
+    private String certificateCode;
+
+    @Column(name = "certificate_issued_at")
+    private LocalDateTime certificateIssuedAt;
 }

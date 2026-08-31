@@ -1,6 +1,6 @@
 package com.escapa.backend.infrastructure.persistence.entity;
 
-import jakarta.persistence.CascadeType;
+import com.escapa.backend.infrastructure.persistence.UserEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,8 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -17,22 +15,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
 
+/** Avaliacao de 1 a 5 estrelas que um usuario da a um curso. Uma avaliacao por usuario por curso. */
 @Entity
 @Table(
-        name = "modules",
+        name = "course_reviews",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_modules_course_order",
-                columnNames = {"course_id", "order"}
+                name = "uk_course_reviews_course_user",
+                columnNames = {"course_id", "user_id"}
         )
 )
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ModuleEntity {
+public class CourseReviewEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,17 +40,19 @@ public class ModuleEntity {
     @JoinColumn(name = "course_id", nullable = false)
     private CourseEntity course;
 
-    @Column(nullable = false)
-    private String title;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
-    @Column(name = "\"order\"", nullable = false)
-    private Integer order;
+    @Column(name = "rating", nullable = false)
+    private Integer rating;
 
-    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
-    @OrderBy("order ASC")
-    private List<ContentEntity> contents = new ArrayList<>();
+    @Column(name = "comment", columnDefinition = "TEXT")
+    private String comment;
 
-    /** Modulos que precisam ser concluidos antes deste ser liberado. */
-    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
-    private List<ModulePrerequisiteEntity> prerequisites = new ArrayList<>();
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

@@ -1,6 +1,7 @@
 package com.escapa.backend.infrastructure.persistence.entity;
 
-import com.escapa.backend.infrastructure.persistence.entity.enums.ContentType;
+import com.escapa.backend.infrastructure.persistence.UserEntity;
+import com.escapa.backend.infrastructure.persistence.entity.enums.NotificationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,46 +20,41 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "content")
+@Table(name = "notifications")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ContentEntity {
+public class NotificationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "module_id", nullable = false)
-    private ModuleEntity module;
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private NotificationType type;
 
     @Column(nullable = false)
     private String title;
 
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+    @Column(name = "message", columnDefinition = "TEXT")
+    private String message;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
-    private ContentType type;
+    /** Curso relacionado, quando a notificacao tem origem em um curso. */
+    @ManyToOne
+    @JoinColumn(name = "course_id")
+    private CourseEntity course;
 
-    @Column(name = "url")
-    private String url;
+    @Column(name = "is_read", nullable = false)
+    private Boolean read = false;
 
-    @Column(name = "duration_minutes")
-    private Integer durationMinutes;
-
-    /** Aula liberada como amostra, sem necessidade de compra. */
-    @Column(name = "is_free", nullable = false)
-    private Boolean isFree = false;
-
-    @Column(name = "\"order\"", nullable = false)
-    private Integer order;
-
-    @Column(name = "recursos", columnDefinition = "JSON")
-    private String recursos;
+    @Column(name = "read_at")
+    private LocalDateTime readAt;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

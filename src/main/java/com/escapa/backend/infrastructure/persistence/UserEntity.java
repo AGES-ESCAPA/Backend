@@ -1,7 +1,10 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
@@ -32,4 +35,12 @@ public class UserEntity {
 
     @Column(nullable = false)
     private String role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private UserStatus status = UserStatus.ACTIVE;
+
+    public UserEntity(String id, String name, String email, String role) {
+        this(id, name, email, role, UserStatus.ACTIVE);
+    }
 }

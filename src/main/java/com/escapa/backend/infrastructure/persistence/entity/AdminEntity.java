@@ -24,8 +24,20 @@ public class AdminEntity extends UserEntity {
     @Column(name = "department")
     private String department;
 
+    @Column(name = "headline")
+    private String headline;
+
+    @Column(name = "bio", columnDefinition = "TEXT")
+    private String bio;
+
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
     @OneToMany(mappedBy = "createdBy")
     private List<CourseEntity> courses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "instructor")
+    private List<CourseEntity> taughtCourses = new ArrayList<>();
 
     public AdminEntity(String id, String name, String email, String role, String department) {
         super(id, name, email, role);
