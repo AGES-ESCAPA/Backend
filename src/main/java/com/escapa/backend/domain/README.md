@@ -18,7 +18,7 @@ Se um dia trocarmos o Spring Boot por outro framework, ou o PostgreSQL por outro
 
 ## O que já temos
 - `entity/User.java` — um usuário da plataforma (id, nome, email, hash da senha, tipo, data de criação). O `id` é um `java.util.UUID`, igual em todas as entidades: todas as PKs do banco são do tipo `uuid` nativo do Postgres. O campo é `passwordHash`, não `password`: a senha em texto puro nunca entra no domínio — o `CreateUserUseCase` já a converte via `PasswordHasherPort`.
-- `entity/Admin.java`, `entity/Company.java`, `entity/Employee.java` — especializações de `User`.
+- `entity/Admin.java`, `entity/Company.java` — especializações de `User`.
 - `entity/Course.java`, `entity/Module.java`, `entity/Content.java` — a estrutura de um curso.
 - `entity/UserCourse.java`, `entity/CompanyCourse.java`, `entity/UsersCompany.java` — matrículas e vínculos.
 - `user/UserNotFoundException.java` — erro de domínio disparado quando um usuário buscado não existe.

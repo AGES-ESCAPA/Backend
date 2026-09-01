@@ -41,11 +41,6 @@ entity "company" as company {
   matricula : int
 }
 
-entity "employees" as employees {
-  * user_id : uuid <<PK>> <<FK>>
-  --
-}
-
 entity "courses" as courses {
   * id : uuid <<PK>>
   --
@@ -194,7 +189,6 @@ entity "notifications" as notifications {
 users ||--|| regular_users : "is"
 users ||--|| admins : "is"
 users ||--|| company : "is"
-users ||--|| employees : "is"
 
 ' User roles and Courses
 users ||--o{ courses : "creates"

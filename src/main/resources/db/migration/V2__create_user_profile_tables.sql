@@ -20,11 +20,6 @@ CREATE TABLE company (
     CONSTRAINT fk_company_user FOREIGN KEY (id) REFERENCES users (id) ON DELETE CASCADE
 );
 
-CREATE TABLE employees (
-    user_id UUID PRIMARY KEY,
-    CONSTRAINT fk_employees_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-);
-
 CREATE TABLE regular_users (
     user_id UUID PRIMARY KEY,
     cpf VARCHAR(255) UNIQUE,
