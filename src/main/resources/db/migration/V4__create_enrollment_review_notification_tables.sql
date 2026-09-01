@@ -1,0 +1,64 @@
+CREATE TABLE user_courses (
+    user_id UUID NOT NULL,
+    course_id UUID NOT NULL,
+    dt_inicio DATE,
+    dt_expiracao DATE,
+    progress INTEGER,
+    conclusion_date DATE,
+    last_access_date TIMESTAMP,
+    certificate_issued BOOLEAN NOT NULL DEFAULT FALSE,
+    certificate_code VARCHAR(255) UNIQUE,
+    certificate_issued_at TIMESTAMP,
+    PRIMARY KEY (user_id, course_id),
+    CONSTRAINT fk_user_courses_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_user_courses_course FOREIGN KEY (course_id) REFERENCES courses (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_user_courses_course ON user_courses (course_id);
+
+CREATE TABLE company_courses (
+    company_id UUID NOT NULL,
+    course_id UUID NOT NULL,
+    data_inicio DATE,
+    data_expiracao DATE,
+    PRIMARY KEY (company_id, course_id),
+    CONSTRAINT fk_company_courses_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE CASCADE,
+    CONSTRAINT fk_company_courses_course FOREIGN KEY (course_id) REFERENCES courses (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_company_courses_course ON company_courses (course_id);
+
+CREATE TABLE course_reviews (
+    id UUID PRIMARY KEY,
+    course_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    rating INTEGER NOT NULL,
+    comment TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    CONSTRAINT fk_course_reviews_course FOREIGN KEY (course_id) REFERENCES courses (id) ON DELETE CASCADE,
+    CONSTRAINT fk_course_reviews_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT uk_course_reviews_course_user UNIQUE (course_id, user_id),
+    CONSTRAINT ck_course_reviews_rating CHECK (rating BETWEEN 1 AND 5)
+);
+
+CREATE INDEX idx_course_reviews_course ON course_reviews (course_id);
+
+CREATE TABLE notifications (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    type VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT,
+    course_id UUID,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    read_at TIMESTAMP,
+    created_at TIMESTAMP,
+    CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_notifications_course FOREIGN KEY (course_id) REFERENCES courses (id) ON DELETE CASCADE,
+    CONSTRAINT ck_notifications_type CHECK (
+        type IN ('COURSE_PUBLISHED', 'COURSE_UPDATED', 'COURSE_EXPIRING', 'CERTIFICATE_ISSUED', 'GENERAL')
+    )
+);
+
+CREATE INDEX idx_notifications_user_unread ON notifications (user_id, is_read);

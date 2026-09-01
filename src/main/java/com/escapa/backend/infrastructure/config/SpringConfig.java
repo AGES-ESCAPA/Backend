@@ -1,5 +1,6 @@
 package com.escapa.backend.infrastructure.config;
 
+import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
@@ -18,8 +19,11 @@ public class SpringConfig {
     }
 
     @Bean
-    public CreateUserUseCase createUserUseCase(UserRepositoryPort userRepositoryPort) {
-        return new CreateUserUseCase(userRepositoryPort);
+    public CreateUserUseCase createUserUseCase(
+            UserRepositoryPort userRepositoryPort,
+            PasswordHasherPort passwordHasherPort
+    ) {
+        return new CreateUserUseCase(userRepositoryPort, passwordHasherPort);
     }
 
     @Bean

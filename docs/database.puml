@@ -1,0 +1,226 @@
+@startuml "Escapa Database"
+!theme plain
+hide circle
+skinparam linetype ortho
+
+' --- TABLES ---
+
+entity "users" as users {
+  * id : uuid <<PK>>
+  --
+  name : varchar
+  email : varchar <<UNIQUE>>
+  password_hash : varchar
+  role : varchar
+  status : enum('ACTIVE', 'INACTIVE')
+  created_at : datetime
+}
+
+entity "regular_users" as regular_users {
+  * user_id : uuid <<PK>> <<FK>>
+  --
+  cpf : varchar <<UNIQUE>>
+  phone : varchar
+}
+
+entity "admins" as admins {
+  * user_id : uuid <<PK>> <<FK>>
+  --
+  department : varchar
+  headline : varchar
+  bio : text
+  avatar_url : varchar
+}
+
+entity "company" as company {
+  * id : uuid <<PK>> <<FK>>
+  --
+  company_name : varchar
+  cnpj_id : varchar <<UNIQUE>>
+  company_email : varchar
+  matricula : int
+}
+
+entity "courses" as courses {
+  * id : uuid <<PK>>
+  --
+  title : varchar
+  description : text
+  short_description : text
+  thumbnail_url : varchar
+  teaser_video_url : varchar
+  status : enum('DRAFT', 'PUBLISHED', 'ARCHIVED')
+  created_by : uuid <<FK>>
+  instructor_id : uuid <<FK>>
+  category : varchar
+  level : varchar
+  duration_time : int
+  deadline : int
+  access_duration_days : int
+  price : double
+  learning_objectives : json
+  require_sequential_progress : boolean
+  enforce_deadline_block : boolean
+  major_version : int
+  minor_version : int
+  lessons_count : int
+  materials_count : int
+  students_count : int
+  reviews_count : int
+  rating_average : double
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "modules" as modules {
+  * id : uuid <<PK>>
+  --
+  course_id : uuid <<FK>>
+  title : varchar
+  order : int
+}
+
+entity "content" as content {
+  * id : uuid <<PK>>
+  --
+  module_id : uuid <<FK>>
+  title : varchar
+  description : text
+  type : enum('VIDEO', 'TEXT', 'FILE')
+  url : varchar
+  duration_minutes : int
+  is_free : boolean
+  order : int
+  recursos : json
+  created_at : datetime
+}
+
+entity "course_materials" as course_materials {
+  * id : uuid <<PK>>
+  --
+  course_id : uuid <<FK>>
+  title : varchar
+  file_url : varchar
+  file_type : varchar
+  file_size_bytes : bigint
+  order : int
+  created_at : datetime
+}
+
+entity "course_change_log" as course_change_log {
+  * id : uuid <<PK>>
+  --
+  course_id : uuid <<FK>>
+  changed_by : uuid <<FK>>
+  description : text
+  major_version : int
+  minor_version : int
+  created_at : datetime
+}
+
+entity "course_prerequisites" as course_prerequisites {
+  * course_id : uuid <<PK>> <<FK>>
+  * prerequisite_course_id : uuid <<PK>> <<FK>>
+  --
+}
+
+entity "module_prerequisites" as module_prerequisites {
+  * module_id : uuid <<PK>> <<FK>>
+  * prerequisite_module_id : uuid <<PK>> <<FK>>
+  --
+}
+
+entity "course_reviews" as course_reviews {
+  * id : uuid <<PK>>
+  --
+  course_id : uuid <<FK>>
+  user_id : uuid <<FK>>
+  rating : int
+  comment : text
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "user_courses" as user_courses {
+  * user_id : uuid <<PK>> <<FK>>
+  * course_id : uuid <<PK>> <<FK>>
+  --
+  dt_inicio : date
+  dt_expiracao : date
+  progress : int
+  conclusion_date : date
+  last_access_date : datetime
+  certificate_issued : boolean
+  certificate_code : varchar <<UNIQUE>>
+  certificate_issued_at : datetime
+}
+
+entity "company_courses" as company_courses {
+  * company_id : uuid <<PK>> <<FK>>
+  * course_id : uuid <<PK>> <<FK>>
+  --
+  data_inicio : date
+  data_expiracao : date
+}
+
+entity "users_company" as users_company {
+  * user_id : uuid <<PK>> <<FK>>
+  * company_id : uuid <<PK>> <<FK>>
+  --
+  role : varchar
+}
+
+entity "notifications" as notifications {
+  * id : uuid <<PK>>
+  --
+  user_id : uuid <<FK>>
+  type : enum('COURSE_PUBLISHED', 'COURSE_UPDATED', 'COURSE_EXPIRING', 'CERTIFICATE_ISSUED', 'GENERAL')
+  title : varchar
+  message : text
+  course_id : uuid <<FK>>
+  is_read : boolean
+  read_at : datetime
+  created_at : datetime
+}
+
+' --- RELATIONSHIPS ---
+
+' Inheritance Relationships (JOINED strategy)
+users ||--|| regular_users : "is"
+users ||--|| admins : "is"
+users ||--|| company : "is"
+
+' User roles and Courses
+users ||--o{ courses : "creates"
+admins ||--o{ courses : "instructs"
+users ||--o{ course_change_log : "changes"
+
+' Courses Structure
+courses ||--o{ modules : "has"
+modules ||--o{ content : "has"
+courses ||--o{ course_materials : "provides"
+courses ||--o{ course_change_log : "tracks history"
+
+' Prerequisites
+courses ||--o{ course_prerequisites : "requires"
+courses ||--o{ course_prerequisites : "is required by"
+modules ||--o{ module_prerequisites : "requires"
+modules ||--o{ module_prerequisites : "is required by"
+
+' Feedback & Communication
+courses ||--o{ course_reviews : "receives"
+users ||--o{ course_reviews : "writes"
+users ||--o{ notifications : "receives"
+courses ||--o{ notifications : "triggers"
+
+' Associative Relationships (Enrollments & Work)
+users ||--o{ user_courses : "enrolls"
+courses ||--o{ user_courses : "has enrollments"
+
+company ||--o{ company_courses : "licenses"
+courses ||--o{ company_courses : "licensed to"
+
+users ||--o{ users_company : "works at"
+company ||--o{ users_company : "employs"
+
+@enduml
