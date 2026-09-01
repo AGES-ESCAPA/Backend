@@ -29,11 +29,11 @@ public class CoursePrerequisiteEntity {
 
     @ManyToOne
     @MapsId("courseId")
-    @JoinColumn(name = "course_id")
+    @JoinColumn(name = "course_id", nullable = false)
     private CourseEntity course;
 
     @ManyToOne
     @MapsId("prerequisiteCourseId")
-    @JoinColumn(name = "prerequisite_course_id")
+    @JoinColumn(name = "prerequisite_course_id", nullable = false)
     private CourseEntity prerequisiteCourse;
 }

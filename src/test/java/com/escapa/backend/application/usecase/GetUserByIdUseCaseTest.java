@@ -1,7 +1,7 @@
 package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.application.port.UserRepositoryPort;
-import com.escapa.backend.domain.user.User;
+import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserNotFoundException;
 import org.junit.jupiter.api.Test;
 
@@ -12,20 +12,20 @@ class GetUserByIdUseCaseTest {
 
     @Test
     void shouldReturnUserWhenFound() {
-        UserRepositoryPort repository = new InMemoryUserRepositoryPort();
-        User saved = repository.save(User.create("Maria", "maria@email.com", "student"));
-        GetUserByIdUseCase useCase = new GetUserByIdUseCase(repository);
+        final UserRepositoryPort repository = new InMemoryUserRepositoryPort();
+        final User saved = repository.save(new User("maria@email.com", "password", "STUDENT"));
+        final GetUserByIdUseCase useCase = new GetUserByIdUseCase(repository);
 
-        User found = useCase.execute(saved.getId());
+        final User found = useCase.execute(String.valueOf(saved.getId()));
 
         assertEquals(saved.getId(), found.getId());
     }
 
     @Test
     void shouldThrowWhenUserNotFound() {
-        UserRepositoryPort repository = new InMemoryUserRepositoryPort();
-        GetUserByIdUseCase useCase = new GetUserByIdUseCase(repository);
+        final UserRepositoryPort repository = new InMemoryUserRepositoryPort();
+        final GetUserByIdUseCase useCase = new GetUserByIdUseCase(repository);
 
-        assertThrows(UserNotFoundException.class, () -> useCase.execute("unknown-id"));
+        assertThrows(UserNotFoundException.class, () -> useCase.execute("99999"));
     }
 }

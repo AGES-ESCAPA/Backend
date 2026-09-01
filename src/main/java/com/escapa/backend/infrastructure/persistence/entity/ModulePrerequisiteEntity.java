@@ -28,11 +28,11 @@ public class ModulePrerequisiteEntity {
 
     @ManyToOne
     @MapsId("moduleId")
-    @JoinColumn(name = "module_id")
+    @JoinColumn(name = "module_id", nullable = false)
     private ModuleEntity module;
 
     @ManyToOne
     @MapsId("prerequisiteModuleId")
-    @JoinColumn(name = "prerequisite_module_id")
+    @JoinColumn(name = "prerequisite_module_id", nullable = false)
     private ModuleEntity prerequisiteModule;
 }

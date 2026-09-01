@@ -57,6 +57,7 @@ public class ContentEntity {
     @Column(name = "\"order\"", nullable = false)
     private Integer order;
 
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     @Column(name = "recursos", columnDefinition = "JSON")
     private String recursos;
 

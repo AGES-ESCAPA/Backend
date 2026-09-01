@@ -26,12 +26,12 @@ public class UsersCompanyEntity {
 
     @ManyToOne
     @MapsId("userId")
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
     @ManyToOne
     @MapsId("companyId")
-    @JoinColumn(name = "company_id")
+    @JoinColumn(name = "company_id", nullable = false)
     private CompanyEntity company;
 
     @Column(name = "role", nullable = false)

@@ -1,7 +1,7 @@
 package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.application.port.UserRepositoryPort;
-import com.escapa.backend.domain.user.User;
+import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserNotFoundException;
 
 public class GetUserByIdUseCase {

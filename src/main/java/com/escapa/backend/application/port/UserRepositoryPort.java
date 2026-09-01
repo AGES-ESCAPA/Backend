@@ -1,6 +1,6 @@
 package com.escapa.backend.application.port;
 
-import com.escapa.backend.domain.user.User;
+import com.escapa.backend.domain.entity.User;
 
 import java.util.List;
 import java.util.Optional;

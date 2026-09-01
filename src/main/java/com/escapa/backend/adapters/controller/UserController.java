@@ -6,7 +6,7 @@ import com.escapa.backend.adapters.dto.UserResponse;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
-import com.escapa.backend.domain.user.User;
+import com.escapa.backend.domain.entity.User;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +38,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<UserResponse>> create(@Valid @RequestBody CreateUserRequest request) {
-        final User user = createUserUseCase.execute(request.name(), request.email(), request.role());
+        final User user = createUserUseCase.execute(request.email(), request.password(), request.userType());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(toResponse(user), "User created successfully"));
     }
@@ -58,6 +58,6 @@ public class UserController {
     }
 
     private static UserResponse toResponse(User user) {
-        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole());
+        return new UserResponse(user.getId(), user.getEmail(), user.getUserType(), user.getCreatedAt());
     }
 }

@@ -1,7 +1,7 @@
 package com.escapa.backend.infrastructure.persistence;
 
 import com.escapa.backend.application.port.UserRepositoryPort;
-import com.escapa.backend.domain.user.User;
+import com.escapa.backend.domain.entity.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,21 +20,20 @@ class UserRepositoryAdapterTest extends PostgresIntegrationTest {
 
     @Test
     void shouldPersistAndRetrieveUser() {
-        User user = User.create("Maria Souza", "maria.persist@email.com", "student");
+        final User user = new User(101, "maria.persist@email.com", "pass", "STUDENT", null);
 
-        userRepositoryPort.save(user);
+        final User saved = userRepositoryPort.save(user);
 
-        Optional<User> found = userRepositoryPort.findById(user.getId());
+        final Optional<User> found = userRepositoryPort.findById(String.valueOf(saved.getId()));
         assertTrue(found.isPresent());
-        assertEquals(user.getId(), found.get().getId());
-        assertEquals("Maria Souza", found.get().getName());
+        assertEquals(saved.getId(), found.get().getId());
         assertEquals("maria.persist@email.com", found.get().getEmail());
-        assertEquals("STUDENT", found.get().getRole());
+        assertEquals("STUDENT", found.get().getUserType());
     }
 
     @Test
     void shouldReportWhetherEmailIsAlreadyTaken() {
-        User user = User.create("Joao Lima", "joao.exists@email.com", "student");
+        final User user = new User(102, "joao.exists@email.com", "pass", "STUDENT", null);
 
         userRepositoryPort.save(user);
 
@@ -44,10 +43,10 @@ class UserRepositoryAdapterTest extends PostgresIntegrationTest {
 
     @Test
     void shouldRejectDuplicateEmail() {
-        User first = User.create("Ana Costa", "ana.unique@email.com", "student");
+        final User first = new User(103, "ana.unique@email.com", "pass", "STUDENT", null);
         userRepositoryPort.save(first);
 
-        User duplicate = User.create("Outra Ana", "ana.unique@email.com", "teacher");
+        final User duplicate = new User(104, "ana.unique@email.com", "pass", "TEACHER", null);
 
         assertThrows(DataIntegrityViolationException.class, () -> userRepositoryPort.save(duplicate));
     }

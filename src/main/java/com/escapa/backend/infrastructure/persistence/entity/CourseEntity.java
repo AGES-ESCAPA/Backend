@@ -80,6 +80,7 @@ public class CourseEntity {
     @Column(name = "price")
     private Double price;
 
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     @Column(name = "learning_objectives", columnDefinition = "JSON")
     private String learningObjectives;
 

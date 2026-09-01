@@ -1,7 +1,7 @@
 package com.escapa.backend.infrastructure.persistence;
 
 import com.escapa.backend.application.port.UserRepositoryPort;
-import com.escapa.backend.domain.user.User;
+import com.escapa.backend.domain.entity.User;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

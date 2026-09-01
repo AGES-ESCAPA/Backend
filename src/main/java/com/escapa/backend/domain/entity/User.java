@@ -22,4 +22,12 @@ public class User {
     private String userType;
     private LocalDateTime createdAt;
     private List<UserCourse> userCourses = new ArrayList<>();
+
+    public User(Integer id, String email, String password, String userType, LocalDateTime createdAt) {
+        this(id, email, password, userType, createdAt, new ArrayList<>());
+    }
+
+    public User(String email, String password, String userType) {
+        this(null, email, password, userType, LocalDateTime.now(), new ArrayList<>());
+    }
 }

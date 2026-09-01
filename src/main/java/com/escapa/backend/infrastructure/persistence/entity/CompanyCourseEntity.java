@@ -27,12 +27,12 @@ public class CompanyCourseEntity {
 
     @ManyToOne
     @MapsId("companyId")
-    @JoinColumn(name = "company_id")
+    @JoinColumn(name = "company_id", nullable = false)
     private CompanyEntity company;
 
     @ManyToOne
     @MapsId("courseId")
-    @JoinColumn(name = "course_id")
+    @JoinColumn(name = "course_id", nullable = false)
     private CourseEntity course;
 
     @Column(name = "data_inicio")
