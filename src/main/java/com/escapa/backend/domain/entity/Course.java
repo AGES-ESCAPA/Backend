@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -16,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"id", "title"})
 public class Course {
-    private Integer id;
+    private UUID id;
     private String title;
     private String description;
     private User createdBy;

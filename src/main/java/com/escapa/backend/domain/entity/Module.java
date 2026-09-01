@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -15,13 +16,13 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"id", "title"})
 public class Module {
-    private Integer id;
+    private UUID id;
     private Course course;
     private String title;
     private Integer order;
     private List<Content> contents = new ArrayList<>();
 
-    public Module(Integer id, Course course, String title, Integer order) {
+    public Module(UUID id, Course course, String title, Integer order) {
         this.id = id;
         this.course = course;
         this.title = title;

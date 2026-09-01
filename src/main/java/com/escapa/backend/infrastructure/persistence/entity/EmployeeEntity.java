@@ -8,6 +8,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 @Entity
 @Table(name = "employees")
 @PrimaryKeyJoinColumn(name = "user_id")
@@ -16,7 +19,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class EmployeeEntity extends UserEntity {
 
-    public EmployeeEntity(String id, String name, String email, String role) {
-        super(id, name, email, role);
+    public EmployeeEntity(UUID id, String name, String email, String passwordHash, String role,
+                          LocalDateTime createdAt) {
+        super(id, name, email, passwordHash, role, createdAt);
     }
 }

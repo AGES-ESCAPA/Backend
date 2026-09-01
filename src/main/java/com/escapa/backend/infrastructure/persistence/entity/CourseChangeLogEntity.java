@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /** Historico de versoes do curso: o que mudou, quando e quem mudou. */
 @Entity
@@ -26,8 +27,8 @@ import java.time.LocalDateTime;
 public class CourseChangeLogEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)

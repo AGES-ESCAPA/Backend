@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /** Avaliacao de 1 a 5 estrelas que um usuario da a um curso. Uma avaliacao por usuario por curso. */
 @Entity
@@ -33,8 +34,8 @@ import java.time.LocalDateTime;
 public class CourseReviewEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)

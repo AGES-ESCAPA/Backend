@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -38,7 +39,8 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<UserResponse>> create(@Valid @RequestBody CreateUserRequest request) {
-        final User user = createUserUseCase.execute(request.email(), request.password(), request.userType());
+        final User user = createUserUseCase.execute(
+                request.name(), request.email(), request.password(), request.userType());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(toResponse(user), "User created successfully"));
     }
@@ -52,12 +54,13 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserResponse>> getById(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<UserResponse>> getById(@PathVariable UUID id) {
         final User user = getUserByIdUseCase.execute(id);
         return ResponseEntity.ok(ApiResponse.success(toResponse(user)));
     }
 
     private static UserResponse toResponse(User user) {
-        return new UserResponse(user.getId(), user.getEmail(), user.getUserType(), user.getCreatedAt());
+        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getUserType(),
+                user.getCreatedAt());
     }
 }

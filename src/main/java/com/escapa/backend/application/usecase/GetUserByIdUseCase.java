@@ -4,6 +4,8 @@ import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserNotFoundException;
 
+import java.util.UUID;
+
 public class GetUserByIdUseCase {
     private final UserRepositoryPort userRepositoryPort;
 
@@ -11,7 +13,7 @@ public class GetUserByIdUseCase {
         this.userRepositoryPort = userRepositoryPort;
     }
 
-    public User execute(String id) {
+    public User execute(UUID id) {
         return userRepositoryPort.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 }

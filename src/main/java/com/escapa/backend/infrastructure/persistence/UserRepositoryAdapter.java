@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class UserRepositoryAdapter implements UserRepositoryPort {
@@ -35,7 +36,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public Optional<User> findById(String id) {
+    public Optional<User> findById(UUID id) {
         return userJpaRepository.findById(id).map(UserMapper::toDomain);
     }
 }

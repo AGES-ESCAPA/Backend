@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 @Embeddable
 @Getter
@@ -19,8 +20,8 @@ import java.io.Serializable;
 public class ModulePrerequisiteId implements Serializable {
 
     @Column(name = "module_id")
-    private Integer moduleId;
+    private UUID moduleId;
 
     @Column(name = "prerequisite_module_id")
-    private Integer prerequisiteModuleId;
+    private UUID prerequisiteModuleId;
 }

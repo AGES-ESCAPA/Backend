@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -16,18 +17,19 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"id", "email"})
 public class User {
-    private Integer id;
+    private UUID id;
+    private String name;
     private String email;
-    private String password;
+    private String passwordHash;
     private String userType;
     private LocalDateTime createdAt;
     private List<UserCourse> userCourses = new ArrayList<>();
 
-    public User(Integer id, String email, String password, String userType, LocalDateTime createdAt) {
-        this(id, email, password, userType, createdAt, new ArrayList<>());
+    public User(UUID id, String name, String email, String passwordHash, String userType, LocalDateTime createdAt) {
+        this(id, name, email, passwordHash, userType, createdAt, new ArrayList<>());
     }
 
-    public User(String email, String password, String userType) {
-        this(null, email, password, userType, LocalDateTime.now(), new ArrayList<>());
+    public User(String name, String email, String passwordHash, String userType) {
+        this(null, name, email, passwordHash, userType, LocalDateTime.now(), new ArrayList<>());
     }
 }

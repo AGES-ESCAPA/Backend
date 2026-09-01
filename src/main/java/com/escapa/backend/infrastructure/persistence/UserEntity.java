@@ -14,6 +14,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -25,13 +28,16 @@ public class UserEntity {
 
     @Id
     @Column(nullable = false, unique = true)
-    private String id;
+    private UUID id;
 
     @Column(nullable = false)
     private String name;
 
     @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
 
     @Column(nullable = false)
     private String role;
@@ -40,7 +46,10 @@ public class UserEntity {
     @Column(name = "status", nullable = false)
     private UserStatus status = UserStatus.ACTIVE;
 
-    public UserEntity(String id, String name, String email, String role) {
-        this(id, name, email, role, UserStatus.ACTIVE);
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    public UserEntity(UUID id, String name, String email, String passwordHash, String role, LocalDateTime createdAt) {
+        this(id, name, email, passwordHash, role, UserStatus.ACTIVE, createdAt);
     }
 }

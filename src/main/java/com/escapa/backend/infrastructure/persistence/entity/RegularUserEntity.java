@@ -9,6 +9,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 @Entity
 @Table(name = "regular_users")
 @PrimaryKeyJoinColumn(name = "user_id")
@@ -23,8 +26,9 @@ public class RegularUserEntity extends UserEntity {
     @Column(name = "phone")
     private String phone;
 
-    public RegularUserEntity(String id, String name, String email, String role, String cpf, String phone) {
-        super(id, name, email, role);
+    public RegularUserEntity(UUID id, String name, String email, String passwordHash, String role,
+                             LocalDateTime createdAt, String cpf, String phone) {
+        super(id, name, email, passwordHash, role, createdAt);
         this.cpf = cpf;
         this.phone = phone;
     }

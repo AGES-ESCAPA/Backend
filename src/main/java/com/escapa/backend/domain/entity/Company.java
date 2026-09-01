@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,9 +21,9 @@ public class Company extends User {
     private Integer matricula;
     private List<CompanyCourse> companyCourses = new ArrayList<>();
 
-    public Company(Integer id, String email, String password, String userType, LocalDateTime createdAt,
+    public Company(UUID id, String name, String email, String passwordHash, String userType, LocalDateTime createdAt,
                    String companyName, String cnpjId, String companyEmail, Integer matricula) {
-        super(id, email, password, userType, createdAt, new ArrayList<>());
+        super(id, name, email, passwordHash, userType, createdAt, new ArrayList<>());
         this.companyName = companyName;
         this.cnpjId = cnpjId;
         this.companyEmail = companyEmail;

@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,8 +41,9 @@ public class AdminEntity extends UserEntity {
     @OneToMany(mappedBy = "instructor")
     private List<CourseEntity> taughtCourses = new ArrayList<>();
 
-    public AdminEntity(String id, String name, String email, String role, String department) {
-        super(id, name, email, role);
+    public AdminEntity(UUID id, String name, String email, String passwordHash, String role,
+                       LocalDateTime createdAt, String department) {
+        super(id, name, email, passwordHash, role, createdAt);
         this.department = department;
     }
 }

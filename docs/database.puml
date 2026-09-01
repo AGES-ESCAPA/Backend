@@ -6,23 +6,25 @@ skinparam linetype ortho
 ' --- TABLES ---
 
 entity "users" as users {
-  * id : varchar <<PK>>
+  * id : uuid <<PK>>
   --
   name : varchar
   email : varchar <<UNIQUE>>
+  password_hash : varchar
   role : varchar
   status : enum('ACTIVE', 'INACTIVE')
+  created_at : datetime
 }
 
 entity "regular_users" as regular_users {
-  * user_id : varchar <<PK>> <<FK>>
+  * user_id : uuid <<PK>> <<FK>>
   --
   cpf : varchar <<UNIQUE>>
   phone : varchar
 }
 
 entity "admins" as admins {
-  * user_id : varchar <<PK>> <<FK>>
+  * user_id : uuid <<PK>> <<FK>>
   --
   department : varchar
   headline : varchar
@@ -31,7 +33,7 @@ entity "admins" as admins {
 }
 
 entity "company" as company {
-  * id : varchar <<PK>> <<FK>>
+  * id : uuid <<PK>> <<FK>>
   --
   company_name : varchar
   cnpj_id : varchar <<UNIQUE>>
@@ -40,12 +42,12 @@ entity "company" as company {
 }
 
 entity "employees" as employees {
-  * user_id : varchar <<PK>> <<FK>>
+  * user_id : uuid <<PK>> <<FK>>
   --
 }
 
 entity "courses" as courses {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
   title : varchar
   description : text
@@ -53,8 +55,8 @@ entity "courses" as courses {
   thumbnail_url : varchar
   teaser_video_url : varchar
   status : enum('DRAFT', 'PUBLISHED', 'ARCHIVED')
-  created_by : varchar <<FK>>
-  instructor_id : varchar <<FK>>
+  created_by : uuid <<FK>>
+  instructor_id : uuid <<FK>>
   category : varchar
   level : varchar
   duration_time : int
@@ -76,17 +78,17 @@ entity "courses" as courses {
 }
 
 entity "modules" as modules {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
-  course_id : int <<FK>>
+  course_id : uuid <<FK>>
   title : varchar
   order : int
 }
 
 entity "content" as content {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
-  module_id : int <<FK>>
+  module_id : uuid <<FK>>
   title : varchar
   description : text
   type : enum('VIDEO', 'TEXT', 'FILE')
@@ -99,9 +101,9 @@ entity "content" as content {
 }
 
 entity "course_materials" as course_materials {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
-  course_id : int <<FK>>
+  course_id : uuid <<FK>>
   title : varchar
   file_url : varchar
   file_type : varchar
@@ -111,10 +113,10 @@ entity "course_materials" as course_materials {
 }
 
 entity "course_change_log" as course_change_log {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
-  course_id : int <<FK>>
-  changed_by : varchar <<FK>>
+  course_id : uuid <<FK>>
+  changed_by : uuid <<FK>>
   description : text
   major_version : int
   minor_version : int
@@ -122,22 +124,22 @@ entity "course_change_log" as course_change_log {
 }
 
 entity "course_prerequisites" as course_prerequisites {
-  * course_id : int <<PK>> <<FK>>
-  * prerequisite_course_id : int <<PK>> <<FK>>
+  * course_id : uuid <<PK>> <<FK>>
+  * prerequisite_course_id : uuid <<PK>> <<FK>>
   --
 }
 
 entity "module_prerequisites" as module_prerequisites {
-  * module_id : int <<PK>> <<FK>>
-  * prerequisite_module_id : int <<PK>> <<FK>>
+  * module_id : uuid <<PK>> <<FK>>
+  * prerequisite_module_id : uuid <<PK>> <<FK>>
   --
 }
 
 entity "course_reviews" as course_reviews {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
-  course_id : int <<FK>>
-  user_id : varchar <<FK>>
+  course_id : uuid <<FK>>
+  user_id : uuid <<FK>>
   rating : int
   comment : text
   created_at : datetime
@@ -145,8 +147,8 @@ entity "course_reviews" as course_reviews {
 }
 
 entity "user_courses" as user_courses {
-  * user_id : varchar <<PK>> <<FK>>
-  * course_id : int <<PK>> <<FK>>
+  * user_id : uuid <<PK>> <<FK>>
+  * course_id : uuid <<PK>> <<FK>>
   --
   dt_inicio : date
   dt_expiracao : date
@@ -159,28 +161,28 @@ entity "user_courses" as user_courses {
 }
 
 entity "company_courses" as company_courses {
-  * company_id : varchar <<PK>> <<FK>>
-  * course_id : int <<PK>> <<FK>>
+  * company_id : uuid <<PK>> <<FK>>
+  * course_id : uuid <<PK>> <<FK>>
   --
   data_inicio : date
   data_expiracao : date
 }
 
 entity "users_company" as users_company {
-  * user_id : varchar <<PK>> <<FK>>
-  * company_id : varchar <<PK>> <<FK>>
+  * user_id : uuid <<PK>> <<FK>>
+  * company_id : uuid <<PK>> <<FK>>
   --
   role : varchar
 }
 
 entity "notifications" as notifications {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
-  user_id : varchar <<FK>>
+  user_id : uuid <<FK>>
   type : enum('COURSE_PUBLISHED', 'COURSE_UPDATED', 'COURSE_EXPIRING', 'CERTIFICATE_ISSUED', 'GENERAL')
   title : varchar
   message : text
-  course_id : int <<FK>>
+  course_id : uuid <<FK>>
   is_read : boolean
   read_at : datetime
   created_at : datetime

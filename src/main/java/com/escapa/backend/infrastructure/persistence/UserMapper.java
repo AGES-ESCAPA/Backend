@@ -15,31 +15,23 @@ public final class UserMapper {
         if (user == null) {
             return null;
         }
-        final String id = user.getId() != null ? String.valueOf(user.getId()) : UUID.randomUUID().toString();
-        final String name = user.getEmail() != null ? user.getEmail() : "";
-        final String email = user.getEmail();
-        final String role = user.getUserType() != null ? user.getUserType() : "USER";
-        return new UserEntity(id, name, email, role);
+        final UUID id = user.getId() != null ? user.getId() : UUID.randomUUID();
+        final LocalDateTime createdAt = user.getCreatedAt() != null ? user.getCreatedAt() : LocalDateTime.now();
+        return new UserEntity(id, user.getName(), user.getEmail(), user.getPasswordHash(),
+                user.getUserType(), createdAt);
     }
 
     public static User toDomain(UserEntity entity) {
         if (entity == null) {
             return null;
         }
-        Integer id = null;
-        if (entity.getId() != null) {
-            try {
-                id = Integer.valueOf(entity.getId());
-            } catch (final NumberFormatException ignored) {
-                id = Math.abs(entity.getId().hashCode());
-            }
-        }
         return new User(
-                id,
+                entity.getId(),
+                entity.getName(),
                 entity.getEmail(),
-                null,
+                entity.getPasswordHash(),
                 entity.getRole(),
-                LocalDateTime.now(),
+                entity.getCreatedAt(),
                 new ArrayList<>()
         );
     }

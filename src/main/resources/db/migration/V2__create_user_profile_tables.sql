@@ -3,7 +3,7 @@ ALTER TABLE users ADD COLUMN status VARCHAR(255) NOT NULL DEFAULT 'ACTIVE';
 ALTER TABLE users ADD CONSTRAINT ck_users_status CHECK (status IN ('ACTIVE', 'INACTIVE'));
 
 CREATE TABLE admins (
-    user_id VARCHAR(255) PRIMARY KEY,
+    user_id UUID PRIMARY KEY,
     department VARCHAR(255),
     headline VARCHAR(255),
     bio TEXT,
@@ -12,7 +12,7 @@ CREATE TABLE admins (
 );
 
 CREATE TABLE company (
-    id VARCHAR(255) PRIMARY KEY,
+    id UUID PRIMARY KEY,
     company_name VARCHAR(255) NOT NULL,
     cnpj_id VARCHAR(255) UNIQUE,
     company_email VARCHAR(255),
@@ -21,20 +21,20 @@ CREATE TABLE company (
 );
 
 CREATE TABLE employees (
-    user_id VARCHAR(255) PRIMARY KEY,
+    user_id UUID PRIMARY KEY,
     CONSTRAINT fk_employees_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE regular_users (
-    user_id VARCHAR(255) PRIMARY KEY,
+    user_id UUID PRIMARY KEY,
     cpf VARCHAR(255) UNIQUE,
     phone VARCHAR(255),
     CONSTRAINT fk_regular_users_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE users_company (
-    user_id VARCHAR(255) NOT NULL,
-    company_id VARCHAR(255) NOT NULL,
+    user_id UUID NOT NULL,
+    company_id UUID NOT NULL,
     role VARCHAR(255) NOT NULL,
     PRIMARY KEY (user_id, company_id),
     CONSTRAINT fk_users_company_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,

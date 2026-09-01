@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /** Material de apoio no nivel do curso (PDF, planilha), distinto dos recursos de uma aula. */
 @Entity
@@ -25,8 +26,8 @@ import java.time.LocalDateTime;
 public class CourseMaterialEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)

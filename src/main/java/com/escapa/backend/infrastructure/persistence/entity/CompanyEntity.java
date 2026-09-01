@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,9 +38,10 @@ public class CompanyEntity extends UserEntity {
     @OneToMany(mappedBy = "company")
     private List<CompanyCourseEntity> companyCourses = new ArrayList<>();
 
-    public CompanyEntity(String id, String name, String email, String role,
+    public CompanyEntity(UUID id, String name, String email, String passwordHash, String role,
+                         LocalDateTime createdAt,
                          String companyName, String cnpjId, String companyEmail, Integer matricula) {
-        super(id, name, email, role);
+        super(id, name, email, passwordHash, role, createdAt);
         this.companyName = companyName;
         this.cnpjId = cnpjId;
         this.companyEmail = companyEmail;

@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -19,23 +20,37 @@ class UserRepositoryAdapterTest extends PostgresIntegrationTest {
     private UserRepositoryPort userRepositoryPort;
 
     @Test
-    void shouldPersistAndRetrieveUser() {
-        final User user = new User(101, "maria.persist@email.com", "pass", "STUDENT", null);
+    void shouldPersistAndRetrieveUserCreatedWithoutId() {
+        final User user = new User("Maria Persist", "maria.persist@email.com", "hash", "STUDENT");
 
         final User saved = userRepositoryPort.save(user);
 
-        final Optional<User> found = userRepositoryPort.findById(String.valueOf(saved.getId()));
+        assertNotNull(saved.getId());
+        final Optional<User> found = userRepositoryPort.findById(saved.getId());
         assertTrue(found.isPresent());
         assertEquals(saved.getId(), found.get().getId());
+        assertEquals("Maria Persist", found.get().getName());
         assertEquals("maria.persist@email.com", found.get().getEmail());
         assertEquals("STUDENT", found.get().getUserType());
+        assertEquals("hash", found.get().getPasswordHash());
+    }
+
+    @Test
+    void shouldKeepCreatedAtStableAcrossReads() {
+        final User saved = userRepositoryPort.save(
+                new User("Carlos Data", "carlos.data@email.com", "hash", "STUDENT"));
+
+        final Optional<User> first = userRepositoryPort.findById(saved.getId());
+        final Optional<User> second = userRepositoryPort.findById(saved.getId());
+
+        assertTrue(first.isPresent());
+        assertTrue(second.isPresent());
+        assertEquals(first.get().getCreatedAt(), second.get().getCreatedAt());
     }
 
     @Test
     void shouldReportWhetherEmailIsAlreadyTaken() {
-        final User user = new User(102, "joao.exists@email.com", "pass", "STUDENT", null);
-
-        userRepositoryPort.save(user);
+        userRepositoryPort.save(new User("Joao Exists", "joao.exists@email.com", "hash", "STUDENT"));
 
         assertTrue(userRepositoryPort.existsByEmail("joao.exists@email.com"));
         assertFalse(userRepositoryPort.existsByEmail("desconhecido@email.com"));
@@ -43,10 +58,9 @@ class UserRepositoryAdapterTest extends PostgresIntegrationTest {
 
     @Test
     void shouldRejectDuplicateEmail() {
-        final User first = new User(103, "ana.unique@email.com", "pass", "STUDENT", null);
-        userRepositoryPort.save(first);
+        userRepositoryPort.save(new User("Ana Unique", "ana.unique@email.com", "hash", "STUDENT"));
 
-        final User duplicate = new User(104, "ana.unique@email.com", "pass", "TEACHER", null);
+        final User duplicate = new User("Ana Clone", "ana.unique@email.com", "hash", "TEACHER");
 
         assertThrows(DataIntegrityViolationException.class, () -> userRepositoryPort.save(duplicate));
     }

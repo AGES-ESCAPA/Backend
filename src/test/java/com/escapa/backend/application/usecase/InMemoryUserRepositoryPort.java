@@ -6,15 +6,16 @@ import com.escapa.backend.domain.entity.User;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 final class InMemoryUserRepositoryPort implements UserRepositoryPort {
     private final List<User> users = new ArrayList<>();
-    private int sequence = 1;
 
     @Override
     public User save(User user) {
+        // Espelha o adapter real: id nulo vira um UUID gerado na persistencia.
         if (user.getId() == null) {
-            user.setId(sequence++);
+            user.setId(UUID.randomUUID());
         }
         users.removeIf(u -> user.getId().equals(u.getId()));
         users.add(user);
@@ -32,12 +33,7 @@ final class InMemoryUserRepositoryPort implements UserRepositoryPort {
     }
 
     @Override
-    public Optional<User> findById(String id) {
-        try {
-            final Integer intId = Integer.valueOf(id);
-            return users.stream().filter(user -> intId.equals(user.getId())).findFirst();
-        } catch (final NumberFormatException e) {
-            return Optional.empty();
-        }
+    public Optional<User> findById(UUID id) {
+        return users.stream().filter(user -> id.equals(user.getId())).findFirst();
     }
 }

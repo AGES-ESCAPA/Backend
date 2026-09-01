@@ -13,8 +13,8 @@ class ListUsersUseCaseTest {
     @Test
     void shouldListAllUsers() {
         final UserRepositoryPort repository = new InMemoryUserRepositoryPort();
-        repository.save(new User("maria@email.com", "pass1", "STUDENT"));
-        repository.save(new User("joao@email.com", "pass2", "TEACHER"));
+        repository.save(new User("Maria Silva", "maria@email.com", "hash1", "STUDENT"));
+        repository.save(new User("Joao Souza", "joao@email.com", "hash2", "TEACHER"));
         final ListUsersUseCase useCase = new ListUsersUseCase(repository);
 
         final List<User> users = useCase.execute();
