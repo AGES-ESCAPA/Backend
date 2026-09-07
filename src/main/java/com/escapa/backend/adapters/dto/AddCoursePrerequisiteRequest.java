@@ -5,6 +5,6 @@ import java.util.UUID;
 import jakarta.validation.constraints.NotNull;
 
 public record AddCoursePrerequisiteRequest(
-        @NotNull UUID prerequisiteCourseId
+        @NotNull(message = "prerequisiteCourseId is required") UUID prerequisiteCourseId
 ) {
 }
