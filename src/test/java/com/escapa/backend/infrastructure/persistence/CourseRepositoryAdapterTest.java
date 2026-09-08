@@ -167,7 +167,6 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
     private CourseEntity buildCourse(String title, String category, String level,
                                     CourseStatus status, AdminEntity instructor) {
         final CourseEntity course = new CourseEntity();
-        course.setId(UUID.randomUUID());
         course.setTitle(title);
         course.setShortDescription("Descrição de " + title);
         course.setCategory(category);
