@@ -28,8 +28,12 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
     public PageResult<CourseSummary> findPublished(
             String title, String category, String level, int page, int size) {
         final Pageable pageable = PageRequest.of(page, size);
+        final String safeTitle = title != null ? title : "";
+        final String safeCategory = category != null ? category : "";
+        final String safeLevel = level != null ? level : "";
+
         final Page<CourseEntity> jpaPage = jpaRepository.findPublishedCourses(
-                CourseStatus.PUBLISHED, title, category, level, pageable);
+                CourseStatus.PUBLISHED, safeTitle, safeCategory, safeLevel, pageable);
         final List<CourseSummary> content = jpaPage.getContent().stream()
                 .map(CourseMapper::toSummary)
                 .toList();
