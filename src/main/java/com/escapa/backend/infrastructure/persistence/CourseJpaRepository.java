@@ -24,14 +24,14 @@ public interface CourseJpaRepository extends JpaRepository<CourseEntity, UUID> {
             SELECT c FROM CourseEntity c
             LEFT JOIN FETCH c.instructor
             WHERE c.status = :status
-            AND (:title IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', :title, '%')))
+            AND (:title IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', CAST(:title AS string), '%')))
             AND (:category IS NULL OR c.category = :category)
             AND (:level IS NULL OR c.level = :level)
             """,
             countQuery = """
             SELECT COUNT(c) FROM CourseEntity c
             WHERE c.status = :status
-            AND (:title IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', :title, '%')))
+            AND (:title IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', CAST(:title AS string), '%')))
             AND (:category IS NULL OR c.category = :category)
             AND (:level IS NULL OR c.level = :level)
             """)
