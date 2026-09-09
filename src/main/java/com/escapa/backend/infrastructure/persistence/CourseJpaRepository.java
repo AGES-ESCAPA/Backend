@@ -24,20 +24,20 @@ public interface CourseJpaRepository extends JpaRepository<CourseEntity, UUID> {
             SELECT c FROM CourseEntity c
             LEFT JOIN FETCH c.instructor
             WHERE c.status = :status
-            AND (:title = '' OR LOWER(c.title) LIKE LOWER(CONCAT('%', :title, '%')))
+            AND LOWER(c.title) LIKE :titlePattern
             AND (:category = '' OR c.category = :category)
             AND (:level = '' OR c.level = :level)
             """,
             countQuery = """
             SELECT COUNT(c) FROM CourseEntity c
             WHERE c.status = :status
-            AND (:title = '' OR LOWER(c.title) LIKE LOWER(CONCAT('%', :title, '%')))
+            AND LOWER(c.title) LIKE :titlePattern
             AND (:category = '' OR c.category = :category)
             AND (:level = '' OR c.level = :level)
             """)
     Page<CourseEntity> findPublishedCourses(
             @Param("status") CourseStatus status,
-            @Param("title") String title,
+            @Param("titlePattern") String titlePattern,
             @Param("category") String category,
             @Param("level") String level,
             Pageable pageable
