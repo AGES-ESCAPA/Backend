@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/public/courses")
+@RequestMapping("/api/v1/public/courses")
 public class PublicCourseController {
 
     private final ListPublishedCoursesUseCase listPublishedCoursesUseCase;
