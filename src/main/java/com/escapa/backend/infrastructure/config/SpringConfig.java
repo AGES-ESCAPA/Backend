@@ -7,8 +7,14 @@ import com.escapa.backend.application.usecase.GetUserByIdUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
+import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
+import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
 
 @Configuration
 public class SpringConfig {
@@ -34,5 +40,18 @@ public class SpringConfig {
     @Bean
     public GetUserByIdUseCase getUserByIdUseCase(UserRepositoryPort userRepositoryPort) {
         return new GetUserByIdUseCase(userRepositoryPort);
+    }
+
+    @Bean
+    public GetCourseRulesUseCase getCourseRulesUseCase(
+            CourseRepositoryPort courseRepository,
+            CourseChangeLogRepositoryPort courseChangeLogRepository,
+            CoursePrerequisiteRepositoryPort coursePrerequisiteRepository
+    ) {
+        return new GetCourseRulesUseCase(
+            courseRepository,
+            coursePrerequisiteRepository,
+            courseChangeLogRepository
+        );
     }
 }
