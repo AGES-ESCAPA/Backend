@@ -10,6 +10,7 @@ import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
+import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
 import com.escapa.backend.application.usecase.ReorderContentsUseCase;
@@ -76,6 +77,14 @@ public class SpringConfig {
             ModuleRepositoryPort moduleRepositoryPort
     ) {
         return new GetContentUseCase(contentRepositoryPort, moduleRepositoryPort);
+    }
+
+    @Bean
+    public ListModuleContentsUseCase listModuleContentsUseCase(
+            ContentRepositoryPort contentRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort
+    ) {
+        return new ListModuleContentsUseCase(contentRepositoryPort, moduleRepositoryPort);
     }
 
     @Bean

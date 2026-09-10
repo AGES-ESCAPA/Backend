@@ -8,6 +8,7 @@ import com.escapa.backend.adapters.dto.UpdateContentRequest;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.GetContentUseCase;
+import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
 import com.escapa.backend.application.usecase.ReorderContentsUseCase;
 import com.escapa.backend.application.usecase.UpdateContentUseCase;
 import com.escapa.backend.domain.entity.Content;
@@ -33,6 +34,7 @@ public class AdminContentController {
     private final CreateContentUseCase createContentUseCase;
     private final UpdateContentUseCase updateContentUseCase;
     private final GetContentUseCase getContentUseCase;
+    private final ListModuleContentsUseCase listModuleContentsUseCase;
     private final DeleteContentUseCase deleteContentUseCase;
     private final ReorderContentsUseCase reorderContentsUseCase;
 
@@ -40,12 +42,14 @@ public class AdminContentController {
             CreateContentUseCase createContentUseCase,
             UpdateContentUseCase updateContentUseCase,
             GetContentUseCase getContentUseCase,
+            ListModuleContentsUseCase listModuleContentsUseCase,
             DeleteContentUseCase deleteContentUseCase,
             ReorderContentsUseCase reorderContentsUseCase
     ) {
         this.createContentUseCase = createContentUseCase;
         this.updateContentUseCase = updateContentUseCase;
         this.getContentUseCase = getContentUseCase;
+        this.listModuleContentsUseCase = listModuleContentsUseCase;
         this.deleteContentUseCase = deleteContentUseCase;
         this.reorderContentsUseCase = reorderContentsUseCase;
     }
@@ -66,6 +70,14 @@ public class AdminContentController {
         );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(ContentResponse.from(content), "Content created successfully"));
+    }
+
+    @GetMapping("/modules/{moduleId}/contents")
+    public ResponseEntity<ApiResponse<List<ContentResponse>>> listByModule(@PathVariable UUID moduleId) {
+        final List<ContentResponse> contents = listModuleContentsUseCase.execute(moduleId).stream()
+                .map(ContentResponse::from)
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success(contents));
     }
 
     @GetMapping("/modules/{moduleId}/contents/{id}")
