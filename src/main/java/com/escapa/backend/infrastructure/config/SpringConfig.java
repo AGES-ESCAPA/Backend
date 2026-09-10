@@ -1,20 +1,21 @@
 package com.escapa.backend.infrastructure.config;
 
-import com.escapa.backend.application.port.PasswordHasherPort;
-import com.escapa.backend.application.port.UserRepositoryPort;
-import com.escapa.backend.application.usecase.CreateUserUseCase;
-import com.escapa.backend.application.usecase.GetUserByIdUseCase;
-import com.escapa.backend.application.usecase.ListUsersUseCase;
-import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
-import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.application.port.PasswordHasherPort;
+import com.escapa.backend.application.port.UserRepositoryPort;
+import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
+import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
+import com.escapa.backend.application.usecase.GetUserByIdUseCase;
+import com.escapa.backend.application.usecase.ListUsersUseCase;
+import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
+import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
+import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
 
 @Configuration
 public class SpringConfig {
@@ -53,5 +54,18 @@ public class SpringConfig {
             coursePrerequisiteRepository,
             courseChangeLogRepository
         );
+    }
+
+    @Bean
+    public UpdateProgressRulesUseCase updateProgressRulesUseCase(
+            CourseRepositoryPort courseRepository) {
+        return new UpdateProgressRulesUseCase(courseRepository);
+    }
+
+    @Bean
+    public AddCoursePrerequisiteUseCase addCoursePrerequisiteUseCase(
+            CourseRepositoryPort courseRepository,
+            CoursePrerequisiteRepositoryPort prerequisiteRepository) {
+        return new AddCoursePrerequisiteUseCase(courseRepository, prerequisiteRepository);
     }
 }
