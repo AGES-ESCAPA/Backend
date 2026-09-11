@@ -7,8 +7,12 @@ services:
       POSTGRES_DB: escapa_db
       POSTGRES_USER: escapa
       POSTGRES_PASSWORD: escapa123
+    # Porta exposta para a maquina do dev. 5433 por padrao para nao colidir com um
+    # PostgreSQL instalado no sistema, que sempre ocupa a 5432. Dentro da rede do
+    # Compose o banco continua em postgres:5432. Sobrescreva com POSTGRES_HOST_PORT
+    # no .env (o Compose le esse arquivo sozinho).
     ports:
-      - '5432:5432'
+      - '${POSTGRES_HOST_PORT:-5433}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

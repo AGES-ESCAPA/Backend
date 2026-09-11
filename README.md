@@ -180,7 +180,9 @@ Os testes espelham a mesma árvore em `src/test/java`, no mesmo pacote da classe
 
    O `mvn spring-boot:run` sobe com o perfil **`dev`**, que aplica o seed (`db/seed/R__seed_dev.sql`) depois das migrations. O seed trunca e recria os dados a cada start; para preservar dados manuais use `mvn spring-boot:run -Dspring-boot.run.profiles=default`.
 
-3. **Configuração** (opcional). Os padrões de `application.properties` já batem com o `docker-compose.yml`: nada precisa ser configurado para rodar localmente. Se o seu ambiente for diferente (outra porta, outro banco), as variáveis aceitas estão em `.env.example`. Atenção: o Spring Boot **não lê `.env` sozinho**; exporte as variáveis no terminal ou configure-as na IDE.
+3. **Configuração** (opcional). Os padrões de `application.properties` já batem com o `docker-compose.yml`: nada precisa ser configurado para rodar localmente. Se o seu ambiente for diferente, as variáveis aceitas estão em `.env.example`. Atenção: o Docker Compose lê `.env` sozinho, mas o Spring Boot **não**; para `mvn spring-boot:run`, exporte as variáveis no terminal ou configure-as na IDE.
+
+> 🔌 **Porta do banco.** O container do Postgres é exposto na **5433** da sua máquina (`POSTGRES_HOST_PORT`), não na 5432. Motivo: quem tem PostgreSQL instalado no Windows ou no Mac já tem a 5432 ocupada, e `localhost:5432` cairia nesse servidor em vez do container, com erro de autenticação na subida. Dentro da rede do Compose o banco continua em `postgres:5432`. Para conectar com um cliente SQL na sua máquina, use `localhost:5433`, usuário `escapa`, senha `escapa123`.
 
 A API fica em `http://localhost:8080`. A raiz redireciona para o Swagger.
 
@@ -375,7 +377,7 @@ Documentação interativa: `http://localhost:8080/swagger-ui/index.html`.
 docker compose up --build
 ```
 
-Sobe PostgreSQL e o backend. O backend só inicia após o healthcheck do banco, aplica as migrations e o seed, e responde em `http://localhost:8080`.
+Sobe PostgreSQL e o backend. O backend só inicia após o healthcheck do banco, aplica as migrations e o seed, e responde em `http://localhost:8080`. O Postgres fica acessível da sua máquina em `localhost:5433` (ver `POSTGRES_HOST_PORT` em `.env.example`).
 
 ### 🌐 CORS
 
