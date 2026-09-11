@@ -1,15 +1,17 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.port.ContentRepositoryPort;
-import com.escapa.backend.domain.entity.Content;
-import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
-import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.escapa.backend.application.port.ContentRepositoryPort;
+import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.entity.Content;
+import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
+import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
 
 @Repository
 public class ContentRepositoryAdapter implements ContentRepositoryPort {
@@ -27,9 +29,13 @@ public class ContentRepositoryAdapter implements ContentRepositoryPort {
 
     @Override
     public Content save(Content content) {
-        final ContentEntity entity = content.getId() != null
-                ? contentJpaRepository.findById(content.getId()).orElseGet(ContentEntity::new)
-                : new ContentEntity();
+        final ContentEntity entity;
+        if (content.getId() == null) {
+            entity = new ContentEntity();
+        } else {
+            entity = contentJpaRepository.findById(content.getId())
+                    .orElseThrow(() -> new ContentNotFoundException(content.getId()));
+        }
         final ModuleEntity module = moduleJpaRepository.getReferenceById(content.getModuleId());
         ContentMapper.applyToEntity(content, entity, module);
         return ContentMapper.toDomain(contentJpaRepository.save(entity));
@@ -65,11 +71,11 @@ public class ContentRepositoryAdapter implements ContentRepositoryPort {
         // final direto violaria uk_content_module_order no meio do caminho, porque
         // duas linhas dividiriam a mesma posicao ate a ultima atualizacao.
         for (int index = 0; index < orderedIds.size(); index++) {
-            contentJpaRepository.updateOrderById(orderedIds.get(index), -(index + 1));
+            contentJpaRepository.updateOrderByIdAndModuleId(orderedIds.get(index), moduleId, -(index + 1));
         }
         // Fase 2: faixa positiva ja livre, grava a ordem definitiva.
         for (int index = 0; index < orderedIds.size(); index++) {
-            contentJpaRepository.updateOrderById(orderedIds.get(index), index + 1);
+            contentJpaRepository.updateOrderByIdAndModuleId(orderedIds.get(index), moduleId, index + 1);
         }
     }
 }

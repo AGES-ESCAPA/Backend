@@ -396,6 +396,7 @@ Combinação inválida retorna `400 Bad Request` nomeando o campo faltante (ex.:
 
 ```http
 POST   /api/v1/admin/modules/{moduleId}/contents
+GET    /api/v1/admin/modules/{moduleId}/contents
 GET    /api/v1/admin/modules/{moduleId}/contents/{id}
 PUT    /api/v1/admin/modules/{moduleId}/contents/reorder
 PUT    /api/v1/admin/contents/{id}

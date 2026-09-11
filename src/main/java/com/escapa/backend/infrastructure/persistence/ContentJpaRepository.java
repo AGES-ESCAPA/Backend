@@ -18,7 +18,13 @@ public interface ContentJpaRepository extends JpaRepository<ContentEntity, UUID>
 
     // flush/clear automaticos mantem as duas fases do reorder na ordem certa e
     // evitam que o contexto de persistencia devolva a ordem antiga depois.
+    // O filtro por module_id garante que o reorder nunca alcance outro modulo,
+    // mesmo que um chamador futuro passe um id de fora da lista.
     @Modifying(flushAutomatically = true, clearAutomatically = true)
-    @Query("UPDATE ContentEntity c SET c.order = :order WHERE c.id = :id")
-    void updateOrderById(@Param("id") UUID id, @Param("order") Integer order);
+    @Query("UPDATE ContentEntity c SET c.order = :order WHERE c.id = :id AND c.module.id = :moduleId")
+    void updateOrderByIdAndModuleId(
+            @Param("id") UUID id,
+            @Param("moduleId") UUID moduleId,
+            @Param("order") Integer order
+    );
 }
