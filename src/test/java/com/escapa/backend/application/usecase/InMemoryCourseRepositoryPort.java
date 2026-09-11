@@ -10,7 +10,9 @@ import java.util.Locale;
 
 /**
  * Fake em memória de {@link CourseRepositoryPort} para testes unitários.
- * Simula filtragem e paginação sem banco de dados.
+ * Simula filtragem e paginação sem banco de dados, seguindo o mesmo
+ * contrato da porta: título parcial e literal, categoria e nível
+ * case-insensitive. A ordem é a de inserção.
  */
 final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
 
@@ -30,8 +32,8 @@ final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
         final List<CourseSummary> filtered = courses.stream()
                 .filter(c -> title == null
                         || c.title().toLowerCase(Locale.ROOT).contains(title.toLowerCase(Locale.ROOT)))
-                .filter(c -> category == null || category.equals(c.category()))
-                .filter(c -> level == null || level.equals(c.level()))
+                .filter(c -> category == null || category.equalsIgnoreCase(c.category()))
+                .filter(c -> level == null || level.equalsIgnoreCase(c.level()))
                 .toList();
 
         final int total = filtered.size();

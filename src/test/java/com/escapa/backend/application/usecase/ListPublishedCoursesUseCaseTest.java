@@ -121,6 +121,56 @@ class ListPublishedCoursesUseCaseTest {
         assertEquals("IA Aplicada ao Turismo", result.content().get(0).title());
     }
 
+    @Test
+    void shouldFilterByCategoryIgnoringCase() {
+        final PageResult<CourseSummary> result = useCase.execute(null, "hospitalidade", null, null, null);
+
+        assertEquals(1, result.totalElements());
+        assertEquals("Atendimento de Excelência", result.content().get(0).title());
+    }
+
+    @Test
+    void shouldFilterByLevelIgnoringCase() {
+        final PageResult<CourseSummary> result = useCase.execute(null, null, "Iniciante", null, null);
+
+        assertEquals(2, result.totalElements());
+    }
+
+    @Test
+    void shouldIgnoreBlankFilters() {
+        final PageResult<CourseSummary> result = useCase.execute("   ", "", " ", null, null);
+
+        assertEquals(3, result.totalElements());
+    }
+
+    @Test
+    void shouldTrimFiltersBeforeSearching() {
+        final PageResult<CourseSummary> result = useCase.execute(
+                "  atendimento  ", " Hospitalidade ", " INICIANTE ", null, null);
+
+        assertEquals(1, result.totalElements());
+        assertEquals("Atendimento de Excelência", result.content().get(0).title());
+    }
+
+    @Test
+    void shouldTreatWildcardCharactersInTitleAsLiteralText() {
+        final PageResult<CourseSummary> byPercent = useCase.execute("%", null, null, null, null);
+        final PageResult<CourseSummary> byUnderscore = useCase.execute("_", null, null, null, null);
+
+        assertEquals(0, byPercent.totalElements());
+        assertEquals(0, byUnderscore.totalElements());
+    }
+
+    @Test
+    void shouldKeepRepositoryOrderAcrossPages() {
+        final PageResult<CourseSummary> firstPage = useCase.execute(null, null, null, 0, 2);
+        final PageResult<CourseSummary> secondPage = useCase.execute(null, null, null, 1, 2);
+
+        assertEquals("Atendimento de Excelência", firstPage.content().get(0).title());
+        assertEquals("Gestão de Reservas", firstPage.content().get(1).title());
+        assertEquals("IA Aplicada ao Turismo", secondPage.content().get(0).title());
+    }
+
     private static CourseSummary buildCourse(String title, String category, String level, int lessonsCount) {
         return new CourseSummary(
                 UUID.randomUUID(), title, "Descricao de " + title,

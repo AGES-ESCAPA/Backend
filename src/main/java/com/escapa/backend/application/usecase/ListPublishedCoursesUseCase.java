@@ -6,7 +6,8 @@ import com.escapa.backend.application.port.CourseRepositoryPort;
 
 /**
  * Caso de uso: listar cursos publicados com filtros e paginação.
- * Valida os parâmetros de paginação e delega ao repositório.
+ * Normaliza os filtros (trim, vazio vira ausente), valida os parâmetros
+ * de paginação e delega ao repositório.
  */
 public class ListPublishedCoursesUseCase {
 
@@ -24,6 +25,20 @@ public class ListPublishedCoursesUseCase {
             String title, String category, String level, Integer page, Integer size) {
         final int safePage = (page != null && page >= 0) ? page : DEFAULT_PAGE;
         final int safeSize = (size != null && size > 0) ? Math.min(size, MAX_SIZE) : DEFAULT_SIZE;
-        return courseRepositoryPort.findPublished(title, category, level, safePage, safeSize);
+        return courseRepositoryPort.findPublished(
+                normalizeFilter(title), normalizeFilter(category), normalizeFilter(level),
+                safePage, safeSize);
+    }
+
+    /**
+     * Remove espaços nas pontas e trata string vazia como filtro ausente,
+     * para que {@code ?category=} ou {@code ?title=%20} não alterem o resultado.
+     */
+    private static String normalizeFilter(String value) {
+        if (value == null) {
+            return null;
+        }
+        final String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }
