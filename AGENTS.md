@@ -146,6 +146,36 @@ Espelham a árvore de produção, **no mesmo pacote da classe testada**, sufixo 
 - Contadores desnormalizados em `courses` são mantidos por trigger, sempre recalculando com `COUNT`/`AVG` (nunca incrementando): `lessons_count` (V5), `reviews_count` e `rating_average` (V6, em `course_reviews`), `materials_count` (V6, em `course_materials`). Cada um tem teste em `course.shared.entity.*TriggerTest`. **`students_count` ainda não tem mecanismo**; entra quando a US de matrícula definir a regra de contagem.
 - Redes de segurança da V6 (`CHECK` de `role`, faixas de `progress`, `price`, ordens, datas de matrícula) são testadas por amostra em `course.shared.entity.BusinessConstraintsTest`. Se um teste de fluxo normal bater numa delas, falta checagem no service.
 
+### Regras de negócio por subfeature (checklist para as USs)
+
+Cada service novo nasce checando estas regras **antes** do `save`, com a exceção indicada em `<subfeature>/exception/`. Critério de aceite do MR: nenhum teste de fluxo normal termina em `DATA_CONFLICT`.
+
+| Subfeature | Regra | Checagem no service | Exceção (base → HTTP, `code`) |
+|---|---|---|---|
+| `course/management` | instrutor tem que ser admin | `findById` + `instanceof AdminEntity` | `InstructorNotAdminException` (BusinessRule → 422, `INSTRUCTOR_NOT_ADMIN`) |
+| `course/management` | pré-requisito sem ciclo | busca em grafo antes de inserir | `PrerequisiteCycleException` (BusinessRule → 422, `PREREQUISITE_CYCLE`) |
+| `course/management` | curso não existe | `findById` | `CourseNotFoundException` (NotFound → 404, `COURSE_NOT_FOUND`) |
+| `course/management` | ordem de módulo repetida | `existsByCourseIdAndOrder` | `ModuleOrderTakenException` (Conflict → 409, `MODULE_ORDER_TAKEN`) |
+| `course/management` | publicar curso sem aula | `lessonsCount == 0` | `CourseHasNoLessonsException` (BusinessRule → 422, `COURSE_HAS_NO_LESSONS`) |
+| `course/management` | `url` obrigatória para `VIDEO` e `FILE` | ao criar `content` | `ContentUrlRequiredException` (BusinessRule → 422, `CONTENT_URL_REQUIRED`) |
+| `course/management` | apagar curso com matrícula | ver política de exclusão abaixo | `CourseHasEnrollmentsException` (BusinessRule → 422, `COURSE_HAS_ENROLLMENTS`) |
+| `course/review` | uma avaliação por aluno por curso | `existsByCourseIdAndUserId` | `ReviewAlreadyExistsException` (Conflict → 409, `REVIEW_ALREADY_EXISTS`) |
+| `course/review` | só matriculado avalia | consulta via `EnrollmentService` | `NotEnrolledException` (BusinessRule → 422, `NOT_ENROLLED`) |
+| `course/review` | nota de 1 a 5 | `@Min(1) @Max(5)` no DTO | 400 `VALIDATION_ERROR` |
+| `enrollment` | uma matrícula por aluno por curso | `existsById` | `AlreadyEnrolledException` (Conflict → 409, `ALREADY_ENROLLED`) |
+| `enrollment` | só curso `PUBLISHED` aceita matrícula | status via `CourseCatalogService` | `CourseNotPublishedException` (BusinessRule → 422, `COURSE_NOT_PUBLISHED`) |
+| `enrollment` | progresso de 0 a 100 | `@Min(0) @Max(100)` no DTO | 400 `VALIDATION_ERROR` |
+| `enrollment` | `dt_expiracao` é calculada | `dt_inicio + access_duration_days`, nunca vem do cliente | não é erro; é regra de cálculo |
+
+### Política de exclusão de curso
+
+`ON DELETE CASCADE` em sete tabelas faz um `DELETE FROM courses` apagar matrículas, certificados emitidos, avaliações e notificações dos alunos. Por isso:
+
+- **Curso com matrícula nunca é apagado.** `DELETE /api/v1/courses/{id}` arquiva (`status = ARCHIVED`): some da vitrine, não aceita matrícula nova, quem já está matriculado mantém acesso e histórico.
+- **Hard delete só para `DRAFT` sem matrícula**, para limpar rascunho. O cascade do banco continua servindo para isso.
+- Tentar forçar a exclusão de curso com matrícula devolve `422 COURSE_HAS_ENROLLMENTS`.
+
+
 ---
 
 ## Qualidade e fluxo
