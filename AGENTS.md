@@ -12,6 +12,18 @@
 
 **🚫 Fora do escopo atual**: autenticação e autorização (existe só o bean `PasswordEncoder`), pagamentos, IA, streaming, multi-tenancy, multilíngue.
 
+
+## Por que pacote por feature (registro da decisão)
+
+Decidido em setembro/2026, substituindo Clean Architecture. Resumo para agente ou pessoa que pensar em "melhorar" a estrutura:
+
+- Sistema CRUD com regras pontuais: não há múltiplos pontos de entrada, múltiplos bancos nem regra complexa que justifique domínio isolado.
+- A versão anterior exigia oito arquivos e três cópias do mesmo objeto por endpoint, tinha nove classes de domínio sem regra (oito sem uso) e fakes em memória que duplicavam a JPQL e divergiam dela.
+- Trocar Spring ou Postgres não é cenário real; a regra mais importante do banco já era trigger.
+- Time com rotatividade: custo de onboarding pago a cada semestre.
+
+Não proponha reintroduzir portas, adapters, casos de uso, mappers, entidades de domínio separadas das JPA ou fakes em memória. Se o projeto crescer, a evolução é multi-módulo Maven por feature, não camadas globais. O README tem a versão longa desta seção.
+
 ---
 
 ## Estrutura de Pastas

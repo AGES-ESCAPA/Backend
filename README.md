@@ -10,6 +10,7 @@ O guia completo de regras para quem desenvolve ou revisa está em [AGENTS.md](AG
 
 - [Visão Geral e Contexto](#-visão-geral-e-contexto)
 - [Estrutura de Pastas e Onde Desenvolver](#-estrutura-de-pastas-e-onde-desenvolver)
+  - [Por que essa estrutura?](#-por-que-essa-estrutura)
 - [Tecnologias Utilizadas](#-tecnologias-utilizadas)
 - [Pré-requisitos](#-pré-requisitos)
 - [Instalação e Setup](#-instalação-e-setup)
@@ -79,6 +80,30 @@ src/main/resources/
     ├── migration/               → V1..V5 (Flyway)
     └── seed/R__seed_dev.sql     → dados de desenvolvimento
 ```
+
+### 🤔 Por que essa estrutura?
+
+O projeto nasceu em Clean Architecture (`domain`, `application`, `adapters`, `infrastructure`, com portas, adapters, mappers e casos de uso). Em setembro de 2026 o time trocou por pacote por feature. Os motivos, para ninguém precisar refazer a discussão:
+
+- **O sistema é majoritariamente CRUD.** Regras de negócio são pontuais (email único, curso publicado, contadores). Clean Architecture paga quando há múltiplos pontos de entrada, múltiplos bancos ou regras complexas que valem testar isoladas. Aqui não há nenhum dos três.
+- **O custo fixo era alto.** Um `GET` de listagem exigia oito arquivos e três cópias do mesmo objeto (`CourseEntity`, `CourseSummary`, `CourseCardResponse`) ligadas por construtores posicionais de doze argumentos. Adicionar um campo tocava quatro arquivos; adicionar um filtro, cinco.
+- **O domínio era peso morto.** Nove classes de domínio, oito sem uso, nenhuma com regra, todas divergindo das entidades JPA. Era Clean Architecture em pastas, com domínio anêmico.
+- **Os fakes duplicavam o banco.** Cada porta tinha um fake em memória que reimplementava a consulta em Java e precisava ser mantido em sincronia com a JPQL na mão. Já tinha divergido uma vez.
+- **A promessa de trocar framework não se cumpre.** Ninguém vai trocar Spring nem Postgres, e a regra mais importante do banco (`lessons_count`) já vivia num trigger PL/pgSQL.
+- **Time de estudantes com rotatividade.** Cada pessoa nova pagava o custo de entender porta, adapter, fake, read model e fiação manual de beans antes de escrever o primeiro endpoint.
+
+O que a estrutura por feature dá em troca:
+
+- **Quatro arquivos no caminho de um pedido** (controller, service, repository, entity), com nome de papel na pasta e no arquivo. Quem abre `catalog/service/CourseCatalogService.java` sabe o que é sem ler.
+- **Tudo de uma feature no mesmo lugar.** Apagar ou mover uma feature é apagar ou mover uma pasta.
+- **Teste por papel, com a ferramenta certa.** Mockito para regra, banco real para consulta, MockMvc para contrato. Sem fake.
+- **Erro com dono.** Quatro famílias, três classes base, um handler que nunca muda. Feature nova só cria suas exceções.
+
+O que foi mantido de propósito: Flyway, `record` para DTO, `ApiResponse`/`ApiError`, `GlobalExceptionHandler`, Checkstyle, Testcontainers. Eram baratos e funcionavam.
+
+O que ficou explicitamente fora desse refactor: o banco. Nenhuma migration, coluna, constraint ou trigger mudou.
+
+Se um dia o sistema crescer para múltiplas entradas ou regras pesadas, o caminho natural é **multi-módulo Maven**, um módulo por feature, não voltar às camadas globais.
 
 ### 🧭 Guia prático: onde colocar meu código?
 
