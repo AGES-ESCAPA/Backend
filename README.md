@@ -172,7 +172,7 @@ Os testes espelham a mesma árvore em `src/test/java`, no mesmo pacote da classe
    docker compose up --build
    ```
 
-   **Opção B — banco em container, aplicação pelo Maven** (hot reload, sem reconstruir imagem)
+   **Opção B — banco em container, aplicação pelo Maven** (sem reconstruir a imagem a cada mudança; reinicie o `mvn spring-boot:run` para aplicar alterações de código)
    ```bash
    docker compose up -d postgres
    mvn spring-boot:run
