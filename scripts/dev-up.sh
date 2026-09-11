@@ -2,7 +2,7 @@
 # Sobe o docker compose escolhendo a primeira porta livre para o backend.
 #
 # O Docker Compose nao tem fallback de porta: se a 8080 estiver ocupada, a subida
-# falha. Este script testa 8080, 8081, ... e exporta BACKEND_HOST_PORT antes de
+# falha. Este script testa 8080, 8081, ... e exporta SERVER_PORT antes de
 # chamar o compose. Argumentos extras sao repassados (ex.: ./scripts/dev-up.sh --build).
 #
 # Uso (Git Bash / WSL / Linux / macOS):
@@ -12,7 +12,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-first_port="${BACKEND_HOST_PORT:-8080}"
+first_port="${SERVER_PORT:-8080}"
 last_port=$((first_port + 10))
 
 port_busy() {
@@ -41,7 +41,7 @@ if [[ "$chosen" != "$first_port" ]]; then
   echo "Porta $first_port ocupada. Subindo o backend na $chosen. Aponte o frontend para ela."
 fi
 
-export BACKEND_HOST_PORT="$chosen"
+export SERVER_PORT="$chosen"
 docker compose up -d "$@"
 echo
 echo "Backend:  http://localhost:$chosen"

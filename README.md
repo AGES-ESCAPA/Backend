@@ -180,13 +180,13 @@ Os testes espelham a mesma árvore em `src/test/java`, no mesmo pacote da classe
 
    O `mvn spring-boot:run` sobe com o perfil **`dev`**, que aplica o seed (`db/seed/R__seed_dev.sql`) depois das migrations. O seed trunca e recria os dados a cada start; para preservar dados manuais use `mvn spring-boot:run -Dspring-boot.run.profiles=default`.
 
-3. **Configuração** (opcional). Os padrões de `application.properties` já batem com o `docker-compose.yml`: nada precisa ser configurado para rodar localmente. Se o seu ambiente for diferente, as variáveis aceitas estão em `.env.example`. Atenção: o Docker Compose lê `.env` sozinho, mas o Spring Boot **não**; para `mvn spring-boot:run`, exporte as variáveis no terminal ou configure-as na IDE.
+3. **Configuração** (opcional). Os padrões já batem com o `docker-compose.yml`: nada precisa ser configurado para rodar localmente. Se o seu ambiente for diferente, copie `.env.example` para `.env` e ajuste só o que muda. **Um arquivo serve os dois modos**: o Docker Compose lê `.env` por natureza, e o perfil `dev` do Spring o importa via `spring.config.import`. Fora de `dev` (jar, homologação, produção) só variáveis de ambiente valem. Variável exportada no terminal tem prioridade sobre o arquivo.
 
 > 🔌 **Porta do banco.** O container do Postgres é exposto na **15432** da sua máquina (`POSTGRES_HOST_PORT`), não na 5432. Motivo: quem tem PostgreSQL instalado no Windows ou no Mac já ocupa a 5432, e uma segunda instalação ocupa a 5433, 5434 e assim por diante; `localhost:5432` cairia nesse servidor em vez do container, com erro de autenticação na subida. Dentro da rede do Compose o banco continua em `postgres:5432`. Para conectar com um cliente SQL na sua máquina, use `localhost:15432`, usuário `escapa`, senha `escapa123`.
 
 > 🔌 **Porta da API.** Padrão 8080. Se estiver ocupada (um Vite ou outro serviço local):
 > - **Pelo Maven**, o perfil `dev` faz fallback sozinho: tenta 8081, 8082, 8083 e loga em `WARN` qual usou. O bloco de log do fim da subida mostra a URL real. Em homologação e produção o fallback fica desligado e a porta é fixa.
-> - **Pelo Docker**, use `./scripts/dev-up.sh` (Git Bash) ou `.\scripts\dev-up.ps1` (PowerShell) em vez de `docker compose up`: o script acha a primeira porta livre a partir de 8080 e sobe o compose com ela. Ou fixe `BACKEND_HOST_PORT=8081` no `.env`.
+> - **Pelo Docker**, use `./scripts/dev-up.sh` (Git Bash) ou `.\scripts\dev-up.ps1` (PowerShell) em vez de `docker compose up`: o script acha a primeira porta livre a partir de 8080 e sobe o compose com ela. Ou fixe `SERVER_PORT=8081` no `.env`, que vale para os dois modos.
 >
 > Em qualquer caso, **o frontend precisa apontar para a porta escolhida**; a API não tem como avisá-lo.
 

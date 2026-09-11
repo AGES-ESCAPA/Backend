@@ -1,7 +1,7 @@
 # Sobe o docker compose escolhendo a primeira porta livre para o backend.
 #
 # O Docker Compose nao tem fallback de porta: se a 8080 estiver ocupada, a subida
-# falha. Este script testa 8080, 8081, ... e define BACKEND_HOST_PORT antes de
+# falha. Este script testa 8080, 8081, ... e define SERVER_PORT antes de
 # chamar o compose. Argumentos extras sao repassados (ex.: .\scripts\dev-up.ps1 --build).
 #
 # Uso (PowerShell):
@@ -11,7 +11,7 @@
 $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "..")
 
-$firstPort = if ($env:BACKEND_HOST_PORT) { [int]$env:BACKEND_HOST_PORT } else { 8080 }
+$firstPort = if ($env:SERVER_PORT) { [int]$env:SERVER_PORT } else { 8080 }
 $lastPort = $firstPort + 10
 
 function Test-PortBusy([int]$port) {
@@ -33,7 +33,7 @@ if ($chosen -ne $firstPort) {
     Write-Host "Porta $firstPort ocupada. Subindo o backend na $chosen. Aponte o frontend para ela."
 }
 
-$env:BACKEND_HOST_PORT = "$chosen"
+$env:SERVER_PORT = "$chosen"
 docker compose up -d @args
 Write-Host ""
 Write-Host "Backend:  http://localhost:$chosen"
