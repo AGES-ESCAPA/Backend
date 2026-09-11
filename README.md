@@ -184,6 +184,8 @@ Os testes espelham a mesma árvore em `src/test/java`, no mesmo pacote da classe
 
 > 🔌 **Porta do banco.** O container do Postgres é exposto na **5433** da sua máquina (`POSTGRES_HOST_PORT`), não na 5432. Motivo: quem tem PostgreSQL instalado no Windows ou no Mac já tem a 5432 ocupada, e `localhost:5432` cairia nesse servidor em vez do container, com erro de autenticação na subida. Dentro da rede do Compose o banco continua em `postgres:5432`. Para conectar com um cliente SQL na sua máquina, use `localhost:5433`, usuário `escapa`, senha `escapa123`.
 
+> 🔌 **Porta da API.** Padrão 8080. Se estiver ocupada (um Vite ou outro serviço local), não há fallback automático de propósito: o frontend, o CORS e o Swagger dependem de uma porta conhecida. Mude uma vez e esqueça: no Docker, `BACKEND_HOST_PORT=8081` no `.env`; pelo Maven, `SERVER_PORT=8081 mvn spring-boot:run` (Git Bash) ou `$env:SERVER_PORT=8081; mvn spring-boot:run` (PowerShell). O erro do Docker quando a porta está ocupada é `ports are not available ... bind: Normalmente é permitida apenas uma utilização de cada endereço de soquete`.
+
 A API fica em `http://localhost:8080`. A raiz redireciona para o Swagger.
 
 ---

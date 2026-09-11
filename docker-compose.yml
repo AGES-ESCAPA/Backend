@@ -38,8 +38,11 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       SPRING_FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/seed
       APP_CORS_ALLOWED_ORIGINS: http://localhost:3000
+    # Porta exposta para a maquina do dev. Sobrescreva com BACKEND_HOST_PORT no .env
+    # se a 8080 estiver ocupada (ex.: um Vite de outro projeto). Dentro do container
+    # a aplicacao continua na 8080.
     ports:
-      - '8080:8080'
+      - '${BACKEND_HOST_PORT:-8080}:8080'
 
 volumes:
   postgres_data:
