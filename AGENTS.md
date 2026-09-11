@@ -1,201 +1,155 @@
 # AGENTS.md — Escapa! Backend
 
-> Este arquivo é lido por agentes de IA (Copilot, Cursor, Gemini, Claude, etc.) para entender o contexto do projeto e seguir as convenções do time. **Leia-o completamente antes de sugerir ou gerar código.**
+> Este arquivo é lido por agentes de IA (Copilot, Cursor, Gemini, Claude, etc.) e por quem entra no time. **Leia-o completamente antes de sugerir ou gerar código.** É a fonte de verdade sobre como o projeto está organizado.
 
 ## Contexto do Projeto
 
 **Escapa!** é uma plataforma digital de **cursos e qualificação profissional em Turismo e Hospitalidade**.
 
-- **Backend principal**: Java com Spring Boot.
-- **Arquitetura alvo**: Clean Architecture, com separação entre domínio, casos de uso, adaptadores e infraestrutura.
-- **Persistência**: Spring Data JPA + PostgreSQL.
-- **Execução local**: via Maven, Docker e Docker Compose.
-- **Objetivo inicial**: bootstrap da aplicação com estrutura pronta para crescimento, sem acoplamento entre regras de negócio e frameworks.
+- **Stack**: Java 21, Spring Boot 3.5, Spring Data JPA, Bean Validation, PostgreSQL 16, Flyway, SpringDoc OpenAPI, Checkstyle, Jacoco, JUnit 5, Mockito, Testcontainers, Docker Compose, GitHub Actions.
+- **Arquitetura**: **pacote por feature**, com subfeatures quando a feature tem mais de um contexto de uso, e pastas por papel (`controller`, `service`, `repository`, `entity`, `dto`, `exception`) dentro de cada uma.
+- **Natureza do sistema**: majoritariamente CRUD com regras pontuais. Por isso não há camadas de domínio, casos de uso, portas ou adapters. Esse desenho foi usado e abandonado em setembro/2026 por custar mais do que entregava aqui.
 
-**Escopo inicial do backend**:
-- cadastro e consulta de usuários
-- endpoints base para health check e operação inicial
-- estrutura que suporte futuramente cursos, módulos, aulas, progresso, certificação e administração
+**🚫 Fora do escopo atual**: autenticação e autorização (existe só o bean `PasswordEncoder`), pagamentos, IA, streaming, multi-tenancy, multilíngue.
 
-**🚫 Fora do escopo inicial**:
-- autenticação e autorização avançada
-- integrações com pagamentos
-- integrações com IA
-- lógica de streaming em tempo real
-- multi-tenancy ou multilíngue
+---
 
-## Infraestrutura
-
-A aplicação será executada em ambiente containerizado e deve manter boas práticas de desenvolvimento e deploy:
-
-- Build: `Dockerfile` multi-stage com Java 21, executado por um usuário não-root
-- Orquestração local: `docker-compose.yml` (o backend só sobe após o healthcheck do banco)
-- Banco: PostgreSQL em container, com schema versionado por migrations Flyway
-- Testes: JUnit 5 + Testcontainers — exigem Docker em execução
-- CI/CD: GitHub Actions (`.github/workflows/ci.yml`), com build, Checkstyle, testes, cobertura Jacoco e build da imagem Docker
-
-## Arquitetura de Pastas e Responsabilidades
+## Estrutura de Pastas
 
 ```text
-src/
-├── main/
-│   ├── java/com/escapa/backend/
-│   │   ├── domain/                  → entidades e regras puras do núcleo
-│   │   │   └── user/
-│   │   ├── application/             → casos de uso e portas de saída/entrada
-│   │   │   ├── port/
-│   │   │   └── usecase/
-│   │   ├── adapters/                → controllers, DTOs, handlers e adaptadores web
-│   │   │   ├── controller/
-│   │   │   ├── dto/
-│   │   │   ├── exception/
-│   │   │   └── mapper/
-│   │   ├── infrastructure/          → JPA, repositórios, configurações e integração externa
-│   │   │   ├── config/
-│   │   │   └── persistence/
-│   │   └── EscapaBackendApplication.java
-│   └── resources/
-│       └── application.properties
-└── test/
-    └── java/
-        └── com/escapa/backend/
+com.escapa.backend
+├── EscapaBackendApplication.java
+│
+├── common/                          # transversal, sem regra de negócio, não conhece nenhuma feature
+│   ├── api/                         # ApiResponse, ApiError, PageResponse, GlobalExceptionHandler
+│   ├── exception/                   # BusinessException, NotFoundException, ConflictException, BusinessRuleException
+│   └── config/                      # CorsConfig, OpenApiConfig, SecurityConfig, StartupInfoLogger
+│
+├── health/
+│   └── controller/HealthController
+│
+├── user/
+│   ├── controller/  UserController
+│   ├── service/     UserService
+│   ├── repository/  UserRepository
+│   ├── entity/      UserEntity, AdminEntity, RegularUserEntity, CompanyEntity, UsersCompanyEntity, UsersCompanyId, UserStatus
+│   ├── dto/         CreateUserRequest, UserResponse
+│   └── exception/   UserNotFoundException, EmailAlreadyUsedException
+│
+├── course/
+│   ├── shared/entity/               # entidades e enums usados por todas as subfeatures de curso
+│   ├── catalog/                     # vitrine pública (US-01): controller, service, repository (só leitura), dto
+│   ├── management/                  # CRUD do admin: repository, dto (controller/service/exception a criar)
+│   └── review/                      # avaliações (a criar)
+│
+├── enrollment/entity/               # UserCourseEntity, CompanyCourseEntity e IDs compostos
+└── notification/entity/             # NotificationEntity, NotificationType
 ```
 
-### 📌 Diretrizes de Arquitetura
+Migrations Flyway ficam em `src/main/resources/db/migration/`, seed de desenvolvimento em `src/main/resources/db/seed/`.
 
-1. **Domain (`domain/`)**: entidades puras, sem Spring, sem JPA, sem anotações de framework. Exemplo: `User`.
-2. **Application (`application/`)**: casos de uso e interfaces/portas do sistema; depende apenas do `domain`. Exemplo: `CreateUserUseCase`, `UserRepositoryPort`.
-3. **Adapters (`adapters/`)**: controllers REST, DTOs, tratadores de erro e adaptadores externos; sem lógica de negócio. Exemplo: `UserController`, `GlobalExceptionHandler`.
-4. **Infrastructure (`infrastructure/`)**: persistência, banco, configurações e integração com bibliotecas; implementa as portas definidas em `application`. Exemplo: `UserJpaRepository`, `UserRepositoryAdapter`.
-5. **Regra da Dependência**: todas as dependências devem apontar para o centro, nunca o contrário — `adapters` e `infrastructure` dependem de `application`, que depende só de `domain`, e o `domain` não depende de nada.
+### Papel de cada pasta
 
 ```text
-adapters ──────┐
-               ├──> application ──> domain
-infrastructure ┘
+Controller  →  Service  →  Repository  →  Entity
+  DTO in        regra       Spring Data      JPA
+  DTO out    @Transactional
 ```
+
+- **`controller/`**: recebe a requisição, valida com `@Valid`, chama **um** service, devolve DTO. Nunca importa repository nem entity. Nunca decide nada.
+- **`service/`**: único lugar com `@Transactional` (`readOnly = true` para leitura). Toda decisão de negócio mora aqui. Lança exceções da feature.
+- **`repository/`**: interface Spring Data. Consulta de leitura pode projetar direto no DTO com `SELECT new ...`. Um repositório só de leitura estende `Repository<T, ID>` (marcador) em vez de `JpaRepository`, para não expor `save`/`delete`.
+- **`entity/`**: só mapeamento JPA (sufixo `Entity`). Sem lógica.
+- **`dto/`**: `record`s. Entrada com Bean Validation; saída com método estático `from(entity)`.
+- **`exception/`**: exceções da feature, herdando de uma das três bases em `common.exception`.
+
+### Regras da casa
+
+1. **Dentro de uma subfeature, a seta só anda para a direita.** Controller → Service → Repository → Entity.
+2. **Entre subfeatures da mesma feature, só pelo service.** `CourseReviewService` chama `CourseManagementService`, nunca `CourseRepository`.
+3. **Entre features, também só pelo service.**
+4. **Entidades JPA podem referenciar entidades de qualquer feature.** É o mapeamento do banco.
+5. **`shared/` de uma feature guarda o que duas ou mais subfeatures usam.**
+6. **`common/` não conhece nenhuma feature.** Só recebe dependência.
+7. **Só o service tem `@Transactional`.**
+8. **Subfeature nova nasce com as quatro pastas** (`controller`, `service`, `repository`, `dto`), mesmo vazias, com `package-info.java` descrevendo o que vai ali.
+9. **Feature vira subfeatures quando tem mais de um contexto de uso** (ex.: `course` tem vitrine pública, gestão do admin e avaliação). Nunca divida por camada (`course/controller/`, `course/service/`): isso é voltar para camadas com outro nome.
 
 ---
 
-## Regras para Agentes de IA
+## Erros: quatro famílias
 
-### ⚠️ Regras Invioláveis
+| Família | Quem gera | HTTP | `code` |
+|---|---|---|---|
+| Validação de entrada | Bean Validation no DTO, conversão de parâmetro, JSON malformado | 400 | `VALIDATION_ERROR`, `INVALID_PARAMETER`, `MISSING_PARAMETER`, `MALFORMED_REQUEST` |
+| Regra de negócio | **só o service**, via exceção da feature | 404 / 409 / 422 | definido pela exceção (ex.: `USER_NOT_FOUND`, `EMAIL_ALREADY_USED`) |
+| Protocolo HTTP | Spring MVC | 404 / 405 / 415 | `RESOURCE_NOT_FOUND`, `METHOD_NOT_ALLOWED`, `UNSUPPORTED_MEDIA_TYPE` |
+| Infraestrutura | banco, JPA, inesperado | 409 / 500 | `DATA_CONFLICT`, `INTERNAL_ERROR` |
 
-1. **Nunca acople a camada de domínio a Spring, JPA ou qualquer framework.**
-2. **Nunca coloque lógica de banco dentro da camada de domínio.**
-3. **Nunca use `any` em TypeScript ou Java sem necessidade**. Em Java, prefira tipos explícitos e classes bem definidas.
-4. **Nunca misture DTO, entidade de domínio e entidade JPA na mesma camada.**
-5. **Nunca esconda regras de negócio dentro do controller.**
-6. **Use nomes de pacotes consistentes**: `domain`, `application`, `adapters`, `infrastructure`.
-7. **Use `record` para DTOs quando fizer sentido**, mantendo clareza e simplicidade.
-8. **Mantenha convenções de nomenclatura**: `UserController`, `CreateUserUseCase`, `UserRepositoryPort`, `UserEntity`.
-
----
-
-### ✅ Padrões Obrigatórios de Código
-
-#### 1. Entidade de domínio
-
-```java
-public class User {
-    private final String id;
-    private final String name;
-    private final String email;
-    private final String role;
-
-    public User(String id, String name, String email, String role) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-        this.role = role;
-    }
-}
-```
-
-#### 2. Caso de uso
-
-```java
-public class CreateUserUseCase {
-    private final UserRepositoryPort userRepositoryPort;
-
-    public CreateUserUseCase(UserRepositoryPort userRepositoryPort) {
-        this.userRepositoryPort = userRepositoryPort;
-    }
-
-    public User execute(String name, String email, String role) {
-        User user = User.create(name, email, role);
-        if (userRepositoryPort.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("User already exists");
-        }
-        return userRepositoryPort.save(user);
-    }
-}
-```
-
-#### 3. Controller REST
-
-```java
-@RestController
-@RequestMapping("/api/v1/users")
-public class UserController {
-    private final CreateUserUseCase createUserUseCase;
-
-    public UserController(CreateUserUseCase createUserUseCase) {
-        this.createUserUseCase = createUserUseCase;
-    }
-
-    @PostMapping
-    public ResponseEntity<ApiResponse<UserResponse>> create(@Valid @RequestBody CreateUserRequest request) {
-        User user = createUserUseCase.execute(request.name(), request.email(), request.role());
-        UserResponse response = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole());
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "User created successfully"));
-    }
-}
-```
-
-> Todas as rotas da API são prefixadas com `/api/v1` e respostas de sucesso usam o envelope `ApiResponse`. O CORS libera apenas as origens definidas em `APP_CORS_ALLOWED_ORIGINS`.
-
-#### 4. Testes
-
-Cada caso de uso tem seu teste, usando um fake de `UserRepositoryPort` em memória compartilhado entre os testes do pacote (`InMemoryUserRepositoryPort`, package-private em `src/test/.../application/usecase/`) em vez de mocks:
-
-```java
-class CreateUserUseCaseTest {
-
-    @Test
-    void shouldCreateUserWithNormalizedData() {
-        UserRepositoryPort repository = new InMemoryUserRepositoryPort();
-        CreateUserUseCase useCase = new CreateUserUseCase(repository);
-
-        User user = useCase.execute(" maria ", " maria@email.com ", "student");
-
-        assertNotNull(user.getId());
-        assertEquals("maria", user.getName());
-        assertEquals("maria@email.com", user.getEmail());
-        assertEquals("STUDENT", user.getRole());
-    }
-}
-```
+- Exceção de negócio herda de `NotFoundException` (404), `ConflictException` (409) ou `BusinessRuleException` (422), todas filhas de `BusinessException`, que carrega `code` e `message`. **A feature escolhe o tipo da falha; `common.api.GlobalExceptionHandler` escolhe o status.** Nenhuma classe fora de `common.api` importa `HttpStatus` para erro.
+- **Nunca** use `IllegalArgumentException`, `IllegalStateException` ou `RuntimeException` crua para regra de negócio.
+- Service verifica antes de gravar (`existsByEmail` antes do `save`). A constraint do banco é rede de segurança para condição de corrida; por isso `DataIntegrityViolationException` vira um 409 genérico.
+- Service **não captura** exceção de infraestrutura. Deixa subir para o handler.
+- Cliente nunca vê detalhe de infraestrutura: mensagem do 500 é fixa, stack trace vai só para o log (`ERROR`). Erro de negócio é logado em `INFO`, sem stack trace.
+- Envelope de erro (`ApiError`): `status`, `error`, `code`, `message`, `path`, `timestamp`.
 
 ---
 
-### 🧪 Regras de Validação e Qualidade
+## Contratos de API
 
-- Todo caso de uso deve ter teste unitário correspondente.
-- Todo endpoint novo deve ter teste de integração ou teste de controller quando aplicável.
-- Validação de entrada deve ocorrer no DTO/controller via Bean Validation.
-- Erros de domínio devem ser transformados em respostas padronizadas da API (ver `GlobalExceptionHandler`: 400 para validação/regra de domínio, 404 para recurso não encontrado, 409 para conflito de dados, 500 para erro inesperado).
-- O Checkstyle (`checkstyle.xml`) roda na fase `validate` do Maven e quebra o build em caso de violação — rode `mvn checkstyle:check` antes de abrir MR.
-- O projeto deve continuar funcionando em Maven e em Docker Compose (o `Dockerfile` precisa copiar `checkstyle.xml`, não só `pom.xml`, para o build multi-stage não quebrar).
+- Todas as rotas usam o prefixo `/api/v1`. Rotas públicas ficam sob `/api/v1/public/**`.
+- Sucesso usa `ApiResponse` (`success`, `data`, `message`). **Exceção**: endpoints paginados devolvem `PageResponse` direto (`content`, `pageNumber`, `pageSize`, `totalElements`, `totalPages`), por contrato com o frontend.
+- Entrada validada com `@Valid` e anotações no DTO. Nunca `if` manual no controller.
+- CORS restrito às origens de `APP_CORS_ALLOWED_ORIGINS`, aplicado a `/api/**`.
 
 ---
 
-### Commits & Branches
+## Testes
 
-- Formato de Commit: `<tipo>(<id_clickup>): <descrição curta>` (ex: `feat(86a1b2c): add user creation flow`)
-- Branches: criadas a partir de **`develop`** no formato `<tipo>/<id_clickup>-<breve-descricao>`
-- Merge Requests sempre apontando para a branch **`develop`**.
+Espelham a árvore de produção, **no mesmo pacote da classe testada**, sufixo `Test`. Um tipo de teste por papel:
+
+| Papel | Tipo | Base | O que cobre |
+|---|---|---|---|
+| Service | unitário com Mockito (`@ExtendWith(MockitoExtension.class)`) | nenhuma | regra: normalização, exceções, o que chega ao repositório |
+| Repository | `@DataJpaTest` + Testcontainers | `common.JpaIntegrationTest` | consulta JPQL, projeção, ordenação, constraints, triggers |
+| Controller | `@SpringBootTest` + MockMvc | `common.WebIntegrationTest` | contrato HTTP: rota, status, envelope, nomes dos campos, `code` de erro |
+
+- O Postgres de teste é **um só**, em `common.PostgresTestContainer`. Nunca crie `@Container` por classe.
+- `@DataJpaTest` roda dentro de transação desfeita ao final. Para ver efeito de trigger, faça `flush()` e `clear()` antes de reler.
+- Testes de controller não são transacionais: use dados únicos por teste (UUID no email ou no título) em vez de limpar tabela.
+- Todo service, repository com consulta própria e controller novo precisa do seu teste. DTO, entidade e configuração trivial não.
 
 ---
 
-*Última atualização: Agosto/2026*
+## Banco de dados
+
+- Schema por Flyway, Hibernate em `ddl-auto=validate`: mudança em entidade que altere coluna, tipo, nullability ou constraint **exige migration nova**. Migration aplicada é imutável.
+- Constraints (unique, FK, check, default) ficam no banco. Regra de decisão fica no service.
+- Contadores desnormalizados em `courses`: `lessons_count` é mantido pelo trigger da V5 (testado em `course.shared.entity.LessonsCountTriggerTest`). **`reviews_count`, `rating_average`, `materials_count` e `students_count` ainda não têm mecanismo de atualização**; é pendência para uma US própria.
+
+---
+
+## Qualidade e fluxo
+
+- Checkstyle (`checkstyle.xml`) roda na fase `validate` e quebra o build: chaves obrigatórias, variáveis locais `final`, sem número mágico (exceto 0–5, 10, 100, 1000), métodos até 40 linhas. Não se aplica a testes.
+- `mvn -B clean verify` antes de abrir MR, com Docker rodando.
+- Commits: `<tipo>(<id_clickup>): <descrição curta>`. Branches: `<tipo>/<id_clickup>-<descricao>` a partir de `develop`. MR sempre para `develop`.
+
+---
+
+## Template de subfeature nova
+
+```text
+course/review/
+├── controller/CourseReviewController.java
+├── service/CourseReviewService.java          # @Service, @Transactional
+├── repository/CourseReviewRepository.java    # JpaRepository<CourseReviewEntity, UUID>
+├── dto/CreateReviewRequest.java, ReviewResponse.java
+└── exception/ReviewAlreadyExistsException.java  # extends ConflictException
+```
+
+Testes correspondentes em `src/test/java/.../course/review/{controller,service,repository}/`.
+
+---
+
+*Última atualização: Setembro/2026*

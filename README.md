@@ -1,24 +1,27 @@
 # Escapa! — Plataforma de Cursos (Backend)
 
-Backend da plataforma de **Educação Continuada da ESCAPA**, desenvolvido em **Java + Spring Boot** para atender cursos, usuários, módulos, progresso e gestão administrativa em um ambiente escalável e organizado pela arquitetura de Clean Architecture.
+Backend da plataforma de **Educação Continuada da ESCAPA**, em **Java 21 + Spring Boot**, para cursos, usuários, módulos, progresso e gestão administrativa. O código é organizado **por feature**: cada funcionalidade tem sua pasta com controller, service, repository, entidades e DTOs.
 
-O backend foi pensado para servir o frontend e manter o domínio isolado de detalhes de infraestrutura, banco e frameworks.
+O guia completo de regras para quem desenvolve ou revisa está em [AGENTS.md](AGENTS.md).
 
 ---
 
 ## 📋 Sumário
 
 - [Visão Geral e Contexto](#-visão-geral-e-contexto)
-- [Tecnologias Utilizadas](#-tecnologias-utilizadas)
 - [Estrutura de Pastas e Onde Desenvolver](#-estrutura-de-pastas-e-onde-desenvolver)
+- [Tecnologias Utilizadas](#-tecnologias-utilizadas)
 - [Pré-requisitos](#-pré-requisitos)
 - [Instalação e Setup](#-instalação-e-setup)
 - [Comandos Disponíveis (Maven)](#-comandos-disponíveis-maven)
-- [Fluxo de Validação de Tarefas (Evite falhas na CI)](#-fluxo-de-validação-de-tarefas-evite-falhas-na-ci)
+- [Fluxo de Validação de Tarefas](#-fluxo-de-validação-de-tarefas-evite-falhas-na-ci)
 - [Padrão de Commits](#-padrão-de-commits)
 - [Estratégia de Branches](#-estratégia-de-branches)
-- [Regras de Clean Architecture](#-regras-de-clean-architecture)
+- [Regras de Arquitetura](#-regras-de-arquitetura)
+- [Erros e contrato de API](#-erros-e-contrato-de-api)
+- [Endpoints](#-endpoints)
 - [Containerização com Docker](#-containerização-com-docker)
+- [Pendências conhecidas](#-pendências-conhecidas)
 
 ---
 
@@ -27,17 +30,15 @@ O backend foi pensado para servir o frontend e manter o domínio isolado de deta
 ### O que é a plataforma?
 Uma plataforma digital dedicada a cursos, capacitação profissional e certificação para estudantes, profissionais e empresas do setor de turismo e hospitalidade.
 
-### Funcionalidades no Escopo Inicial:
-- **Cadastro e consulta de usuários**
-- **Endpoints base para health check e operação inicial**
-- **Estrutura pronta para cursos, módulos, aulas, progresso e gestão administrativa**
-- **Persistência em PostgreSQL**
-- **API REST organizada por camadas**
+### Funcionalidades já implementadas
+- **Cadastro e consulta de usuários** (`/api/v1/users`)
+- **Vitrine pública de cursos** com busca, filtros e paginação (`/api/v1/public/courses`, US-01)
+- **Health check** (`/api/v1/health`)
+- Schema completo de cursos, módulos, aulas, matrículas, avaliações e notificações, versionado por Flyway
 
-### 🚫 Fora do Escopo Inicial:
-- autenticação e autorização avançada
-- integrações com pagamentos
-- integrações com IA
+### 🚫 Fora do escopo atual
+- autenticação e autorização (só existe o bean `PasswordEncoder`)
+- integrações com pagamentos e IA
 - streaming em tempo real
 - multi-tenancy e multilíngue
 
@@ -45,54 +46,64 @@ Uma plataforma digital dedicada a cursos, capacitação profissional e certifica
 
 ## 📁 Estrutura de Pastas e Onde Desenvolver
 
-Para manter o projeto organizado e fácil de evoluir, cada camada tem uma responsabilidade bem definida:
-
 ```text
-src/
-├── main/
-│   ├── java/com/escapa/backend/
-│   │   ├── domain/                  → entidades e regras de negócio puras
-│   │   │   └── user/
-│   │   ├── application/             → casos de uso e portas de comunicação
-│   │   │   ├── port/
-│   │   │   └── usecase/
-│   │   ├── adapters/                → controllers, DTOs, handlers e adaptadores web
-│   │   │   ├── controller/
-│   │   │   ├── dto/
-│   │   │   ├── exception/
-│   │   │   └── mapper/
-│   │   ├── infrastructure/          → JPA, repositórios, configurações e integrações externas
-│   │   │   ├── config/
-│   │   │   └── persistence/
-│   │   └── EscapaBackendApplication.java
-│   └── resources/
-│       └── application.properties
-└── test/
-    └── java/
-        └── com/escapa/backend/
+src/main/java/com/escapa/backend/
+├── EscapaBackendApplication.java
+│
+├── common/                      → transversal, sem regra de negócio
+│   ├── api/                     → ApiResponse, ApiError, PageResponse, GlobalExceptionHandler
+│   ├── exception/               → NotFoundException, ConflictException, BusinessRuleException
+│   └── config/                  → CORS, OpenAPI, PasswordEncoder, log de startup
+│
+├── health/controller/           → HealthController
+│
+├── user/                        → feature de usuários
+│   ├── controller/              → UserController
+│   ├── service/                 → UserService
+│   ├── repository/              → UserRepository
+│   ├── entity/                  → UserEntity, AdminEntity, RegularUserEntity, CompanyEntity, ...
+│   ├── dto/                     → CreateUserRequest, UserResponse
+│   └── exception/               → UserNotFoundException, EmailAlreadyUsedException
+│
+├── course/                      → feature de cursos, dividida em subfeatures
+│   ├── shared/entity/           → entidades e enums usados por todas as subfeatures
+│   ├── catalog/                 → vitrine pública (controller, service, repository só leitura, dto)
+│   ├── management/              → CRUD do admin (repository e dto prontos; controller/service a criar)
+│   └── review/                  → avaliações (a criar)
+│
+├── enrollment/entity/           → matrículas de aluno e de empresa
+└── notification/entity/         → notificações
+
+src/main/resources/
+├── application.properties
+├── application-dev.properties   → perfil dev: aplica o seed
+└── db/
+    ├── migration/               → V1..V5 (Flyway)
+    └── seed/R__seed_dev.sql     → dados de desenvolvimento
 ```
 
-### 🧭 Guia Prático: Onde colocar meu código?
+### 🧭 Guia prático: onde colocar meu código?
 
-#### 1. `domain/` — Núcleo do negócio
-- **O que vai aqui:** entidades puras e regras do domínio.
-- **Regra:** sem Spring, sem JPA, sem frameworks.
-- **Exemplo:** `User`, regras de validação e comportamento do domínio.
+Dentro de uma feature ou subfeature, o fluxo é sempre:
 
-#### 2. `application/` — Casos de uso e portas
-- **O que vai aqui:** orquestração da funcionalidade e interfaces para comunicação externa.
-- **Regra:** depende apenas do domínio.
-- **Exemplo:** `CreateUserUseCase`, `UserRepositoryPort`.
+```text
+Controller  →  Service  →  Repository  →  Entity
+  DTO in        regra       Spring Data      JPA
+  DTO out    @Transactional
+```
 
-#### 3. `adapters/` — Entrada e saída da API
-- **O que vai aqui:** controllers REST, DTOs, tratamento de exceções e conversões.
-- **Regra:** não contém lógica de negócio.
-- **Exemplo:** `UserController`, `CreateUserRequest`, `GlobalExceptionHandler`.
+| Pasta | O que vai aqui | O que nunca vai aqui |
+|---|---|---|
+| `controller/` | rota, `@Valid`, chamada a **um** service, DTO de saída | import de repository ou entity, `if` de regra |
+| `service/` | toda decisão de negócio, `@Transactional`, exceções da feature | `HttpStatus`, `ResponseEntity` |
+| `repository/` | interface Spring Data, JPQL, projeção `SELECT new` | lógica |
+| `entity/` | mapeamento JPA com sufixo `Entity` | lógica |
+| `dto/` | `record`s: entrada com Bean Validation, saída com `from(entity)` | anotações JPA |
+| `exception/` | exceções da feature herdando das bases em `common.exception` | `HttpStatus` |
 
-#### 4. `infrastructure/` — Implementação técnica
-- **O que vai aqui:** JPA, banco de dados, configuração do Spring, repositórios concretos.
-- **Regra:** implementa as portas da camada `application` e integra com frameworks.
-- **Exemplo:** `UserEntity`, `UserJpaRepository`, `UserRepositoryAdapter`.
+Uma feature vira subfeatures quando tem mais de um contexto de uso (ex.: `course` tem vitrine pública, gestão do admin e avaliação). Nunca divida por camada (`course/controller/`, `course/service/`).
+
+Os testes espelham a mesma árvore em `src/test/java`, no mesmo pacote da classe testada.
 
 ---
 
@@ -100,16 +111,14 @@ src/
 
 - **Linguagem**: Java 21
 - **Framework**: Spring Boot 3.5.5
-- **Persistência**: Spring Data JPA
-- **Banco de Dados**: PostgreSQL
-- **Migrações de banco**: Flyway (scripts versionados em `src/main/resources/db/migration/`)
+- **Persistência**: Spring Data JPA + PostgreSQL 16
+- **Migrações**: Flyway (`src/main/resources/db/migration/`)
 - **Build**: Maven
-- **Validação**: Bean Validation (`@Valid`)
-- **Documentação da API**: SpringDoc OpenAPI (Swagger UI)
-- **Qualidade de código**: Checkstyle (executado na fase `validate` do Maven)
-- **Cobertura de testes**: Jacoco (relatório gerado em `target/site/jacoco/`)
+- **Validação**: Bean Validation
+- **Documentação**: SpringDoc OpenAPI (Swagger UI)
+- **Qualidade**: Checkstyle (fase `validate`), Jacoco (`target/site/jacoco/`)
+- **Testes**: JUnit 5, Mockito, Spring Test (MockMvc), Testcontainers
 - **Containerização**: Docker + Docker Compose
-- **Testes**: JUnit 5 + Spring Test + Testcontainers
 
 ---
 
@@ -117,8 +126,7 @@ src/
 
 - **Java 21** ou superior
 - **Maven 3.9+**
-- **Docker** e **Docker Compose** — **obrigatórios para rodar os testes**: os testes de integração sobem um PostgreSQL descartável via Testcontainers, então `mvn test` falha se o Docker não estiver em execução
-- **PostgreSQL** — não precisa instalar: sobe em container pelo `docker-compose.yml`
+- **Docker** e **Docker Compose** — **obrigatórios para rodar os testes**: os testes de repository e de controller sobem um PostgreSQL descartável via Testcontainers
 - **Git**
 
 ---
@@ -136,9 +144,7 @@ src/
    cp .env.example .env
    ```
 
-3. **Ajuste as variáveis de ambiente conforme seu banco local**.
-
-4. **Inicie o banco e a aplicação localmente**:
+3. **Inicie o banco e a aplicação:**
 
 ### Opção A — tudo em containers
    ```bash
@@ -146,15 +152,14 @@ src/
    ```
 
 ### Opção B — banco em container, aplicação pelo Maven
-   Útil para desenvolver com hot reload sem reconstruir a imagem a cada mudança:
    ```bash
-   docker compose up -d postgres   # sobe apenas o banco
+   docker compose up -d postgres
    mvn spring-boot:run
    ```
 
-   O `mvn spring-boot:run` sobe com o perfil **`dev`** (`application-dev.properties`), que aplica o seed de desenvolvimento (`db/seed/R__seed_dev.sql`) depois das migrations. Como o seed trunca e recria os dados a cada start, use `mvn spring-boot:run -Dspring-boot.run.profiles=default` quando quiser preservar dados criados manualmente.
+   O `mvn spring-boot:run` sobe com o perfil **`dev`**, que aplica o seed (`db/seed/R__seed_dev.sql`) depois das migrations. O seed trunca e recria os dados a cada start; para preservar dados manuais use `mvn spring-boot:run -Dspring-boot.run.profiles=default`.
 
-A API ficará disponível em: `http://localhost:8080`
+A API fica em `http://localhost:8080`. A raiz redireciona para o Swagger.
 
 ---
 
@@ -162,228 +167,201 @@ A API ficará disponível em: `http://localhost:8080`
 
 | Comando | O que faz? | Quando usar? |
 |---|---|---|
-| `mvn spring-boot:run` | Inicia a aplicação localmente com o perfil `dev` (migrations + seed de desenvolvimento). | Durante o desenvolvimento. |
-| `mvn spring-boot:run -Dspring-boot.run.profiles=default` | Inicia a aplicação sem o seed, só com as migrations. | Quando quiser manter dados criados manualmente. |
-| `mvn test` | Executa os testes unitários e os de integração. **Requer Docker em execução** (Testcontainers). | Antes de commit / MR. |
-| `mvn clean test` | Remove artefatos antigos e roda testes novamente. **Requer Docker.** | Validação limpa do projeto. |
-| `mvn clean verify` | Roda o mesmo que a CI: Checkstyle, testes e relatório de cobertura. **Requer Docker.** | Antes de abrir o MR. |
-| `mvn clean package` | Gera o pacote compilado da aplicação. | Verificação de build final. |
-| `mvn validate` | Valida a estrutura e dependências do Maven. | Para checar a configuração do projeto. |
-| `mvn checkstyle:check` | Roda só as regras de `checkstyle.xml`, sem compilar/testar. | Para checar estilo isoladamente e mais rápido. |
-
-> 📊 Após rodar os testes, o relatório de cobertura do Jacoco fica em `target/site/jacoco/index.html`.
+| `mvn spring-boot:run` | Sobe a aplicação com perfil `dev` (migrations + seed). | Desenvolvimento. |
+| `mvn spring-boot:run -Dspring-boot.run.profiles=default` | Sobe sem o seed. | Preservar dados manuais. |
+| `mvn test` | Roda todos os testes. **Requer Docker.** | Antes de commit. |
+| `mvn -B clean verify` | O mesmo que a CI: Checkstyle, testes e cobertura. **Requer Docker.** | Antes de abrir o MR. |
+| `mvn test -Dtest=UserServiceTest` | Roda uma classe de teste. Testes de service não precisam de Docker. | Ciclo rápido. |
+| `mvn checkstyle:check` | Só as regras de `checkstyle.xml`. | Checar estilo isolado. |
+| `mvn clean package` | Gera o jar. | Build final. |
 
 ---
 
 ## ✅ Fluxo de Validação de Tarefas (Evite falhas na CI)
 
-Antes de abrir um **Merge Request**, execute o checklist abaixo:
-
 ```bash
-# 1. Rodar testes (o Checkstyle roda automaticamente na fase validate)
-mvn test
-
-# 2. Compilar a aplicação
-mvn clean package
+mvn -B clean verify
 ```
 
-> 💡 **Validação básica recomendada:**
-> ```bash
-> mvn clean test && mvn clean package
-> ```
+> ⚠️ O build falha com violação de `checkstyle.xml`: chaves obrigatórias em `if`, variáveis locais `final`, sem número mágico fora de 0–5, 10, 100 e 1000, método com até 40 linhas. Testes estão isentos.
 
-> ⚠️ O build falha se houver violação das regras de `checkstyle.xml` (chaves obrigatórias em `if`, variáveis locais `final`, etc.). Para checar isoladamente: `mvn checkstyle:check`.
-
-> 🐳 **O Docker precisa estar rodando** antes de executar os testes: os de integração sobem um PostgreSQL descartável via Testcontainers. Sem ele, `mvn test` falha na inicialização do container, não por erro no seu código.
+> 🐳 **Docker precisa estar rodando.** Sem ele os testes de repository e controller falham na subida do container, não por erro no seu código.
 
 ---
 
 ## 📝 Padrão de Commits
 
-Utilizamos o padrão com o **ID da tarefa** do ClickUp:
-
-### Formato:
 ```text
 <tipo>(<id_clickup>): <descrição clara>
 ```
 
-### Tipos:
-- `feat`: nova funcionalidade
-- `fix`: correção de bug
-- `docs`: atualização de documentação
-- `style`: ajustes de formatação e estilo
-- `refactor`: refatoração sem mudança funcional
-- `test`: adição ou ajuste de testes
-- `chore`: manutenção de dependências e setup
+Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
 
-### Exemplos:
-- `feat(86a1b2c): add user creation flow`
-- `feat(86a1b2d): create health check endpoint`
-- `fix(86a1b2e): fix invalid email validation`
-- `test(86a1b2f): add unit tests for create user use case`
+Exemplos: `feat(86a1b2c): add user creation flow`, `test(86a1b2f): add unit tests for user service`.
 
 ---
 
 ## 🌿 Estratégia de Branches
 
-Adotamos o fluxo com branch de integração **`develop`** e branch principal **`main`**.
-
 ```text
-main (Produção estável)
-   ↑
-develop (Integração do time)
-   ↑
-├── feat/86a1b2c-criar-usuario
-├── feat/86a1b2d-health-check
-└── fix/86a1b2e-validacao-email
+main (produção)  ←  develop (integração)  ←  <tipo>/<id_clickup>-<descricao>
 ```
 
-### Nomenclatura das branches:
-```text
-<tipo>/<id_clickup>-<breve-descricao>
-```
-
-### Passo a passo para desenvolver uma tarefa:
 ```bash
-# 1. Atualizar a branch develop local
-git checkout develop
-git pull origin develop
-
-# 2. Criar a branch da tarefa
+git checkout develop && git pull origin develop
 git checkout -b feat/86a1b2c-criar-usuario
-
-# 3. Desenvolver e validar
-git add .
-git commit -m "feat(86a1b2c): create user registration flow"
-
-# 4. Enviar para o repositório
+# ... desenvolver, validar ...
 git push -u origin feat/86a1b2c-criar-usuario
 ```
 
+MR sempre para `develop`.
+
 ---
 
-## 🧱 Regras de Clean Architecture
+## 🧱 Regras de Arquitetura
 
-> ⚠️ **A regra da dependência deve ser respeitada sempre**: as dependências devem apontar para o núcleo, nunca o contrário.
+1. **Dentro de uma subfeature, a seta só anda para a direita.** Controller → Service → Repository → Entity.
+2. **Entre subfeatures e entre features, só pelo service.** Nunca importe repository de outra feature.
+3. **Entidades JPA podem referenciar entidades de qualquer feature.** É o mapeamento do banco.
+4. **`shared/` de uma feature** guarda o que duas ou mais subfeatures usam.
+5. **`common/` não conhece nenhuma feature.**
+6. **Só o service tem `@Transactional`** (`readOnly = true` em leitura).
+7. **Subfeature nova nasce com as quatro pastas**, mesmo vazias, com `package-info.java`.
+8. **Repositório só de leitura** estende `Repository<T, ID>`, não `JpaRepository`, para não expor `save`/`delete`.
 
-### Camadas obrigatórias
+Detalhes e exemplos em [AGENTS.md](AGENTS.md).
 
-#### 1. `domain/`
-- entidades puras
-- sem Spring, JPA ou frameworks
-- sem `@Entity`, `@Service`, `@Controller` e similares
-- regras de negócio e validação do núcleo
+---
 
-#### 2. `application/`
-- casos de uso e portas
-- comunicação com o mundo externo via interfaces
-- orquestração do fluxo de negócio
+## 🚨 Erros e contrato de API
 
-#### 3. `adapters/`
-- controllers REST
-- DTOs de entrada/saída
-- tratamento de erros e adaptação HTTP
+Todas as rotas usam `/api/v1`. Rotas públicas ficam em `/api/v1/public/**`.
 
-#### 4. `infrastructure/`
-- persistência
-- Spring configuration
-- JPA, repositories e serviços externos
+Sucesso usa `ApiResponse`:
+```json
+{ "success": true, "data": { }, "message": "Operation completed successfully" }
+```
 
-### Regras de implementação
-- **Nunca misture entidade de domínio com entidade JPA**
-- **Nunca coloque lógica de banco na camada de domínio**
-- **Nunca esconda regras de negócio dentro do controller**
-- **Use nomes consistentes**: `UserController`, `CreateUserUseCase`, `UserRepositoryPort`
-- **Use `record` em DTOs quando fizer sentido**
+Endpoints paginados devolvem `PageResponse` direto, por contrato com o frontend:
+```json
+{ "content": [ ], "pageNumber": 0, "pageSize": 10, "totalElements": 1, "totalPages": 1 }
+```
+
+Erro usa `ApiError`. O campo `code` é estável e feito para o frontend decidir o que exibir; `message` é para humanos.
+```json
+{
+  "status": 404,
+  "error": "Not Found",
+  "code": "USER_NOT_FOUND",
+  "message": "User not found: 3f2a...",
+  "path": "/api/v1/users/3f2a...",
+  "timestamp": "2026-09-11T14:00:00Z"
+}
+```
+
+| Família | HTTP | `code` |
+|---|---|---|
+| Validação de entrada | 400 | `VALIDATION_ERROR`, `INVALID_PARAMETER`, `MISSING_PARAMETER`, `MALFORMED_REQUEST` |
+| Regra de negócio | 404 / 409 / 422 | definido pela exceção da feature (`USER_NOT_FOUND`, `EMAIL_ALREADY_USED`, ...) |
+| Protocolo HTTP | 404 / 405 / 415 | `RESOURCE_NOT_FOUND`, `METHOD_NOT_ALLOWED`, `UNSUPPORTED_MEDIA_TYPE` |
+| Infraestrutura | 409 / 500 | `DATA_CONFLICT`, `INTERNAL_ERROR` (detalhe só no log) |
+
+---
+
+## 📌 Endpoints
+
+### Health
+```http
+GET /api/v1/health
+```
+
+### Vitrine pública de cursos (US-01)
+```http
+GET /api/v1/public/courses?title=ia&category=Inteligência Artificial&level=Iniciante&page=0&size=10
+```
+
+Sem autenticação. Todos os parâmetros são opcionais.
+
+| Parâmetro | Comportamento |
+|---|---|
+| `title` | busca parcial, sem diferenciar caixa; `%` e `_` são texto literal |
+| `category`, `level` | igualdade sem diferenciar caixa (`Iniciante` = `INICIANTE`) |
+| `page` | 0-based; padrão 0; negativo vira 0 |
+| `size` | padrão 10; máximo 100 |
+
+Só cursos com `status = PUBLISHED`. Ordem: mais recentes primeiro, desempate por id. `lessonsCount`, `ratingAverage` e `reviewsCount` vêm desnormalizados da tabela `courses`; `instructor` é o nome do admin responsável.
+
+Resposta:
+```json
+{
+  "content": [
+    {
+      "id": "a1b2c3d4-...",
+      "title": "IA Aplicada ao Turismo",
+      "shortDescription": "Domine as ferramentas de inteligência artificial",
+      "category": "Inteligência Artificial",
+      "level": "Iniciante",
+      "durationTime": 12,
+      "lessonsCount": 32,
+      "price": 97.0,
+      "thumbnailUrl": "https://cdn.escapa.com.br/courses/101/thumb.jpg",
+      "instructor": "Dra. Mariana",
+      "ratingAverage": 4.8,
+      "reviewsCount": 56
+    }
+  ],
+  "pageNumber": 0,
+  "pageSize": 10,
+  "totalElements": 1,
+  "totalPages": 1
+}
+```
+
+### Cadastro de usuário
+```http
+POST /api/v1/users
+```
+```json
+{ "name": "Maria Souza", "email": "maria@email.com", "password": "senha12345", "userType": "student" }
+```
+
+Resposta `201`:
+```json
+{
+  "success": true,
+  "data": { "id": "uuid", "name": "Maria Souza", "email": "maria@email.com", "userType": "STUDENT", "createdAt": "2026-09-11T14:00:00" },
+  "message": "User created successfully"
+}
+```
+
+`400 VALIDATION_ERROR` para corpo inválido, `409 EMAIL_ALREADY_USED` para email repetido.
+
+### Listagem e consulta de usuários
+```http
+GET /api/v1/users
+GET /api/v1/users/{id}     → 404 USER_NOT_FOUND quando não existe
+```
+
+Documentação interativa: `http://localhost:8080/swagger-ui/index.html`.
 
 ---
 
 ## 🐳 Containerização com Docker
 
-Para rodar a aplicação em um ambiente mais próximo do deploy real:
-
 ```bash
 docker compose up --build
 ```
 
-### Serviços incluídos
-- PostgreSQL em container
-- Backend Spring Boot em container
+Sobe PostgreSQL e o backend. O backend só inicia após o healthcheck do banco, aplica as migrations e o seed, e responde em `http://localhost:8080`.
 
-### Endpoints úteis
-- `http://localhost:8080/api/v1/health` → health check da aplicação
-- `http://localhost:8080/api/v1/users` → cadastro e consulta de usuários
-- `http://localhost:8080/swagger-ui/index.html` → documentação interativa da API (Swagger UI)
-- `http://localhost:8080/v3/api-docs` → especificação OpenAPI em JSON
+### 🌐 CORS
+
+Origens liberadas vêm de `APP_CORS_ALLOWED_ORIGINS` (padrão `http://localhost:3000`), aplicadas a `/api/**`. Nunca `*`.
 
 ---
 
-## 🌐 CORS
+## 📝 Pendências conhecidas
 
-A origem do frontend liberada para consumir a API é configurada via `APP_CORS_ALLOWED_ORIGINS` (ver `.env.example`), aplicada a todas as rotas `/api/**`. O valor padrão é `http://localhost:3000` (porta do Vite dev server do frontend).
-
----
-
-## 📌 Endpoints principais do Boilerplate
-
-Todas as respostas de sucesso são padronizadas no envelope `ApiResponse` (`success`, `data`, `message`). Erros seguem o formato `ApiError` (`status`, `error`, `message`, `path`, `timestamp`).
-
-### Health Check
-```http
-GET /api/v1/health
-```
-
-Resposta esperada:
-```json
-{
-  "success": true,
-  "data": { "status": "UP", "service": "escapa-backend" },
-  "message": "Operation completed successfully"
-}
-```
-
-### Cadastro de Usuário
-```http
-POST /api/v1/users
-```
-
-Payload:
-```json
-{
-  "name": "Maria Souza",
-  "email": "maria@email.com",
-  "role": "student"
-}
-```
-
-Resposta (`201 Created`):
-```json
-{
-  "success": true,
-  "data": {
-    "id": "uuid",
-    "name": "Maria Souza",
-    "email": "maria@email.com",
-    "role": "STUDENT"
-  },
-  "message": "User created successfully"
-}
-```
-
-### Listagem de Usuários
-```http
-GET /api/v1/users
-```
-
-### Consulta de Usuário por ID
-```http
-GET /api/v1/users/{id}
-```
-
-Retorna `404` com `ApiError` quando o `id` não existe.
-
----
-
-## 🔎 Observações finais
-
-Este README reflete o estado inicial do projeto: a estrutura foi preparada para crescer com segurança, sem acoplamentos desnecessários, e com padrões que permitirão expandir para módulos de cursos, módulos, aulas, progresso e painel administrativo sem reestruturar a base.
+- **Contadores desnormalizados sem mecanismo de atualização**: `courses.reviews_count`, `rating_average`, `materials_count` e `students_count` só têm valor pelo seed. Apenas `lessons_count` é mantido por trigger (V5), com teste em `LessonsCountTriggerTest`. Definir e implementar o mecanismo dos demais é assunto de uma US própria, fora do refactor de estrutura.
+- **`course/management` e `course/review`** têm só repositórios e DTOs. Controllers e services chegam com as USs correspondentes.
+- **Autenticação**: quando entrar, `/api/v1/public/**` precisa ficar na whitelist em `common.config.SecurityConfig`.
