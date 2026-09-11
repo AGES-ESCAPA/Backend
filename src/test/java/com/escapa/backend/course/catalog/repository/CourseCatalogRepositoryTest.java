@@ -21,7 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * A consulta JPQL contra o Postgres real: status, filtros, escape, ordem e paginação.
- * Roda dentro de uma transação desfeita ao final, então cada teste começa com a base vazia.
+ * Roda dentro de uma transação desfeita ao final; o setUp esvazia courses para não depender
+ * da ordem em que as classes de teste rodam.
  */
 class CourseCatalogRepositoryTest extends JpaIntegrationTest {
 
@@ -38,6 +39,9 @@ class CourseCatalogRepositoryTest extends JpaIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        // Testes de controller (@SpringBootTest) nao sao transacionais e deixam cursos no mesmo banco.
+        // Limpa dentro desta transacao, que e desfeita ao final; o cascade do banco remove dependentes.
+        em.getEntityManager().createNativeQuery("DELETE FROM courses").executeUpdate();
         instructor = em.persist(new AdminEntity(UUID.randomUUID(), "Dra. Mariana",
                 "mariana." + UUID.randomUUID().toString().substring(0, 8) + "@escapa.com",
                 "hash", "ADMIN", LocalDateTime.now(), "Turismo"));
