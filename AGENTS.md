@@ -21,12 +21,9 @@ com.escapa.backend
 ├── EscapaBackendApplication.java
 │
 ├── common/                          # transversal, sem regra de negócio, não conhece nenhuma feature
-│   ├── api/                         # ApiResponse, ApiError, PageResponse, GlobalExceptionHandler
+│   ├── api/                         # ApiResponse, ApiError, PageResponse, GlobalExceptionHandler, HealthController
 │   ├── exception/                   # BusinessException, NotFoundException, ConflictException, BusinessRuleException
 │   └── config/                      # CorsConfig, OpenApiConfig, SecurityConfig, StartupInfoLogger
-│
-├── health/
-│   └── controller/HealthController
 │
 ├── user/
 │   ├── controller/  UserController
@@ -38,13 +35,15 @@ com.escapa.backend
 │
 ├── course/
 │   ├── shared/entity/               # entidades e enums usados por todas as subfeatures de curso
-│   ├── catalog/                     # vitrine pública (US-01): controller, service, repository (só leitura), dto
-│   ├── management/                  # CRUD do admin: repository, dto (controller/service/exception a criar)
-│   └── review/                      # avaliações (a criar)
+│   ├── catalog/                     # vitrine pública (US-01): controller, service, repository (só leitura), dto, exception
+│   ├── management/                  # CRUD do admin: repository e dto prontos; demais pastas com package-info
+│   └── review/                      # avaliações: só package-info por enquanto
 │
-├── enrollment/entity/               # UserCourseEntity, CompanyCourseEntity e IDs compostos
-└── notification/entity/             # NotificationEntity, NotificationType
+├── enrollment/                      # entity pronta (UserCourseEntity, CompanyCourseEntity); demais pastas com package-info
+└── notification/                    # entity pronta (NotificationEntity, NotificationType); demais pastas com package-info
 ```
+
+**Toda pasta abaixo de `com.escapa.backend`, exceto `common`, é uma feature com o template completo.** Feature simples: `controller`, `service`, `repository`, `entity`, `dto`, `exception`. Feature com subfeatures: `shared/entity` mais, em cada subfeature, `controller`, `service`, `repository`, `dto`, `exception`. Pasta ainda sem classe tem um `package-info.java` dizendo o que vai ali. O health check não é feature (não tem service, regra nem dado) e por isso mora em `common/api`.
 
 Migrations Flyway ficam em `src/main/resources/db/migration/`, seed de desenvolvimento em `src/main/resources/db/seed/`.
 
@@ -72,7 +71,7 @@ Controller  →  Service  →  Repository  →  Entity
 5. **`shared/` de uma feature guarda o que duas ou mais subfeatures usam.**
 6. **`common/` não conhece nenhuma feature.** Só recebe dependência.
 7. **Só o service tem `@Transactional`.**
-8. **Subfeature nova nasce com as quatro pastas** (`controller`, `service`, `repository`, `dto`), mesmo vazias, com `package-info.java` descrevendo o que vai ali.
+8. **Feature ou subfeature nova nasce com o template completo** (`controller`, `service`, `repository`, `dto`, `exception`, e `entity` quando não há `shared/`), mesmo vazias, com `package-info.java` descrevendo o que vai ali. Ninguém precisa decidir onde criar uma pasta: ela já existe.
 9. **Feature vira subfeatures quando tem mais de um contexto de uso** (ex.: `course` tem vitrine pública, gestão do admin e avaliação). Nunca divida por camada (`course/controller/`, `course/service/`): isso é voltar para camadas com outro nome.
 
 ---

@@ -10,17 +10,18 @@ Backend em **Java 21 + Spring Boot 3.5** da plataforma de cursos em Turismo e Ho
 
 ```text
 com.escapa.backend
-├── common/        api/  exception/  config/          # transversal, não conhece feature
-├── health/        controller/
+├── common/        api/ (inclui HealthController)  exception/  config/   # transversal, não conhece feature
 ├── user/          controller/ service/ repository/ entity/ dto/ exception/
 ├── course/
 │   ├── shared/    entity/                            # usado por todas as subfeatures
-│   ├── catalog/   controller/ service/ repository/ dto/   # vitrine pública (US-01)
-│   ├── management/ ...                               # CRUD do admin
-│   └── review/    ...                                # avaliações
-├── enrollment/    entity/
-└── notification/  entity/
+│   ├── catalog/   controller/ service/ repository/ dto/ exception/   # vitrine pública (US-01)
+│   ├── management/ (mesmo template)                  # CRUD do admin
+│   └── review/    (mesmo template)                   # avaliações
+├── enrollment/    controller/ service/ repository/ entity/ dto/ exception/
+└── notification/  controller/ service/ repository/ entity/ dto/ exception/
 ```
+
+Toda pasta fora de `common` é uma feature com o template completo. Pasta ainda sem classe tem `package-info.java`.
 
 Fluxo dentro de uma subfeature: **Controller → Service → Repository → Entity**. Controller nunca vê repository nem entity. Só o service tem `@Transactional`. Entre features e subfeatures, só pelo service.
 

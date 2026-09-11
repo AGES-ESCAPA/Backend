@@ -51,11 +51,9 @@ src/main/java/com/escapa/backend/
 ├── EscapaBackendApplication.java
 │
 ├── common/                      → transversal, sem regra de negócio
-│   ├── api/                     → ApiResponse, ApiError, PageResponse, GlobalExceptionHandler
+│   ├── api/                     → ApiResponse, ApiError, PageResponse, GlobalExceptionHandler, HealthController
 │   ├── exception/               → NotFoundException, ConflictException, BusinessRuleException
 │   └── config/                  → CORS, OpenAPI, PasswordEncoder, log de startup
-│
-├── health/controller/           → HealthController
 │
 ├── user/                        → feature de usuários
 │   ├── controller/              → UserController
@@ -67,12 +65,12 @@ src/main/java/com/escapa/backend/
 │
 ├── course/                      → feature de cursos, dividida em subfeatures
 │   ├── shared/entity/           → entidades e enums usados por todas as subfeatures
-│   ├── catalog/                 → vitrine pública (controller, service, repository só leitura, dto)
-│   ├── management/              → CRUD do admin (repository e dto prontos; controller/service a criar)
-│   └── review/                  → avaliações (a criar)
+│   ├── catalog/                 → vitrine pública: controller, service, repository (só leitura), dto, exception
+│   ├── management/              → CRUD do admin: repository e dto prontos, demais pastas com package-info
+│   └── review/                  → avaliações: só package-info por enquanto
 │
-├── enrollment/entity/           → matrículas de aluno e de empresa
-└── notification/entity/         → notificações
+├── enrollment/                  → matrículas: entity pronta, demais pastas com package-info
+└── notification/                → notificações: entity pronta, demais pastas com package-info
 
 src/main/resources/
 ├── application.properties
@@ -101,7 +99,7 @@ Controller  →  Service  →  Repository  →  Entity
 | `dto/` | `record`s: entrada com Bean Validation, saída com `from(entity)` | anotações JPA |
 | `exception/` | exceções da feature herdando das bases em `common.exception` | `HttpStatus` |
 
-Uma feature vira subfeatures quando tem mais de um contexto de uso (ex.: `course` tem vitrine pública, gestão do admin e avaliação). Nunca divida por camada (`course/controller/`, `course/service/`).
+Toda pasta fora de `common` é uma feature com o template completo (`controller`, `service`, `repository`, `entity`, `dto`, `exception`). Pasta ainda sem classe tem um `package-info.java` dizendo o que vai ali. Uma feature vira subfeatures quando tem mais de um contexto de uso (ex.: `course` tem vitrine pública, gestão do admin e avaliação); nesse caso as entidades ficam em `shared/entity` e cada subfeature tem as outras cinco pastas. Nunca divida por camada (`course/controller/`, `course/service/`). O health check não é feature e mora em `common/api`.
 
 Os testes espelham a mesma árvore em `src/test/java`, no mesmo pacote da classe testada.
 
@@ -226,7 +224,7 @@ MR sempre para `develop`.
 4. **`shared/` de uma feature** guarda o que duas ou mais subfeatures usam.
 5. **`common/` não conhece nenhuma feature.**
 6. **Só o service tem `@Transactional`** (`readOnly = true` em leitura).
-7. **Subfeature nova nasce com as quatro pastas**, mesmo vazias, com `package-info.java`.
+7. **Feature ou subfeature nova nasce com o template completo**, mesmo vazio, com `package-info.java` em cada pasta.
 8. **Repositório só de leitura** estende `Repository<T, ID>`, não `JpaRepository`, para não expor `save`/`delete`.
 
 Detalhes e exemplos em [AGENTS.md](AGENTS.md).

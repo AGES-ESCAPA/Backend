@@ -40,6 +40,10 @@ Controller  →  Service  →  Repository  →  Entity
 - `common/` não pode importar nada de feature.
 - Pasta nova dentro de feature só pode ser um dos papéis acima ou uma subfeature. Sinalize
   `course/controller/`, `course/service/` etc. no nível da feature: isso é camada disfarçada.
+- Toda feature e subfeature tem o template completo (`controller`, `service`, `repository`, `dto`,
+  `exception`, e `entity` fora de `shared/`). Feature nova sem alguma dessas pastas (com
+  `package-info.java` quando vazia) deve ser apontada. `common` é a única pasta fora do template;
+  o health check mora em `common/api` por não ser feature.
 
 ---
 

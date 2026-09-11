@@ -1,4 +1,4 @@
-package com.escapa.backend.health.controller;
+package com.escapa.backend.common.api;
 
 import com.escapa.backend.common.WebIntegrationTest;
 import org.junit.jupiter.api.Test;
