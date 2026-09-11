@@ -1,6 +1,6 @@
 package com.escapa.backend.user.entity;
 
-import com.escapa.backend.infrastructure.persistence.entity.CompanyCourseEntity;
+import com.escapa.backend.enrollment.entity.CompanyCourseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;

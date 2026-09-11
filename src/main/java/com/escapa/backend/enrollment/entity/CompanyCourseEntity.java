@@ -1,4 +1,4 @@
-package com.escapa.backend.infrastructure.persistence.entity;
+package com.escapa.backend.enrollment.entity;
 
 import com.escapa.backend.user.entity.CompanyEntity;
 import com.escapa.backend.course.shared.entity.CourseEntity;

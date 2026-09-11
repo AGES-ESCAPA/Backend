@@ -1,7 +1,6 @@
-package com.escapa.backend.infrastructure.persistence.entity;
+package com.escapa.backend.notification.entity;
 
 import com.escapa.backend.user.entity.UserEntity;
-import com.escapa.backend.infrastructure.persistence.entity.enums.NotificationType;
 import com.escapa.backend.course.shared.entity.CourseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

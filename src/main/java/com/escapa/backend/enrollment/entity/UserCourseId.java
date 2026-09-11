@@ -1,4 +1,4 @@
-package com.escapa.backend.infrastructure.persistence.entity;
+package com.escapa.backend.enrollment.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -17,10 +17,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class CompanyCourseId implements Serializable {
+public class UserCourseId implements Serializable {
 
-    @Column(name = "company_id")
-    private UUID companyId;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "course_id")
     private UUID courseId;

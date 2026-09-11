@@ -1,4 +1,4 @@
-package com.escapa.backend.infrastructure.persistence.entity.enums;
+package com.escapa.backend.notification.entity;
 
 public enum NotificationType {
     COURSE_PUBLISHED,
