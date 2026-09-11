@@ -1,6 +1,6 @@
 # Claude.md — Escapa! Backend
 
-Resumo operacional. O guia completo, com regras, tabela de erros e estratégia de teste, está em [AGENTS.md](AGENTS.md). Como as camadas se conversam está em [docs/camadas/fluxo-entre-camadas.md](docs/camadas/fluxo-entre-camadas.md), e cada camada em [docs/camadas/](docs/camadas/). Leia os três.
+Resumo operacional. O guia completo, com regras, tabela de erros e estratégia de teste, está em [AGENTS.md](AGENTS.md). Como as camadas se conversam está em [docs/layers/flow-between-layers.md](docs/layers/flow-between-layers.md), e cada camada em [docs/layers/](docs/layers/). Leia os três.
 
 ## O projeto
 

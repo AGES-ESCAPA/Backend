@@ -1,6 +1,6 @@
 # Service
 
-> Parte de [fluxo-entre-camadas.md](fluxo-entre-camadas.md), que mostra como as camadas se conversam.
+> Parte de [flow-between-layers.md](flow-between-layers.md), que mostra como as camadas se conversam.
 
 Pasta: `<feature>/service/`. Exemplos: `user/service/UserService`, `course/catalog/service/CourseCatalogService`.
 

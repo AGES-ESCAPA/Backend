@@ -2,7 +2,7 @@
 
 Backend da plataforma de **Educação Continuada da ESCAPA**, em **Java 21 + Spring Boot**, para cursos, usuários, módulos, progresso e gestão administrativa. O código é organizado **por feature**: cada funcionalidade tem sua pasta com controller, service, repository, entidades e DTOs.
 
-O guia completo de regras para quem desenvolve ou revisa está em [AGENTS.md](AGENTS.md). Como as camadas se conversam está em [docs/camadas/fluxo-entre-camadas.md](docs/camadas/fluxo-entre-camadas.md), e cada camada tem seu documento em [docs/camadas/](docs/camadas/).
+O guia completo de regras para quem desenvolve ou revisa está em [AGENTS.md](AGENTS.md). Como as camadas se conversam está em [docs/layers/flow-between-layers.md](docs/layers/flow-between-layers.md), e cada camada tem seu documento em [docs/layers/](docs/layers/).
 
 ---
 
@@ -11,8 +11,8 @@ O guia completo de regras para quem desenvolve ou revisa está em [AGENTS.md](AG
 - [Visão Geral e Contexto](#-visão-geral-e-contexto)
 - [Estrutura de Pastas e Onde Desenvolver](#-estrutura-de-pastas-e-onde-desenvolver)
   - [Por que essa estrutura?](#-por-que-essa-estrutura)
-  - [Como as camadas se conversam (docs/camadas/fluxo-entre-camadas.md)](docs/camadas/fluxo-entre-camadas.md)
-  - [Cada camada em detalhe (docs/camadas/)](docs/camadas/)
+  - [Como as camadas se conversam (docs/layers/flow-between-layers.md)](docs/layers/flow-between-layers.md)
+  - [Cada camada em detalhe (docs/layers/)](docs/layers/)
 - [Tecnologias Utilizadas](#-tecnologias-utilizadas)
 - [Pré-requisitos](#-pré-requisitos)
 - [Instalação e Setup](#-instalação-e-setup)
