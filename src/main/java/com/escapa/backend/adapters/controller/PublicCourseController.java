@@ -1,7 +1,7 @@
 package com.escapa.backend.adapters.controller;
 
 import com.escapa.backend.adapters.dto.CourseCardResponse;
-import com.escapa.backend.adapters.dto.PageResponse;
+import com.escapa.backend.common.api.PageResponse;
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;

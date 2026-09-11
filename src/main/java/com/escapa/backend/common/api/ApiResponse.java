@@ -1,4 +1,4 @@
-package com.escapa.backend.adapters.dto;
+package com.escapa.backend.common.api;
 
 public record ApiResponse<T>(boolean success, T data, String message) {
     public static <T> ApiResponse<T> success(T data) {

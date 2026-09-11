@@ -1,6 +1,6 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.common.api.ApiResponse;
 import com.escapa.backend.adapters.dto.CreateUserRequest;
 import com.escapa.backend.adapters.dto.UserResponse;
 import com.escapa.backend.application.usecase.CreateUserUseCase;

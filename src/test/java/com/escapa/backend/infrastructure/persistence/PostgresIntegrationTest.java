@@ -1,5 +1,6 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import com.escapa.backend.common.PostgresTestContainer;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -7,12 +8,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 @SpringBootTest
 abstract class PostgresIntegrationTest {
 
-    // Started manually instead of via @Container so a single container is shared
-    // by every subclass, rather than one per test class.
+    // Reaproveita o container único da suíte (ver common.PostgresTestContainer).
+    // Esta base some no passo 4 do refactor, quando os testes antigos forem apagados.
     @ServiceConnection
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
-
-    static {
-        POSTGRES.start();
-    }
+    static final PostgreSQLContainer<?> POSTGRES = PostgresTestContainer.INSTANCE;
 }

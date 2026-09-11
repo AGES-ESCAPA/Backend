@@ -1,6 +1,6 @@
-package com.escapa.backend.adapters.controller;
+package com.escapa.backend.health.controller;
 
-import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.common.api.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

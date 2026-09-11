@@ -1,4 +1,4 @@
-package com.escapa.backend.adapters.dto;
+package com.escapa.backend.common.api;
 
 import java.util.List;
 

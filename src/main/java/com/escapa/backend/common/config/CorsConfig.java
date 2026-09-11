@@ -1,4 +1,4 @@
-package com.escapa.backend.infrastructure.config;
+package com.escapa.backend.common.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
