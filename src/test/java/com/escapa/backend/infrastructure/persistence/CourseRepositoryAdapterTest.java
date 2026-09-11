@@ -3,7 +3,8 @@ package com.escapa.backend.infrastructure.persistence;
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.port.CourseRepositoryPort;
-import com.escapa.backend.infrastructure.persistence.entity.AdminEntity;
+import com.escapa.backend.user.entity.AdminEntity;
+import com.escapa.backend.user.repository.UserRepository;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
 import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
@@ -28,7 +29,7 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
     private CourseJpaRepository courseJpaRepository;
 
     @Autowired
-    private UserJpaRepository userJpaRepository;
+    private UserRepository userJpaRepository;
 
     @BeforeEach
     void cleanUp() {

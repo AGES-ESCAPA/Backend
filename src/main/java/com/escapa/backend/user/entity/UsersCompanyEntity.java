@@ -1,6 +1,5 @@
-package com.escapa.backend.infrastructure.persistence.entity;
+package com.escapa.backend.user.entity;
 
-import com.escapa.backend.user.entity.CompanyEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -13,32 +12,27 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
-
 @Entity
-@Table(name = "company_courses")
+@Table(name = "users_company")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CompanyCourseEntity {
+public class UsersCompanyEntity {
 
     @EmbeddedId
-    private CompanyCourseId id;
+    private UsersCompanyId id;
+
+    @ManyToOne
+    @MapsId("userId")
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
     @ManyToOne
     @MapsId("companyId")
     @JoinColumn(name = "company_id", nullable = false)
     private CompanyEntity company;
 
-    @ManyToOne
-    @MapsId("courseId")
-    @JoinColumn(name = "course_id", nullable = false)
-    private CourseEntity course;
-
-    @Column(name = "data_inicio")
-    private LocalDate dataInicio;
-
-    @Column(name = "data_expiracao")
-    private LocalDate dataExpiracao;
+    @Column(name = "role", nullable = false)
+    private String role;
 }

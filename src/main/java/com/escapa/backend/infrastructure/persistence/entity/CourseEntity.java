@@ -1,6 +1,7 @@
 package com.escapa.backend.infrastructure.persistence.entity;
 
-import com.escapa.backend.infrastructure.persistence.UserEntity;
+import com.escapa.backend.user.entity.AdminEntity;
+import com.escapa.backend.user.entity.UserEntity;
 import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

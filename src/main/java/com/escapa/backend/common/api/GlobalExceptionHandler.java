@@ -77,15 +77,6 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST", "Malformed request body", request);
     }
 
-    /**
-     * Provisório: some no passo 2 do refactor, quando o último use case que lança
-     * {@code IllegalArgumentException} para regra de negócio for substituído.
-     */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
-        return build(HttpStatus.BAD_REQUEST, "INVALID_ARGUMENT", ex.getMessage(), request);
-    }
-
     // ------------------------------------------------------------------
     // 2. Regra de negócio -> 404 / 409 / 422
     // ------------------------------------------------------------------
