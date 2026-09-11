@@ -1,6 +1,6 @@
 # Claude.md — Escapa! Backend
 
-Resumo operacional. O guia completo, com regras, tabela de erros e estratégia de teste, está em [AGENTS.md](AGENTS.md). Leia os dois.
+Resumo operacional. O guia completo, com regras, tabela de erros e estratégia de teste, está em [AGENTS.md](AGENTS.md). A explicação de cada camada está em [docs/CAMADAS.md](docs/CAMADAS.md). Leia os três.
 
 ## O projeto
 

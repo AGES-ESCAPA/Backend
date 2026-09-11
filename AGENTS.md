@@ -61,6 +61,8 @@ Migrations Flyway ficam em `src/main/resources/db/migration/`, seed de desenvolv
 
 ### Papel de cada pasta
 
+Versão resumida. A explicação completa de cada camada, com objetivo, por que existe, por que foi feita assim e exemplos de código, está em [docs/CAMADAS.md](docs/CAMADAS.md).
+
 ```text
 Controller  →  Service  →  Repository  →  Entity
   DTO in        regra       Spring Data      JPA
