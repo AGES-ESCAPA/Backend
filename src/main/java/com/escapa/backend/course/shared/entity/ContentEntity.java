@@ -1,6 +1,5 @@
-package com.escapa.backend.infrastructure.persistence.entity;
+package com.escapa.backend.course.shared.entity;
 
-import com.escapa.backend.infrastructure.persistence.entity.enums.ContentType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -1,4 +1,4 @@
-package com.escapa.backend.infrastructure.persistence.entity.enums;
+package com.escapa.backend.course.shared.entity;
 
 public enum CourseStatus {
     DRAFT,

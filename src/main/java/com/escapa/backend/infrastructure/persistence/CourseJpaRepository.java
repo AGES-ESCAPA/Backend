@@ -5,13 +5,13 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
+import com.escapa.backend.course.shared.entity.CourseEntity;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
+import com.escapa.backend.course.shared.entity.CourseStatus;
 
 public interface CourseJpaRepository extends JpaRepository<CourseEntity, UUID> {
 

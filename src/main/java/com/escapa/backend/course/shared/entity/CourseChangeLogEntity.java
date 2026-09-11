@@ -1,4 +1,4 @@
-package com.escapa.backend.infrastructure.persistence.entity;
+package com.escapa.backend.course.shared.entity;
 
 import com.escapa.backend.user.entity.UserEntity;
 import jakarta.persistence.Column;
@@ -9,7 +9,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,20 +17,14 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/** Avaliacao de 1 a 5 estrelas que um usuario da a um curso. Uma avaliacao por usuario por curso. */
+/** Historico de versoes do curso: o que mudou, quando e quem mudou. */
 @Entity
-@Table(
-        name = "course_reviews",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_course_reviews_course_user",
-                columnNames = {"course_id", "user_id"}
-        )
-)
+@Table(name = "course_change_log")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CourseReviewEntity {
+public class CourseChangeLogEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -41,19 +34,20 @@ public class CourseReviewEntity {
     @JoinColumn(name = "course_id", nullable = false)
     private CourseEntity course;
 
+    /** Nulo quando a alteracao foi feita por um processo automatico ou por usuario ja removido. */
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    @JoinColumn(name = "changed_by")
+    private UserEntity changedBy;
 
-    @Column(name = "rating", nullable = false)
-    private Integer rating;
+    @Column(name = "description", columnDefinition = "TEXT", nullable = false)
+    private String description;
 
-    @Column(name = "comment", columnDefinition = "TEXT")
-    private String comment;
+    @Column(name = "major_version", nullable = false)
+    private Integer majorVersion = 0;
+
+    @Column(name = "minor_version", nullable = false)
+    private Integer minorVersion = 0;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }

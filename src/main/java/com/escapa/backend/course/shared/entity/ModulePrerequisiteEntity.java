@@ -1,4 +1,4 @@
-package com.escapa.backend.infrastructure.persistence.entity;
+package com.escapa.backend.course.shared.entity;
 
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;

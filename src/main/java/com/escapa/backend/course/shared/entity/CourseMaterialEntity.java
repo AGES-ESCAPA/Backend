@@ -1,6 +1,5 @@
-package com.escapa.backend.infrastructure.persistence.entity;
+package com.escapa.backend.course.shared.entity;
 
-import com.escapa.backend.user.entity.UserEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,14 +16,14 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/** Historico de versoes do curso: o que mudou, quando e quem mudou. */
+/** Material de apoio no nivel do curso (PDF, planilha), distinto dos recursos de uma aula. */
 @Entity
-@Table(name = "course_change_log")
+@Table(name = "course_materials")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CourseChangeLogEntity {
+public class CourseMaterialEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -34,19 +33,20 @@ public class CourseChangeLogEntity {
     @JoinColumn(name = "course_id", nullable = false)
     private CourseEntity course;
 
-    /** Nulo quando a alteracao foi feita por um processo automatico ou por usuario ja removido. */
-    @ManyToOne
-    @JoinColumn(name = "changed_by")
-    private UserEntity changedBy;
+    @Column(nullable = false)
+    private String title;
 
-    @Column(name = "description", columnDefinition = "TEXT", nullable = false)
-    private String description;
+    @Column(name = "file_url", nullable = false)
+    private String fileUrl;
 
-    @Column(name = "major_version", nullable = false)
-    private Integer majorVersion = 0;
+    @Column(name = "file_type")
+    private String fileType;
 
-    @Column(name = "minor_version", nullable = false)
-    private Integer minorVersion = 0;
+    @Column(name = "file_size_bytes")
+    private Long fileSizeBytes;
+
+    @Column(name = "\"order\"")
+    private Integer order;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

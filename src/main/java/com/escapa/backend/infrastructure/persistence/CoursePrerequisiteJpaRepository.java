@@ -5,8 +5,8 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteEntity;
-import com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteId;
+import com.escapa.backend.course.shared.entity.CoursePrerequisiteEntity;
+import com.escapa.backend.course.shared.entity.CoursePrerequisiteId;
 
 public interface CoursePrerequisiteJpaRepository
         extends JpaRepository<CoursePrerequisiteEntity, CoursePrerequisiteId> {

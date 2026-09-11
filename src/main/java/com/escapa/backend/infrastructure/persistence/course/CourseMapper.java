@@ -1,7 +1,7 @@
 package com.escapa.backend.infrastructure.persistence.course;
 
 import com.escapa.backend.application.dto.CourseSummary;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
+import com.escapa.backend.course.shared.entity.CourseEntity;
 
 /**
  * Conversor estático entre {@link CourseEntity} (JPA) e {@link CourseSummary} (aplicação).

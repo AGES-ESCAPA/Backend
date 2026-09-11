@@ -1,6 +1,6 @@
 package com.escapa.backend.user.entity;
 
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
+import com.escapa.backend.course.shared.entity.CourseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
