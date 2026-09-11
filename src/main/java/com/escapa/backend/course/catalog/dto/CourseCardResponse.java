@@ -1,10 +1,13 @@
-package com.escapa.backend.adapters.dto;
+package com.escapa.backend.course.catalog.dto;
 
 import java.util.UUID;
 
 /**
- * DTO de resposta para cada curso na listagem pública.
- * O campo {@code instructor} contém o nome do instrutor (não o objeto completo).
+ * Card da vitrine pública (US-01). Preenchido direto pela consulta JPQL do
+ * {@code CourseCatalogRepository} via {@code SELECT new}, sem carregar a entidade.
+ *
+ * <p>A ordem e os tipos dos componentes precisam bater com a projeção da consulta.
+ * {@code instructor} é o nome do instrutor, não o objeto.
  */
 public record CourseCardResponse(
         UUID id,
