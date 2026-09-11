@@ -153,6 +153,8 @@ src/
    mvn spring-boot:run
    ```
 
+   O `mvn spring-boot:run` sobe com o perfil **`dev`** (`application-dev.properties`), que aplica o seed de desenvolvimento (`db/seed/R__seed_dev.sql`) depois das migrations. Como o seed trunca e recria os dados a cada start, use `mvn spring-boot:run -Dspring-boot.run.profiles=default` quando quiser preservar dados criados manualmente.
+
 A API ficará disponível em: `http://localhost:8080`
 
 ---
@@ -161,7 +163,8 @@ A API ficará disponível em: `http://localhost:8080`
 
 | Comando | O que faz? | Quando usar? |
 |---|---|---|
-| `mvn spring-boot:run` | Inicia a aplicação localmente. | Durante o desenvolvimento. |
+| `mvn spring-boot:run` | Inicia a aplicação localmente com o perfil `dev` (migrations + seed de desenvolvimento). | Durante o desenvolvimento. |
+| `mvn spring-boot:run -Dspring-boot.run.profiles=default` | Inicia a aplicação sem o seed, só com as migrations. | Quando quiser manter dados criados manualmente. |
 | `mvn test` | Executa os testes unitários e os de integração. **Requer Docker em execução** (Testcontainers). | Antes de commit / MR. |
 | `mvn clean test` | Remove artefatos antigos e roda testes novamente. **Requer Docker.** | Validação limpa do projeto. |
 | `mvn clean verify` | Roda o mesmo que a CI: Checkstyle, testes e relatório de cobertura. **Requer Docker.** | Antes de abrir o MR. |
