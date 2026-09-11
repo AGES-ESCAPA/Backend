@@ -169,7 +169,7 @@ Os testes espelham a mesma árvore em `src/test/java`, no mesmo pacote da classe
 
    **Opção A — tudo em containers**
    ```bash
-   docker compose up --build
+   docker compose up --build          # ou ./scripts/dev-up.sh --build, que desvia de porta ocupada
    ```
 
    **Opção B — banco em container, aplicação pelo Maven** (sem reconstruir a imagem a cada mudança; reinicie o `mvn spring-boot:run` para aplicar alterações de código)
@@ -182,9 +182,13 @@ Os testes espelham a mesma árvore em `src/test/java`, no mesmo pacote da classe
 
 3. **Configuração** (opcional). Os padrões de `application.properties` já batem com o `docker-compose.yml`: nada precisa ser configurado para rodar localmente. Se o seu ambiente for diferente, as variáveis aceitas estão em `.env.example`. Atenção: o Docker Compose lê `.env` sozinho, mas o Spring Boot **não**; para `mvn spring-boot:run`, exporte as variáveis no terminal ou configure-as na IDE.
 
-> 🔌 **Porta do banco.** O container do Postgres é exposto na **5433** da sua máquina (`POSTGRES_HOST_PORT`), não na 5432. Motivo: quem tem PostgreSQL instalado no Windows ou no Mac já tem a 5432 ocupada, e `localhost:5432` cairia nesse servidor em vez do container, com erro de autenticação na subida. Dentro da rede do Compose o banco continua em `postgres:5432`. Para conectar com um cliente SQL na sua máquina, use `localhost:5433`, usuário `escapa`, senha `escapa123`.
+> 🔌 **Porta do banco.** O container do Postgres é exposto na **15432** da sua máquina (`POSTGRES_HOST_PORT`), não na 5432. Motivo: quem tem PostgreSQL instalado no Windows ou no Mac já ocupa a 5432, e uma segunda instalação ocupa a 5433, 5434 e assim por diante; `localhost:5432` cairia nesse servidor em vez do container, com erro de autenticação na subida. Dentro da rede do Compose o banco continua em `postgres:5432`. Para conectar com um cliente SQL na sua máquina, use `localhost:15432`, usuário `escapa`, senha `escapa123`.
 
-> 🔌 **Porta da API.** Padrão 8080. Se estiver ocupada (um Vite ou outro serviço local), não há fallback automático de propósito: o frontend, o CORS e o Swagger dependem de uma porta conhecida. Mude uma vez e esqueça: no Docker, `BACKEND_HOST_PORT=8081` no `.env`; pelo Maven, `SERVER_PORT=8081 mvn spring-boot:run` (Git Bash) ou `$env:SERVER_PORT=8081; mvn spring-boot:run` (PowerShell). O erro do Docker quando a porta está ocupada é `ports are not available ... bind: Normalmente é permitida apenas uma utilização de cada endereço de soquete`.
+> 🔌 **Porta da API.** Padrão 8080. Se estiver ocupada (um Vite ou outro serviço local):
+> - **Pelo Maven**, o perfil `dev` faz fallback sozinho: tenta 8081, 8082, 8083 e loga em `WARN` qual usou. O bloco de log do fim da subida mostra a URL real. Em homologação e produção o fallback fica desligado e a porta é fixa.
+> - **Pelo Docker**, use `./scripts/dev-up.sh` (Git Bash) ou `.\scripts\dev-up.ps1` (PowerShell) em vez de `docker compose up`: o script acha a primeira porta livre a partir de 8080 e sobe o compose com ela. Ou fixe `BACKEND_HOST_PORT=8081` no `.env`.
+>
+> Em qualquer caso, **o frontend precisa apontar para a porta escolhida**; a API não tem como avisá-lo.
 
 A API fica em `http://localhost:8080`. A raiz redireciona para o Swagger.
 
@@ -381,7 +385,7 @@ Documentação interativa: `http://localhost:8080/swagger-ui/index.html`.
 docker compose up --build
 ```
 
-Sobe PostgreSQL e o backend. O backend só inicia após o healthcheck do banco, aplica as migrations e o seed, e responde em `http://localhost:8080`. O Postgres fica acessível da sua máquina em `localhost:5433` (ver `POSTGRES_HOST_PORT` em `.env.example`).
+Sobe PostgreSQL e o backend. O backend só inicia após o healthcheck do banco, aplica as migrations e o seed, e responde em `http://localhost:8080`. O Postgres fica acessível da sua máquina em `localhost:15432` (ver `POSTGRES_HOST_PORT` em `.env.example`).
 
 ### 🌐 CORS
 

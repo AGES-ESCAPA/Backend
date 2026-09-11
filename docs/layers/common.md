@@ -19,6 +19,7 @@ Se cada feature tivesse o próprio envelope e o próprio handler, a API teria fo
 - **`common/api/PageResponse.from(Page)`** converte a página do Spring Data no envelope da API em um lugar só.
 - **`common/exception`** tem só as três bases mais a abstrata. Exceção concreta nunca fica aqui.
 - **`common/config/SecurityConfig`** expõe o `PasswordEncoder`. Quando autenticação entrar, a cadeia de filtros e a whitelist de `/api/v1/public/**` vêm para cá.
+- **`common/config/PortFallbackConfig`**: só no perfil `dev`, se `server.port` estiver ocupada sobe na primeira livre de `app.server.port-fallback.candidates` e avisa em `WARN`. Nunca ligar fora de `dev`: em produção porta ocupada é incidente, não inconveniente.
 - **`HealthController` em `common/api`** porque health check não é feature: não tem service, regra nem dado.
 
 ## Observações

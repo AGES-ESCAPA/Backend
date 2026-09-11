@@ -35,7 +35,7 @@ com.escapa.backend
 ├── common/                          # transversal, sem regra de negócio, não conhece nenhuma feature
 │   ├── api/                         # ApiResponse, ApiError, PageResponse, GlobalExceptionHandler, HealthController
 │   ├── exception/                   # BusinessException, NotFoundException, ConflictException, BusinessRuleException
-│   └── config/                      # CorsConfig, OpenApiConfig, SecurityConfig, StartupInfoLogger
+│   └── config/                      # CorsConfig, OpenApiConfig, SecurityConfig, StartupInfoLogger, PortFallbackConfig (só dev)
 │
 ├── user/
 │   ├── controller/  UserController
