@@ -61,6 +61,8 @@ INSERT INTO users (id, name, email, password_hash, role, status, created_at) VAL
     ('b0000000-0000-4000-b000-000000000003', 'Carla Menezes', 'carla.menezes@email.com',
      '$2a$10$ibpqH7THcZTbgcyqTYC0iOcvPPHi92gGYQid5BgTYsOJYzBQ/HmwS', 'STUDENT', 'INACTIVE', '2026-02-08 08:05:00'),
 
+    ('c0000000-0000-4000-c000-000000000001', 'Funcionario Um', 'func1@vistamar.com.br', '$2a$10$ibpqH7THcZTbgcyqTYC0iOcvPPHi92gGYQid5BgTYsOJYzBQ/HmwS', 'STUDENT', 'ACTIVE', '2026-02-10 10:00:00'),
+    ('c0000000-0000-4000-c000-000000000002', 'Funcionario Dois', 'func2@vistamar.com.br', '$2a$10$ibpqH7THcZTbgcyqTYC0iOcvPPHi92gGYQid5BgTYsOJYzBQ/HmwS', 'STUDENT', 'ACTIVE', '2026-02-10 11:00:00'),
     -- a empresa tambem e um usuario (company.id referencia users.id)
     ('d0000000-0000-4000-d000-000000000001', 'Pousada Vista Mar', 'contato@vistamar.com.br',
      '$2a$10$qmo4r05zCLBtnXxsr0yw8e6ix8MvfPZqS6JBte6m1BXU1D46/mwHq', 'COMPANY', 'ACTIVE', '2026-01-20 13:00:00');
@@ -76,7 +78,9 @@ INSERT INTO admins (user_id, department, headline, bio, avatar_url) VALUES
 INSERT INTO regular_users (user_id, cpf, phone) VALUES
     ('b0000000-0000-4000-b000-000000000001', '11122233344', '+55 48 99120-3344'),
     ('b0000000-0000-4000-b000-000000000002', '22233344455', '+55 48 99887-1122'),
-    ('b0000000-0000-4000-b000-000000000003', '33344455566', '+55 51 98765-4321');
+    ('b0000000-0000-4000-b000-000000000003', '33344455566', '+55 51 98765-4321');   
+    ('c0000000-0000-4000-c000-000000000001', '44455566677', '+55 48 99999-1111'),
+    ('c0000000-0000-4000-c000-000000000002', '55566677788', '+55 48 99999-2222');
 
 INSERT INTO company (id, company_name, cnpj_id, company_email, matricula) VALUES
     ('d0000000-0000-4000-d000-000000000001', 'Pousada Vista Mar LTDA', '12345678000199',

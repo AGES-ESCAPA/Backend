@@ -4,25 +4,31 @@ import com.escapa.backend.adapters.dto.ApiResponse;
 import com.escapa.backend.adapters.dto.course.CourseResponse;
 import com.escapa.backend.adapters.dto.course.CreateCourseRequest;
 import com.escapa.backend.adapters.dto.course.UpdateCourseRequest;
+import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.ArchiveCourseUseCase;
 import com.escapa.backend.application.usecase.CreateCourseUseCase;
 import com.escapa.backend.application.usecase.PublishCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateCourseUseCase;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
-import com.escapa.backend.application.port.UserRepositoryPort;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin/courses")
 public class CourseAdminController {
-
-    private static final int BEARER_PREFIX_LENGTH = 7;
 
     private final CreateCourseUseCase createCourseUseCase;
     private final UpdateCourseUseCase updateCourseUseCase;
@@ -42,35 +48,36 @@ public class CourseAdminController {
         this.userRepositoryPort = userRepositoryPort;
     }
 
-    private void requireAdmin(String userId) {
-        if (userId == null || userId.isBlank()) {
-            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN, "Missing auth token");
+    private UUID requireAdmin(String xUserId) {
+        if (xUserId == null || xUserId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing X-User-Id header");
         }
         try {
-            final User user = userRepositoryPort.findById(UUID.fromString(userId))
-                    .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN, "User not found"));
+            final UUID userId = UUID.fromString(xUserId);
+            final User user = userRepositoryPort.findById(userId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "User not found"));
             if (!"ADMIN".equalsIgnoreCase(user.getUserType())) {
-                throw new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN, "User is not ADMIN");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: user is not ADMIN");
             }
+            return userId;
         } catch (IllegalArgumentException e) {
-            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid token");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid X-User-Id: must be a valid UUID");
         }
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<CourseResponse>> create(
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @Valid @RequestBody CreateCourseRequest request) {
-        
-        final String userId = extractToken(authHeader);
-        requireAdmin(userId);
+
+        final UUID createdById = requireAdmin(xUserId);
 
         final Course course = createCourseUseCase.execute(
                 request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
                 request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
                 request.durationTime(), request.deadline(), request.accessDurationDays(), request.price(),
                 request.learningObjectives(), request.requireSequentialProgress(), request.enforceDeadlineBlock(),
-                UUID.fromString(userId)
+                createdById
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -79,12 +86,11 @@ public class CourseAdminController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CourseResponse>> update(
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID id,
             @RequestBody UpdateCourseRequest request) {
 
-        final String userId = extractToken(authHeader);
-        requireAdmin(userId);
+        requireAdmin(xUserId);
 
         final Course course = updateCourseUseCase.execute(
                 id, request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
@@ -98,11 +104,10 @@ public class CourseAdminController {
 
     @PostMapping("/{id}/publish")
     public ResponseEntity<ApiResponse<CourseResponse>> publish(
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID id) {
 
-        final String userId = extractToken(authHeader);
-        requireAdmin(userId);
+        requireAdmin(xUserId);
 
         final Course course = publishCourseUseCase.execute(id);
         return ResponseEntity.ok(ApiResponse.success(toResponse(course), "Course published successfully"));
@@ -110,21 +115,13 @@ public class CourseAdminController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID id) {
 
-        final String userId = extractToken(authHeader);
-        requireAdmin(userId);
+        requireAdmin(xUserId);
 
         archiveCourseUseCase.execute(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Course archived successfully"));
-    }
-
-    private String extractToken(String authHeader) {
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(BEARER_PREFIX_LENGTH);
-        }
-        return authHeader; // fallback if passed directly or empty
     }
 
     private CourseResponse toResponse(Course course) {
@@ -152,4 +149,3 @@ public class CourseAdminController {
         );
     }
 }
-
