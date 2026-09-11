@@ -101,7 +101,7 @@ Controller  →  Service  →  Repository  →  Entity
 
 Toda pasta fora de `common` é uma feature com o template completo (`controller`, `service`, `repository`, `entity`, `dto`, `exception`). Pasta ainda sem classe tem um `package-info.java` dizendo o que vai ali. Uma feature vira subfeatures quando tem mais de um contexto de uso (ex.: `course` tem vitrine pública, gestão do admin e avaliação); nesse caso as entidades ficam em `shared/entity` e cada subfeature tem as outras cinco pastas. Nunca divida por camada (`course/controller/`, `course/service/`). O health check não é feature e mora em `common/api`.
 
-Os testes espelham a mesma árvore em `src/test/java`, no mesmo pacote da classe testada.
+Os testes espelham a mesma árvore em `src/test/java`, no mesmo pacote da classe testada. Cada feature já nasce com `controller/`, `service/` e `repository/` de teste (com `package-info.java` dizendo o tipo de teste e a base a estender); `dto/`, `entity/` e `exception/` não têm pasta de teste.
 
 ---
 

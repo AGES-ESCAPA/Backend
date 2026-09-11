@@ -117,6 +117,7 @@ Espelham a árvore de produção, **no mesmo pacote da classe testada**, sufixo 
 - `@DataJpaTest` roda dentro de transação desfeita ao final. Para ver efeito de trigger, faça `flush()` e `clear()` antes de reler.
 - Testes de controller não são transacionais: use dados únicos por teste (UUID no email ou no título) em vez de limpar tabela.
 - Todo service, repository com consulta própria e controller novo precisa do seu teste. DTO, entidade e configuração trivial não.
+- A árvore de teste nasce junto com a feature: `controller/`, `service/` e `repository/` em `src/test`, cada uma com `package-info.java` dizendo o tipo de teste e a base a estender. `dto/`, `entity/` e `exception/` não têm pasta de teste; teste de entidade só aparece quando há comportamento de banco a validar (ex.: `course/shared/entity/LessonsCountTriggerTest`).
 
 ---
 

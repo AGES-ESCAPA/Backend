@@ -106,6 +106,8 @@ Espelham a árvore de produção, no **mesmo pacote** da classe testada, sufixo 
 - Sinalize fake em memória de repositório: o padrão é Mockito para service e banco real para repository.
 - Todo service, repository com consulta própria e controller novo precisa de teste. Não peça teste de
   DTO, entidade ou configuração trivial.
+- A árvore de teste espelha a feature: `controller/`, `service/` e `repository/` em `src/test`, com
+  `package-info.java` enquanto vazias. Sinalize teste fora do pacote da classe testada.
 - Asserts significativos: comportamento e valores, não só `notNull`.
 
 ---
