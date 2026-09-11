@@ -12,6 +12,7 @@ import java.util.UUID;
 public record UserResponse(UUID id, String name, String email, String userType, LocalDateTime createdAt) {
 
     public static UserResponse from(UserEntity user) {
-        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole(), user.getCreatedAt());
+        return new UserResponse(
+                user.getId(), user.getName(), user.getEmail(), user.getRole().name(), user.getCreatedAt());
     }
 }

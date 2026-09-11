@@ -2,6 +2,7 @@ package com.escapa.backend.course.shared.entity;
 
 import com.escapa.backend.common.JpaIntegrationTest;
 import com.escapa.backend.user.entity.AdminEntity;
+import com.escapa.backend.user.entity.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ class LessonsCountTriggerTest extends JpaIntegrationTest {
     void setUp() {
         final AdminEntity instructor = em.persist(new AdminEntity(UUID.randomUUID(), "Instrutora",
                 "trigger." + UUID.randomUUID().toString().substring(0, 8) + "@escapa.com",
-                "hash", "ADMIN", LocalDateTime.now(), "Turismo"));
+                "hash", UserRole.ADMIN, LocalDateTime.now(), "Turismo"));
         courseA = newCourse("Curso A", instructor);
         moduleA = newModule(courseA, 1);
         em.flush();
@@ -72,7 +73,7 @@ class LessonsCountTriggerTest extends JpaIntegrationTest {
     void movingALessonToAnotherCourseUpdatesBothCounters() {
         final AdminEntity other = em.persist(new AdminEntity(UUID.randomUUID(), "Outro",
                 "trigger2." + UUID.randomUUID().toString().substring(0, 8) + "@escapa.com",
-                "hash", "ADMIN", LocalDateTime.now(), "Turismo"));
+                "hash", UserRole.ADMIN, LocalDateTime.now(), "Turismo"));
         final CourseEntity courseB = newCourse("Curso B", other);
         final ModuleEntity moduleB = newModule(courseB, 1);
         final ContentEntity lesson = newContent(moduleA, 1);

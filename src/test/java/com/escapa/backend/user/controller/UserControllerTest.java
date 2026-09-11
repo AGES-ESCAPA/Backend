@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.isA;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class UserControllerTest extends WebIntegrationTest {
 
     @Test
-    void shouldCreateUserAndAnswer201WithEnvelope() throws Exception {
+    void shouldCreateStudentAndAnswer201WithEnvelope() throws Exception {
         final String email = uniqueEmail("nova");
 
         mockMvc.perform(post("/api/v1/users")
@@ -37,6 +38,15 @@ class UserControllerTest extends WebIntegrationTest {
     }
 
     @Test
+    void shouldCreateAdminAndEchoUppercaseUserType() throws Exception {
+        mockMvc.perform(post("/api/v1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("Admin Nova", uniqueEmail("adm"), "password123", "admin")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.userType").value("ADMIN"));
+    }
+
+    @Test
     void shouldAnswer400WithValidationCodeWhenBodyIsInvalid() throws Exception {
         mockMvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -44,6 +54,25 @@ class UserControllerTest extends WebIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.path").value("/api/v1/users"));
+    }
+
+    @Test
+    void shouldAnswer400WhenUserTypeIsOutsideTheVocabulary() throws Exception {
+        mockMvc.perform(post("/api/v1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("Prof", uniqueEmail("prof"), "password123", "teacher")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value(containsString("User type must be STUDENT, ADMIN or COMPANY")));
+    }
+
+    @Test
+    void shouldAnswer422WhenUserTypeIsValidButNotSupportedYet() throws Exception {
+        mockMvc.perform(post("/api/v1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("Pousada", uniqueEmail("emp"), "password123", "company")))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("USER_TYPE_NOT_SUPPORTED"));
     }
 
     @Test
@@ -56,7 +85,7 @@ class UserControllerTest extends WebIntegrationTest {
 
         mockMvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body("Segunda", email, "password123", "teacher")))
+                        .content(body("Segunda", email, "password123", "admin")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("EMAIL_ALREADY_USED"));
     }

@@ -1,10 +1,14 @@
 package com.escapa.backend.user.service;
 
 import com.escapa.backend.user.dto.CreateUserRequest;
+import com.escapa.backend.user.entity.AdminEntity;
+import com.escapa.backend.user.entity.RegularUserEntity;
 import com.escapa.backend.user.entity.UserEntity;
+import com.escapa.backend.user.entity.UserRole;
 import com.escapa.backend.user.entity.UserStatus;
 import com.escapa.backend.user.exception.EmailAlreadyUsedException;
 import com.escapa.backend.user.exception.UserNotFoundException;
+import com.escapa.backend.user.exception.UserTypeNotSupportedException;
 import com.escapa.backend.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +24,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -30,8 +35,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Só regra: normalização, unicidade de email, hash. Repositório e encoder são mocks,
- * então nada aqui precisa de Spring nem de banco.
+ * Só regra: normalização, unicidade de email, hash e escolha da subclasse por papel.
+ * Repositório e encoder são mocks, então nada aqui precisa de Spring nem de banco.
  */
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -46,7 +51,7 @@ class UserServiceTest {
     private UserService userService;
 
     @Test
-    void shouldCreateUserWithNormalizedDataAndHashedPassword() {
+    void shouldCreateStudentAsRegularUserWithNormalizedDataAndHashedPassword() {
         when(userRepository.existsByEmail("maria@email.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("hashed:password123");
         when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -54,10 +59,11 @@ class UserServiceTest {
         final UserEntity user = userService.create(
                 new CreateUserRequest(" Maria Silva ", " MARIA@email.com ", "password123", "student "));
 
+        assertInstanceOf(RegularUserEntity.class, user);
         assertNotNull(user.getId());
         assertEquals("Maria Silva", user.getName());
         assertEquals("maria@email.com", user.getEmail());
-        assertEquals("STUDENT", user.getRole());
+        assertEquals(UserRole.STUDENT, user.getRole());
         assertEquals("hashed:password123", user.getPasswordHash());
         assertNotEquals("password123", user.getPasswordHash());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
@@ -65,17 +71,29 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldPersistExactlyWhatWasBuilt() {
-        when(userRepository.existsByEmail("joao@email.com")).thenReturn(false);
+    void shouldCreateAdminAsAdminEntitySoItCanBeAnInstructor() {
+        when(userRepository.existsByEmail("bia@escapa.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("hashed");
         when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        userService.create(new CreateUserRequest("Joao", "joao@email.com", "password123", "TEACHER"));
+        final UserEntity user = userService.create(
+                new CreateUserRequest("Bia", "bia@escapa.com", "password123", "ADMIN"));
 
         final ArgumentCaptor<UserEntity> saved = ArgumentCaptor.forClass(UserEntity.class);
         verify(userRepository).save(saved.capture());
-        assertEquals("joao@email.com", saved.getValue().getEmail());
-        assertEquals("TEACHER", saved.getValue().getRole());
+        assertInstanceOf(AdminEntity.class, saved.getValue());
+        assertEquals(UserRole.ADMIN, user.getRole());
+    }
+
+    @Test
+    void shouldRejectCompanyUntilCompanyRegistrationExists() {
+        final UserTypeNotSupportedException ex = assertThrows(UserTypeNotSupportedException.class,
+                () -> userService.create(
+                        new CreateUserRequest("Pousada", "rh@pousada.com", "password123", "company")));
+
+        assertEquals(UserTypeNotSupportedException.CODE, ex.getCode());
+        verify(userRepository, never()).existsByEmail(any());
+        verify(userRepository, never()).save(any());
     }
 
     @Test
@@ -94,7 +112,7 @@ class UserServiceTest {
     @Test
     void shouldReturnUserWhenFound() {
         final UUID id = UUID.randomUUID();
-        final UserEntity stored = new UserEntity(id, "Maria", "maria@email.com", "hash", "STUDENT",
+        final UserEntity stored = new UserEntity(id, "Maria", "maria@email.com", "hash", UserRole.STUDENT,
                 LocalDateTime.now());
         when(userRepository.findById(id)).thenReturn(Optional.of(stored));
 
@@ -113,9 +131,9 @@ class UserServiceTest {
 
     @Test
     void shouldListAllUsers() {
-        final UserEntity a = new UserEntity(UUID.randomUUID(), "A", "a@email.com", "h", "STUDENT",
+        final UserEntity a = new UserEntity(UUID.randomUUID(), "A", "a@email.com", "h", UserRole.STUDENT,
                 LocalDateTime.now());
-        final UserEntity b = new UserEntity(UUID.randomUUID(), "B", "b@email.com", "h", "TEACHER",
+        final UserEntity b = new UserEntity(UUID.randomUUID(), "B", "b@email.com", "h", UserRole.ADMIN,
                 LocalDateTime.now());
         when(userRepository.findAll()).thenReturn(List.of(a, b));
 

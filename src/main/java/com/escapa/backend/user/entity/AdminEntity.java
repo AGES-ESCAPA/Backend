@@ -41,7 +41,7 @@ public class AdminEntity extends UserEntity {
     @OneToMany(mappedBy = "instructor")
     private List<CourseEntity> taughtCourses = new ArrayList<>();
 
-    public AdminEntity(UUID id, String name, String email, String passwordHash, String role,
+    public AdminEntity(UUID id, String name, String email, String passwordHash, UserRole role,
                        LocalDateTime createdAt, String department) {
         super(id, name, email, passwordHash, role, createdAt);
         this.department = department;

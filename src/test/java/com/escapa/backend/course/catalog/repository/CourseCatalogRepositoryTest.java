@@ -5,6 +5,7 @@ import com.escapa.backend.course.catalog.dto.CourseCardResponse;
 import com.escapa.backend.course.shared.entity.CourseEntity;
 import com.escapa.backend.course.shared.entity.CourseStatus;
 import com.escapa.backend.user.entity.AdminEntity;
+import com.escapa.backend.user.entity.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,7 @@ class CourseCatalogRepositoryTest extends JpaIntegrationTest {
         em.getEntityManager().createNativeQuery("DELETE FROM courses").executeUpdate();
         instructor = em.persist(new AdminEntity(UUID.randomUUID(), "Dra. Mariana",
                 "mariana." + UUID.randomUUID().toString().substring(0, 8) + "@escapa.com",
-                "hash", "ADMIN", LocalDateTime.now(), "Turismo"));
+                "hash", UserRole.ADMIN, LocalDateTime.now(), "Turismo"));
     }
 
     @Test

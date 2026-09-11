@@ -138,7 +138,11 @@ Espelham a árvore de produção, **no mesmo pacote da classe testada**, sufixo 
 ## Banco de dados
 
 - Schema por Flyway, Hibernate em `ddl-auto=validate`: mudança em entidade que altere coluna, tipo, nullability ou constraint **exige migration nova**. Migration aplicada é imutável.
-- Constraints (unique, FK, check, default) ficam no banco. Regra de decisão fica no service.
+- **Três regras sobre o que mora onde:**
+  1. **Banco guarda integridade**: PK, FK, UNIQUE, NOT NULL, CHECK de enum e de faixa, e contador derivado por trigger. Nunca decisão de fluxo (publicar, notificar, bloquear, emitir certificado).
+  2. **Toda constraint que um usuário consegue violar pela API tem checagem anterior no service**, com exceção de negócio (404/409/422), ou Bean Validation no DTO (400). A constraint é a última linha, nunca a experiência do usuário. Se um `DATA_CONFLICT` genérico aparece em teste de fluxo normal, falta regra no Java.
+  3. **Todo CHECK de enum no banco tem um enum gêmeo em Java, e vice-versa.** Hoje: `users.status`/`UserStatus`, `courses.status`/`CourseStatus`, `content.type`/`ContentType`, `notifications.type`/`NotificationType`, `users.role`/`UserRole` (o CHECK de `role` ainda não existe no banco; entra na V6).
+- **Herança JOINED de usuário**: `users` + uma tabela filha por papel (`regular_users`, `admins`, `company`). O `UserService` instancia a subclasse certa a partir de `UserRole`; nunca grave `UserEntity` puro. Um "admin" sem linha em `admins` não pode ser instrutor, porque a FK de `courses.instructor_id` aponta para `admins`.
 - Contadores desnormalizados em `courses`: `lessons_count` é mantido pelo trigger da V5 (testado em `course.shared.entity.LessonsCountTriggerTest`). **`reviews_count`, `rating_average`, `materials_count` e `students_count` ainda não têm mecanismo de atualização**; é pendência para uma US própria.
 
 ---

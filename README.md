@@ -359,7 +359,9 @@ Resposta `201`:
 }
 ```
 
-`400 VALIDATION_ERROR` para corpo inválido, `409 EMAIL_ALREADY_USED` para email repetido.
+`userType` aceita `STUDENT`, `ADMIN` ou `COMPANY`, sem diferenciar caixa. `STUDENT` cria a linha em `regular_users`, `ADMIN` em `admins` (e por isso pode ser instrutor). `COMPANY` devolve `422 USER_TYPE_NOT_SUPPORTED` até existir o cadastro de empresa.
+
+`400 VALIDATION_ERROR` para corpo inválido ou `userType` fora do vocabulário, `409 EMAIL_ALREADY_USED` para email repetido.
 
 ### Listagem e consulta de usuários
 ```http
@@ -410,4 +412,5 @@ Diagrama: [docs/database.png](docs/database.png) (fonte em [docs/database.puml](
 
 - **Contadores desnormalizados sem mecanismo de atualização**: `courses.reviews_count`, `rating_average`, `materials_count` e `students_count` só têm valor pelo seed. Apenas `lessons_count` é mantido por trigger (V5), com teste em `LessonsCountTriggerTest`. Definir e implementar o mecanismo dos demais é assunto de uma US própria, fora do refactor de estrutura.
 - **`course/management`** tem só repositórios e DTOs; **`course/review`**, **`enrollment`** e **`notification`** têm só entidades ou `package-info`. Controllers e services chegam com as USs correspondentes.
-- **Autenticação**: quando entrar, `/api/v1/public/**` precisa ficar na whitelist em `common.config.SecurityConfig`.
+- **Autenticação**: quando entrar, `/api/v1/public/**` precisa ficar na whitelist em `common.config.SecurityConfig`. Até lá, `POST /api/v1/users` aceita `userType=ADMIN` sem nenhuma proteção, e o admin criado vale como instrutor. Decisão registrada: manter assim até a US de autenticação; se o time preferir, basta remover `ADMIN` do `@Pattern` em `CreateUserRequest`.
+- **Cadastro de empresa**: `userType=COMPANY` devolve `422 USER_TYPE_NOT_SUPPORTED`, porque empresa exige razão social e CNPJ que o endpoint de usuário não recebe. Entra com a US de empresas, provavelmente em endpoint próprio.

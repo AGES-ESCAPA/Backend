@@ -38,7 +38,7 @@ public class CompanyEntity extends UserEntity {
     @OneToMany(mappedBy = "company")
     private List<CompanyCourseEntity> companyCourses = new ArrayList<>();
 
-    public CompanyEntity(UUID id, String name, String email, String passwordHash, String role,
+    public CompanyEntity(UUID id, String name, String email, String passwordHash, UserRole role,
                          LocalDateTime createdAt,
                          String companyName, String cnpjId, String companyEmail, Integer matricula) {
         super(id, name, email, passwordHash, role, createdAt);

@@ -16,6 +16,11 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Base da herança JOINED: todo usuário tem uma linha aqui e exatamente uma na tabela
+ * da subclasse que corresponde ao seu {@link UserRole}. Quem garante essa correspondência
+ * é o {@code UserService}, que instancia a subclasse certa a partir do papel.
+ */
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -38,8 +43,9 @@ public class UserEntity {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String role;
+    private UserRole role;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -48,7 +54,8 @@ public class UserEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public UserEntity(UUID id, String name, String email, String passwordHash, String role, LocalDateTime createdAt) {
+    public UserEntity(UUID id, String name, String email, String passwordHash, UserRole role,
+                      LocalDateTime createdAt) {
         this(id, name, email, passwordHash, role, UserStatus.ACTIVE, createdAt);
     }
 }

@@ -5,6 +5,7 @@ import com.escapa.backend.course.management.repository.CourseRepository;
 import com.escapa.backend.course.shared.entity.CourseEntity;
 import com.escapa.backend.course.shared.entity.CourseStatus;
 import com.escapa.backend.user.entity.AdminEntity;
+import com.escapa.backend.user.entity.UserRole;
 import com.escapa.backend.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ class CourseCatalogControllerTest extends WebIntegrationTest {
         uniqueTitle = "Vitrine " + UUID.randomUUID();
         final AdminEntity instructor = userRepository.save(new AdminEntity(UUID.randomUUID(), "Dra. Mariana",
                 "vitrine." + UUID.randomUUID().toString().substring(0, 8) + "@escapa.com",
-                "hash", "ADMIN", LocalDateTime.now(), "Turismo"));
+                "hash", UserRole.ADMIN, LocalDateTime.now(), "Turismo"));
 
         final CourseEntity course = new CourseEntity();
         course.setTitle(uniqueTitle);

@@ -25,7 +25,7 @@ public class RegularUserEntity extends UserEntity {
     @Column(name = "phone")
     private String phone;
 
-    public RegularUserEntity(UUID id, String name, String email, String passwordHash, String role,
+    public RegularUserEntity(UUID id, String name, String email, String passwordHash, UserRole role,
                              LocalDateTime createdAt, String cpf, String phone) {
         super(id, name, email, passwordHash, role, createdAt);
         this.cpf = cpf;
