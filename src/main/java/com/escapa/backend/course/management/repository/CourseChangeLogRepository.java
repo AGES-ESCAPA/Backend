@@ -1,4 +1,4 @@
-package com.escapa.backend.infrastructure.persistence;
+package com.escapa.backend.course.management.repository;
 
 import java.util.UUID;
 
@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.escapa.backend.course.shared.entity.CourseChangeLogEntity;
 
-public interface CourseChangeLogJpaRepository
+public interface CourseChangeLogRepository
         extends JpaRepository<CourseChangeLogEntity, UUID> {
 
     Page<CourseChangeLogEntity> findByCourseIdOrderByCreatedAtDesc(
