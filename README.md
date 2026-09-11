@@ -1,6 +1,6 @@
 # Escapa! — Plataforma de Cursos (Backend)
 
-Backend da plataforma de **Educação Continuada da ESCAPA**, em **Java 21 + Spring Boot**, para cursos, usuários, módulos, progresso e gestão administrativa. O código é organizado **por feature**: cada funcionalidade tem sua pasta com controller, service, repository, entidades e DTOs.
+Backend da plataforma de **Educação Continuada da ESCAPA**, em **Java 21 + Spring Boot**, para cursos, usuários, módulos, progresso e gestão administrativa. O código é organizado **por feature**: cada funcionalidade tem sua pasta com controller, service, repository, entity, dto e exception.
 
 O guia completo de regras para quem desenvolve ou revisa está em [AGENTS.md](AGENTS.md). Como as camadas se conversam está em [docs/layers/flow-between-layers.md](docs/layers/flow-between-layers.md), e cada camada tem seu documento em [docs/layers/](docs/layers/).
 
@@ -24,6 +24,7 @@ O guia completo de regras para quem desenvolve ou revisa está em [AGENTS.md](AG
 - [Erros e contrato de API](#-erros-e-contrato-de-api)
 - [Endpoints](#-endpoints)
 - [Containerização com Docker](#-containerização-com-docker)
+- [Banco de dados](#-banco-de-dados)
 - [Pendências conhecidas](#-pendências-conhecidas)
 
 ---
@@ -164,25 +165,22 @@ Os testes espelham a mesma árvore em `src/test/java`, no mesmo pacote da classe
    cd Backend
    ```
 
-2. **Crie o arquivo de ambiente a partir do exemplo:**
-   ```bash
-   cp .env.example .env
-   ```
+2. **Suba o banco e a aplicação**, de uma das duas formas:
 
-3. **Inicie o banco e a aplicação:**
-
-### Opção A — tudo em containers
+   **Opção A — tudo em containers**
    ```bash
    docker compose up --build
    ```
 
-### Opção B — banco em container, aplicação pelo Maven
+   **Opção B — banco em container, aplicação pelo Maven** (hot reload, sem reconstruir imagem)
    ```bash
    docker compose up -d postgres
    mvn spring-boot:run
    ```
 
    O `mvn spring-boot:run` sobe com o perfil **`dev`**, que aplica o seed (`db/seed/R__seed_dev.sql`) depois das migrations. O seed trunca e recria os dados a cada start; para preservar dados manuais use `mvn spring-boot:run -Dspring-boot.run.profiles=default`.
+
+3. **Configuração** (opcional). Os padrões de `application.properties` já batem com o `docker-compose.yml`: nada precisa ser configurado para rodar localmente. Se o seu ambiente for diferente (outra porta, outro banco), as variáveis aceitas estão em `.env.example`. Atenção: o Spring Boot **não lê `.env` sozinho**; exporte as variáveis no terminal ou configure-as na IDE.
 
 A API fica em `http://localhost:8080`. A raiz redireciona para o Swagger.
 
@@ -245,7 +243,7 @@ MR sempre para `develop`.
 
 ## 🧱 Regras de Arquitetura
 
-1. **Dentro de uma subfeature, a seta só anda para a direita.** Controller → Service → Repository → Entity.
+1. **Dentro de uma feature ou subfeature, a seta só anda para a direita.** Controller → Service → Repository → Entity.
 2. **Entre subfeatures e entre features, só pelo service.** Nunca importe repository de outra feature.
 3. **Entidades JPA podem referenciar entidades de qualquer feature.** É o mapeamento do banco.
 4. **`shared/` de uma feature** guarda o que duas ou mais subfeatures usam.
@@ -385,8 +383,29 @@ Origens liberadas vêm de `APP_CORS_ALLOWED_ORIGINS` (padrão `http://localhost:
 
 ---
 
+## 🗄️ Banco de dados
+
+Schema versionado por Flyway em `src/main/resources/db/migration/`. O Hibernate roda com `ddl-auto=validate`: só confere se entidade e tabela batem, nunca cria nem altera. Se uma entidade mudar coluna ou constraint sem migration, a aplicação não sobe.
+
+| Migration | O que cria |
+|---|---|
+| `V1` | `users` |
+| `V2` | `status` em `users`; `admins`, `company`, `regular_users`, `users_company` (herança JOINED) |
+| `V3` | `courses`, `course_prerequisites`, `course_materials`, `course_change_log`, `modules`, `module_prerequisites`, `content` |
+| `V4` | `user_courses`, `company_courses`, `course_reviews`, `notifications` |
+| `V5` | trigger `trg_sync_lessons_count`, que mantém `courses.lessons_count` |
+
+Regras:
+- Migration aplicada é **imutável**. Correção vem como migration nova.
+- Constraints (unique, FK, check, default) e contadores desnormalizados por trigger ficam no banco. Regra de decisão (publicar, bloquear, notificar) fica no service, nunca em trigger.
+- O seed `db/seed/R__seed_dev.sql` só roda no perfil `dev` e no Docker Compose. Homologação, produção e testes nunca o veem.
+
+Diagrama: [docs/database.png](docs/database.png) (fonte em [docs/database.puml](docs/database.puml)).
+
+---
+
 ## 📝 Pendências conhecidas
 
 - **Contadores desnormalizados sem mecanismo de atualização**: `courses.reviews_count`, `rating_average`, `materials_count` e `students_count` só têm valor pelo seed. Apenas `lessons_count` é mantido por trigger (V5), com teste em `LessonsCountTriggerTest`. Definir e implementar o mecanismo dos demais é assunto de uma US própria, fora do refactor de estrutura.
-- **`course/management` e `course/review`** têm só repositórios e DTOs. Controllers e services chegam com as USs correspondentes.
+- **`course/management`** tem só repositórios e DTOs; **`course/review`**, **`enrollment`** e **`notification`** têm só entidades ou `package-info`. Controllers e services chegam com as USs correspondentes.
 - **Autenticação**: quando entrar, `/api/v1/public/**` precisa ficar na whitelist em `common.config.SecurityConfig`.
