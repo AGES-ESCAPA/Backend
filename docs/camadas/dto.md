@@ -1,6 +1,6 @@
 # DTO
 
-> Parte de [docs/CAMADAS.md](../CAMADAS.md), que mostra como as camadas se conversam.
+> Parte de [docs/camadas/README.md](README.md), que mostra como as camadas se conversam.
 
 Pasta: `<feature>/dto/`. Exemplos: `user/dto/CreateUserRequest`, `user/dto/UserResponse`, `course/catalog/dto/CourseCardResponse`.
 

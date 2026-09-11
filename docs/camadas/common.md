@@ -1,6 +1,6 @@
 # common (transversal)
 
-> Parte de [docs/CAMADAS.md](../CAMADAS.md), que mostra como as camadas se conversam.
+> Parte de [docs/camadas/README.md](README.md), que mostra como as camadas se conversam.
 
 Pastas: `common/api`, `common/exception`, `common/config`.
 

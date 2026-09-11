@@ -4,13 +4,13 @@ Este é o arquivo geral. Cada camada tem o seu próprio documento, com objetivo,
 
 | Camada | Documento | Em uma frase |
 |---|---|---|
-| Controller | [camadas/controller.md](camadas/controller.md) | porta de entrada HTTP; recebe, valida formato, chama um service, devolve DTO |
-| Service | [camadas/service.md](camadas/service.md) | toda decisão de negócio; única camada com `@Transactional`; lança exceção da feature |
-| Repository | [camadas/repository.md](camadas/repository.md) | única forma de ler e gravar no banco; pode projetar direto em DTO |
-| Entity | [camadas/entity.md](camadas/entity.md) | espelho JPA da tabela; sem lógica |
-| DTO | [camadas/dto.md](camadas/dto.md) | contrato JSON da API; entrada validada, saída via `from(entity)` |
-| Exception | [camadas/exception.md](camadas/exception.md) | nome e `code` para cada "não" do negócio; herda de uma base em `common` |
-| common | [camadas/common.md](camadas/common.md) | transversal: envelopes, handler global, exceções base, configuração |
+| Controller | [camadas/controller.md](controller.md) | porta de entrada HTTP; recebe, valida formato, chama um service, devolve DTO |
+| Service | [camadas/service.md](service.md) | toda decisão de negócio; única camada com `@Transactional`; lança exceção da feature |
+| Repository | [camadas/repository.md](repository.md) | única forma de ler e gravar no banco; pode projetar direto em DTO |
+| Entity | [camadas/entity.md](entity.md) | espelho JPA da tabela; sem lógica |
+| DTO | [camadas/dto.md](dto.md) | contrato JSON da API; entrada validada, saída via `from(entity)` |
+| Exception | [camadas/exception.md](exception.md) | nome e `code` para cada "não" do negócio; herda de uma base em `common` |
+| common | [camadas/common.md](common.md) | transversal: envelopes, handler global, exceções base, configuração |
 
 ---
 

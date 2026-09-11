@@ -1,6 +1,6 @@
 # Exception
 
-> Parte de [docs/CAMADAS.md](../CAMADAS.md), que mostra como as camadas se conversam.
+> Parte de [docs/camadas/README.md](README.md), que mostra como as camadas se conversam.
 
 Pasta: `<feature>/exception/`. Exemplos: `user/exception/UserNotFoundException`, `user/exception/EmailAlreadyUsedException`.
 

@@ -1,6 +1,6 @@
 # Repository
 
-> Parte de [docs/CAMADAS.md](../CAMADAS.md), que mostra como as camadas se conversam.
+> Parte de [docs/camadas/README.md](README.md), que mostra como as camadas se conversam.
 
 Pasta: `<feature>/repository/`. Exemplos: `user/repository/UserRepository`, `course/catalog/repository/CourseCatalogRepository`, `course/management/repository/CourseRepository`.
 

@@ -1,6 +1,6 @@
 # Entity
 
-> Parte de [docs/CAMADAS.md](../CAMADAS.md), que mostra como as camadas se conversam.
+> Parte de [docs/camadas/README.md](README.md), que mostra como as camadas se conversam.
 
 Pasta: `<feature>/entity/`, ou `<feature>/shared/entity/` quando a feature tem subfeatures. Exemplos: `user/entity/UserEntity`, `course/shared/entity/CourseEntity`.
 

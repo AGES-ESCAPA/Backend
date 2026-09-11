@@ -2,7 +2,7 @@
 
 Backend da plataforma de **Educação Continuada da ESCAPA**, em **Java 21 + Spring Boot**, para cursos, usuários, módulos, progresso e gestão administrativa. O código é organizado **por feature**: cada funcionalidade tem sua pasta com controller, service, repository, entidades e DTOs.
 
-O guia completo de regras para quem desenvolve ou revisa está em [AGENTS.md](AGENTS.md). Como as camadas se conversam está em [docs/CAMADAS.md](docs/CAMADAS.md), e cada camada tem seu documento em [docs/camadas/](docs/camadas/).
+O guia completo de regras para quem desenvolve ou revisa está em [AGENTS.md](AGENTS.md). Como as camadas se conversam está em [docs/camadas/README.md](docs/camadas/README.md), e cada camada tem seu documento em [docs/camadas/](docs/camadas/).
 
 ---
 
@@ -11,7 +11,7 @@ O guia completo de regras para quem desenvolve ou revisa está em [AGENTS.md](AG
 - [Visão Geral e Contexto](#-visão-geral-e-contexto)
 - [Estrutura de Pastas e Onde Desenvolver](#-estrutura-de-pastas-e-onde-desenvolver)
   - [Por que essa estrutura?](#-por-que-essa-estrutura)
-  - [Como as camadas se conversam (docs/CAMADAS.md)](docs/CAMADAS.md)
+  - [Como as camadas se conversam (docs/camadas/README.md)](docs/camadas/README.md)
   - [Cada camada em detalhe (docs/camadas/)](docs/camadas/)
 - [Tecnologias Utilizadas](#-tecnologias-utilizadas)
 - [Pré-requisitos](#-pré-requisitos)

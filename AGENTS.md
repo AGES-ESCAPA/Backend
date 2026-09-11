@@ -61,7 +61,7 @@ Migrations Flyway ficam em `src/main/resources/db/migration/`, seed de desenvolv
 
 ### Papel de cada pasta
 
-Versão resumida. Como as camadas se conversam, com dois pedidos reais percorrendo o fluxo, está em [docs/CAMADAS.md](docs/CAMADAS.md). Cada camada tem seu documento (objetivo, por que existe, por que foi feita assim, exemplos) em [docs/camadas/](docs/camadas/).
+Versão resumida. Como as camadas se conversam, com dois pedidos reais percorrendo o fluxo, está em [docs/camadas/README.md](docs/camadas/README.md). Cada camada tem seu documento (objetivo, por que existe, por que foi feita assim, exemplos) em [docs/camadas/](docs/camadas/).
 
 ```text
 Controller  →  Service  →  Repository  →  Entity
