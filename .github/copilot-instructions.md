@@ -87,9 +87,11 @@ Schema por Flyway; Hibernate roda em `ddl-auto=validate`, só confere.
 - Confira que migration e entidade descrevem o mesmo schema.
 - Constraints (unique, FK, check, default) e contadores desnormalizados por trigger são aceitos no
   banco. Regra de decisão (publicar, bloquear, notificar) em trigger **não** é aceita: pertence ao service.
-- Coluna derivada nova precisa de mecanismo de atualização declarado e testado. Hoje `lessons_count`
-  tem trigger (V5) e teste; `reviews_count`, `rating_average`, `materials_count` e `students_count`
-  ainda não têm, e isso está documentado como pendência.
+- Coluna derivada nova precisa de mecanismo de atualização declarado e testado. `lessons_count` (V5),
+  `reviews_count`, `rating_average` e `materials_count` (V6) têm trigger e teste; `students_count`
+  ainda não, e isso está documentado como pendência.
+- Toda constraint que a API consegue violar precisa de checagem anterior no service (exceção de
+  negócio) ou no DTO (Bean Validation). Sinalize teste de fluxo normal que espere `DATA_CONFLICT`.
 
 ---
 

@@ -80,7 +80,7 @@ src/main/resources/
 ├── application.properties
 ├── application-dev.properties   → perfil dev: aplica o seed
 └── db/
-    ├── migration/               → V1..V5 (Flyway)
+    ├── migration/               → V1..V6 (Flyway)
     └── seed/R__seed_dev.sql     → dados de desenvolvimento
 ```
 
@@ -398,6 +398,7 @@ Schema versionado por Flyway em `src/main/resources/db/migration/`. O Hibernate 
 | `V3` | `courses`, `course_prerequisites`, `course_materials`, `course_change_log`, `modules`, `module_prerequisites`, `content` |
 | `V4` | `user_courses`, `company_courses`, `course_reviews`, `notifications` |
 | `V5` | trigger `trg_sync_lessons_count`, que mantém `courses.lessons_count` |
+| `V6` | `CHECK` de `users.role`, faixas (`progress`, `price`, ordens, contadores, `rating_average`), datas coerentes em matrículas; triggers `trg_sync_review_counters` (`reviews_count`, `rating_average`) e `trg_sync_materials_count` (`materials_count`) |
 
 Regras:
 - Migration aplicada é **imutável**. Correção vem como migration nova.
@@ -410,7 +411,7 @@ Diagrama: [docs/database.png](docs/database.png) (fonte em [docs/database.puml](
 
 ## 📝 Pendências conhecidas
 
-- **Contadores desnormalizados sem mecanismo de atualização**: `courses.reviews_count`, `rating_average`, `materials_count` e `students_count` só têm valor pelo seed. Apenas `lessons_count` é mantido por trigger (V5), com teste em `LessonsCountTriggerTest`. Definir e implementar o mecanismo dos demais é assunto de uma US própria, fora do refactor de estrutura.
+- **`courses.students_count` sem mecanismo de atualização**: só tem valor pelo seed. Os demais contadores (`lessons_count`, `reviews_count`, `rating_average`, `materials_count`) são mantidos por trigger (V5 e V6), com testes em `course/shared/entity/*TriggerTest`. `students_count` entra quando a US de matrícula definir o que conta (matrícula expirada? licença de empresa?).
 - **`course/management`** tem só repositórios e DTOs; **`course/review`**, **`enrollment`** e **`notification`** têm só entidades ou `package-info`. Controllers e services chegam com as USs correspondentes.
 - **Autenticação**: quando entrar, `/api/v1/public/**` precisa ficar na whitelist em `common.config.SecurityConfig`. Até lá, `POST /api/v1/users` aceita `userType=ADMIN` sem nenhuma proteção, e o admin criado vale como instrutor. Decisão registrada: manter assim até a US de autenticação; se o time preferir, basta remover `ADMIN` do `@Pattern` em `CreateUserRequest`.
 - **Cadastro de empresa**: `userType=COMPANY` devolve `422 USER_TYPE_NOT_SUPPORTED`, porque empresa exige razão social e CNPJ que o endpoint de usuário não recebe. Entra com a US de empresas, provavelmente em endpoint próprio.

@@ -141,9 +141,10 @@ Espelham a árvore de produção, **no mesmo pacote da classe testada**, sufixo 
 - **Três regras sobre o que mora onde:**
   1. **Banco guarda integridade**: PK, FK, UNIQUE, NOT NULL, CHECK de enum e de faixa, e contador derivado por trigger. Nunca decisão de fluxo (publicar, notificar, bloquear, emitir certificado).
   2. **Toda constraint que um usuário consegue violar pela API tem checagem anterior no service**, com exceção de negócio (404/409/422), ou Bean Validation no DTO (400). A constraint é a última linha, nunca a experiência do usuário. Se um `DATA_CONFLICT` genérico aparece em teste de fluxo normal, falta regra no Java.
-  3. **Todo CHECK de enum no banco tem um enum gêmeo em Java, e vice-versa.** Hoje: `users.status`/`UserStatus`, `courses.status`/`CourseStatus`, `content.type`/`ContentType`, `notifications.type`/`NotificationType`, `users.role`/`UserRole` (o CHECK de `role` ainda não existe no banco; entra na V6).
+  3. **Todo CHECK de enum no banco tem um enum gêmeo em Java, e vice-versa.** Hoje: `users.status`/`UserStatus`, `courses.status`/`CourseStatus`, `content.type`/`ContentType`, `notifications.type`/`NotificationType`, `users.role`/`UserRole` (CHECK `ck_users_role`, V6).
 - **Herança JOINED de usuário**: `users` + uma tabela filha por papel (`regular_users`, `admins`, `company`). O `UserService` instancia a subclasse certa a partir de `UserRole`; nunca grave `UserEntity` puro. Um "admin" sem linha em `admins` não pode ser instrutor, porque a FK de `courses.instructor_id` aponta para `admins`.
-- Contadores desnormalizados em `courses`: `lessons_count` é mantido pelo trigger da V5 (testado em `course.shared.entity.LessonsCountTriggerTest`). **`reviews_count`, `rating_average`, `materials_count` e `students_count` ainda não têm mecanismo de atualização**; é pendência para uma US própria.
+- Contadores desnormalizados em `courses` são mantidos por trigger, sempre recalculando com `COUNT`/`AVG` (nunca incrementando): `lessons_count` (V5), `reviews_count` e `rating_average` (V6, em `course_reviews`), `materials_count` (V6, em `course_materials`). Cada um tem teste em `course.shared.entity.*TriggerTest`. **`students_count` ainda não tem mecanismo**; entra quando a US de matrícula definir a regra de contagem.
+- Redes de segurança da V6 (`CHECK` de `role`, faixas de `progress`, `price`, ordens, datas de matrícula) são testadas por amostra em `course.shared.entity.BusinessConstraintsTest`. Se um teste de fluxo normal bater numa delas, falta checagem no service.
 
 ---
 
