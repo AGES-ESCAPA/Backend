@@ -10,13 +10,19 @@ import org.springframework.stereotype.Repository;
 
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.infrastructure.persistence.entity.CourseChangeLogEntity;
+import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
+import jakarta.persistence.EntityManager;
+
+import java.time.LocalDateTime;
 
 @Repository
 public class CourseChangeLogRepositoryAdapter implements CourseChangeLogRepositoryPort {
-    private final CourseChangeLogJpaRepository repository;;
+    private final CourseChangeLogJpaRepository repository;
+    private final EntityManager entityManager;
 
-    public CourseChangeLogRepositoryAdapter(CourseChangeLogJpaRepository repository) {
+    public CourseChangeLogRepositoryAdapter(CourseChangeLogJpaRepository repository, EntityManager entityManager) {
         this.repository = repository;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -26,8 +32,13 @@ public class CourseChangeLogRepositoryAdapter implements CourseChangeLogReposito
     }
 
     @Override
-    public CourseChangeLogEntity save(CourseChangeLogEntity changeLog) {
-        return repository.save(changeLog);
+    public void save(UUID courseId, UUID changedById, String description, int majorVersion, int minorVersion) {
+        final CourseEntity course = entityManager.getReference(CourseEntity.class, courseId);
+        final UserEntity changedBy = changedById != null
+                ? entityManager.getReference(UserEntity.class, changedById)
+                : null;
+        repository.save(new CourseChangeLogEntity(
+                null, course, changedBy, description, majorVersion, minorVersion, LocalDateTime.now()));
     }
 
     @Override

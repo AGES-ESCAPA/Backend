@@ -2,22 +2,29 @@ package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Fake em memória de {@link CourseRepositoryPort} para testes unitários.
- * Simula filtragem e paginação sem banco de dados.
+ * Simula filtragem e paginação (US-01), busca de detalhes (US-04) e o
+ * CRUD administrativo (US-05) sem banco de dados.
  */
 final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
 
     private final List<CourseSummary> courses = new ArrayList<>();
+    private final Map<UUID, CourseDetails> detailsById = new HashMap<>();
+    private final Map<UUID, Course> coursesById = new HashMap<>();
 
     void addCourse(CourseSummary course) {
         courses.add(course);
@@ -27,19 +34,32 @@ final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
         courses.clear();
     }
 
+    void saveDetails(CourseDetails course) {
+        detailsById.put(course.id(), course);
+    }
+
     @Override
-    public Optional<CourseEntity> findById(UUID id) {
-        throw new UnsupportedOperationException("findById não é usado neste fake.");
+    public Course save(Course course) {
+        if (course.getId() == null) {
+            course.setId(UUID.randomUUID());
+        }
+        coursesById.put(course.getId(), course);
+        return course;
+    }
+
+    @Override
+    public Optional<Course> findById(UUID id) {
+        return Optional.ofNullable(coursesById.get(id));
+    }
+
+    @Override
+    public List<Course> findAll() {
+        return List.copyOf(coursesById.values());
     }
 
     @Override
     public List<CourseEntity> searchByTitle(String query, UUID excludedCourseId) {
         throw new UnsupportedOperationException("searchByTitle não é usado neste fake.");
-    }
-
-    @Override
-    public CourseEntity save(CourseEntity course) {
-        throw new UnsupportedOperationException("save não é usado neste fake.");
     }
 
     @Override
@@ -60,5 +80,10 @@ final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
         final int totalPages = total == 0 ? 0 : (total + size - 1) / size;
 
         return new PageResult<>(content, page, size, total, totalPages);
+    }
+
+    @Override
+    public Optional<CourseDetails> findDetailsById(UUID id) {
+        return Optional.ofNullable(detailsById.get(id));
     }
 }

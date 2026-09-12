@@ -7,8 +7,8 @@ import com.escapa.backend.adapters.dto.CourseRulesResponse;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.infrastructure.persistence.entity.CourseChangeLogEntity;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteEntity;
 
 public class GetCourseRulesUseCase {
@@ -29,7 +29,7 @@ public class GetCourseRulesUseCase {
 
     public CourseRulesResponse execute(UUID courseId) {
 
-        final CourseEntity course = courseRepository.findById(courseId)
+        final Course course = courseRepository.findById(courseId)
             .orElseThrow(() ->
                     new IllegalArgumentException("Curso não encontrado.")
             );

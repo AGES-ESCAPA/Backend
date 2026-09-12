@@ -6,15 +6,20 @@ import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
+import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteEntity;
+import com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteId;
+import jakarta.persistence.EntityManager;
 
 @Repository
 public class CoursePrerequisiteRepositoryAdapter
         implements CoursePrerequisiteRepositoryPort {
     private final CoursePrerequisiteJpaRepository coursePrerequisiteJpaRepository;
+    private final EntityManager entityManager;
 
-    public CoursePrerequisiteRepositoryAdapter(CoursePrerequisiteJpaRepository repository) {
+    public CoursePrerequisiteRepositoryAdapter(CoursePrerequisiteJpaRepository repository, EntityManager entityManager) {
         this.coursePrerequisiteJpaRepository = repository;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -28,8 +33,11 @@ public class CoursePrerequisiteRepositoryAdapter
     }
 
     @Override
-    public CoursePrerequisiteEntity save(CoursePrerequisiteEntity prerequisite) {
-        return coursePrerequisiteJpaRepository.save(prerequisite);
+    public void save(UUID courseId, UUID prerequisiteCourseId) {
+        final CourseEntity course = entityManager.getReference(CourseEntity.class, courseId);
+        final CourseEntity prerequisiteCourse = entityManager.getReference(CourseEntity.class, prerequisiteCourseId);
+        coursePrerequisiteJpaRepository.save(new CoursePrerequisiteEntity(
+                new CoursePrerequisiteId(courseId, prerequisiteCourseId), course, prerequisiteCourse));
     }
 
     @Override

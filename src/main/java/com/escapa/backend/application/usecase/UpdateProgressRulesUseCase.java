@@ -1,15 +1,13 @@
 package com.escapa.backend.application.usecase;
 
 import java.util.UUID;
-import java.time.LocalDateTime;
 
 import com.escapa.backend.adapters.dto.UpdateProgressRulesRequest;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.infrastructure.persistence.UserEntity;
-import com.escapa.backend.infrastructure.persistence.entity.CourseChangeLogEntity;
-import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 
 public class UpdateProgressRulesUseCase {
     private final CourseRepositoryPort courseRepository;
@@ -31,7 +29,7 @@ public class UpdateProgressRulesUseCase {
     }
 
     public void execute(UUID courseId, UpdateProgressRulesRequest request, UserEntity changedBy) {
-        final CourseEntity course = courseRepository.findById(courseId)
+        final Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Curso não encontrado."));
 
         final boolean changed = !request.requireSequentialProgress().equals(
@@ -44,9 +42,9 @@ public class UpdateProgressRulesUseCase {
         }
         courseRepository.save(course);
         if (changed && changeLogRepository != null) {
-            changeLogRepository.save(new CourseChangeLogEntity(
-                null, course, changedBy, "Alteração nas regras de progressão.",
-                course.getMajorVersion(), course.getMinorVersion(), LocalDateTime.now()));
+            changeLogRepository.save(courseId, changedBy != null ? changedBy.getId() : null,
+                    "Alteração nas regras de progressão.",
+                    course.getMajorVersion(), course.getMinorVersion());
         }
     }
 }

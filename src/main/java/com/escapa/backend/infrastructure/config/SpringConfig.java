@@ -14,22 +14,24 @@ import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
+import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
 import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
-import com.escapa.backend.application.usecase.PublishCourseUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ReorderContentsUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
 import com.escapa.backend.application.usecase.UpdateContentUseCase;
-import com.escapa.backend.application.usecase.UpdateCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
+import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.course.CourseRepositoryAdapter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -60,13 +62,27 @@ public class SpringConfig {
     }
 
     @Bean
-    public CourseRepositoryPort courseRepositoryPort(CourseJpaRepository courseJpaRepository) {
-        return new CourseRepositoryAdapter(courseJpaRepository);
+    public CourseRepositoryPort courseRepositoryPort(
+            CourseJpaRepository courseJpaRepository,
+            ContentJpaRepository contentJpaRepository,
+            UserJpaRepository userJpaRepository,
+            EntityManager entityManager,
+            ObjectMapper objectMapper
+    ) {
+        return new CourseRepositoryAdapter(
+                courseJpaRepository, contentJpaRepository, userJpaRepository, entityManager, objectMapper);
     }
 
     @Bean
     public ListPublishedCoursesUseCase listPublishedCoursesUseCase(CourseRepositoryPort courseRepositoryPort) {
         return new ListPublishedCoursesUseCase(courseRepositoryPort);
+    }
+
+    @Bean
+    public GetCourseDetailsUseCase getCourseDetailsUseCase(
+            CourseRepositoryPort courseRepositoryPort
+    ) {
+        return new GetCourseDetailsUseCase(courseRepositoryPort);
     }
 
     @Bean
@@ -117,22 +133,6 @@ public class SpringConfig {
     public GetCourseChangeLogUseCase getCourseChangeLogUseCase(
             CourseChangeLogRepositoryPort changeLogRepository) {
         return new GetCourseChangeLogUseCase(changeLogRepository);
-    }
-
-    @Bean
-    public PublishCourseUseCase publishCourseUseCase(
-            CourseRepositoryPort courseRepository,
-            CourseChangeLogRepositoryPort changeLogRepository,
-            CourseNotificationPort courseNotificationPort) {
-        return new PublishCourseUseCase(
-                courseRepository, changeLogRepository, courseNotificationPort);
-    }
-
-    @Bean
-    public UpdateCourseUseCase updateCourseUseCase(
-            CourseRepositoryPort courseRepository,
-            CourseChangeLogRepositoryPort changeLogRepository) {
-        return new UpdateCourseUseCase(courseRepository, changeLogRepository);
     }
 
     @Bean

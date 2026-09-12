@@ -1,17 +1,17 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-
+import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public interface CourseJpaRepository extends JpaRepository<CourseEntity, UUID> {
 
@@ -42,4 +42,23 @@ public interface CourseJpaRepository extends JpaRepository<CourseEntity, UUID> {
             @Param("level") String level,
             Pageable pageable
     );
+
+    /**
+     * Carrega o curso com instrutor e modulos (uma unica colecao "bag" nesta
+     * consulta). Materiais e conteudos dos modulos sao buscados em consultas
+     * separadas (ver {@code course.CourseRepositoryAdapter}) para evitar o
+     * {@code org.hibernate.loader.MultipleBagFetchException}, lancado quando
+     * mais de uma colecao List sem indice ("bag") e buscada via fetch join
+     * na mesma consulta.
+     */
+    @EntityGraph(attributePaths = {
+            "instructor",
+            "modules"
+    })
+    Optional<CourseEntity> findWithModulesById(UUID id);
+
+    @EntityGraph(attributePaths = {
+            "materials"
+    })
+    Optional<CourseEntity> findWithMaterialsById(UUID id);
 }

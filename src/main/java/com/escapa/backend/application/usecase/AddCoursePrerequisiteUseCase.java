@@ -1,6 +1,5 @@
 package com.escapa.backend.application.usecase;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -9,11 +8,8 @@ import com.escapa.backend.adapters.dto.AddCoursePrerequisiteRequest;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.infrastructure.persistence.UserEntity;
-import com.escapa.backend.infrastructure.persistence.entity.CourseChangeLogEntity;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteEntity;
-import com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteId;
 
 public class AddCoursePrerequisiteUseCase {
     private final CourseRepositoryPort courseRepository;
@@ -41,9 +37,9 @@ public class AddCoursePrerequisiteUseCase {
 
     public void execute(UUID courseId, AddCoursePrerequisiteRequest request, UserEntity changedBy) {
         final UUID prerequisiteCourseId = request.prerequisiteCourseId();
-        final CourseEntity course = courseRepository.findById(courseId)
+        final Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Curso não encontrado."));
-        final CourseEntity prerequisiteCourse = courseRepository.findById(prerequisiteCourseId)
+        courseRepository.findById(prerequisiteCourseId)
                 .orElseThrow(() -> new IllegalArgumentException("Pré-requisito não encontrado."));
 
         if (courseId.equals(prerequisiteCourseId)) {
@@ -57,14 +53,10 @@ public class AddCoursePrerequisiteUseCase {
             throw new IllegalArgumentException("O pré-requisito formaria um ciclo.");
         }
 
-        prerequisiteRepository.save(new CoursePrerequisiteEntity(
-                new CoursePrerequisiteId(courseId, prerequisiteCourseId),
-                course,
-                prerequisiteCourse));
+        prerequisiteRepository.save(courseId, prerequisiteCourseId);
         if (changeLogRepository != null) {
-            changeLogRepository.save(new CourseChangeLogEntity(
-                    null, course, changedBy, "Pré-requisito adicionado.",
-                    course.getMajorVersion(), course.getMinorVersion(), LocalDateTime.now()));
+            changeLogRepository.save(courseId, changedBy != null ? changedBy.getId() : null,
+                    "Pré-requisito adicionado.", course.getMajorVersion(), course.getMinorVersion());
         }
     }
 

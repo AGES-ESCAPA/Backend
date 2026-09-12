@@ -103,16 +103,16 @@ public class AdminCourseController {
     public void updateCourse(
             @PathVariable UUID courseId,
             @Valid @RequestBody UpdateCourseRequest request) {
-        updateCourseUseCase.execute(courseId, request, null);
+        updateCourseUseCase.execute(
+                courseId, request.title(), null, request.description(), null, null, null, null, null,
+                null, null, null, null, null, null, null);
     }
 
     @PostMapping("/{courseId}/publish")
     public void publishCourse(
             @PathVariable UUID courseId,
             @RequestBody(required = false) PublishCourseRequest request) {
-        final PublishCourseRequest publishRequest = request == null
-                ? new PublishCourseRequest(false) : request;
-        publishCourseUseCase.execute(courseId, publishRequest, null);
+        publishCourseUseCase.execute(courseId);
     }
 
     @GetMapping("/{courseId}/change-log")

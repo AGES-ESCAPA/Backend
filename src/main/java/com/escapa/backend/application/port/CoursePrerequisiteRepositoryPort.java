@@ -11,7 +11,7 @@ public interface CoursePrerequisiteRepositoryPort {
 
     List<CoursePrerequisiteEntity> findByPrerequisiteCourseId(UUID prerequisiteCourseId);
 
-    CoursePrerequisiteEntity save(CoursePrerequisiteEntity prerequisite);
+    void save(UUID courseId, UUID prerequisiteCourseId);
 
     boolean existsByCourseIdAndPrerequisiteCourseId(UUID courseId, UUID prerequisiteCourseId);
 

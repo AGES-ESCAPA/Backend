@@ -13,5 +13,5 @@ public interface CourseChangeLogRepositoryPort {
 
     Page<CourseChangeLogEntity> findPageByCourseId(UUID courseId, Pageable pageable);
 
-    CourseChangeLogEntity save(CourseChangeLogEntity changeLog);
+    void save(UUID courseId, UUID changedById, String description, int majorVersion, int minorVersion);
 }
