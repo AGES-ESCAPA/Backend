@@ -51,18 +51,21 @@ public final class CourseMapper {
         );
     }
 
-    public static CourseEntity toEntity(Course course) {
-        if (course == null) {
-            return null;
+    /**
+     * Aplica sobre {@code entity} apenas os campos que o CRUD administrativo (US-05)
+     * edita. Não toca em id, contadores desnormalizados (lessons_count, materials_count,
+     * students_count, reviews_count, rating_average, major/minor_version) nem nas
+     * associações (modules, materials, reviews, ...): esses campos não fazem parte do
+     * agregado de domínio {@link Course} e são mantidos por outros fluxos (conteúdo,
+     * matrícula, avaliação). {@code entity} deve ser uma linha existente carregada do
+     * banco (update) ou uma {@link CourseEntity} recém-criada com id nulo (create) —
+     * nunca reconstruída do zero para um curso que já existe, para não perder esse estado.
+     */
+    public static void applyToEntity(Course course, CourseEntity entity) {
+        if (course == null || entity == null) {
+            return;
         }
 
-        final CourseEntity entity = new CourseEntity();
-        // Deixa o id nulo para cursos novos: CourseEntity#isNew() depende de id == null
-        // para que o Spring Data JPA use persist() (via @GeneratedValue) em vez de merge().
-        // Atribuir um UUID aqui faria isNew() retornar false para uma linha que ainda nao
-        // existe, e o merge() de uma entidade "nao nova" sem linha correspondente lanca
-        // StaleObjectStateException.
-        entity.setId(course.getId());
         entity.setTitle(course.getTitle());
         entity.setDescription(course.getDescription());
         entity.setShortDescription(course.getShortDescription());
@@ -73,9 +76,7 @@ public final class CourseMapper {
             entity.setStatus(CourseStatus.valueOf(course.getStatus().name()));
         }
 
-        entity.setCreatedBy(UserMapper.toEntity(course.getCreatedBy()));
         mapEntityDetails(course, entity);
-        return entity;
     }
 
     private static void mapEntityDetails(Course course, CourseEntity entity) {

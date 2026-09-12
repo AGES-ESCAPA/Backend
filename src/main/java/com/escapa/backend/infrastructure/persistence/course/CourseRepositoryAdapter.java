@@ -57,7 +57,16 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
 
     @Override
     public Course save(Course course) {
-        final CourseEntity entity = CourseMapper.toEntity(course);
+        // Carrega a linha existente (quando ha uma) e aplica só os campos que o CRUD
+        // administrativo edita, em vez de substituir a entidade inteira: contadores
+        // desnormalizados (lessons_count, rating_average, ...) e associacoes que outros
+        // fluxos gerenciam (modules, materials, reviews, ...) nao fazem parte do agregado
+        // de dominio Course e seriam zerados por um merge() de uma CourseEntity nova.
+        final CourseEntity entity = course.getId() != null
+                ? courseJpaRepository.findById(course.getId()).orElseGet(CourseEntity::new)
+                : new CourseEntity();
+
+        CourseMapper.applyToEntity(course, entity);
 
         if (course.getInstructor() != null) {
             final AdminEntity admin = entityManager.find(AdminEntity.class, course.getInstructor().getId());
