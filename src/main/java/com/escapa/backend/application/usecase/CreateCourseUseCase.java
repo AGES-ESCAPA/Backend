@@ -32,6 +32,9 @@ public class CreateCourseUseCase {
         if (instructorId != null) {
             instructor = userRepositoryPort.findById(instructorId)
                     .orElseThrow(() -> new UserNotFoundException(instructorId));
+            if (!"ADMIN".equalsIgnoreCase(instructor.getUserType())) {
+                throw new IllegalArgumentException("instructorId must reference a user with userType ADMIN");
+            }
         }
 
         final User createdBy = userRepositoryPort.findById(createdById)

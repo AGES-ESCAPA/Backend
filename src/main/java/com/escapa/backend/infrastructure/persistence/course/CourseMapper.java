@@ -1,7 +1,12 @@
-package com.escapa.backend.infrastructure.persistence;
+package com.escapa.backend.infrastructure.persistence.course;
 
+import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.domain.entity.Module;
+import com.escapa.backend.infrastructure.persistence.ContentMapper;
+import com.escapa.backend.infrastructure.persistence.UserMapper;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
+import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
 import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -9,12 +14,41 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
+/**
+ * Conversor estático entre {@link CourseEntity} (JPA) e as representações de
+ * aplicação/domínio de curso: {@link CourseSummary} (listagem pública) e
+ * {@link Course} (agregado de domínio usado pelo CRUD administrativo).
+ * Segue o mesmo padrão do {@code UserMapper} existente.
+ */
 public final class CourseMapper {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private CourseMapper() {
+    }
+
+    public static CourseSummary toSummary(CourseEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        final String instructorName = entity.getInstructor() != null
+                ? entity.getInstructor().getName() : null;
+
+        return new CourseSummary(
+                entity.getId(),
+                entity.getTitle(),
+                entity.getShortDescription(),
+                entity.getCategory(),
+                entity.getLevel(),
+                entity.getDurationTime(),
+                entity.getLessonsCount(),
+                entity.getPrice(),
+                entity.getThumbnailUrl(),
+                instructorName,
+                entity.getRatingAverage(),
+                entity.getReviewsCount()
+        );
     }
 
     public static CourseEntity toEntity(Course course) {
@@ -23,7 +57,12 @@ public final class CourseMapper {
         }
 
         final CourseEntity entity = new CourseEntity();
-        entity.setId(course.getId() != null ? course.getId() : UUID.randomUUID());
+        // Deixa o id nulo para cursos novos: CourseEntity#isNew() depende de id == null
+        // para que o Spring Data JPA use persist() (via @GeneratedValue) em vez de merge().
+        // Atribuir um UUID aqui faria isNew() retornar false para uma linha que ainda nao
+        // existe, e o merge() de uma entidade "nao nova" sem linha correspondente lanca
+        // StaleObjectStateException.
+        entity.setId(course.getId());
         entity.setTitle(course.getTitle());
         entity.setDescription(course.getDescription());
         entity.setShortDescription(course.getShortDescription());
@@ -49,7 +88,7 @@ public final class CourseMapper {
 
         if (course.getLearningObjectives() != null) {
             try {
-                entity.setLearningObjectives(objectMapper.writeValueAsString(course.getLearningObjectives()));
+                entity.setLearningObjectives(OBJECT_MAPPER.writeValueAsString(course.getLearningObjectives()));
             } catch (JsonProcessingException e) {
                 entity.setLearningObjectives("[]");
             }
@@ -84,7 +123,24 @@ public final class CourseMapper {
         }
 
         mapDomainDetails(entity, course);
+
+        if (entity.getModules() != null) {
+            course.setModules(entity.getModules().stream()
+                    .map(module -> toModule(module, course))
+                    .toList());
+        }
+
         return course;
+    }
+
+    private static Module toModule(ModuleEntity entity, Course course) {
+        final Module module = new Module(entity.getId(), course, entity.getTitle(), entity.getOrder());
+        if (entity.getContents() != null) {
+            module.setContents(entity.getContents().stream()
+                    .map(ContentMapper::toDomain)
+                    .toList());
+        }
+        return module;
     }
 
     private static void mapDomainDetails(CourseEntity entity, Course course) {
@@ -97,7 +153,8 @@ public final class CourseMapper {
 
         if (entity.getLearningObjectives() != null && !entity.getLearningObjectives().isBlank()) {
             try {
-                course.setLearningObjectives(objectMapper.readValue(entity.getLearningObjectives(), new TypeReference<List<String>>() {}));
+                course.setLearningObjectives(
+                        OBJECT_MAPPER.readValue(entity.getLearningObjectives(), new TypeReference<List<String>>() { }));
             } catch (JsonProcessingException e) {
                 course.setLearningObjectives(new ArrayList<>());
             }
