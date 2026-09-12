@@ -1,5 +1,10 @@
 package com.escapa.backend.adapters.exception;
 
+import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.module.ModuleNotFoundException;
+import com.escapa.backend.domain.user.UserNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.time.Instant;
 import java.util.stream.Collectors;
 
@@ -13,10 +18,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
-
-import com.escapa.backend.domain.user.UserNotFoundException;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -42,9 +43,20 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(ContentNotFoundException.class)
+    public ResponseEntity<ApiError> handleContentNotFoundException(ContentNotFoundException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ModuleNotFoundException.class)
+    public ResponseEntity<ApiError> handleModuleNotFoundException(ModuleNotFoundException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrityViolationException(DataIntegrityViolationException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.CONFLICT, "User already exists", request);
+        // Generico: users nao e mais a unica origem possivel de violacao de constraint.
+        return buildResponse(HttpStatus.CONFLICT, "Resource already exists", request);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

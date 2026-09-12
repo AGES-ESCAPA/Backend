@@ -1,11 +1,17 @@
 package com.escapa.backend.application.port;
-import java.util.List;
+
+import com.escapa.backend.application.dto.CourseSummary;
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-
+/**
+ * Contrato de acesso ao repositório de cursos.
+ * A implementação concreta vive na camada de infraestrutura.
+ */
 public interface CourseRepositoryPort {
 
     Optional<CourseEntity> findById(UUID id);
@@ -13,4 +19,16 @@ public interface CourseRepositoryPort {
     List<CourseEntity> searchByTitle(String query, UUID excludedCourseId);
 
     CourseEntity save(CourseEntity course);
+
+    /**
+     * Busca cursos publicados com filtros opcionais e paginação.
+     *
+     * @param title    filtro parcial e case-insensitive sobre o título (pode ser null)
+     * @param category filtro exato por categoria (pode ser null)
+     * @param level    filtro exato por nível (pode ser null)
+     * @param page     número da página (0-based)
+     * @param size     tamanho da página
+     * @return página de resumos de cursos publicados
+     */
+    PageResult<CourseSummary> findPublished(String title, String category, String level, int page, int size);
 }

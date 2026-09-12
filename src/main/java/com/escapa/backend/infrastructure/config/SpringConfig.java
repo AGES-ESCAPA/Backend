@@ -1,28 +1,38 @@
 package com.escapa.backend.infrastructure.config;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
+import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
+import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
+import com.escapa.backend.application.usecase.DeleteContentUseCase;
+import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
+import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
+import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
 import com.escapa.backend.application.usecase.PublishCourseUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
+import com.escapa.backend.application.usecase.ReorderContentsUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
+import com.escapa.backend.application.usecase.UpdateContentUseCase;
 import com.escapa.backend.application.usecase.UpdateCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
+import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.NotificationJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
+import com.escapa.backend.infrastructure.persistence.course.CourseRepositoryAdapter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SpringConfig {
@@ -51,15 +61,25 @@ public class SpringConfig {
     }
 
     @Bean
+    public CourseRepositoryPort courseRepositoryPort(CourseJpaRepository courseJpaRepository) {
+        return new CourseRepositoryAdapter(courseJpaRepository);
+    }
+
+    @Bean
+    public ListPublishedCoursesUseCase listPublishedCoursesUseCase(CourseRepositoryPort courseRepositoryPort) {
+        return new ListPublishedCoursesUseCase(courseRepositoryPort);
+    }
+
+    @Bean
     public GetCourseRulesUseCase getCourseRulesUseCase(
             CourseRepositoryPort courseRepository,
             CourseChangeLogRepositoryPort courseChangeLogRepository,
             CoursePrerequisiteRepositoryPort coursePrerequisiteRepository
     ) {
         return new GetCourseRulesUseCase(
-            courseRepository,
-            coursePrerequisiteRepository,
-            courseChangeLogRepository
+                courseRepository,
+                coursePrerequisiteRepository,
+                courseChangeLogRepository
         );
     }
 
@@ -115,5 +135,47 @@ public class SpringConfig {
             CourseRepositoryPort courseRepository,
             CourseChangeLogRepositoryPort changeLogRepository) {
         return new UpdateCourseUseCase(courseRepository, changeLogRepository);
+    }
+
+    @Bean
+    public CreateContentUseCase createContentUseCase(
+            ContentRepositoryPort contentRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort
+    ) {
+        return new CreateContentUseCase(contentRepositoryPort, moduleRepositoryPort);
+    }
+
+    @Bean
+    public UpdateContentUseCase updateContentUseCase(ContentRepositoryPort contentRepositoryPort) {
+        return new UpdateContentUseCase(contentRepositoryPort);
+    }
+
+    @Bean
+    public GetContentUseCase getContentUseCase(
+            ContentRepositoryPort contentRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort
+    ) {
+        return new GetContentUseCase(contentRepositoryPort, moduleRepositoryPort);
+    }
+
+    @Bean
+    public ListModuleContentsUseCase listModuleContentsUseCase(
+            ContentRepositoryPort contentRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort
+    ) {
+        return new ListModuleContentsUseCase(contentRepositoryPort, moduleRepositoryPort);
+    }
+
+    @Bean
+    public DeleteContentUseCase deleteContentUseCase(ContentRepositoryPort contentRepositoryPort) {
+        return new DeleteContentUseCase(contentRepositoryPort);
+    }
+
+    @Bean
+    public ReorderContentsUseCase reorderContentsUseCase(
+            ContentRepositoryPort contentRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort
+    ) {
+        return new ReorderContentsUseCase(contentRepositoryPort, moduleRepositoryPort);
     }
 }
