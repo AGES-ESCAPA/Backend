@@ -23,6 +23,9 @@ import com.escapa.backend.adapters.dto.CourseSearchResponse;
 import com.escapa.backend.adapters.dto.PublishCourseRequest;
 import com.escapa.backend.adapters.dto.UpdateCourseRequest;
 import com.escapa.backend.adapters.dto.UpdateProgressRulesRequest;
+import com.escapa.backend.application.dto.ChangeLogEntry;
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CourseRules;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
@@ -93,7 +96,7 @@ public class AdminCourseController {
             @PathVariable UUID courseId
     ) {
         requireAdmin(xUserId);
-        return getCourseRulesUseCase.execute(courseId);
+        return toResponse(getCourseRulesUseCase.execute(courseId));
     }
 
     @PutMapping("/{courseId}/progress-rules")
@@ -102,9 +105,10 @@ public class AdminCourseController {
             @PathVariable UUID courseId,
             @Valid @RequestBody UpdateProgressRulesRequest request
     ) {
-        requireAdmin(xUserId);
-        updateProgressRulesUseCase.execute(courseId, request);
-        return getCourseRulesUseCase.execute(courseId);
+        final User admin = requireAdmin(xUserId);
+        updateProgressRulesUseCase.execute(
+                courseId, request.requireSequentialProgress(), request.enforceDeadlineBlock(), admin);
+        return toResponse(getCourseRulesUseCase.execute(courseId));
     }
 
     @PostMapping("/{courseId}/prerequisites")
@@ -113,8 +117,8 @@ public class AdminCourseController {
             @PathVariable UUID courseId,
             @Valid @RequestBody AddCoursePrerequisiteRequest request
     ) {
-        requireAdmin(xUserId);
-        addCoursePrerequisiteUseCase.execute(courseId, request);
+        final User admin = requireAdmin(xUserId);
+        addCoursePrerequisiteUseCase.execute(courseId, request.prerequisiteCourseId(), admin);
     }
 
     @GetMapping("/{courseId}/prerequisites/search")
@@ -123,7 +127,9 @@ public class AdminCourseController {
             @PathVariable UUID courseId,
             @RequestParam String query) {
         requireAdmin(xUserId);
-        return searchCoursesForPrerequisiteUseCase.execute(courseId, query);
+        return searchCoursesForPrerequisiteUseCase.execute(courseId, query).stream()
+                .map(course -> new CourseSearchResponse(course.getId(), course.getTitle()))
+                .toList();
     }
 
     @DeleteMapping("/{courseId}/prerequisites/{prerequisiteCourseId}")
@@ -131,8 +137,8 @@ public class AdminCourseController {
             @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
             @PathVariable UUID prerequisiteCourseId) {
-        requireAdmin(xUserId);
-        removeCoursePrerequisiteUseCase.execute(courseId, prerequisiteCourseId, null);
+        final User admin = requireAdmin(xUserId);
+        removeCoursePrerequisiteUseCase.execute(courseId, prerequisiteCourseId, admin);
     }
 
     @PutMapping("/{courseId}")
@@ -140,10 +146,10 @@ public class AdminCourseController {
             @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
             @Valid @RequestBody UpdateCourseRequest request) {
-        requireAdmin(xUserId);
+        final User admin = requireAdmin(xUserId);
         updateCourseUseCase.execute(
                 courseId, request.title(), null, request.description(), null, null, null, null, null,
-                null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, admin);
     }
 
     @PostMapping("/{courseId}/publish")
@@ -151,8 +157,9 @@ public class AdminCourseController {
             @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
             @RequestBody(required = false) PublishCourseRequest request) {
-        requireAdmin(xUserId);
-        publishCourseUseCase.execute(courseId);
+        final User admin = requireAdmin(xUserId);
+        final boolean notify = request != null && Boolean.TRUE.equals(request.notifyEnrolledStudents());
+        publishCourseUseCase.execute(courseId, notify, admin);
     }
 
     @GetMapping("/{courseId}/change-log")
@@ -165,6 +172,32 @@ public class AdminCourseController {
         if (page < 0 || size < 1 || size > 100) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pagination");
         }
-        return getCourseChangeLogUseCase.execute(courseId, page, size);
+        final PageResult<ChangeLogEntry> result = getCourseChangeLogUseCase.execute(courseId, page, size);
+        return new ChangeLogPageResponse(
+                result.content().stream().map(AdminCourseController::toEntry).toList(),
+                result.pageNumber(), result.pageSize(), result.totalElements(), result.totalPages());
+    }
+
+    private static ChangeLogPageResponse.Entry toEntry(ChangeLogEntry entry) {
+        return new ChangeLogPageResponse.Entry(
+                entry.id(), entry.description(), entry.changedByName(),
+                entry.majorVersion() + "." + entry.minorVersion(),
+                entry.createdAt() == null ? null : entry.createdAt().toString());
+    }
+
+    private static CourseRulesResponse toResponse(CourseRules rules) {
+        return new CourseRulesResponse(
+                rules.requireSequentialProgress(),
+                rules.enforceDeadlineBlock(),
+                rules.version(),
+                rules.prerequisites().stream()
+                        .map(p -> new CourseRulesResponse.PrerequisiteResponse(
+                                p.courseId().toString(), p.courseTitle()))
+                        .toList(),
+                rules.recentChangeLog().stream()
+                        .map(log -> new CourseRulesResponse.ChangeLogResponse(
+                                log.id(), log.description(), log.changedByName(),
+                                log.createdAt() == null ? null : log.createdAt().toString()))
+                        .toList());
     }
 }

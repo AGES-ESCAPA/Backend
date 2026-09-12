@@ -5,7 +5,6 @@ import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,8 +57,12 @@ final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
     }
 
     @Override
-    public List<CourseEntity> searchByTitle(String query, UUID excludedCourseId) {
-        throw new UnsupportedOperationException("searchByTitle não é usado neste fake.");
+    public List<Course> searchByTitle(String title, UUID excludedCourseId) {
+        final String normalized = title == null ? "" : title.toLowerCase(Locale.ROOT);
+        return coursesById.values().stream()
+                .filter(c -> !c.getId().equals(excludedCourseId))
+                .filter(c -> c.getTitle() != null && c.getTitle().toLowerCase(Locale.ROOT).contains(normalized))
+                .toList();
     }
 
     @Override

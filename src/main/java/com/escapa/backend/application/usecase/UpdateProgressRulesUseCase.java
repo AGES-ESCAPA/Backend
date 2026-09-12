@@ -1,21 +1,18 @@
 package com.escapa.backend.application.usecase;
 
-import java.util.UUID;
-
-import com.escapa.backend.adapters.dto.UpdateProgressRulesRequest;
-import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
+import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.infrastructure.persistence.UserEntity;
+import com.escapa.backend.domain.entity.User;
+
+import java.util.UUID;
 
 public class UpdateProgressRulesUseCase {
+
     private final CourseRepositoryPort courseRepository;
     private final CourseChangeLogRepositoryPort changeLogRepository;
-
-    public UpdateProgressRulesUseCase(CourseRepositoryPort courseRepository) {
-        this(courseRepository, null);
-    }
 
     public UpdateProgressRulesUseCase(
             CourseRepositoryPort courseRepository,
@@ -24,27 +21,25 @@ public class UpdateProgressRulesUseCase {
         this.changeLogRepository = changeLogRepository;
     }
 
-    public void execute(UUID courseId, UpdateProgressRulesRequest request) {
-        execute(courseId, request, null);
-    }
-
-    public void execute(UUID courseId, UpdateProgressRulesRequest request, UserEntity changedBy) {
+    public void execute(
+            UUID courseId, boolean requireSequentialProgress, boolean enforceDeadlineBlock, User changedBy) {
         final Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Curso não encontrado."));
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
 
-        final boolean changed = !request.requireSequentialProgress().equals(
-            course.getRequireSequentialProgress())
-            || !request.enforceDeadlineBlock().equals(course.getEnforceDeadlineBlock());
-        course.setRequireSequentialProgress(request.requireSequentialProgress());
-        course.setEnforceDeadlineBlock(request.enforceDeadlineBlock());
+        final boolean changed = requireSequentialProgress != course.getRequireSequentialProgress()
+                || enforceDeadlineBlock != course.getEnforceDeadlineBlock();
+
+        course.setRequireSequentialProgress(requireSequentialProgress);
+        course.setEnforceDeadlineBlock(enforceDeadlineBlock);
         if (changed && course.getStatus() == CourseStatus.PUBLISHED) {
             course.setMinorVersion(course.getMinorVersion() + 1);
         }
-        courseRepository.save(course);
-        if (changed && changeLogRepository != null) {
+
+        final Course saved = courseRepository.save(course);
+
+        if (changed) {
             changeLogRepository.save(courseId, changedBy != null ? changedBy.getId() : null,
-                    "Alteração nas regras de progressão.",
-                    course.getMajorVersion(), course.getMinorVersion());
+                    "Alteração nas regras de progressão.", saved.getMajorVersion(), saved.getMinorVersion());
         }
     }
 }

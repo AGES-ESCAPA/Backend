@@ -1,17 +1,20 @@
 package com.escapa.backend.application.usecase;
 
-import java.util.List;
-import java.util.UUID;
-
-import com.escapa.backend.adapters.dto.CourseRulesResponse;
+import com.escapa.backend.application.dto.ChangeLogEntry;
+import com.escapa.backend.application.model.CourseRules;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.infrastructure.persistence.entity.CourseChangeLogEntity;
-import com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteEntity;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 public class GetCourseRulesUseCase {
+
+    private static final int RECENT_CHANGE_LOG_LIMIT = 10;
 
     private final CourseRepositoryPort courseRepository;
     private final CoursePrerequisiteRepositoryPort prerequisiteRepository;
@@ -21,47 +24,35 @@ public class GetCourseRulesUseCase {
             CourseRepositoryPort courseRepository,
             CoursePrerequisiteRepositoryPort prerequisiteRepository,
             CourseChangeLogRepositoryPort changeLogRepository) {
-
         this.courseRepository = courseRepository;
         this.prerequisiteRepository = prerequisiteRepository;
         this.changeLogRepository = changeLogRepository;
     }
 
-    public CourseRulesResponse execute(UUID courseId) {
-
+    public CourseRules execute(UUID courseId) {
         final Course course = courseRepository.findById(courseId)
-            .orElseThrow(() ->
-                    new IllegalArgumentException("Curso não encontrado.")
-            );
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
 
-        final List<CoursePrerequisiteEntity> prerequisites =
-            prerequisiteRepository.findByCourseId(courseId);
+        final List<CourseRules.Prerequisite> prerequisites = prerequisiteRepository
+                .findPrerequisiteCourseIds(courseId).stream()
+                .map(this::toPrerequisite)
+                .filter(Objects::nonNull)
+                .toList();
 
-        final List<CourseChangeLogEntity> changeLogs =
-            changeLogRepository.findByCourseId(courseId);
+        final List<ChangeLogEntry> changeLog =
+                changeLogRepository.findRecentByCourseId(courseId, RECENT_CHANGE_LOG_LIMIT);
 
-    return new CourseRulesResponse(
-            course.getRequireSequentialProgress(),
-            course.getEnforceDeadlineBlock(),
-            course.getMajorVersion() + "." + course.getMinorVersion(),
+        return new CourseRules(
+                course.getRequireSequentialProgress(),
+                course.getEnforceDeadlineBlock(),
+                course.getMajorVersion() + "." + course.getMinorVersion(),
+                prerequisites,
+                changeLog);
+    }
 
-            prerequisites.stream()
-                    .map(p -> new CourseRulesResponse.PrerequisiteResponse(
-                            p.getPrerequisiteCourse().getId().toString(),
-                            p.getPrerequisiteCourse().getTitle()
-                    ))
-                    .toList(),
-
-            changeLogs.stream()
-                    .map(log -> new CourseRulesResponse.ChangeLogResponse(
-                            log.getId(),
-                            log.getDescription(),
-                            log.getChangedBy() == null
-                                    ? "Sistema"
-                                    : log.getChangedBy().getName(),
-                            log.getCreatedAt() == null ? null : log.getCreatedAt().toString()
-                    ))
-                    .toList()
-    );
-}
+    private CourseRules.Prerequisite toPrerequisite(UUID prerequisiteCourseId) {
+        return courseRepository.findById(prerequisiteCourseId)
+                .map(course -> new CourseRules.Prerequisite(course.getId(), course.getTitle()))
+                .orElse(null);
+    }
 }

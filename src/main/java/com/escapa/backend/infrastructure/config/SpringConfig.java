@@ -26,7 +26,14 @@ import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCas
 import com.escapa.backend.application.usecase.UpdateContentUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
+import com.escapa.backend.infrastructure.persistence.CourseChangeLogJpaRepository;
+import com.escapa.backend.infrastructure.persistence.CourseChangeLogRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
+import com.escapa.backend.infrastructure.persistence.CourseNotificationAdapter;
+import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteJpaRepository;
+import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteRepositoryAdapter;
+import com.escapa.backend.infrastructure.persistence.NotificationJpaRepository;
+import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.course.CourseRepositoryAdapter;
@@ -83,6 +90,26 @@ public class SpringConfig {
             CourseRepositoryPort courseRepositoryPort
     ) {
         return new GetCourseDetailsUseCase(courseRepositoryPort);
+    }
+
+    @Bean
+    public CourseChangeLogRepositoryPort courseChangeLogRepositoryPort(
+            CourseChangeLogJpaRepository repository, EntityManager entityManager) {
+        return new CourseChangeLogRepositoryAdapter(repository, entityManager);
+    }
+
+    @Bean
+    public CoursePrerequisiteRepositoryPort coursePrerequisiteRepositoryPort(
+            CoursePrerequisiteJpaRepository repository, EntityManager entityManager) {
+        return new CoursePrerequisiteRepositoryAdapter(repository, entityManager);
+    }
+
+    @Bean
+    public CourseNotificationPort courseNotificationPort(
+            UserCourseJpaRepository userCourseRepository,
+            NotificationJpaRepository notificationRepository,
+            CourseJpaRepository courseJpaRepository) {
+        return new CourseNotificationAdapter(userCourseRepository, notificationRepository, courseJpaRepository);
     }
 
     @Bean

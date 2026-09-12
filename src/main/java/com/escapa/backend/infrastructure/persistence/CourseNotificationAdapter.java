@@ -3,13 +3,11 @@ package com.escapa.backend.infrastructure.persistence;
 import com.escapa.backend.application.port.CourseNotificationPort;
 import com.escapa.backend.infrastructure.persistence.entity.NotificationEntity;
 import com.escapa.backend.infrastructure.persistence.entity.enums.NotificationType;
-import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Repository
 public class CourseNotificationAdapter implements CourseNotificationPort {
 
     private static final String PUBLISHED_TITLE = "Curso publicado";

@@ -48,7 +48,7 @@ public class CourseAdminController {
         this.userRepositoryPort = userRepositoryPort;
     }
 
-    private UUID requireAdmin(String xUserId) {
+    private User requireAdmin(String xUserId) {
         if (xUserId == null || xUserId.isBlank()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing X-User-Id header");
         }
@@ -59,7 +59,7 @@ public class CourseAdminController {
             if (!"ADMIN".equalsIgnoreCase(user.getUserType())) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: user is not ADMIN");
             }
-            return userId;
+            return user;
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid X-User-Id: must be a valid UUID");
         }
@@ -70,14 +70,14 @@ public class CourseAdminController {
             @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @Valid @RequestBody CreateCourseRequest request) {
 
-        final UUID createdById = requireAdmin(xUserId);
+        final User admin = requireAdmin(xUserId);
 
         final Course course = createCourseUseCase.execute(
                 request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
                 request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
                 request.durationTime(), request.deadline(), request.accessDurationDays(), request.price(),
                 request.learningObjectives(), request.requireSequentialProgress(), request.enforceDeadlineBlock(),
-                createdById
+                admin.getId()
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -90,13 +90,14 @@ public class CourseAdminController {
             @PathVariable UUID id,
             @RequestBody UpdateCourseRequest request) {
 
-        requireAdmin(xUserId);
+        final User admin = requireAdmin(xUserId);
 
         final Course course = updateCourseUseCase.execute(
                 id, request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
                 request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
                 request.durationTime(), request.deadline(), request.accessDurationDays(), request.price(),
-                request.learningObjectives(), request.requireSequentialProgress(), request.enforceDeadlineBlock()
+                request.learningObjectives(), request.requireSequentialProgress(), request.enforceDeadlineBlock(),
+                admin
         );
 
         return ResponseEntity.ok(ApiResponse.success(toResponse(course), "Course updated successfully"));
@@ -107,9 +108,9 @@ public class CourseAdminController {
             @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID id) {
 
-        requireAdmin(xUserId);
+        final User admin = requireAdmin(xUserId);
 
-        final Course course = publishCourseUseCase.execute(id);
+        final Course course = publishCourseUseCase.execute(id, false, admin);
         return ResponseEntity.ok(ApiResponse.success(toResponse(course), "Course published successfully"));
     }
 

@@ -1,22 +1,20 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
-
+import com.escapa.backend.application.dto.ChangeLogEntry;
+import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.infrastructure.persistence.entity.CourseChangeLogEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import jakarta.persistence.EntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
-@Repository
 public class CourseChangeLogRepositoryAdapter implements CourseChangeLogRepositoryPort {
+
     private final CourseChangeLogJpaRepository repository;
     private final EntityManager entityManager;
 
@@ -26,9 +24,22 @@ public class CourseChangeLogRepositoryAdapter implements CourseChangeLogReposito
     }
 
     @Override
-    public List<CourseChangeLogEntity> findByCourseId(UUID courseId) {
-        return repository.findByCourseIdOrderByCreatedAtDesc(courseId, PageRequest.of(0, 10)
-        ).getContent();
+    public List<ChangeLogEntry> findRecentByCourseId(UUID courseId, int limit) {
+        return repository.findByCourseIdOrderByCreatedAtDesc(courseId, PageRequest.of(0, limit))
+                .getContent().stream()
+                .map(CourseChangeLogRepositoryAdapter::toEntry)
+                .toList();
+    }
+
+    @Override
+    public PageResult<ChangeLogEntry> findPageByCourseId(UUID courseId, int page, int size) {
+        final Page<CourseChangeLogEntity> result =
+                repository.findByCourseIdOrderByCreatedAtDesc(courseId, PageRequest.of(page, size));
+        final List<ChangeLogEntry> content = result.getContent().stream()
+                .map(CourseChangeLogRepositoryAdapter::toEntry)
+                .toList();
+        return new PageResult<>(
+                content, result.getNumber(), result.getSize(), result.getTotalElements(), result.getTotalPages());
     }
 
     @Override
@@ -41,9 +52,13 @@ public class CourseChangeLogRepositoryAdapter implements CourseChangeLogReposito
                 null, course, changedBy, description, majorVersion, minorVersion, LocalDateTime.now()));
     }
 
-    @Override
-    public Page<CourseChangeLogEntity> findPageByCourseId(UUID courseId, Pageable pageable) {
-        return repository.findByCourseIdOrderByCreatedAtDesc(courseId, pageable);
+    private static ChangeLogEntry toEntry(CourseChangeLogEntity entity) {
+        return new ChangeLogEntry(
+                entity.getId(),
+                entity.getDescription(),
+                entity.getChangedBy() == null ? "Sistema" : entity.getChangedBy().getName(),
+                entity.getMajorVersion(),
+                entity.getMinorVersion(),
+                entity.getCreatedAt());
     }
 }
-

@@ -94,8 +94,10 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
     }
 
     @Override
-    public List<CourseEntity> searchByTitle(String query, UUID excludedCourseId) {
-        return courseJpaRepository.findByTitleContainingIgnoreCaseAndIdNot(query, excludedCourseId);
+    public List<Course> searchByTitle(String title, UUID excludedCourseId) {
+        return courseJpaRepository.findByTitleContainingIgnoreCaseAndIdNot(title, excludedCourseId).stream()
+                .map(CourseMapper::toDomain)
+                .toList();
     }
 
     @Override

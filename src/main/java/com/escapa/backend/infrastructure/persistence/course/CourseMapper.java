@@ -52,14 +52,16 @@ public final class CourseMapper {
     }
 
     /**
-     * Aplica sobre {@code entity} apenas os campos que o CRUD administrativo (US-05)
-     * edita. Não toca em id, contadores desnormalizados (lessons_count, materials_count,
-     * students_count, reviews_count, rating_average, major/minor_version) nem nas
-     * associações (modules, materials, reviews, ...): esses campos não fazem parte do
-     * agregado de domínio {@link Course} e são mantidos por outros fluxos (conteúdo,
-     * matrícula, avaliação). {@code entity} deve ser uma linha existente carregada do
-     * banco (update) ou uma {@link CourseEntity} recém-criada com id nulo (create) —
-     * nunca reconstruída do zero para um curso que já existe, para não perder esse estado.
+     * Aplica sobre {@code entity} apenas os campos que o CRUD administrativo (US-05/US-09)
+     * edita. Não toca em id nem nos contadores desnormalizados (lessons_count,
+     * materials_count, students_count, reviews_count, rating_average) ou nas associações
+     * (modules, materials, reviews, ...): esses campos não fazem parte do agregado de
+     * domínio {@link Course} e são mantidos por outros fluxos (conteúdo, matrícula,
+     * avaliação). major/minor_version SÃO tocados aqui: publish/update/progress-rules
+     * (US-09) são o próprio fluxo dono desse versionamento. {@code entity} deve ser uma
+     * linha existente carregada do banco (update) ou uma {@link CourseEntity} recém-criada
+     * com id nulo (create) — nunca reconstruída do zero para um curso que já existe, para
+     * não perder esse estado.
      */
     public static void applyToEntity(Course course, CourseEntity entity) {
         if (course == null || entity == null) {
