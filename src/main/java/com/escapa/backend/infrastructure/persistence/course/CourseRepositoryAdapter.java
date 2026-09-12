@@ -4,8 +4,10 @@ import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
+import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.entity.AdminEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
@@ -15,6 +17,7 @@ import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,26 +26,71 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Implementação concreta de {@link CourseRepositoryPort} usando Spring Data JPA.
- * Cobre tanto a listagem pública paginada (US-01) quanto os detalhes completos
- * de um curso (US-04).
+ * Cobre a listagem pública paginada (US-01), os detalhes completos de um curso
+ * (US-04) e o CRUD administrativo (US-05).
  */
 public class CourseRepositoryAdapter implements CourseRepositoryPort {
 
     private final CourseJpaRepository courseJpaRepository;
     private final ContentJpaRepository contentJpaRepository;
+    private final UserJpaRepository userJpaRepository;
+    private final EntityManager entityManager;
     private final ObjectMapper objectMapper;
 
     public CourseRepositoryAdapter(
             CourseJpaRepository courseJpaRepository,
             ContentJpaRepository contentJpaRepository,
+            UserJpaRepository userJpaRepository,
+            EntityManager entityManager,
             ObjectMapper objectMapper
     ) {
         this.courseJpaRepository = courseJpaRepository;
         this.contentJpaRepository = contentJpaRepository;
+        this.userJpaRepository = userJpaRepository;
+        this.entityManager = entityManager;
         this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public Course save(Course course) {
+        // Carrega a linha existente (quando ha uma) e aplica só os campos que o CRUD
+        // administrativo edita, em vez de substituir a entidade inteira: contadores
+        // desnormalizados (lessons_count, rating_average, ...) e associacoes que outros
+        // fluxos gerenciam (modules, materials, reviews, ...) nao fazem parte do agregado
+        // de dominio Course e seriam zerados por um merge() de uma CourseEntity nova.
+        final CourseEntity entity = course.getId() != null
+                ? courseJpaRepository.findById(course.getId()).orElseGet(CourseEntity::new)
+                : new CourseEntity();
+
+        CourseMapper.applyToEntity(course, entity);
+
+        if (course.getInstructor() != null) {
+            final AdminEntity admin = entityManager.find(AdminEntity.class, course.getInstructor().getId());
+            entity.setInstructor(admin);
+        }
+
+        if (course.getCreatedBy() != null) {
+            entity.setCreatedBy(userJpaRepository.findById(course.getCreatedBy().getId()).orElse(null));
+        }
+
+        final CourseEntity saved = courseJpaRepository.save(entity);
+        return CourseMapper.toDomain(saved);
+    }
+
+    @Override
+    public Optional<Course> findById(UUID id) {
+        return courseJpaRepository.findById(id).map(CourseMapper::toDomain);
+    }
+
+    @Override
+    public List<Course> findAll() {
+        return courseJpaRepository.findAll().stream()
+                .map(CourseMapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Override

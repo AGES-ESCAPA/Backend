@@ -4,6 +4,7 @@ import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.domain.entity.Course;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,12 +16,14 @@ import java.util.UUID;
 
 /**
  * Fake em memória de {@link CourseRepositoryPort} para testes unitários.
- * Simula filtragem e paginação (US-01) e busca de detalhes (US-04) sem banco de dados.
+ * Simula filtragem e paginação (US-01), busca de detalhes (US-04) e o
+ * CRUD administrativo (US-05) sem banco de dados.
  */
 final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
 
     private final List<CourseSummary> courses = new ArrayList<>();
     private final Map<UUID, CourseDetails> detailsById = new HashMap<>();
+    private final Map<UUID, Course> coursesById = new HashMap<>();
 
     void addCourse(CourseSummary course) {
         courses.add(course);
@@ -32,6 +35,25 @@ final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
 
     void saveDetails(CourseDetails course) {
         detailsById.put(course.id(), course);
+    }
+
+    @Override
+    public Course save(Course course) {
+        if (course.getId() == null) {
+            course.setId(UUID.randomUUID());
+        }
+        coursesById.put(course.getId(), course);
+        return course;
+    }
+
+    @Override
+    public Optional<Course> findById(UUID id) {
+        return Optional.ofNullable(coursesById.get(id));
+    }
+
+    @Override
+    public List<Course> findAll() {
+        return List.copyOf(coursesById.values());
     }
 
     @Override

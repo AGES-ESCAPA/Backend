@@ -22,6 +22,7 @@ import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.course.CourseRepositoryAdapter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -55,9 +56,12 @@ public class SpringConfig {
     public CourseRepositoryPort courseRepositoryPort(
             CourseJpaRepository courseJpaRepository,
             ContentJpaRepository contentJpaRepository,
+            UserJpaRepository userJpaRepository,
+            EntityManager entityManager,
             ObjectMapper objectMapper
     ) {
-        return new CourseRepositoryAdapter(courseJpaRepository, contentJpaRepository, objectMapper);
+        return new CourseRepositoryAdapter(
+                courseJpaRepository, contentJpaRepository, userJpaRepository, entityManager, objectMapper);
     }
 
     @Bean
