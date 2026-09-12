@@ -23,6 +23,11 @@ public class CoursePrerequisiteRepositoryAdapter
     }
 
     @Override
+    public List<CoursePrerequisiteEntity> findByPrerequisiteCourseId(UUID prerequisiteCourseId) {
+        return coursePrerequisiteJpaRepository.findByPrerequisiteCourseId(prerequisiteCourseId);
+    }
+
+    @Override
     public CoursePrerequisiteEntity save(CoursePrerequisiteEntity prerequisite) {
         return coursePrerequisiteJpaRepository.save(prerequisite);
     }
@@ -32,5 +37,12 @@ public class CoursePrerequisiteRepositoryAdapter
             UUID courseId, UUID prerequisiteCourseId) {
         return coursePrerequisiteJpaRepository.existsByCourseIdAndPrerequisiteCourseId(
                 courseId, prerequisiteCourseId);
+    }
+
+    @Override
+    public void deleteByCourseIdAndPrerequisiteCourseId(UUID courseId, UUID prerequisiteCourseId) {
+        coursePrerequisiteJpaRepository.deleteById(
+            new com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteId(
+                courseId, prerequisiteCourseId));
     }
 }

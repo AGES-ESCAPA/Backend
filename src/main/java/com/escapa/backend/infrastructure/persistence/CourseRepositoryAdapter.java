@@ -1,11 +1,13 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.port.CourseRepositoryPort;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import org.springframework.stereotype.Repository;
-
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+
+import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 
 @Repository
 public class CourseRepositoryAdapter implements CourseRepositoryPort{
@@ -19,6 +21,11 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort{
     @Override
     public Optional<CourseEntity> findById(UUID id) {
         return courseJpaRepository.findById(id);
+    }
+
+    @Override
+    public List<CourseEntity> searchByTitle(String query, UUID excludedCourseId) {
+        return courseJpaRepository.findByTitleContainingIgnoreCaseAndIdNot(query, excludedCourseId);
     }
 
     @Override

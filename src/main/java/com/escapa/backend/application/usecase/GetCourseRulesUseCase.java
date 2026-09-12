@@ -1,5 +1,8 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.List;
+import java.util.UUID;
+
 import com.escapa.backend.adapters.dto.CourseRulesResponse;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
@@ -7,9 +10,6 @@ import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.infrastructure.persistence.entity.CourseChangeLogEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteEntity;
-
-import java.util.List;
-import java.util.UUID;
 
 public class GetCourseRulesUseCase {
 
@@ -59,7 +59,7 @@ public class GetCourseRulesUseCase {
                             log.getChangedBy() == null
                                     ? "Sistema"
                                     : log.getChangedBy().getName(),
-                            log.getCreatedAt().toString()
+                            log.getCreatedAt() == null ? null : log.getCreatedAt().toString()
                     ))
                     .toList()
     );

@@ -9,7 +9,11 @@ public interface CoursePrerequisiteRepositoryPort {
 
     List<CoursePrerequisiteEntity> findByCourseId(UUID courseId);
 
+    List<CoursePrerequisiteEntity> findByPrerequisiteCourseId(UUID prerequisiteCourseId);
+
     CoursePrerequisiteEntity save(CoursePrerequisiteEntity prerequisite);
 
     boolean existsByCourseIdAndPrerequisiteCourseId(UUID courseId, UUID prerequisiteCourseId);
+
+    void deleteByCourseIdAndPrerequisiteCourseId(UUID courseId, UUID prerequisiteCourseId);
 }

@@ -20,4 +20,6 @@ public interface CoursePrerequisiteJpaRepository
             UUID courseId,
             UUID prerequisiteCourseId
     );
+
+        void deleteByCourseIdAndPrerequisiteCourseId(UUID courseId, UUID prerequisiteCourseId);
 }
