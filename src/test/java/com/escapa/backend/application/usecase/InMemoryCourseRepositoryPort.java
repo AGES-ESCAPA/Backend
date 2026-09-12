@@ -57,6 +57,15 @@ final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
     }
 
     @Override
+    public List<Course> searchByTitle(String title, UUID excludedCourseId) {
+        final String normalized = title == null ? "" : title.toLowerCase(Locale.ROOT);
+        return coursesById.values().stream()
+                .filter(c -> !c.getId().equals(excludedCourseId))
+                .filter(c -> c.getTitle() != null && c.getTitle().toLowerCase(Locale.ROOT).contains(normalized))
+                .toList();
+    }
+
+    @Override
     public PageResult<CourseSummary> findPublished(
             String title, String category, String level, int page, int size) {
         final List<CourseSummary> filtered = courses.stream()

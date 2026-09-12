@@ -94,6 +94,13 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
     }
 
     @Override
+    public List<Course> searchByTitle(String title, UUID excludedCourseId) {
+        return courseJpaRepository.findByTitleContainingIgnoreCaseAndIdNot(title, excludedCourseId).stream()
+                .map(CourseMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public PageResult<CourseSummary> findPublished(
             String title, String category, String level, int page, int size) {
         final Pageable pageable = PageRequest.of(page, size);

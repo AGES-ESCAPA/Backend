@@ -22,6 +22,16 @@ public interface CourseRepositoryPort {
     List<Course> findAll();
 
     /**
+     * Busca cursos por título, excluindo um curso (tipicamente o próprio curso ao
+     * escolher pré-requisitos). Usado pela busca de pré-requisitos (US-09).
+     *
+     * @param title             filtro parcial e case-insensitive sobre o título
+     * @param excludedCourseId  curso a excluir do resultado
+     * @return cursos cujo título contém {@code title}, exceto {@code excludedCourseId}
+     */
+    List<Course> searchByTitle(String title, UUID excludedCourseId);
+
+    /**
      * Busca cursos publicados com filtros opcionais e paginação.
      *
      * @param title    filtro parcial e case-insensitive sobre o título (pode ser null)

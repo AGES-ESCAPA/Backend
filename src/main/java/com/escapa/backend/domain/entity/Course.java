@@ -38,6 +38,8 @@ public class Course {
     private Boolean enforceDeadlineBlock = false;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Integer majorVersion = 0;
+    private Integer minorVersion = 0;
 
     private List<Module> modules = new ArrayList<>();
     private List<UserCourse> userCourses = new ArrayList<>();

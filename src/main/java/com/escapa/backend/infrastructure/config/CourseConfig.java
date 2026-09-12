@@ -1,5 +1,7 @@
 package com.escapa.backend.infrastructure.config;
 
+import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
+import com.escapa.backend.application.port.CourseNotificationPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.ArchiveCourseUseCase;
@@ -13,18 +15,25 @@ import org.springframework.context.annotation.Configuration;
 public class CourseConfig {
 
     @Bean
-    public CreateCourseUseCase createCourseUseCase(CourseRepositoryPort courseRepositoryPort, UserRepositoryPort userRepositoryPort) {
+    public CreateCourseUseCase createCourseUseCase(
+            CourseRepositoryPort courseRepositoryPort, UserRepositoryPort userRepositoryPort) {
         return new CreateCourseUseCase(courseRepositoryPort, userRepositoryPort);
     }
 
     @Bean
-    public UpdateCourseUseCase updateCourseUseCase(CourseRepositoryPort courseRepositoryPort, UserRepositoryPort userRepositoryPort) {
-        return new UpdateCourseUseCase(courseRepositoryPort, userRepositoryPort);
+    public UpdateCourseUseCase updateCourseUseCase(
+            CourseRepositoryPort courseRepositoryPort,
+            UserRepositoryPort userRepositoryPort,
+            CourseChangeLogRepositoryPort changeLogRepositoryPort) {
+        return new UpdateCourseUseCase(courseRepositoryPort, userRepositoryPort, changeLogRepositoryPort);
     }
 
     @Bean
-    public PublishCourseUseCase publishCourseUseCase(CourseRepositoryPort courseRepositoryPort) {
-        return new PublishCourseUseCase(courseRepositoryPort);
+    public PublishCourseUseCase publishCourseUseCase(
+            CourseRepositoryPort courseRepositoryPort,
+            CourseChangeLogRepositoryPort changeLogRepositoryPort,
+            CourseNotificationPort courseNotificationPort) {
+        return new PublishCourseUseCase(courseRepositoryPort, changeLogRepositoryPort, courseNotificationPort);
     }
 
     @Bean
