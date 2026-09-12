@@ -1,6 +1,8 @@
 package com.escapa.backend.adapters.exception;
 
+import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.module.ModuleNotFoundException;
 import com.escapa.backend.domain.user.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -41,9 +43,25 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(ContentNotFoundException.class)
+    public ResponseEntity<ApiError> handleContentNotFoundException(ContentNotFoundException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ModuleNotFoundException.class)
+    public ResponseEntity<ApiError> handleModuleNotFoundException(ModuleNotFoundException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(CourseNotFoundException.class)
+    public ResponseEntity<ApiError> handleCourseNotFoundException(CourseNotFoundException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrityViolationException(DataIntegrityViolationException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.CONFLICT, "User already exists", request);
+        // Generico: users nao e mais a unica origem possivel de violacao de constraint.
+        return buildResponse(HttpStatus.CONFLICT, "Resource already exists", request);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -70,13 +88,5 @@ public class GlobalExceptionHandler {
                 Instant.now()
         );
         return ResponseEntity.status(status).body(apiError);
-    }
-
-    @ExceptionHandler(CourseNotFoundException.class)
-    public ResponseEntity<ApiError> handleCourseNotFoundException(
-            CourseNotFoundException ex,
-            HttpServletRequest request
-    ) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 }

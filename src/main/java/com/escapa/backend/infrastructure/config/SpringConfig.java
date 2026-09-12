@@ -1,20 +1,29 @@
 package com.escapa.backend.infrastructure.config;
 
+import com.escapa.backend.application.port.ContentRepositoryPort;
+import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
+import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
-import com.escapa.backend.application.usecase.GetUserByIdUseCase;
-import com.escapa.backend.application.usecase.ListUsersUseCase;
-import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
-import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.application.usecase.DeleteContentUseCase;
+import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
+import com.escapa.backend.application.usecase.GetUserByIdUseCase;
+import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
+import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
+import com.escapa.backend.application.usecase.ListUsersUseCase;
+import com.escapa.backend.application.usecase.ReorderContentsUseCase;
+import com.escapa.backend.application.usecase.UpdateContentUseCase;
 import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
-import com.escapa.backend.infrastructure.persistence.CourseRepositoryAdapter;
+import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
+import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
+import com.escapa.backend.infrastructure.persistence.course.CourseRepositoryAdapter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SpringConfig {
@@ -52,9 +61,56 @@ public class SpringConfig {
     }
 
     @Bean
+    public ListPublishedCoursesUseCase listPublishedCoursesUseCase(CourseRepositoryPort courseRepositoryPort) {
+        return new ListPublishedCoursesUseCase(courseRepositoryPort);
+    }
+
+    @Bean
     public GetCourseDetailsUseCase getCourseDetailsUseCase(
             CourseRepositoryPort courseRepositoryPort
     ) {
         return new GetCourseDetailsUseCase(courseRepositoryPort);
+    }
+
+    @Bean
+    public CreateContentUseCase createContentUseCase(
+            ContentRepositoryPort contentRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort
+    ) {
+        return new CreateContentUseCase(contentRepositoryPort, moduleRepositoryPort);
+    }
+
+    @Bean
+    public UpdateContentUseCase updateContentUseCase(ContentRepositoryPort contentRepositoryPort) {
+        return new UpdateContentUseCase(contentRepositoryPort);
+    }
+
+    @Bean
+    public GetContentUseCase getContentUseCase(
+            ContentRepositoryPort contentRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort
+    ) {
+        return new GetContentUseCase(contentRepositoryPort, moduleRepositoryPort);
+    }
+
+    @Bean
+    public ListModuleContentsUseCase listModuleContentsUseCase(
+            ContentRepositoryPort contentRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort
+    ) {
+        return new ListModuleContentsUseCase(contentRepositoryPort, moduleRepositoryPort);
+    }
+
+    @Bean
+    public DeleteContentUseCase deleteContentUseCase(ContentRepositoryPort contentRepositoryPort) {
+        return new DeleteContentUseCase(contentRepositoryPort);
+    }
+
+    @Bean
+    public ReorderContentsUseCase reorderContentsUseCase(
+            ContentRepositoryPort contentRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort
+    ) {
+        return new ReorderContentsUseCase(contentRepositoryPort, moduleRepositoryPort);
     }
 }

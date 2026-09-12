@@ -17,7 +17,7 @@ class GetCourseDetailsUseCaseTest {
     void shouldReturnCourseWhenFound() {
         final InMemoryCourseRepositoryPort repository = new InMemoryCourseRepositoryPort();
         final CourseDetails course = sampleCourse();
-        repository.save(course);
+        repository.saveDetails(course);
         final GetCourseDetailsUseCase useCase = new GetCourseDetailsUseCase(repository);
 
         final CourseDetails found = useCase.execute(course.id());

@@ -1,5 +1,6 @@
 package com.escapa.backend.domain.entity;
 
+import com.escapa.backend.domain.content.ContentType;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -16,11 +17,16 @@ import java.util.UUID;
 @EqualsAndHashCode(of = {"id", "title"})
 public class Content {
     private UUID id;
-    private Module module;
+    private UUID moduleId;
     private String title;
-    private String type;
+    private String description;
+    private ContentType type;
     private String url;
+    private Integer durationMinutes;
+    /** Aula liberada como amostra, sem necessidade de compra. */
+    private Boolean isFree;
     private Integer order;
-    private String recursos;
+    /** JSON de materiais complementares; preenchido fora do fluxo de CRUD por enquanto. */
+    private String resources;
     private LocalDateTime createdAt;
 }

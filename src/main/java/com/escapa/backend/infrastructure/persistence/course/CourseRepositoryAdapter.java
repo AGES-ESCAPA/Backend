@@ -1,7 +1,11 @@
-package com.escapa.backend.infrastructure.persistence;
+package com.escapa.backend.infrastructure.persistence.course;
 
+import com.escapa.backend.application.dto.CourseSummary;
+import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
+import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.entity.AdminEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
@@ -11,16 +15,20 @@ import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-@Repository
+/**
+ * Implementação concreta de {@link CourseRepositoryPort} usando Spring Data JPA.
+ * Cobre tanto a listagem pública paginada (US-01) quanto os detalhes completos
+ * de um curso (US-04).
+ */
 public class CourseRepositoryAdapter implements CourseRepositoryPort {
 
     private final CourseJpaRepository courseJpaRepository;
@@ -35,6 +43,24 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
         this.courseJpaRepository = courseJpaRepository;
         this.contentJpaRepository = contentJpaRepository;
         this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public PageResult<CourseSummary> findPublished(
+            String title, String category, String level, int page, int size) {
+        final Pageable pageable = PageRequest.of(page, size);
+        final String titlePattern = title != null ? "%" + title.toLowerCase() + "%" : "%%";
+        final String safeCategory = category != null ? category : "";
+        final String safeLevel = level != null ? level : "";
+
+        final Page<CourseEntity> jpaPage = courseJpaRepository.findPublishedCourses(
+                CourseStatus.PUBLISHED, titlePattern, safeCategory, safeLevel, pageable);
+        final List<CourseSummary> content = jpaPage.getContent().stream()
+                .map(CourseMapper::toSummary)
+                .toList();
+        return new PageResult<>(
+                content, jpaPage.getNumber(), jpaPage.getSize(),
+                jpaPage.getTotalElements(), jpaPage.getTotalPages());
     }
 
     @Override
@@ -55,21 +81,10 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
         courseJpaRepository.findWithMaterialsById(course.getId())
                 .ifPresent(withMaterials -> course.setMaterials(withMaterials.getMaterials()));
 
-        final List<ModuleEntity> modules = course.getModules();
-        if (!modules.isEmpty()) {
-            final List<UUID> moduleIds = modules.stream()
-                    .map(ModuleEntity::getId)
-                    .toList();
-            final Map<UUID, List<ContentEntity>> contentsByModule = contentJpaRepository
-                    .findByModule_IdInOrderByOrderAsc(moduleIds)
-                    .stream()
-                    .collect(Collectors.groupingBy(content -> content.getModule().getId()));
-
-            for (ModuleEntity module : modules) {
-                module.setContents(
-                        contentsByModule.getOrDefault(module.getId(), List.of())
-                );
-            }
+        for (ModuleEntity module : course.getModules()) {
+            module.setContents(
+                    contentJpaRepository.findByModuleIdOrderByOrderAsc(module.getId())
+            );
         }
 
         return course;

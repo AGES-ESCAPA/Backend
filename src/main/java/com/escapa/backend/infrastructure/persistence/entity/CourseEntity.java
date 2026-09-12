@@ -24,16 +24,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Persistable;
+
 @Entity
 @Table(name = "courses")
 @Getter
 @Setter
 @NoArgsConstructor
-public class CourseEntity {
+public class CourseEntity implements Persistable<UUID> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Override
+    public boolean isNew() {
+        return id == null;
+    }
 
     @Column(nullable = false)
     private String title;

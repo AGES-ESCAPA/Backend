@@ -22,6 +22,11 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- `mvn spring-boot:run` sobe com o perfil dev (aplica o seed de
+        desenvolvimento). Definido como propriedade, e nao na configuracao do
+        plugin, para que -Dspring-boot.run.profiles=... na linha de comando
+        ainda consiga sobrescrever. Nao afeta o jar, os testes nem o Docker. -->
+        <spring-boot.run.profiles>dev</spring-boot.run.profiles>
     </properties>
 
     <dependencies>
