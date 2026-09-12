@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
+import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseRepositoryAdapter;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,9 +45,10 @@ public class SpringConfig {
     @Bean
     public CourseRepositoryPort courseRepositoryPort(
             CourseJpaRepository courseJpaRepository,
+            ContentJpaRepository contentJpaRepository,
             ObjectMapper objectMapper
     ) {
-        return new CourseRepositoryAdapter(courseJpaRepository, objectMapper);
+        return new CourseRepositoryAdapter(courseJpaRepository, contentJpaRepository, objectMapper);
     }
 
     @Bean

@@ -7,34 +7,72 @@ import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseMaterialEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
+import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Repository
 public class CourseRepositoryAdapter implements CourseRepositoryPort {
 
     private final CourseJpaRepository courseJpaRepository;
+    private final ContentJpaRepository contentJpaRepository;
     private final ObjectMapper objectMapper;
 
     public CourseRepositoryAdapter(
             CourseJpaRepository courseJpaRepository,
+            ContentJpaRepository contentJpaRepository,
             ObjectMapper objectMapper
     ) {
         this.courseJpaRepository = courseJpaRepository;
+        this.contentJpaRepository = contentJpaRepository;
         this.objectMapper = objectMapper;
     }
 
     @Override
     public Optional<CourseDetails> findDetailsById(UUID id) {
-        return courseJpaRepository.findDetailsById(id)
+        return courseJpaRepository.findWithModulesById(id)
+                .filter(course -> course.getStatus() == CourseStatus.PUBLISHED)
+                .map(this::withMaterialsAndContents)
                 .map(this::toDetails);
+    }
+
+    /**
+     * Completa o agregado carregado por {@code findWithModulesById} com
+     * materiais e conteudos dos modulos, buscados em consultas separadas
+     * para nao combinar mais de uma colecao "bag" (List sem indice) em uma
+     * mesma consulta com fetch join (ver MultipleBagFetchException).
+     */
+    private CourseEntity withMaterialsAndContents(CourseEntity course) {
+        courseJpaRepository.findWithMaterialsById(course.getId())
+                .ifPresent(withMaterials -> course.setMaterials(withMaterials.getMaterials()));
+
+        final List<ModuleEntity> modules = course.getModules();
+        if (!modules.isEmpty()) {
+            final List<UUID> moduleIds = modules.stream()
+                    .map(ModuleEntity::getId)
+                    .toList();
+            final Map<UUID, List<ContentEntity>> contentsByModule = contentJpaRepository
+                    .findByModule_IdInOrderByOrderAsc(moduleIds)
+                    .stream()
+                    .collect(Collectors.groupingBy(content -> content.getModule().getId()));
+
+            for (ModuleEntity module : modules) {
+                module.setContents(
+                        contentsByModule.getOrDefault(module.getId(), List.of())
+                );
+            }
+        }
+
+        return course;
     }
 
     private CourseDetails toDetails(CourseEntity course) {

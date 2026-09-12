@@ -9,11 +9,22 @@ import java.util.UUID;
 
 public interface CourseJpaRepository extends JpaRepository<CourseEntity, UUID> {
 
+    /**
+     * Carrega o curso com instrutor e modulos (uma unica colecao "bag" nesta
+     * consulta). Materiais e conteudos dos modulos sao buscados em consultas
+     * separadas (ver {@link CourseRepositoryAdapter}) para evitar o
+     * {@code org.hibernate.loader.MultipleBagFetchException}, lancado quando
+     * mais de uma colecao List sem indice ("bag") e buscada via fetch join
+     * na mesma consulta.
+     */
     @EntityGraph(attributePaths = {
             "instructor",
-            "materials",
-            "modules",
-            "modules.contents"
+            "modules"
     })
-    Optional<CourseEntity> findDetailsById(UUID id);
+    Optional<CourseEntity> findWithModulesById(UUID id);
+
+    @EntityGraph(attributePaths = {
+            "materials"
+    })
+    Optional<CourseEntity> findWithMaterialsById(UUID id);
 }
