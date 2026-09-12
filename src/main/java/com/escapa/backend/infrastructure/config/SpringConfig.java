@@ -2,6 +2,7 @@ package com.escapa.backend.infrastructure.config;
 
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
+import com.escapa.backend.application.port.CourseNotificationPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
@@ -26,8 +27,6 @@ import com.escapa.backend.application.usecase.UpdateContentUseCase;
 import com.escapa.backend.application.usecase.UpdateCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
-import com.escapa.backend.infrastructure.persistence.NotificationJpaRepository;
-import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.course.CourseRepositoryAdapter;
@@ -124,10 +123,9 @@ public class SpringConfig {
     public PublishCourseUseCase publishCourseUseCase(
             CourseRepositoryPort courseRepository,
             CourseChangeLogRepositoryPort changeLogRepository,
-            UserCourseJpaRepository userCourseRepository,
-            NotificationJpaRepository notificationRepository) {
+            CourseNotificationPort courseNotificationPort) {
         return new PublishCourseUseCase(
-                courseRepository, changeLogRepository, userCourseRepository, notificationRepository);
+                courseRepository, changeLogRepository, courseNotificationPort);
     }
 
     @Bean
