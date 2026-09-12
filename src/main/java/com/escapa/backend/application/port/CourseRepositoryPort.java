@@ -1,0 +1,54 @@
+package com.escapa.backend.application.port;
+
+import com.escapa.backend.application.dto.CourseSummary;
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CourseDetails;
+import com.escapa.backend.domain.entity.Course;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * Contrato de acesso ao repositório de cursos.
+ * A implementação concreta vive na camada de infraestrutura.
+ */
+public interface CourseRepositoryPort {
+
+    Course save(Course course);
+
+    Optional<Course> findById(UUID id);
+
+    List<Course> findAll();
+
+    /**
+     * Busca cursos por título, excluindo um curso (tipicamente o próprio curso ao
+     * escolher pré-requisitos). Usado pela busca de pré-requisitos (US-09).
+     *
+     * @param title             filtro parcial e case-insensitive sobre o título
+     * @param excludedCourseId  curso a excluir do resultado
+     * @return cursos cujo título contém {@code title}, exceto {@code excludedCourseId}
+     */
+    List<Course> searchByTitle(String title, UUID excludedCourseId);
+
+    /**
+     * Busca cursos publicados com filtros opcionais e paginação.
+     *
+     * @param title    filtro parcial e case-insensitive sobre o título (pode ser null)
+     * @param category filtro exato por categoria (pode ser null)
+     * @param level    filtro exato por nível (pode ser null)
+     * @param page     número da página (0-based)
+     * @param size     tamanho da página
+     * @return página de resumos de cursos publicados
+     */
+    PageResult<CourseSummary> findPublished(String title, String category, String level, int page, int size);
+
+    /**
+     * Busca os detalhes completos de um curso publicado, incluindo instrutor,
+     * materiais e a estrutura de módulos/aulas.
+     *
+     * @param id identificador do curso
+     * @return detalhes do curso, vazio se não existir ou não estiver publicado
+     */
+    Optional<CourseDetails> findDetailsById(UUID id);
+}

@@ -2,25 +2,24 @@
 -- Seed de desenvolvimento — Escapa!
 -- =============================================================================
 --
--- ATENCAO: este script APAGA todo o conteudo das tabelas de dominio antes de
--- inserir. Use apenas em banco local de desenvolvimento.
+-- Ele NAO fica em db/migration de proposito. So e aplicado quando a location
+-- classpath:db/seed entra em spring.flyway.locations, o que o docker-compose.yml
+-- faz via SPRING_FLYWAY_LOCATIONS. O padrao da aplicacao e apenas
+-- classpath:db/migration, entao homologacao, producao e os testes de integracao
+-- nunca enxergam este arquivo.
 --
--- Ele NAO fica em db/migration de proposito: o Flyway nao o enxerga, entao nao
--- ha risco de dado ficticio ser aplicado em homologacao ou producao.
---
--- Como rodar (com o docker-compose no ar):
---   docker exec -i escapadb psql -U escapa -d escapa_db < scripts/seed_dev.sql
+-- E uma migration repeatable (prefixo R__): roda depois de todas as versionadas
+-- e novamente sempre que o conteudo mudar, sem quebrar checksum e sem disputar
+-- numero de versao com as migrations de schema. Como ele comeca truncando, rodar
+-- de novo simplesmente reconstroi o cenario.
 --
 -- Senhas em texto puro (os hashes abaixo sao BCrypt de verdade):
 --   admins   -> admin12345
 --   empresa  -> empresa12345
 --   demais   -> senha12345
 --
--- Os UUIDs sao fixos para que o script seja re-executavel e para facilitar
--- testar endpoints com ids conhecidos.
+-- Os UUIDs sao fixos para facilitar testar endpoints com ids conhecidos.
 -- =============================================================================
-
-BEGIN;
 
 TRUNCATE TABLE
     notifications,
@@ -61,6 +60,12 @@ INSERT INTO users (id, name, email, password_hash, role, status, created_at) VAL
     ('b0000000-0000-4000-b000-000000000003', 'Carla Menezes', 'carla.menezes@email.com',
      '$2a$10$ibpqH7THcZTbgcyqTYC0iOcvPPHi92gGYQid5BgTYsOJYzBQ/HmwS', 'STUDENT', 'INACTIVE', '2026-02-08 08:05:00'),
 
+    -- funcionarios da Pousada Vista Mar (vinculados via users_company)
+    ('c0000000-0000-4000-c000-000000000001', 'Luciana Prado', 'luciana.prado@vistamar.com.br',
+     '$2a$10$ibpqH7THcZTbgcyqTYC0iOcvPPHi92gGYQid5BgTYsOJYzBQ/HmwS', 'STUDENT', 'ACTIVE', '2026-02-20 09:30:00'),
+    ('c0000000-0000-4000-c000-000000000002', 'Marcos Vieira', 'marcos.vieira@vistamar.com.br',
+     '$2a$10$ibpqH7THcZTbgcyqTYC0iOcvPPHi92gGYQid5BgTYsOJYzBQ/HmwS', 'STUDENT', 'ACTIVE', '2026-02-20 09:35:00'),
+
     -- a empresa tambem e um usuario (company.id referencia users.id)
     ('d0000000-0000-4000-d000-000000000001', 'Pousada Vista Mar', 'contato@vistamar.com.br',
      '$2a$10$qmo4r05zCLBtnXxsr0yw8e6ix8MvfPZqS6JBte6m1BXU1D46/mwHq', 'COMPANY', 'ACTIVE', '2026-01-20 13:00:00');
@@ -76,7 +81,9 @@ INSERT INTO admins (user_id, department, headline, bio, avatar_url) VALUES
 INSERT INTO regular_users (user_id, cpf, phone) VALUES
     ('b0000000-0000-4000-b000-000000000001', '11122233344', '+55 48 99120-3344'),
     ('b0000000-0000-4000-b000-000000000002', '22233344455', '+55 48 99887-1122'),
-    ('b0000000-0000-4000-b000-000000000003', '33344455566', '+55 51 98765-4321');
+    ('b0000000-0000-4000-b000-000000000003', '33344455566', '+55 51 98765-4321'),
+    ('c0000000-0000-4000-c000-000000000001', '44455566677', '+55 48 99441-2233'),
+    ('c0000000-0000-4000-c000-000000000002', '55566677788', '+55 48 99332-5566');
 
 INSERT INTO company (id, company_name, cnpj_id, company_email, matricula) VALUES
     ('d0000000-0000-4000-d000-000000000001', 'Pousada Vista Mar LTDA', '12345678000199',
@@ -285,5 +292,3 @@ INSERT INTO notifications (id, user_id, type, title, message, course_id, is_read
      'GENERAL', 'Bem-vinda a Escapa!',
      'Complete seu perfil para receber recomendacoes de cursos.',
      NULL, TRUE, '2026-02-03 11:00:00', '2026-02-03 10:20:00');
-
-COMMIT;

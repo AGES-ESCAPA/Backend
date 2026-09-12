@@ -1,6 +1,6 @@
 package com.escapa.backend.infrastructure.persistence.entity;
 
-import com.escapa.backend.infrastructure.persistence.entity.enums.ContentType;
+import com.escapa.backend.domain.content.ContentType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
