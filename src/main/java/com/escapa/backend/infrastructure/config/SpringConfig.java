@@ -9,6 +9,11 @@ import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
+import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
+import com.escapa.backend.infrastructure.persistence.CourseRepositoryAdapter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
 public class SpringConfig {
@@ -34,5 +39,20 @@ public class SpringConfig {
     @Bean
     public GetUserByIdUseCase getUserByIdUseCase(UserRepositoryPort userRepositoryPort) {
         return new GetUserByIdUseCase(userRepositoryPort);
+    }
+
+    @Bean
+    public CourseRepositoryPort courseRepositoryPort(
+            CourseJpaRepository courseJpaRepository,
+            ObjectMapper objectMapper
+    ) {
+        return new CourseRepositoryAdapter(courseJpaRepository, objectMapper);
+    }
+
+    @Bean
+    public GetCourseDetailsUseCase getCourseDetailsUseCase(
+            CourseRepositoryPort courseRepositoryPort
+    ) {
+        return new GetCourseDetailsUseCase(courseRepositoryPort);
     }
 }

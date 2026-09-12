@@ -1,5 +1,6 @@
 package com.escapa.backend.adapters.exception;
 
+import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.user.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -69,5 +70,13 @@ public class GlobalExceptionHandler {
                 Instant.now()
         );
         return ResponseEntity.status(status).body(apiError);
+    }
+
+    @ExceptionHandler(CourseNotFoundException.class)
+    public ResponseEntity<ApiError> handleCourseNotFoundException(
+            CourseNotFoundException ex,
+            HttpServletRequest request
+    ) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 }
