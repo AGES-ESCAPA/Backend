@@ -3,15 +3,18 @@ package com.escapa.backend.adapters.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.escapa.backend.adapters.dto.AddCoursePrerequisiteRequest;
 import com.escapa.backend.adapters.dto.ChangeLogPageResponse;
@@ -20,6 +23,7 @@ import com.escapa.backend.adapters.dto.CourseSearchResponse;
 import com.escapa.backend.adapters.dto.PublishCourseRequest;
 import com.escapa.backend.adapters.dto.UpdateCourseRequest;
 import com.escapa.backend.adapters.dto.UpdateProgressRulesRequest;
+import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
@@ -28,6 +32,7 @@ import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
 import com.escapa.backend.application.usecase.UpdateCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
+import com.escapa.backend.domain.entity.User;
 
 import jakarta.validation.Valid;
 
@@ -42,6 +47,7 @@ public class AdminCourseController {
     private final GetCourseChangeLogUseCase getCourseChangeLogUseCase;
     private final PublishCourseUseCase publishCourseUseCase;
     private final UpdateCourseUseCase updateCourseUseCase;
+    private final UserRepositoryPort userRepositoryPort;
 
     public AdminCourseController(
             GetCourseRulesUseCase getCourseRulesUseCase,
@@ -51,7 +57,8 @@ public class AdminCourseController {
             SearchCoursesForPrerequisiteUseCase searchCoursesForPrerequisiteUseCase,
             GetCourseChangeLogUseCase getCourseChangeLogUseCase,
             PublishCourseUseCase publishCourseUseCase,
-            UpdateCourseUseCase updateCourseUseCase) {
+            UpdateCourseUseCase updateCourseUseCase,
+            UserRepositoryPort userRepositoryPort) {
         this.getCourseRulesUseCase = getCourseRulesUseCase;
         this.updateProgressRulesUseCase = updateProgressRulesUseCase;
         this.addCoursePrerequisiteUseCase = addCoursePrerequisiteUseCase;
@@ -60,49 +67,80 @@ public class AdminCourseController {
         this.getCourseChangeLogUseCase = getCourseChangeLogUseCase;
         this.publishCourseUseCase = publishCourseUseCase;
         this.updateCourseUseCase = updateCourseUseCase;
+        this.userRepositoryPort = userRepositoryPort;
+    }
+
+    private User requireAdmin(String xUserId) {
+        if (xUserId == null || xUserId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing X-User-Id header");
+        }
+        try {
+            final UUID userId = UUID.fromString(xUserId);
+            final User user = userRepositoryPort.findById(userId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "User not found"));
+            if (!"ADMIN".equalsIgnoreCase(user.getUserType())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: user is not ADMIN");
+            }
+            return user;
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid X-User-Id: must be a valid UUID");
+        }
     }
 
     @GetMapping("/{courseId}/rules")
     public CourseRulesResponse getRules(
-        @PathVariable UUID courseId
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @PathVariable UUID courseId
     ) {
+        requireAdmin(xUserId);
         return getCourseRulesUseCase.execute(courseId);
     }
 
     @PutMapping("/{courseId}/progress-rules")
     public CourseRulesResponse updateProgressRules(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
             @Valid @RequestBody UpdateProgressRulesRequest request
     ) {
+        requireAdmin(xUserId);
         updateProgressRulesUseCase.execute(courseId, request);
         return getCourseRulesUseCase.execute(courseId);
     }
+
     @PostMapping("/{courseId}/prerequisites")
     public void addPrerequisite(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
             @Valid @RequestBody AddCoursePrerequisiteRequest request
     ) {
+        requireAdmin(xUserId);
         addCoursePrerequisiteUseCase.execute(courseId, request);
     }
 
     @GetMapping("/{courseId}/prerequisites/search")
     public List<CourseSearchResponse> searchPrerequisites(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
             @RequestParam String query) {
+        requireAdmin(xUserId);
         return searchCoursesForPrerequisiteUseCase.execute(courseId, query);
     }
 
     @DeleteMapping("/{courseId}/prerequisites/{prerequisiteCourseId}")
     public void removePrerequisite(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
             @PathVariable UUID prerequisiteCourseId) {
+        requireAdmin(xUserId);
         removeCoursePrerequisiteUseCase.execute(courseId, prerequisiteCourseId, null);
     }
 
     @PutMapping("/{courseId}")
     public void updateCourse(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
             @Valid @RequestBody UpdateCourseRequest request) {
+        requireAdmin(xUserId);
         updateCourseUseCase.execute(
                 courseId, request.title(), null, request.description(), null, null, null, null, null,
                 null, null, null, null, null, null, null);
@@ -110,16 +148,23 @@ public class AdminCourseController {
 
     @PostMapping("/{courseId}/publish")
     public void publishCourse(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
             @RequestBody(required = false) PublishCourseRequest request) {
+        requireAdmin(xUserId);
         publishCourseUseCase.execute(courseId);
     }
 
     @GetMapping("/{courseId}/change-log")
     public ChangeLogPageResponse getChangeLog(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
+        requireAdmin(xUserId);
+        if (page < 0 || size < 1 || size > 100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pagination");
+        }
         return getCourseChangeLogUseCase.execute(courseId, page, size);
     }
 }
