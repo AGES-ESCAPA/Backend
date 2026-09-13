@@ -19,6 +19,9 @@ public interface CourseRepositoryPort {
 
     Optional<Course> findById(UUID id);
 
+    /** Checagem leve de existencia, sem materializar o agregado do curso. */
+    boolean existsById(UUID id);
+
     List<Course> findAll();
 
     /**
