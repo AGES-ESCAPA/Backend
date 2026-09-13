@@ -23,15 +23,18 @@ import com.escapa.backend.adapters.dto.ChangeLogPageResponse;
 import com.escapa.backend.adapters.dto.CourseRulesResponse;
 import com.escapa.backend.adapters.dto.CourseSearchResponse;
 import com.escapa.backend.adapters.dto.PublishCourseRequest;
-import com.escapa.backend.adapters.dto.UpdateCourseRequest;
 import com.escapa.backend.adapters.dto.UpdateProgressRulesRequest;
 import com.escapa.backend.adapters.dto.course.AdminCourseListItemResponse;
+import com.escapa.backend.adapters.dto.course.CourseResponse;
+import com.escapa.backend.adapters.dto.course.CreateCourseRequest;
+import com.escapa.backend.adapters.dto.course.UpdateCourseRequest;
 import com.escapa.backend.application.dto.ChangeLogEntry;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CourseRules;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ArchiveCourseUseCase;
+import com.escapa.backend.application.usecase.CreateCourseUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
 import com.escapa.backend.application.usecase.ListAdminCoursesUseCase;
@@ -54,6 +57,7 @@ public class AdminCourseController {
     private final RemoveCoursePrerequisiteUseCase removeCoursePrerequisiteUseCase;
     private final SearchCoursesForPrerequisiteUseCase searchCoursesForPrerequisiteUseCase;
     private final GetCourseChangeLogUseCase getCourseChangeLogUseCase;
+    private final CreateCourseUseCase createCourseUseCase;
     private final PublishCourseUseCase publishCourseUseCase;
     private final UpdateCourseUseCase updateCourseUseCase;
     private final ListAdminCoursesUseCase listAdminCoursesUseCase;
@@ -67,6 +71,7 @@ public class AdminCourseController {
             RemoveCoursePrerequisiteUseCase removeCoursePrerequisiteUseCase,
             SearchCoursesForPrerequisiteUseCase searchCoursesForPrerequisiteUseCase,
             GetCourseChangeLogUseCase getCourseChangeLogUseCase,
+            CreateCourseUseCase createCourseUseCase,
             PublishCourseUseCase publishCourseUseCase,
             UpdateCourseUseCase updateCourseUseCase,
             ListAdminCoursesUseCase listAdminCoursesUseCase,
@@ -78,6 +83,7 @@ public class AdminCourseController {
         this.removeCoursePrerequisiteUseCase = removeCoursePrerequisiteUseCase;
         this.searchCoursesForPrerequisiteUseCase = searchCoursesForPrerequisiteUseCase;
         this.getCourseChangeLogUseCase = getCourseChangeLogUseCase;
+        this.createCourseUseCase = createCourseUseCase;
         this.publishCourseUseCase = publishCourseUseCase;
         this.updateCourseUseCase = updateCourseUseCase;
         this.listAdminCoursesUseCase = listAdminCoursesUseCase;
@@ -93,6 +99,22 @@ public class AdminCourseController {
                 .map(AdminCourseController::toListItem)
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(courses));
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<CourseResponse>> create(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @Valid @RequestBody CreateCourseRequest request) {
+        final User admin = requireAdmin(xUserId);
+        final Course course = createCourseUseCase.execute(
+                request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
+                request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
+                request.durationTime(), request.deadline(), request.accessDurationDays(), request.price(),
+                request.learningObjectives(), request.requireSequentialProgress(), request.enforceDeadlineBlock(),
+                admin.getId()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(toCourseResponse(course), "Course created successfully"));
     }
 
     @DeleteMapping("/{courseId}")
@@ -173,14 +195,19 @@ public class AdminCourseController {
     }
 
     @PutMapping("/{courseId}")
-    public void updateCourse(
+    public ResponseEntity<ApiResponse<CourseResponse>> updateCourse(
             @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
             @Valid @RequestBody UpdateCourseRequest request) {
         final User admin = requireAdmin(xUserId);
-        updateCourseUseCase.execute(
-                courseId, request.title(), null, request.description(), null, null, null, null, null,
-                null, null, null, null, null, null, null, admin);
+        final Course course = updateCourseUseCase.execute(
+                courseId, request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
+                request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
+                request.durationTime(), request.deadline(), request.accessDurationDays(), request.price(),
+                request.learningObjectives(), request.requireSequentialProgress(), request.enforceDeadlineBlock(),
+                admin
+        );
+        return ResponseEntity.ok(ApiResponse.success(toCourseResponse(course), "Course updated successfully"));
     }
 
     @PostMapping("/{courseId}/publish")
@@ -214,6 +241,31 @@ public class AdminCourseController {
                 entry.id(), entry.description(), entry.changedByName(),
                 entry.majorVersion() + "." + entry.minorVersion(),
                 entry.createdAt() == null ? null : entry.createdAt().toString());
+    }
+
+    private static CourseResponse toCourseResponse(Course course) {
+        return new CourseResponse(
+                course.getId(),
+                course.getTitle(),
+                course.getShortDescription(),
+                course.getDescription(),
+                course.getThumbnailUrl(),
+                course.getTeaserVideoUrl(),
+                course.getStatus(),
+                course.getInstructor() != null ? course.getInstructor().getId() : null,
+                course.getCreatedBy() != null ? course.getCreatedBy().getId() : null,
+                course.getCategory(),
+                course.getLevel(),
+                course.getDurationTime(),
+                course.getDeadline(),
+                course.getAccessDurationDays(),
+                course.getPrice(),
+                course.getLearningObjectives(),
+                course.getRequireSequentialProgress(),
+                course.getEnforceDeadlineBlock(),
+                course.getCreatedAt(),
+                course.getUpdatedAt()
+        );
     }
 
     private static AdminCourseListItemResponse toListItem(Course course) {
