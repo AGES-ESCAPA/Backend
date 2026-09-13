@@ -46,7 +46,8 @@ class GetCourseDetailsUseCaseTest {
                 UUID.randomUUID(), "Modulo 1", 1, 2, 30, List.of(freeContent, paidContent)
         );
         final CourseDetails.Instructor instructor = new CourseDetails.Instructor(
-                UUID.randomUUID(), "Dra. Mariana Fonseca", "Pesquisadora", "Bio da instrutora"
+                UUID.randomUUID(), "Dra. Mariana Fonseca", "Pesquisadora", "Bio da instrutora",
+                "https://cdn.example.com/avatar.png"
         );
 
         return new CourseDetails(
@@ -60,6 +61,7 @@ class GetCourseDetailsUseCaseTest {
                 97.00,
                 365,
                 "https://cdn.example.com/thumb.jpg",
+                "https://vimeo.com/1226382615",
                 4.9,
                 247,
                 1840,

@@ -157,6 +157,7 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
                 course.getPrice(),
                 course.getDeadline(),
                 course.getThumbnailUrl(),
+                course.getTeaserVideoUrl(),
                 course.getRatingAverage(),
                 course.getReviewsCount(),
                 course.getStudentsCount(),
@@ -176,7 +177,8 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
                 instructor.getId(),
                 instructor.getName(),
                 instructor.getHeadline(),
-                instructor.getBio()
+                instructor.getBio(),
+                instructor.getAvatarUrl()
         );
     }
 
