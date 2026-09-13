@@ -20,6 +20,7 @@ O backend foi pensado para servir o frontend e manter o domínio isolado de deta
 - [Regras de Clean Architecture](#-regras-de-clean-architecture)
 - [Containerização com Docker](#-containerização-com-docker)
 - [Endpoints de Conteúdos/Aulas (Admin)](#-endpoints-de-conteúdosaulas-admin)
+- [Listagem administrativa de cursos](#-listagem-administrativa-de-cursos)
 
 ---
 
@@ -321,7 +322,7 @@ docker compose up --build
 
 ## 🌐 CORS
 
-A origem do frontend liberada para consumir a API é configurada via `APP_CORS_ALLOWED_ORIGINS` (ver `.env.example`), aplicada a todas as rotas `/api/**`. O valor padrão é `http://localhost:3000` (porta do Vite dev server do frontend).
+A origem do frontend liberada para consumir a API é configurada via `APP_CORS_ALLOWED_ORIGINS` (ver `.env.example`), aplicada a todas as rotas `/api/**`. O valor padrão é `http://localhost:3000` (portas do Vite dev server do frontend).
 
 ---
 
@@ -428,6 +429,36 @@ Payload do `/reorder` — precisa listar **todos** os conteúdos do módulo, na 
 > ⚠️ **Pendências herdadas da BE-04:** o `DELETE` remove em definitivo — a troca por soft-delete quando houver progresso de aluno ainda não foi decidida. O campo `resources` é devolvido nas respostas, mas não é validado nem editado por estes endpoints até o produto definir onde ele é preenchido.
 
 > 🔓 **Sem restrição de acesso ainda:** os critérios pedem `userType = ADMIN` com `403 Forbidden`, mas o projeto ainda não tem autenticação (ver "Fora do Escopo Inicial"). As rotas estão sob `/admin` e prontas para receber o filtro quando a task de autenticação entrar.
+
+---
+
+## 📚 Listagem administrativa de cursos
+
+Painel de gestão (`GET /api/v1/admin/courses`): devolve rascunhos e publicados, **sem** os arquivados. O `DELETE` é um soft-delete (`status = ARCHIVED`), o mesmo comportamento de `DELETE /api/admin/courses/{id}`.
+
+```http
+GET    /api/v1/admin/courses
+DELETE /api/v1/admin/courses/{id}
+```
+
+Resposta do `GET`:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "title": "Atendimento de Excelencia em Hospedagem",
+      "category": "Hospitalidade",
+      "price": 249.90,
+      "status": "PUBLISHED",
+      "majorVersion": 1,
+      "minorVersion": 2
+    }
+  ],
+  "message": "Operation completed successfully"
+}
+```
 
 ---
 

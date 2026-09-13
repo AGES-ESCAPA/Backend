@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,24 +18,29 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.escapa.backend.adapters.dto.AddCoursePrerequisiteRequest;
+import com.escapa.backend.adapters.dto.ApiResponse;
 import com.escapa.backend.adapters.dto.ChangeLogPageResponse;
 import com.escapa.backend.adapters.dto.CourseRulesResponse;
 import com.escapa.backend.adapters.dto.CourseSearchResponse;
 import com.escapa.backend.adapters.dto.PublishCourseRequest;
 import com.escapa.backend.adapters.dto.UpdateCourseRequest;
 import com.escapa.backend.adapters.dto.UpdateProgressRulesRequest;
+import com.escapa.backend.adapters.dto.course.AdminCourseListItemResponse;
 import com.escapa.backend.application.dto.ChangeLogEntry;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CourseRules;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
+import com.escapa.backend.application.usecase.ArchiveCourseUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
+import com.escapa.backend.application.usecase.ListAdminCoursesUseCase;
 import com.escapa.backend.application.usecase.PublishCourseUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
 import com.escapa.backend.application.usecase.UpdateCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
+import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
 
 import jakarta.validation.Valid;
@@ -50,6 +56,8 @@ public class AdminCourseController {
     private final GetCourseChangeLogUseCase getCourseChangeLogUseCase;
     private final PublishCourseUseCase publishCourseUseCase;
     private final UpdateCourseUseCase updateCourseUseCase;
+    private final ListAdminCoursesUseCase listAdminCoursesUseCase;
+    private final ArchiveCourseUseCase archiveCourseUseCase;
     private final UserRepositoryPort userRepositoryPort;
 
     public AdminCourseController(
@@ -61,6 +69,8 @@ public class AdminCourseController {
             GetCourseChangeLogUseCase getCourseChangeLogUseCase,
             PublishCourseUseCase publishCourseUseCase,
             UpdateCourseUseCase updateCourseUseCase,
+            ListAdminCoursesUseCase listAdminCoursesUseCase,
+            ArchiveCourseUseCase archiveCourseUseCase,
             UserRepositoryPort userRepositoryPort) {
         this.getCourseRulesUseCase = getCourseRulesUseCase;
         this.updateProgressRulesUseCase = updateProgressRulesUseCase;
@@ -70,7 +80,28 @@ public class AdminCourseController {
         this.getCourseChangeLogUseCase = getCourseChangeLogUseCase;
         this.publishCourseUseCase = publishCourseUseCase;
         this.updateCourseUseCase = updateCourseUseCase;
+        this.listAdminCoursesUseCase = listAdminCoursesUseCase;
+        this.archiveCourseUseCase = archiveCourseUseCase;
         this.userRepositoryPort = userRepositoryPort;
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<AdminCourseListItemResponse>>> list(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId) {
+        requireAdmin(xUserId);
+        final List<AdminCourseListItemResponse> courses = listAdminCoursesUseCase.execute().stream()
+                .map(AdminCourseController::toListItem)
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success(courses));
+    }
+
+    @DeleteMapping("/{courseId}")
+    public ResponseEntity<ApiResponse<Void>> archive(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @PathVariable UUID courseId) {
+        requireAdmin(xUserId);
+        archiveCourseUseCase.execute(courseId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Course archived successfully"));
     }
 
     private User requireAdmin(String xUserId) {
@@ -183,6 +214,19 @@ public class AdminCourseController {
                 entry.id(), entry.description(), entry.changedByName(),
                 entry.majorVersion() + "." + entry.minorVersion(),
                 entry.createdAt() == null ? null : entry.createdAt().toString());
+    }
+
+    private static AdminCourseListItemResponse toListItem(Course course) {
+        final int major = course.getMajorVersion() == null ? 0 : course.getMajorVersion();
+        final int minor = course.getMinorVersion() == null ? 0 : course.getMinorVersion();
+        return new AdminCourseListItemResponse(
+                course.getId(),
+                course.getTitle(),
+                course.getCategory(),
+                course.getPrice(),
+                course.getStatus(),
+                major,
+                minor);
     }
 
     private static CourseRulesResponse toResponse(CourseRules rules) {
