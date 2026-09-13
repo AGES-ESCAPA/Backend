@@ -87,6 +87,11 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
     }
 
     @Override
+    public boolean existsById(UUID id) {
+        return id != null && courseJpaRepository.existsById(id);
+    }
+
+    @Override
     public List<Course> findAll() {
         return courseJpaRepository.findAll().stream()
                 .map(CourseMapper::toDomain)
