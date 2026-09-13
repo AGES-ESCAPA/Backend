@@ -2,6 +2,8 @@ package com.escapa.backend.adapters.controller;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,16 +24,19 @@ import com.escapa.backend.adapters.dto.ApiResponse;
 import com.escapa.backend.adapters.dto.ChangeLogPageResponse;
 import com.escapa.backend.adapters.dto.CourseRulesResponse;
 import com.escapa.backend.adapters.dto.CourseSearchResponse;
-import com.escapa.backend.adapters.dto.PublishCourseRequest;
-import com.escapa.backend.adapters.dto.UpdateCourseRequest;
 import com.escapa.backend.adapters.dto.UpdateProgressRulesRequest;
 import com.escapa.backend.adapters.dto.course.AdminCourseListItemResponse;
+import com.escapa.backend.adapters.dto.course.CourseResponse;
+import com.escapa.backend.adapters.dto.course.CreateCourseRequest;
+import com.escapa.backend.adapters.dto.course.UpdateCourseRequest;
 import com.escapa.backend.application.dto.ChangeLogEntry;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CourseRules;
+import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ArchiveCourseUseCase;
+import com.escapa.backend.application.usecase.CreateCourseUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
 import com.escapa.backend.application.usecase.ListAdminCoursesUseCase;
@@ -42,12 +47,15 @@ import com.escapa.backend.application.usecase.UpdateCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/admin/courses")
 public class AdminCourseController {
+    private final CreateCourseUseCase createCourseUseCase;
     private final GetCourseRulesUseCase getCourseRulesUseCase;
     private final UpdateProgressRulesUseCase updateProgressRulesUseCase;
     private final AddCoursePrerequisiteUseCase addCoursePrerequisiteUseCase;
@@ -58,9 +66,11 @@ public class AdminCourseController {
     private final UpdateCourseUseCase updateCourseUseCase;
     private final ListAdminCoursesUseCase listAdminCoursesUseCase;
     private final ArchiveCourseUseCase archiveCourseUseCase;
+    private final CourseRepositoryPort courseRepositoryPort;
     private final UserRepositoryPort userRepositoryPort;
 
     public AdminCourseController(
+            CreateCourseUseCase createCourseUseCase,
             GetCourseRulesUseCase getCourseRulesUseCase,
             UpdateProgressRulesUseCase updateProgressRulesUseCase,
             AddCoursePrerequisiteUseCase addCoursePrerequisiteUseCase,
@@ -71,7 +81,9 @@ public class AdminCourseController {
             UpdateCourseUseCase updateCourseUseCase,
             ListAdminCoursesUseCase listAdminCoursesUseCase,
             ArchiveCourseUseCase archiveCourseUseCase,
+            CourseRepositoryPort courseRepositoryPort,
             UserRepositoryPort userRepositoryPort) {
+        this.createCourseUseCase = createCourseUseCase;
         this.getCourseRulesUseCase = getCourseRulesUseCase;
         this.updateProgressRulesUseCase = updateProgressRulesUseCase;
         this.addCoursePrerequisiteUseCase = addCoursePrerequisiteUseCase;
@@ -82,7 +94,46 @@ public class AdminCourseController {
         this.updateCourseUseCase = updateCourseUseCase;
         this.listAdminCoursesUseCase = listAdminCoursesUseCase;
         this.archiveCourseUseCase = archiveCourseUseCase;
+        this.courseRepositoryPort = courseRepositoryPort;
         this.userRepositoryPort = userRepositoryPort;
+    }
+
+    @GetMapping("/{courseId}")
+    public ResponseEntity<ApiResponse<CourseResponse>> getById(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @PathVariable UUID courseId) {
+        requireAdmin(xUserId);
+        final Course course = courseRepositoryPort.findById(courseId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found"));
+        return ResponseEntity.ok(ApiResponse.success(toResponse(course), "Course retrieved successfully"));
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<CourseResponse>> create(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @Valid @RequestBody CreateCourseRequest request) {
+        final User admin = requireAdmin(xUserId);
+
+        final Course course = createCourseUseCase.execute(
+                request.title(),
+                request.shortDescription(),
+                request.description(),
+                request.thumbnailUrl(),
+                request.teaserVideoUrl(),
+                request.instructorId(),
+                request.category(),
+                request.level(),
+                request.durationTime(),
+                request.deadline(),
+                request.accessDurationDays(),
+                request.price(),
+                request.learningObjectives(),
+                request.requireSequentialProgress(),
+                request.enforceDeadlineBlock(),
+                admin.getId());
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(toResponse(course), "Course created successfully"));
     }
 
     @GetMapping
@@ -173,24 +224,65 @@ public class AdminCourseController {
     }
 
     @PutMapping("/{courseId}")
-    public void updateCourse(
+    public ResponseEntity<ApiResponse<CourseResponse>> updateCourse(
             @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
             @Valid @RequestBody UpdateCourseRequest request) {
         final User admin = requireAdmin(xUserId);
-        updateCourseUseCase.execute(
-                courseId, request.title(), null, request.description(), null, null, null, null, null,
-                null, null, null, null, null, null, null, admin);
+        final Course course = updateCourseUseCase.execute(
+                courseId,
+                request.title(),
+                request.shortDescription(),
+                request.description(),
+                request.thumbnailUrl(),
+                request.teaserVideoUrl(),
+                request.instructorId(),
+                request.category(),
+                request.level(),
+                request.durationTime(),
+                request.deadline(),
+                request.accessDurationDays(),
+                request.price(),
+                request.learningObjectives(),
+                request.requireSequentialProgress(),
+                request.enforceDeadlineBlock(),
+                admin);
+        return ResponseEntity.ok(ApiResponse.success(toResponse(course), "Course updated successfully"));
     }
 
     @PostMapping("/{courseId}/publish")
-    public void publishCourse(
+    public ResponseEntity<ApiResponse<CourseResponse>> publishCourse(
             @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
-            @RequestBody(required = false) PublishCourseRequest request) {
+            @RequestBody(required = false) String rawBody) {
         final User admin = requireAdmin(xUserId);
-        final boolean notify = request != null && Boolean.TRUE.equals(request.notifyEnrolledStudents());
-        publishCourseUseCase.execute(courseId, notify, admin);
+        final boolean notify = parseNotify(rawBody);
+        final Course course = publishCourseUseCase.execute(courseId, notify, admin);
+        return ResponseEntity.ok(ApiResponse.success(toResponse(course), "Course published successfully"));
+    }
+
+    private boolean parseNotify(String rawBody) {
+        if (rawBody == null || rawBody.isBlank()) {
+            return false;
+        }
+
+        final String trimmed = rawBody.trim();
+        try {
+            final JsonNode json = new ObjectMapper().readTree(trimmed);
+            if (json.has("notifyEnrolledStudents")) {
+                return json.get("notifyEnrolledStudents").asBoolean(false);
+            }
+            if (json.has("notify")) {
+                return json.get("notify").asBoolean(false);
+            }
+            return false;
+        } catch (Exception ignored) {
+            final Matcher matcher = Pattern.compile("(?i)\\bnotify\\s*:\\s*(true|false)").matcher(trimmed);
+            if (matcher.find()) {
+                return Boolean.parseBoolean(matcher.group(1));
+            }
+            return false;
+        }
     }
 
     @GetMapping("/{courseId}/change-log")
@@ -214,6 +306,30 @@ public class AdminCourseController {
                 entry.id(), entry.description(), entry.changedByName(),
                 entry.majorVersion() + "." + entry.minorVersion(),
                 entry.createdAt() == null ? null : entry.createdAt().toString());
+    }
+
+    private static CourseResponse toResponse(Course course) {
+        return new CourseResponse(
+                course.getId(),
+                course.getTitle(),
+                course.getShortDescription(),
+                course.getDescription(),
+                course.getThumbnailUrl(),
+                course.getTeaserVideoUrl(),
+                course.getStatus(),
+                course.getInstructor() != null ? course.getInstructor().getId() : null,
+                course.getCreatedBy() != null ? course.getCreatedBy().getId() : null,
+                course.getCategory(),
+                course.getLevel(),
+                course.getDurationTime(),
+                course.getDeadline(),
+                course.getAccessDurationDays(),
+                course.getPrice(),
+                course.getLearningObjectives(),
+                course.getRequireSequentialProgress(),
+                course.getEnforceDeadlineBlock(),
+                course.getCreatedAt(),
+                course.getUpdatedAt());
     }
 
     private static AdminCourseListItemResponse toListItem(Course course) {
