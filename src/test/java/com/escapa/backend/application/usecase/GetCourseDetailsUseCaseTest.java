@@ -24,6 +24,8 @@ class GetCourseDetailsUseCaseTest {
 
         assertEquals(course.id(), found.id());
         assertEquals(course.title(), found.title());
+        assertEquals("https://vimeo.com/1226382615", found.teaserVideoUrl());
+        assertEquals("https://cdn.example.com/avatar.png", found.instructor().avatarUrl());
         assertEquals(1, found.modules().size());
     }
 
