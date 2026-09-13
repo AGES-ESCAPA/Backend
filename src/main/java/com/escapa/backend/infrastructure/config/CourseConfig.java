@@ -6,6 +6,7 @@ import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.ArchiveCourseUseCase;
 import com.escapa.backend.application.usecase.CreateCourseUseCase;
+import com.escapa.backend.application.usecase.ListAdminCoursesUseCase;
 import com.escapa.backend.application.usecase.PublishCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateCourseUseCase;
 import org.springframework.context.annotation.Bean;
@@ -39,5 +40,10 @@ public class CourseConfig {
     @Bean
     public ArchiveCourseUseCase archiveCourseUseCase(CourseRepositoryPort courseRepositoryPort) {
         return new ArchiveCourseUseCase(courseRepositoryPort);
+    }
+
+    @Bean
+    public ListAdminCoursesUseCase listAdminCoursesUseCase(CourseRepositoryPort courseRepositoryPort) {
+        return new ListAdminCoursesUseCase(courseRepositoryPort);
     }
 }
