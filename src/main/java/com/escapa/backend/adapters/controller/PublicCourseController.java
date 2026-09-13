@@ -83,6 +83,7 @@ public class PublicCourseController {
                 course.price(),
                 course.deadline(),
                 course.thumbnailUrl(),
+                course.teaserVideoUrl(),
                 course.rating(),
                 course.reviewsCount(),
                 course.studentsCount(),
@@ -108,7 +109,8 @@ public class PublicCourseController {
                 instructor.id(),
                 instructor.name(),
                 instructor.headline(),
-                instructor.bio()
+                instructor.bio(),
+                instructor.avatarUrl()
         );
     }
 

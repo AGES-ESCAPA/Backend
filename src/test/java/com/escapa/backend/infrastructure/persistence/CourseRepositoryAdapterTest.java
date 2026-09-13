@@ -176,6 +176,8 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
         assertTrue(found.isPresent());
         final CourseDetails details = found.get();
         assertEquals(course.getTitle(), details.title());
+        assertEquals("https://vimeo.com/1226382615", details.teaserVideoUrl());
+        assertEquals("https://cdn.example.com/avatar.png", details.instructor().avatarUrl());
         assertEquals(1, details.materials().size());
         assertEquals(1, details.modules().size());
 
@@ -240,11 +242,14 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
 
     private CourseEntity persistCourseWithFullGraph(CourseStatus status) {
         final AdminEntity instructor = createInstructor("Dra. Mariana Fonseca");
+        instructor.setAvatarUrl("https://cdn.example.com/avatar.png");
+        userJpaRepository.save(instructor);
 
         final CourseEntity course = buildCourse(
                 "IA Aplicada ao Turismo", "Inteligencia Artificial", "Iniciante",
                 status, instructor);
         course.setDescription("Descricao completa");
+        course.setTeaserVideoUrl("https://vimeo.com/1226382615");
         course.setDurationTime(12);
         course.setDeadline(365);
 

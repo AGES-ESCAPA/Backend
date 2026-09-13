@@ -24,6 +24,8 @@ class GetCourseDetailsUseCaseTest {
 
         assertEquals(course.id(), found.id());
         assertEquals(course.title(), found.title());
+        assertEquals("https://vimeo.com/1226382615", found.teaserVideoUrl());
+        assertEquals("https://cdn.example.com/avatar.png", found.instructor().avatarUrl());
         assertEquals(1, found.modules().size());
     }
 
@@ -46,7 +48,8 @@ class GetCourseDetailsUseCaseTest {
                 UUID.randomUUID(), "Modulo 1", 1, 2, 30, List.of(freeContent, paidContent)
         );
         final CourseDetails.Instructor instructor = new CourseDetails.Instructor(
-                UUID.randomUUID(), "Dra. Mariana Fonseca", "Pesquisadora", "Bio da instrutora"
+                UUID.randomUUID(), "Dra. Mariana Fonseca", "Pesquisadora", "Bio da instrutora",
+                "https://cdn.example.com/avatar.png"
         );
 
         return new CourseDetails(
@@ -60,6 +63,7 @@ class GetCourseDetailsUseCaseTest {
                 97.00,
                 365,
                 "https://cdn.example.com/thumb.jpg",
+                "https://vimeo.com/1226382615",
                 4.9,
                 247,
                 1840,

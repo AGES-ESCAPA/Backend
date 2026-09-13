@@ -14,6 +14,7 @@ public record CourseDetailsResponse(
         Double price,
         Integer deadline,
         String thumbnailUrl,
+        String teaserVideoUrl,
         Double rating,
         Integer reviewsCount,
         Integer studentsCount,
@@ -27,7 +28,8 @@ public record CourseDetailsResponse(
             UUID id,
             String name,
             String headline,
-            String bio
+            String bio,
+            String avatarUrl
     ) {
     }
 

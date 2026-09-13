@@ -147,10 +147,12 @@ src/
    docker compose up --build
    ```
 
-### Opção B — banco em container, aplicação pelo Maven
+   A ordem é: PostgreSQL e MinIO sobem juntos → o job `minio-init` envia as capas dos cursos para o bucket → o backend sobe e o Flyway aplica o seed SQL já apontando `thumbnail_url` para o MinIO.
+
+### Opção B — banco e MinIO em container, aplicação pelo Maven
    Útil para desenvolver com hot reload sem reconstruir a imagem a cada mudança:
    ```bash
-   docker compose up -d postgres   # sobe apenas o banco
+   docker compose up -d postgres minio minio-init   # sobe banco, MinIO e o seed das imagens
    mvn spring-boot:run
    ```
 
@@ -310,13 +312,17 @@ docker compose up --build
 
 ### Serviços incluídos
 - PostgreSQL em container
-- Backend Spring Boot em container
+- MinIO (armazenamento S3-compatible) com seed das capas dos cursos
+- Job `minio-init`, que só termina depois de enviar as imagens
+- Backend Spring Boot em container (o seed SQL roda depois do `minio-init`)
 
 ### Endpoints úteis
 - `http://localhost:8080/api/v1/health` → health check da aplicação
 - `http://localhost:8080/api/v1/users` → cadastro e consulta de usuários
 - `http://localhost:8080/swagger-ui/index.html` → documentação interativa da API (Swagger UI)
 - `http://localhost:8080/v3/api-docs` → especificação OpenAPI em JSON
+- `http://localhost:9000` → API do MinIO (capas em `/escapa-media/courses/`)
+- `http://localhost:9001` → console do MinIO (`escapa` / `escapa12345`)
 
 ---
 
