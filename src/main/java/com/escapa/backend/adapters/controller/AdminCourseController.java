@@ -35,6 +35,7 @@ import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ArchiveCourseUseCase;
 import com.escapa.backend.application.usecase.CreateCourseUseCase;
+import com.escapa.backend.application.usecase.GetAdminCourseUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
 import com.escapa.backend.application.usecase.ListAdminCoursesUseCase;
@@ -57,6 +58,7 @@ public class AdminCourseController {
     private final RemoveCoursePrerequisiteUseCase removeCoursePrerequisiteUseCase;
     private final SearchCoursesForPrerequisiteUseCase searchCoursesForPrerequisiteUseCase;
     private final GetCourseChangeLogUseCase getCourseChangeLogUseCase;
+    private final GetAdminCourseUseCase getAdminCourseUseCase;
     private final CreateCourseUseCase createCourseUseCase;
     private final PublishCourseUseCase publishCourseUseCase;
     private final UpdateCourseUseCase updateCourseUseCase;
@@ -71,6 +73,7 @@ public class AdminCourseController {
             RemoveCoursePrerequisiteUseCase removeCoursePrerequisiteUseCase,
             SearchCoursesForPrerequisiteUseCase searchCoursesForPrerequisiteUseCase,
             GetCourseChangeLogUseCase getCourseChangeLogUseCase,
+            GetAdminCourseUseCase getAdminCourseUseCase,
             CreateCourseUseCase createCourseUseCase,
             PublishCourseUseCase publishCourseUseCase,
             UpdateCourseUseCase updateCourseUseCase,
@@ -83,6 +86,7 @@ public class AdminCourseController {
         this.removeCoursePrerequisiteUseCase = removeCoursePrerequisiteUseCase;
         this.searchCoursesForPrerequisiteUseCase = searchCoursesForPrerequisiteUseCase;
         this.getCourseChangeLogUseCase = getCourseChangeLogUseCase;
+        this.getAdminCourseUseCase = getAdminCourseUseCase;
         this.createCourseUseCase = createCourseUseCase;
         this.publishCourseUseCase = publishCourseUseCase;
         this.updateCourseUseCase = updateCourseUseCase;
@@ -99,6 +103,15 @@ public class AdminCourseController {
                 .map(AdminCourseController::toListItem)
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(courses));
+    }
+
+    @GetMapping("/{courseId}")
+    public ResponseEntity<ApiResponse<CourseResponse>> getById(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @PathVariable UUID courseId) {
+        requireAdmin(xUserId);
+        final Course course = getAdminCourseUseCase.execute(courseId);
+        return ResponseEntity.ok(ApiResponse.success(toCourseResponse(course)));
     }
 
     @PostMapping
