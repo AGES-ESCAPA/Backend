@@ -10,20 +10,25 @@ import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
+import com.escapa.backend.application.usecase.CreateModuleUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
+import com.escapa.backend.application.usecase.DeleteModuleUseCase;
 import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
+import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
 import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ReorderContentsUseCase;
+import com.escapa.backend.application.usecase.ReorderModulesUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
 import com.escapa.backend.application.usecase.UpdateContentUseCase;
+import com.escapa.backend.application.usecase.UpdateModuleUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseChangeLogJpaRepository;
@@ -202,5 +207,39 @@ public class SpringConfig {
             ModuleRepositoryPort moduleRepositoryPort
     ) {
         return new ReorderContentsUseCase(contentRepositoryPort, moduleRepositoryPort);
+    }
+
+    @Bean
+    public ListCourseModulesUseCase listCourseModulesUseCase(
+            ModuleRepositoryPort moduleRepositoryPort,
+            CourseRepositoryPort courseRepositoryPort
+    ) {
+        return new ListCourseModulesUseCase(moduleRepositoryPort, courseRepositoryPort);
+    }
+
+    @Bean
+    public CreateModuleUseCase createModuleUseCase(
+            ModuleRepositoryPort moduleRepositoryPort,
+            CourseRepositoryPort courseRepositoryPort
+    ) {
+        return new CreateModuleUseCase(moduleRepositoryPort, courseRepositoryPort);
+    }
+
+    @Bean
+    public UpdateModuleUseCase updateModuleUseCase(ModuleRepositoryPort moduleRepositoryPort) {
+        return new UpdateModuleUseCase(moduleRepositoryPort);
+    }
+
+    @Bean
+    public ReorderModulesUseCase reorderModulesUseCase(
+            ModuleRepositoryPort moduleRepositoryPort,
+            CourseRepositoryPort courseRepositoryPort
+    ) {
+        return new ReorderModulesUseCase(moduleRepositoryPort, courseRepositoryPort);
+    }
+
+    @Bean
+    public DeleteModuleUseCase deleteModuleUseCase(ModuleRepositoryPort moduleRepositoryPort) {
+        return new DeleteModuleUseCase(moduleRepositoryPort);
     }
 }
