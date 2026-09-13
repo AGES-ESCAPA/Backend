@@ -52,6 +52,11 @@ final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
     }
 
     @Override
+    public boolean existsById(UUID id) {
+        return coursesById.containsKey(id);
+    }
+
+    @Override
     public List<Course> findAll() {
         return List.copyOf(coursesById.values());
     }
