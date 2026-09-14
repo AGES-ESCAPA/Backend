@@ -224,13 +224,14 @@ public class AdminCourseController {
     }
 
     @PostMapping("/{courseId}/publish")
-    public void publishCourse(
+    public ResponseEntity<ApiResponse<CourseResponse>> publishCourse(
             @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @PathVariable UUID courseId,
             @RequestBody(required = false) PublishCourseRequest request) {
         final User admin = requireAdmin(xUserId);
         final boolean notify = request != null && Boolean.TRUE.equals(request.notifyEnrolledStudents());
-        publishCourseUseCase.execute(courseId, notify, admin);
+        final Course course = publishCourseUseCase.execute(courseId, notify, admin);
+        return ResponseEntity.ok(ApiResponse.success(toCourseResponse(course), "Course published successfully"));
     }
 
     @GetMapping("/{courseId}/change-log")
