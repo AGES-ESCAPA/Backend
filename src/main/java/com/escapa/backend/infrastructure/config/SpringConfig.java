@@ -5,6 +5,8 @@ import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CourseNotificationPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.application.port.EnrollmentRepositoryPort;
+import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
@@ -18,6 +20,7 @@ import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
+import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
 import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
 import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
@@ -46,6 +49,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.time.Clock;
 
 @Configuration
 public class SpringConfig {
@@ -241,5 +246,13 @@ public class SpringConfig {
     @Bean
     public DeleteModuleUseCase deleteModuleUseCase(ModuleRepositoryPort moduleRepositoryPort) {
         return new DeleteModuleUseCase(moduleRepositoryPort);
+    }
+
+    @Bean
+    public GetStudentLessonUseCase getStudentLessonUseCase(
+            LessonRepositoryPort lessonRepositoryPort,
+            EnrollmentRepositoryPort enrollmentRepositoryPort
+    ) {
+        return new GetStudentLessonUseCase(lessonRepositoryPort, enrollmentRepositoryPort, Clock.systemDefaultZone());
     }
 }
