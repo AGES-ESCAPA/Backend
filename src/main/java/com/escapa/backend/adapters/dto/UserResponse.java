@@ -1,4 +1,7 @@
 package com.escapa.backend.adapters.dto;
 
-public record UserResponse(String id, String name, String email, String role) {
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+public record UserResponse(UUID id, String name, String email, String userType, LocalDateTime createdAt) {
 }

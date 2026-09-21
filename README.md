@@ -19,6 +19,9 @@ O backend foi pensado para servir o frontend e manter o domínio isolado de deta
 - [Estratégia de Branches](#-estratégia-de-branches)
 - [Regras de Clean Architecture](#-regras-de-clean-architecture)
 - [Containerização com Docker](#-containerização-com-docker)
+- [Endpoints de Conteúdos/Aulas (Admin)](#-endpoints-de-conteúdosaulas-admin)
+- [Listagem administrativa de cursos](#-listagem-administrativa-de-cursos)
+- [Aula para o aluno (Sala de Aula)](#-aula-para-o-aluno-sala-de-aula)
 
 ---
 
@@ -145,12 +148,16 @@ src/
    docker compose up --build
    ```
 
-### Opção B — banco em container, aplicação pelo Maven
+   A ordem é: PostgreSQL e MinIO sobem juntos → o job `minio-init` envia as capas dos cursos para o bucket → o backend sobe e o Flyway aplica o seed SQL já apontando `thumbnail_url` para o MinIO.
+
+### Opção B — banco e MinIO em container, aplicação pelo Maven
    Útil para desenvolver com hot reload sem reconstruir a imagem a cada mudança:
    ```bash
-   docker compose up -d postgres   # sobe apenas o banco
+   docker compose up -d postgres minio minio-init   # sobe banco, MinIO e o seed das imagens
    mvn spring-boot:run
    ```
+
+   O `mvn spring-boot:run` sobe com o perfil **`dev`** (`application-dev.properties`), que aplica o seed de desenvolvimento (`db/seed/R__seed_dev.sql`) depois das migrations. Como o seed trunca e recria os dados a cada start, use `mvn spring-boot:run -Dspring-boot.run.profiles=default` quando quiser preservar dados criados manualmente.
 
 A API ficará disponível em: `http://localhost:8080`
 
@@ -160,7 +167,8 @@ A API ficará disponível em: `http://localhost:8080`
 
 | Comando | O que faz? | Quando usar? |
 |---|---|---|
-| `mvn spring-boot:run` | Inicia a aplicação localmente. | Durante o desenvolvimento. |
+| `mvn spring-boot:run` | Inicia a aplicação localmente com o perfil `dev` (migrations + seed de desenvolvimento). | Durante o desenvolvimento. |
+| `mvn spring-boot:run -Dspring-boot.run.profiles=default` | Inicia a aplicação sem o seed, só com as migrations. | Quando quiser manter dados criados manualmente. |
 | `mvn test` | Executa os testes unitários e os de integração. **Requer Docker em execução** (Testcontainers). | Antes de commit / MR. |
 | `mvn clean test` | Remove artefatos antigos e roda testes novamente. **Requer Docker.** | Validação limpa do projeto. |
 | `mvn clean verify` | Roda o mesmo que a CI: Checkstyle, testes e relatório de cobertura. **Requer Docker.** | Antes de abrir o MR. |
@@ -305,19 +313,23 @@ docker compose up --build
 
 ### Serviços incluídos
 - PostgreSQL em container
-- Backend Spring Boot em container
+- MinIO (armazenamento S3-compatible) com seed das capas dos cursos
+- Job `minio-init`, que só termina depois de enviar as imagens
+- Backend Spring Boot em container (o seed SQL roda depois do `minio-init`)
 
 ### Endpoints úteis
 - `http://localhost:8080/api/v1/health` → health check da aplicação
 - `http://localhost:8080/api/v1/users` → cadastro e consulta de usuários
 - `http://localhost:8080/swagger-ui/index.html` → documentação interativa da API (Swagger UI)
 - `http://localhost:8080/v3/api-docs` → especificação OpenAPI em JSON
+- `http://localhost:9000` → API do MinIO (capas em `/escapa-media/courses/`)
+- `http://localhost:9001` → console do MinIO (`escapa` / `escapa12345`)
 
 ---
 
 ## 🌐 CORS
 
-A origem do frontend liberada para consumir a API é configurada via `APP_CORS_ALLOWED_ORIGINS` (ver `.env.example`), aplicada a todas as rotas `/api/**`. O valor padrão é `http://localhost:3000` (porta do Vite dev server do frontend).
+A origem do frontend liberada para consumir a API é configurada via `APP_CORS_ALLOWED_ORIGINS` (ver `.env.example`), aplicada a todas as rotas `/api/**`. O valor padrão é `http://localhost:3000` (portas do Vite dev server do frontend).
 
 ---
 
@@ -378,6 +390,135 @@ GET /api/v1/users/{id}
 ```
 
 Retorna `404` com `ApiError` quando o `id` não existe.
+
+---
+
+## 🎬 Endpoints de Conteúdos/Aulas (Admin)
+
+CRUD das aulas de um módulo. O campo `type` aceita `VIDEO`, `TEXT` ou `FILE`, e os campos obrigatórios mudam conforme o tipo:
+
+| `type` | Campos exigidos além de `title` |
+|---|---|
+| `VIDEO` | `url` e `durationMinutes` |
+| `FILE` | `url` |
+| `TEXT` | `description` |
+
+Combinação inválida retorna `400 Bad Request` nomeando o campo faltante (ex.: `"durationMinutes is required for content type VIDEO"`).
+
+```http
+POST   /api/v1/admin/modules/{moduleId}/contents
+GET    /api/v1/admin/modules/{moduleId}/contents
+GET    /api/v1/admin/modules/{moduleId}/contents/{id}
+PUT    /api/v1/admin/modules/{moduleId}/contents/reorder
+PUT    /api/v1/admin/contents/{id}
+DELETE /api/v1/admin/contents/{id}
+```
+
+O `order` é calculado automaticamente no `POST` (`max(order do módulo) + 1`), nunca vem no payload.
+
+Payload do `POST` (tipo Vídeo):
+```json
+{
+  "title": "1.3 Formulários e Validação em HTML",
+  "type": "VIDEO",
+  "url": "https://vimeo.com/123456789",
+  "durationMinutes": 13,
+  "description": "Nesta aula você vai aprender a criar formulários acessíveis.",
+  "isFree": false
+}
+```
+
+Payload do `/reorder` — precisa listar **todos** os conteúdos do módulo, na ordem final:
+```json
+{ "contentIds": ["uuid-3", "uuid-1", "uuid-2"] }
+```
+
+> ⚠️ **Pendências herdadas da BE-04:** o `DELETE` remove em definitivo — a troca por soft-delete quando houver progresso de aluno ainda não foi decidida. O campo `resources` é devolvido nas respostas, mas não é validado nem editado por estes endpoints até o produto definir onde ele é preenchido.
+
+> 🔓 **Sem restrição de acesso ainda:** os critérios pedem `userType = ADMIN` com `403 Forbidden`, mas o projeto ainda não tem autenticação (ver "Fora do Escopo Inicial"). As rotas estão sob `/admin` e prontas para receber o filtro quando a task de autenticação entrar.
+
+---
+
+## 📚 Listagem administrativa de cursos
+
+Painel de gestão (`GET /api/v1/admin/courses`): devolve rascunhos e publicados, **sem** os arquivados. O `DELETE` é um soft-delete (`status = ARCHIVED`), o mesmo comportamento de `DELETE /api/admin/courses/{id}`.
+
+```http
+GET    /api/v1/admin/courses
+DELETE /api/v1/admin/courses/{id}
+```
+
+Resposta do `GET`:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "title": "Atendimento de Excelencia em Hospedagem",
+      "category": "Hospitalidade",
+      "price": 249.90,
+      "status": "PUBLISHED",
+      "majorVersion": 1,
+      "minorVersion": 2
+    }
+  ],
+  "message": "Operation completed successfully"
+}
+```
+
+---
+
+## 🎓 Aula para o aluno (Sala de Aula)
+
+Carrega uma aula específica com os dados do player e do cabeçalho "Módulo X · Aula Y", validando se o aluno tem acesso (US-11). O campo `description` já vem na resposta para a US-12 consumir o mesmo endpoint.
+
+```text
+GET /api/v1/student/courses/{courseId}/lessons/{lessonId}
+X-User-Id: <uuid do aluno>
+```
+
+🔓 **Identificação provisória:** o aluno é identificado pelo header `X-User-Id`, o mesmo mecanismo das rotas `/admin`. Ele será trocado pelo token quando o login da US-23 entrar.
+
+**Regras de acesso** (avaliadas nesta ordem):
+
+1. Aula inexistente, ou de um módulo que não pertence ao `courseId` da rota → `404`.
+2. Aula com `isFree = true` → liberada para qualquer aluno identificado, mesmo sem matrícula.
+3. Demais aulas exigem matrícula em `user_courses` com `dt_inicio` menor ou igual a hoje.
+4. Se o curso tiver `enforce_deadline_block = true` e `dt_expiracao` for anterior a hoje, o acesso é negado (o último dia de validade ainda dá acesso).
+
+O bloqueio por ordem obrigatória (`require_sequential_progress`) fica fora deste endpoint: depende do registro de conclusão de aula da US-13.
+
+| Status | Quando |
+|--------|--------|
+| `200` | Aula devolvida no envelope `ApiResponse` |
+| `401` | Header `X-User-Id` ausente ou que não seja um UUID válido |
+| `403` | Sem matrícula em aula paga, matrícula ainda não iniciada ou prazo expirado com bloqueio por prazo |
+| `404` | Aula não existe ou não pertence ao curso informado |
+
+Resposta (`200`):
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "courseId": "uuid",
+    "title": "1.3 Formulários e Validação em HTML",
+    "description": "Nesta aula você vai aprender a criar formulários acessíveis.",
+    "type": "VIDEO",
+    "url": "https://vimeo.com/123456789",
+    "durationMinutes": 13,
+    "isFree": false,
+    "order": 3,
+    "resources": null,
+    "module": { "id": "uuid", "title": "Fundamentos de HTML", "order": 1 }
+  },
+  "message": "Operation completed successfully"
+}
+```
+
+`module.order` e `order` alimentam o cabeçalho "Módulo X · Aula Y".
 
 ---
 

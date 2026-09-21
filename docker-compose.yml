@@ -1,3 +1,8 @@
+# Ordem de subida:
+# 1. postgres e minio sobem em paralelo
+# 2. minio-init espera o MinIO e envia as capas para o bucket escapa-media
+# 3. o backend sobe só depois disso e o Flyway aplica o seed SQL
+#    (thumbnail_url aponta para http://localhost:9000/escapa-media/courses/...)
 services:
   postgres:
     image: postgres:16-alpine
@@ -17,6 +22,36 @@ services:
       timeout: 5s
       retries: 10
 
+  minio:
+    image: minio/minio:latest
+    container_name: escapaminio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: escapa
+      MINIO_ROOT_PASSWORD: escapa12345
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: escapaminio-init
+    depends_on:
+      minio:
+        condition: service_started
+    environment:
+      MINIO_HOST: http://minio:9000
+      MINIO_ROOT_USER: escapa
+      MINIO_ROOT_PASSWORD: escapa12345
+      MINIO_BUCKET: escapa-media
+    volumes:
+      - ./minio-seed:/seed:ro
+    entrypoint: ['/bin/sh', '/seed/init.sh']
+    restart: 'no'
+
   backend:
     build:
       context: .
@@ -26,15 +61,19 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/escapa_db
       SPRING_DATASOURCE_USERNAME: escapa
       SPRING_DATASOURCE_PASSWORD: escapa123
       SERVER_PORT: 8080
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/seed
       APP_CORS_ALLOWED_ORIGINS: http://localhost:3000
     ports:
       - '8080:8080'
 
 volumes:
   postgres_data:
+  minio_data:
