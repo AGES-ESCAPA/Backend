@@ -61,4 +61,8 @@ public class UserCourseEntity {
 
     @Column(name = "certificate_issued_at")
     private LocalDateTime certificateIssuedAt;
+
+    /** Cache do PDF gerado (US-19): nulo ate o primeiro download, reaproveitado depois. */
+    @Column(name = "certificate_pdf")
+    private byte[] certificatePdf;
 }
