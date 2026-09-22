@@ -1,5 +1,6 @@
 package com.escapa.backend.adapters.exception;
 
+import com.escapa.backend.domain.certificate.CertificateNotFoundException;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
@@ -66,6 +67,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CourseNotFoundException.class)
     public ResponseEntity<ApiError> handleCourseNotFoundException(CourseNotFoundException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(CertificateNotFoundException.class)
+    public ResponseEntity<ApiError> handleCertificateNotFoundException(CertificateNotFoundException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
