@@ -24,6 +24,7 @@ TRUNCATE TABLE
     course_reviews,
     company_courses,
     user_courses,
+    user_content_progress,
     module_prerequisites,
     content,
     modules,
@@ -1303,6 +1304,12 @@ INSERT INTO user_courses (
     ('c0000000-0000-4000-c000-000000000006', 'e0000000-0000-4000-e000-000000000004',
      '2026-03-11', '2027-03-11', 5, NULL, NULL,
      FALSE, NULL, NULL);
+
+INSERT INTO user_content_progress (
+    user_id, content_id, completed_at
+) VALUES
+    ('c0000000-0000-4000-c000-000000000001', '02000000-0000-4000-9000-000000000181', '2026-03-03 08:30:00'),
+    ('c0000000-0000-4000-c000-000000000001', '02000000-0000-4000-9000-000000000182', '2026-03-03 08:35:00');
 
 INSERT INTO company_courses (company_id, course_id, data_inicio, data_expiracao) VALUES
     ('d0000000-0000-4000-d000-000000000001', 'e0000000-0000-4000-e000-000000000005', '2026-02-25', '2027-02-25'),
