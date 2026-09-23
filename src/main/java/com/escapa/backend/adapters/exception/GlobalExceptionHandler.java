@@ -1,6 +1,7 @@
 package com.escapa.backend.adapters.exception;
 
 import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CourseValidationException;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
@@ -51,6 +52,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ContentNotFoundException.class)
     public ResponseEntity<ApiError> handleContentNotFoundException(ContentNotFoundException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(LessonAccessDeniedException.class)
+    public ResponseEntity<ApiError> handleLessonAccessDeniedException(LessonAccessDeniedException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
     @ExceptionHandler(ModuleNotFoundException.class)

@@ -21,6 +21,7 @@ O backend foi pensado para servir o frontend e manter o domínio isolado de deta
 - [Containerização com Docker](#-containerização-com-docker)
 - [Endpoints de Conteúdos/Aulas (Admin)](#-endpoints-de-conteúdosaulas-admin)
 - [Listagem administrativa de cursos](#-listagem-administrativa-de-cursos)
+- [Aula para o aluno (Sala de Aula)](#-aula-para-o-aluno-sala-de-aula)
 
 ---
 
@@ -465,6 +466,59 @@ Resposta do `GET`:
   "message": "Operation completed successfully"
 }
 ```
+
+---
+
+## 🎓 Aula para o aluno (Sala de Aula)
+
+Carrega uma aula específica com os dados do player e do cabeçalho "Módulo X · Aula Y", validando se o aluno tem acesso (US-11). O campo `description` já vem na resposta para a US-12 consumir o mesmo endpoint.
+
+```text
+GET /api/v1/student/courses/{courseId}/lessons/{lessonId}
+X-User-Id: <uuid do aluno>
+```
+
+🔓 **Identificação provisória:** o aluno é identificado pelo header `X-User-Id`, o mesmo mecanismo das rotas `/admin`. Ele será trocado pelo token quando o login da US-23 entrar.
+
+**Regras de acesso** (avaliadas nesta ordem):
+
+1. Aula inexistente, ou de um módulo que não pertence ao `courseId` da rota → `404`.
+2. Aula com `isFree = true` → liberada para qualquer aluno identificado, mesmo sem matrícula.
+3. Demais aulas exigem matrícula em `user_courses` com `dt_inicio` menor ou igual a hoje.
+4. Se o curso tiver `enforce_deadline_block = true` e `dt_expiracao` for anterior a hoje, o acesso é negado (o último dia de validade ainda dá acesso).
+
+O bloqueio por ordem obrigatória (`require_sequential_progress`) fica fora deste endpoint: depende do registro de conclusão de aula da US-13.
+
+| Status | Quando |
+|--------|--------|
+| `200` | Aula devolvida no envelope `ApiResponse` |
+| `401` | Header `X-User-Id` ausente ou que não seja um UUID válido |
+| `403` | Sem matrícula em aula paga, matrícula ainda não iniciada ou prazo expirado com bloqueio por prazo |
+| `404` | Aula não existe ou não pertence ao curso informado |
+
+Resposta (`200`):
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "courseId": "uuid",
+    "title": "1.3 Formulários e Validação em HTML",
+    "description": "Nesta aula você vai aprender a criar formulários acessíveis.",
+    "type": "VIDEO",
+    "url": "https://vimeo.com/123456789",
+    "durationMinutes": 13,
+    "isFree": false,
+    "order": 3,
+    "resources": null,
+    "module": { "id": "uuid", "title": "Fundamentos de HTML", "order": 1 }
+  },
+  "message": "Operation completed successfully"
+}
+```
+
+`module.order` e `order` alimentam o cabeçalho "Módulo X · Aula Y".
 
 ---
 
