@@ -21,6 +21,7 @@ import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
 import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
+import com.escapa.backend.application.usecase.AuthenticateUserUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
 import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
 import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
@@ -66,6 +67,11 @@ public class SpringConfig {
             PasswordHasherPort passwordHasherPort
     ) {
         return new CreateUserUseCase(userRepositoryPort, passwordHasherPort);
+    }
+
+    @Bean
+    public AuthenticateUserUseCase loginUseCase(UserRepositoryPort userRepositoryPort, PasswordHasherPort passwordHasherPort, com.escapa.backend.application.port.TokenServicePort tokenServicePort) {
+        return new AuthenticateUserUseCase(userRepositoryPort, passwordHasherPort, tokenServicePort);
     }
 
     @Bean

@@ -1,0 +1,9 @@
+--- src/main/java/com/escapa/backend/infrastructure/security/SecurityConfig.java
++++ src/main/java/com/escapa/backend/infrastructure/security/SecurityConfig.java
+@@ -43,7 +43,7 @@
+                         .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
+                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+-                        .requestMatchers("/api/v1/student/**").hasAnyRole("STUDENT", "COMPANY")
++                        .requestMatchers("/api/v1/student/**").hasAnyRole("STUDENT", "COMPANY", "ADMIN")
+                         .anyRequest().authenticated()
+                 )

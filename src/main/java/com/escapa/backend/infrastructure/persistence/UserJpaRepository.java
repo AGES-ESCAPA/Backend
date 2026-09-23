@@ -6,4 +6,5 @@ import java.util.UUID;
 
 public interface UserJpaRepository extends JpaRepository<UserEntity, UUID> {
     boolean existsByEmail(String email);
+    java.util.Optional<com.escapa.backend.infrastructure.persistence.UserEntity> findByEmail(String email);
 }

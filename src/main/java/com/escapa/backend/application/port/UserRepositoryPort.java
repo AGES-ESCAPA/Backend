@@ -9,6 +9,7 @@ import java.util.UUID;
 public interface UserRepositoryPort {
     User save(User user);
     boolean existsByEmail(String email);
+    Optional<User> findByEmail(String email);
     List<User> findAll();
     Optional<User> findById(UUID id);
 }

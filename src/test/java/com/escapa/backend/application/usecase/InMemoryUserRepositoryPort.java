@@ -28,6 +28,13 @@ final class InMemoryUserRepositoryPort implements UserRepositoryPort {
     }
 
     @Override
+    public Optional<User> findByEmail(String email) {
+        return users.stream()
+                .filter(u -> u.getEmail().equals(email))
+                .findFirst();
+    }
+
+    @Override
     public List<User> findAll() {
         return List.copyOf(users);
     }
