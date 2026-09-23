@@ -22,7 +22,8 @@ public class CertificateRepositoryAdapter implements CertificateRepositoryPort {
     @Override
     @Transactional(readOnly = true)
     public Optional<CertificateRecord> findByVerificationCode(String verificationCode) {
-        return userCourseJpaRepository.findIssuedByCertificateCode(verificationCode).map(this::toRecord);
+        return userCourseJpaRepository.findIssuedByCertificateCode(verificationCode)
+                .map(entity -> toRecord(entity, verificationCode));
     }
 
     @Override
@@ -31,8 +32,13 @@ public class CertificateRepositoryAdapter implements CertificateRepositoryPort {
         userCourseJpaRepository.updateCertificatePdf(userId, courseId, pdf);
     }
 
-    private CertificateRecord toRecord(UserCourseEntity entity) {
+    private CertificateRecord toRecord(UserCourseEntity entity, String verificationCode) {
         final CourseEntity course = entity.getCourse();
+        // Busca isolada do PDF em cache (ver UserCourseEntity): so ele carrega o BYTEA,
+        // nunca o SELECT acima nem qualquer outro load de UserCourseEntity.
+        final byte[] cachedPdf = userCourseJpaRepository
+                .findCachedCertificatePdfByCertificateCode(verificationCode)
+                .orElse(null);
         return new CertificateRecord(
                 entity.getId().getUserId(),
                 entity.getId().getCourseId(),
@@ -41,7 +47,7 @@ public class CertificateRepositoryAdapter implements CertificateRepositoryPort {
                 course.getDurationTime(),
                 entity.getConclusionDate(),
                 entity.getCertificateCode(),
-                entity.getCertificatePdf()
+                cachedPdf
         );
     }
 }
