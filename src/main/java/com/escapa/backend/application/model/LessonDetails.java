@@ -13,6 +13,7 @@ public record LessonDetails(
         UUID courseId,
         String moduleTitle,
         Integer moduleOrder,
-        boolean courseEnforcesDeadlineBlock
+        boolean courseEnforcesDeadlineBlock,
+        LessonSupplement supplement
 ) {
 }

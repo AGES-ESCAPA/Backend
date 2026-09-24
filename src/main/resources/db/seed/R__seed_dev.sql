@@ -1376,3 +1376,13 @@ INSERT INTO notifications (id, user_id, type, title, message, course_id, is_read
      'Complete seu perfil para receber recomendações de cursos.',
      NULL, TRUE, '2026-02-03 11:00:00', '2026-02-03 10:20:00');
 
+
+INSERT INTO content_concepts (content_id, name, "order") VALUES
+    ('02000000-0000-4000-9000-000000000181', 'Machine Learning', 1),
+    ('02000000-0000-4000-9000-000000000181', 'Redes Neurais', 2),
+    ('02000000-0000-4000-9000-000000000182', 'Turismo 4.0', 1);
+
+INSERT INTO content_references (id, content_id, title, url, "order") VALUES
+    ('04000000-0000-4000-9000-000000000001', '02000000-0000-4000-9000-000000000181', 'Introdução à IA', 'https://example.com/ia', 1),
+    ('04000000-0000-4000-9000-000000000002', '02000000-0000-4000-9000-000000000181', 'História da IA', 'https://example.com/historia-ia', 2),
+    ('04000000-0000-4000-9000-000000000003', '02000000-0000-4000-9000-000000000182', 'O futuro do turismo', 'https://example.com/turismo-futuro', 1);
