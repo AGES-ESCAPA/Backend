@@ -1,5 +1,7 @@
 package com.escapa.backend.infrastructure.config;
 
+import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
+import com.escapa.backend.application.port.CertificateRepositoryPort;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CourseNotificationPort;
@@ -16,6 +18,7 @@ import com.escapa.backend.application.usecase.CreateModuleUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
+import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
 import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
@@ -260,5 +263,13 @@ public class SpringConfig {
             EnrollmentRepositoryPort enrollmentRepositoryPort
     ) {
         return new GetStudentLessonUseCase(lessonRepositoryPort, enrollmentRepositoryPort, Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public DownloadCertificateUseCase downloadCertificateUseCase(
+            CertificateRepositoryPort certificateRepositoryPort,
+            CertificatePdfGeneratorPort certificatePdfGeneratorPort
+    ) {
+        return new DownloadCertificateUseCase(certificateRepositoryPort, certificatePdfGeneratorPort);
     }
 }
