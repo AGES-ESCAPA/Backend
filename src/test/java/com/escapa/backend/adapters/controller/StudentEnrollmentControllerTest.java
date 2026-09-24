@@ -60,8 +60,6 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
 
         student = new UserEntity(UUID.randomUUID(), "Student Test", "student@test.com", "hash", "STUDENT", LocalDateTime.now());
         userJpaRepository.save(student);
-        
-        // Setup instructor (AdminEntity is a subclass of UserEntity)
         instructor = new AdminEntity(UUID.randomUUID(), "Instructor Test", "instructor@test.com", "hash", "ADMIN", LocalDateTime.now(), "TI");
         userJpaRepository.save(instructor);
     }
@@ -81,28 +79,18 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
 
     @Test
     void shouldListEnrollmentsWithCorrectStatus() throws Exception {
-        // 1. COMPLETED Course (progress = 100)
         CourseEntity course1 = createCourse("Course 1");
         createUserCourse(student, course1, LocalDate.now().minusDays(10), null, 100, null);
-
-        // 2. EXPIRED Course (dtExpiracao < now)
         CourseEntity course2 = createCourse("Course 2");
         createUserCourse(student, course2, LocalDate.now().minusDays(10), LocalDate.now().minusDays(1), 50, null);
-
-        // 3. PENDING Course (dtInicio > now)
         CourseEntity course3 = createCourse("Course 3");
         createUserCourse(student, course3, LocalDate.now().plusDays(5), null, 0, null);
-
-        // 4. IN_PROGRESS Course (dtInicio <= now, not expired, not completed)
         CourseEntity course4 = createCourse("Course 4");
         createUserCourse(student, course4, LocalDate.now().minusDays(1), null, 10, null);
-
-        // Act & Assert
         mockMvc.perform(get("/api/v1/student/enrollments")
                         .header("X-User-Id", student.getId().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements", is(4)))
-                // Verify all statuses are present
                 .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'COMPLETED')]", hasSize(1)))
                 .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'EXPIRED')]", hasSize(1)))
                 .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'PENDING')]", hasSize(1)))
@@ -112,18 +100,14 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
     @Test
     void shouldFilterEnrollmentsByStatusAndTitle() throws Exception {
         CourseEntity courseA = createCourse("Java Basics");
-        createUserCourse(student, courseA, LocalDate.now().minusDays(1), null, 10, null); // IN_PROGRESS
+        createUserCourse(student, courseA, LocalDate.now().minusDays(1), null, 10, null);
 
         CourseEntity courseB = createCourse("Advanced Java");
-        createUserCourse(student, courseB, LocalDate.now().minusDays(10), null, 100, LocalDate.now()); // COMPLETED
-
-        // Filter by title
+        createUserCourse(student, courseB, LocalDate.now().minusDays(10), null, 100, LocalDate.now());
         mockMvc.perform(get("/api/v1/student/enrollments?query=java")
                         .header("X-User-Id", student.getId().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements", is(2)));
-
-        // Filter by title and status
         mockMvc.perform(get("/api/v1/student/enrollments?query=java&status=COMPLETED")
                         .header("X-User-Id", student.getId().toString()))
                 .andExpect(status().isOk())
