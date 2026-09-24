@@ -23,7 +23,7 @@ services:
       retries: 10
 
   minio:
-    image: quay.io/minio/minio:latest
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
     container_name: escapaminio
     restart: unless-stopped
     command: server /data --console-address ":9001"
@@ -37,7 +37,10 @@ services:
       - minio_data:/data
 
   minio-init:
-    image: quay.io/minio/mc:latest
+    build:
+      context: ./minio-seed
+      dockerfile: Dockerfile
+    image: escapa-minio-init:local
     container_name: escapaminio-init
     depends_on:
       minio:
