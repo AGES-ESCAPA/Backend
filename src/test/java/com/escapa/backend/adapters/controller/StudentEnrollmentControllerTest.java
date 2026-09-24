@@ -30,10 +30,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class StudentEnrollmentControllerTest {
+class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
