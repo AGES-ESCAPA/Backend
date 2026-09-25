@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -32,6 +34,40 @@ public interface UserCourseJpaRepository
                 + "where enrollment.id.userId = :userId and enrollment.id.courseId = :courseId")
             Optional<EnrollmentPeriod> findPeriodByUserIdAndCourseId(
                 @Param("userId") UUID userId, @Param("courseId") UUID courseId);
+
+            @Query(value = """
+                SELECT uc FROM UserCourseEntity uc
+                JOIN FETCH uc.course c
+                LEFT JOIN FETCH c.instructor
+                WHERE uc.user.id = :userId
+                AND (:titlePattern = '%%' OR LOWER(c.title) LIKE :titlePattern)
+                AND (
+                    :status IS NULL
+                    OR (:status = 'COMPLETED' AND (uc.conclusionDate IS NOT NULL OR uc.progress = 100))
+                    OR (:status = 'EXPIRED' AND (uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100)) AND uc.dtExpiracao < CURRENT_DATE)
+                    OR (:status = 'PENDING' AND uc.dtInicio > CURRENT_DATE)
+                    OR (:status = 'IN_PROGRESS' AND (uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100)) AND (uc.dtExpiracao IS NULL OR uc.dtExpiracao >= CURRENT_DATE) AND (uc.dtInicio IS NULL OR uc.dtInicio <= CURRENT_DATE))
+                )
+                """,
+                countQuery = """
+                SELECT COUNT(uc) FROM UserCourseEntity uc
+                JOIN uc.course c
+                WHERE uc.user.id = :userId
+                AND (:titlePattern = '%%' OR LOWER(c.title) LIKE :titlePattern)
+                AND (
+                    :status IS NULL
+                    OR (:status = 'COMPLETED' AND (uc.conclusionDate IS NOT NULL OR uc.progress = 100))
+                    OR (:status = 'EXPIRED' AND (uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100)) AND uc.dtExpiracao < CURRENT_DATE)
+                    OR (:status = 'PENDING' AND uc.dtInicio > CURRENT_DATE)
+                    OR (:status = 'IN_PROGRESS' AND (uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100)) AND (uc.dtExpiracao IS NULL OR uc.dtExpiracao >= CURRENT_DATE) AND (uc.dtInicio IS NULL OR uc.dtInicio <= CURRENT_DATE))
+                )
+                """)
+            Page<UserCourseEntity> findStudentEnrollments(
+                @Param("userId") UUID userId,
+                @Param("titlePattern") String titlePattern,
+                @Param("status") String status,
+                Pageable pageable
+            );
 
             // Aluno e curso vem na mesma consulta (US-19): sao os unicos dados do
             // agregado que o certificado precisa, alem dos campos da propria matricula.

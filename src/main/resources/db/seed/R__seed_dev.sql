@@ -1376,3 +1376,20 @@ INSERT INTO notifications (id, user_id, type, title, message, course_id, is_read
      'Complete seu perfil para receber recomendações de cursos.',
      NULL, TRUE, '2026-02-03 11:00:00', '2026-02-03 10:20:00');
 
+
+-- User squad1
+INSERT INTO users (id, name, email, password_hash, role, status, created_at) VALUES 
+('b0000000-0000-4000-b000-000000000099', 'Squad 1', 'squad1@ages.com', '$2b$12$IL4.lPoBpkgdJN4.sm4cwOGMi9Aawu6tiTHEFyJKBih9aZG0abc5.', 'STUDENT', 'ACTIVE', '2026-09-23 18:00:00');
+
+INSERT INTO regular_users (user_id, cpf, phone) VALUES 
+('b0000000-0000-4000-b000-000000000099', '12345678900', '+55 11 99999-9999');
+
+INSERT INTO user_courses (user_id, course_id, dt_inicio, dt_expiracao, progress, conclusion_date, last_access_date, certificate_issued, certificate_code, certificate_issued_at) VALUES
+('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000001', '2026-09-01', '2027-09-01', 50, NULL, '2026-09-20 10:00:00', FALSE, NULL, NULL),
+('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000002', '2026-09-01', '2027-09-01', 0, NULL, '2026-09-20 10:00:00', FALSE, NULL, NULL);
+
+-- Enrollments for each status for Squad 1
+INSERT INTO user_courses (user_id, course_id, dt_inicio, dt_expiracao, progress, conclusion_date, last_access_date, certificate_issued, certificate_code, certificate_issued_at) VALUES
+('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000003', '2026-12-01', '2027-12-01', 0, NULL, NULL, FALSE, NULL, NULL),
+('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000004', '2026-01-01', '2027-01-01', 100, '2026-05-01', '2026-05-01 10:00:00', TRUE, 'CERT-1234', '2026-05-01 10:00:00'),
+('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000005', '2025-01-01', '2026-01-01', 20, NULL, '2025-06-01 10:00:00', FALSE, NULL, NULL);
