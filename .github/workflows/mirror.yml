@@ -30,7 +30,7 @@ jobs:
 
       - name: Push changed ref to GitLab
         env:
-          GITLAB_USERNAME: ${{ vars.GITLAB_USERNAME }}
+          GITLAB_USERNAME: ${{ secrets.GITLAB_USERNAME }}
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
           GITLAB_REPOSITORY: tools.ages.pucrs.br/2026-2/2jk-4jk/escapa/backend.git
         shell: bash
