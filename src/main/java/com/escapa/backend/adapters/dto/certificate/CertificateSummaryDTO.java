@@ -1,16 +1,28 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 
 package com.escapa.backend.adapters.dto.certificate;
 
 import java.time.LocalDate;
 
-
-class CertificateSummaryDTO {
+public class CertificateSummaryDTO {
     private LocalDate conclusionDate;
     private Integer workload;
     private String verificationCode;
 
+    public CertificateSummaryDTO(LocalDate conclusionDate, String verificationCode, Integer workload) {
+        this.conclusionDate = conclusionDate;
+        this.verificationCode = verificationCode;
+        this.workload = workload;
+    }
+
+    public LocalDate getConclusionDate() {
+        return conclusionDate;
+    }
+
+    public Integer getWorkload() {
+        return workload;
+    }
+
+    public String getVerificationCode() {
+        return verificationCode;
+    }
 }

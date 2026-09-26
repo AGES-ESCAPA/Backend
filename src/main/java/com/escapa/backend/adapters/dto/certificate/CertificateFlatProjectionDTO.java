@@ -1,7 +1,9 @@
 package com.escapa.backend.adapters.dto.certificate;
 
+import java.time.LocalDate;
+
 public record CertificateFlatProjectionDTO(
-    String conclusionDate,
+    LocalDate conclusionDate,
     Integer workload,
     String verificationCode,
 
@@ -13,12 +15,12 @@ public record CertificateFlatProjectionDTO(
     String courseTitle,
     String courseDescription,
     String courseCategory,
-    Integer courseLevel,
+    String courseLevel,
     String courseImageUrl,
     Integer courseDurationTime,
     Integer courseLessonsCount,
-    double courseRating,
+    Double courseRating,
     Integer courseReviewsCount,
     String courseInstructorName,
-    double coursePrice
+    Double coursePrice
 ) {}
