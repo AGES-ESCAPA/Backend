@@ -61,4 +61,11 @@ public class UserCourseEntity {
 
     @Column(name = "certificate_issued_at")
     private LocalDateTime certificateIssuedAt;
+
+    // certificate_pdf (cache do PDF gerado, US-19) nao e mapeado aqui de proposito:
+    // sendo um BYTEA sem fetch preguicoso real sem bytecode enhancement, ele seria
+    // carregado em todo SELECT desta entidade, inclusive onde ninguem usa o PDF (ex.:
+    // CourseNotificationAdapter.notifyCoursePublished, via findActiveByCourseId). O
+    // acesso a esse cache fica isolado em queries nativas dedicadas, tanto para leitura
+    // quanto para escrita (ver UserCourseJpaRepository).
 }
