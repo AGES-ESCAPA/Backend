@@ -2,8 +2,10 @@ package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.model.LessonDetails;
+import com.escapa.backend.application.model.LessonSupplement;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.application.port.LessonRepositoryPort;
+import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException.Reason;
@@ -22,15 +24,18 @@ public class GetStudentLessonUseCase {
 
     private final LessonRepositoryPort lessonRepositoryPort;
     private final EnrollmentRepositoryPort enrollmentRepositoryPort;
+    private final LessonSupplementRepositoryPort lessonSupplementRepositoryPort;
     private final Clock clock;
 
     public GetStudentLessonUseCase(
             LessonRepositoryPort lessonRepositoryPort,
             EnrollmentRepositoryPort enrollmentRepositoryPort,
+            LessonSupplementRepositoryPort lessonSupplementRepositoryPort,
             Clock clock
     ) {
         this.lessonRepositoryPort = lessonRepositoryPort;
         this.enrollmentRepositoryPort = enrollmentRepositoryPort;
+        this.lessonSupplementRepositoryPort = lessonSupplementRepositoryPort;
         this.clock = clock;
     }
 
@@ -42,7 +47,17 @@ public class GetStudentLessonUseCase {
         if (!Boolean.TRUE.equals(lesson.content().getIsFree())) {
             requireActiveEnrollment(userId, lesson);
         }
-        return lesson;
+
+        final LessonSupplement supplement = lessonSupplementRepositoryPort.getSupplementsByLessonId(lessonId);
+
+        return new LessonDetails(
+                lesson.content(),
+                lesson.courseId(),
+                lesson.moduleTitle(),
+                lesson.moduleOrder(),
+                lesson.courseEnforcesDeadlineBlock(),
+                supplement
+        );
     }
 
     private void requireActiveEnrollment(UUID userId, LessonDetails lesson) {
