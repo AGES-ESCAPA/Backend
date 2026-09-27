@@ -1,8 +1,10 @@
 package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.application.model.LessonDetails;
+import com.escapa.backend.application.model.LessonSupplement;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.application.port.LessonRepositoryPort;
+import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 
 import java.time.Clock;
@@ -17,14 +19,17 @@ import java.util.UUID;
 public class GetStudentLessonUseCase {
 
     private final LessonRepositoryPort lessonRepositoryPort;
+    private final LessonSupplementRepositoryPort lessonSupplementRepositoryPort;
     private final EnrollmentAccessValidator enrollmentAccessValidator;
 
     public GetStudentLessonUseCase(
             LessonRepositoryPort lessonRepositoryPort,
             EnrollmentRepositoryPort enrollmentRepositoryPort,
+            LessonSupplementRepositoryPort lessonSupplementRepositoryPort,
             Clock clock
     ) {
         this.lessonRepositoryPort = lessonRepositoryPort;
+        this.lessonSupplementRepositoryPort = lessonSupplementRepositoryPort;
         this.enrollmentAccessValidator = new EnrollmentAccessValidator(enrollmentRepositoryPort, clock);
     }
 
@@ -37,6 +42,16 @@ public class GetStudentLessonUseCase {
             enrollmentAccessValidator.requireActiveEnrollment(
                     userId, lesson.courseId(), lesson.courseEnforcesDeadlineBlock(), lesson.content().getId());
         }
-        return lesson;
+
+        final LessonSupplement supplement = lessonSupplementRepositoryPort.getSupplementsByLessonId(lessonId);
+
+        return new LessonDetails(
+                lesson.content(),
+                lesson.courseId(),
+                lesson.moduleTitle(),
+                lesson.moduleOrder(),
+                lesson.courseEnforcesDeadlineBlock(),
+                supplement
+        );
     }
 }

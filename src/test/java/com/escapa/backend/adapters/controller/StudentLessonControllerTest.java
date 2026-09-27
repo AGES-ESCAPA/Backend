@@ -6,6 +6,7 @@ import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.model.LessonDetails;
+import com.escapa.backend.application.model.LessonSupplement;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
@@ -24,6 +25,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -59,6 +61,7 @@ class StudentLessonControllerTest {
                         .or(() -> Optional.of(free).filter(l -> l.content().getId().equals(lessonId)))
                         .filter(l -> l.courseId().equals(course)),
                 (user, course) -> user.equals(userId) ? enrollment : Optional.empty(),
+                lessonId -> new LessonSupplement(List.of(), List.of()),
                 Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
         );
 
@@ -155,7 +158,8 @@ class StudentLessonControllerTest {
         final Content content = new Content(
                 id, moduleId, "Aula 2", "Descricao da aula", ContentType.VIDEO,
                 "https://cdn.example.com/aula-2.mp4", 12, isFree, 2, null, null);
-        return new LessonDetails(content, courseId, "Fundamentos", 1, true);
+        return new LessonDetails(content, courseId, "Fundamentos", 1, true,
+                new LessonSupplement(List.of(), List.of()));
     }
 
     private Course givenCourse() {

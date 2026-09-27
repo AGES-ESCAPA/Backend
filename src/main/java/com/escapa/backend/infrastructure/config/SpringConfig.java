@@ -15,6 +15,7 @@ import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.application.port.LessonProgressRepositoryPort;
 import com.escapa.backend.application.port.LessonRepositoryPort;
+import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
 import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
@@ -258,10 +259,11 @@ public class SpringConfig {
 
     @Bean
     public GetStudentLessonUseCase getStudentLessonUseCase(
+            LessonSupplementRepositoryPort lessonSupplementRepositoryPort,
             LessonRepositoryPort lessonRepositoryPort,
             EnrollmentRepositoryPort enrollmentRepositoryPort
     ) {
-        return new GetStudentLessonUseCase(lessonRepositoryPort, enrollmentRepositoryPort, Clock.systemDefaultZone());
+        return new GetStudentLessonUseCase(lessonRepositoryPort, enrollmentRepositoryPort, lessonSupplementRepositoryPort, Clock.systemDefaultZone());
     }
 
     @Bean
