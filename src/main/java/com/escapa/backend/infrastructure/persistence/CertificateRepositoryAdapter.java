@@ -1,7 +1,9 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import com.escapa.backend.application.model.CertificateDetails;
 import com.escapa.backend.application.model.CertificateRecord;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
+import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository.CertificateDetailsView;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
 import org.springframework.stereotype.Repository;
@@ -27,6 +29,13 @@ public class CertificateRepositoryAdapter implements CertificateRepositoryPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Optional<CertificateDetails> findDetailsByVerificationCode(String verificationCode) {
+        return userCourseJpaRepository.findIssuedDetailsByCertificateCode(verificationCode)
+                .map(this::toDetails);
+    }
+
+    @Override
     @Transactional
     public void saveCachedPdf(UUID userId, UUID courseId, byte[] pdf) {
         userCourseJpaRepository.updateCertificatePdf(userId, courseId, pdf);
@@ -48,6 +57,35 @@ public class CertificateRepositoryAdapter implements CertificateRepositoryPort {
                 entity.getConclusionDate(),
                 entity.getCertificateCode(),
                 cachedPdf
+        );
+    }
+
+    private CertificateDetails toDetails(CertificateDetailsView view) {
+        final CertificateDetails.Student student = new CertificateDetails.Student(
+                view.getStudentName(),
+                view.getStudentAvatarUrl(),
+                view.isStudentVerified()
+        );
+        final CertificateDetails.Course course = new CertificateDetails.Course(
+                view.getCourseId(),
+                view.getCourseTitle(),
+                view.getCourseDescription(),
+                view.getCourseCategory(),
+                view.getCourseLevel(),
+                view.getCourseThumbnailUrl(),
+                view.getCourseDurationTime(),
+                view.getCourseLessonsCount(),
+                view.getCourseRating(),
+                view.getCourseReviewsCount(),
+                view.getInstructorName(),
+                view.getCoursePrice()
+        );
+        return new CertificateDetails(
+                view.getConclusionDate(),
+                view.getCourseDurationTime(),
+                view.getVerificationCode(),
+                student,
+                course
         );
     }
 }

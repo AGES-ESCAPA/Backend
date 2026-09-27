@@ -27,6 +27,7 @@ import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
+import com.escapa.backend.application.usecase.GetCertificateDetailsUseCase;
 import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
@@ -289,6 +290,13 @@ public class SpringConfig {
             CertificatePdfGeneratorPort certificatePdfGeneratorPort
     ) {
         return new DownloadCertificateUseCase(certificateRepositoryPort, certificatePdfGeneratorPort);
+    }
+
+    @Bean
+    public GetCertificateDetailsUseCase getCertificateDetailsUseCase(
+            CertificateRepositoryPort certificateRepositoryPort
+    ) {
+        return new GetCertificateDetailsUseCase(certificateRepositoryPort);
     }
 }
 
