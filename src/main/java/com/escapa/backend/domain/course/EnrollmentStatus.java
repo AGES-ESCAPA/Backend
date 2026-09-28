@@ -5,6 +5,7 @@ package com.escapa.backend.domain.course;
  */
 public enum EnrollmentStatus {
     COMPLETED,
+    EXPIRED,
     PENDING,
     IN_PROGRESS
 }

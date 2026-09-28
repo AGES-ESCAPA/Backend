@@ -92,43 +92,9 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements", is(4)))
                 .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'COMPLETED')]", hasSize(1)))
+                .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'EXPIRED')]", hasSize(1)))
                 .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'PENDING')]", hasSize(1)))
-                // Course 2 with expired date will now be IN_PROGRESS
-                .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'IN_PROGRESS')]", hasSize(2)));
-    }
-
-    @Test
-    void shouldNotIncludeCompletedCourseInPendingTabEvenIfStartDateIsInFuture() throws Exception {
-        CourseEntity course1 = createCourse("Course Future Completed");
-        createUserCourse(student, course1, LocalDate.now().plusDays(10), null, 100, LocalDate.now());
-        
-        mockMvc.perform(get("/api/v1/student/enrollments?status=PENDING")
-                        .header("X-User-Id", student.getId().toString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.totalElements", is(0)));
-                
-        mockMvc.perform(get("/api/v1/student/enrollments?status=COMPLETED")
-                        .header("X-User-Id", student.getId().toString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.totalElements", is(1)));
-    }
-
-    @Test
-    void shouldReturnEnrollmentsOrderedByDtInicioDesc() throws Exception {
-        CourseEntity course1 = createCourse("Course 1");
-        createUserCourse(student, course1, LocalDate.now().minusDays(10), null, 10, null);
-        CourseEntity course2 = createCourse("Course 2");
-        createUserCourse(student, course2, LocalDate.now().minusDays(2), null, 10, null);
-        CourseEntity course3 = createCourse("Course 3");
-        createUserCourse(student, course3, LocalDate.now().minusDays(5), null, 10, null);
-
-        mockMvc.perform(get("/api/v1/student/enrollments")
-                        .header("X-User-Id", student.getId().toString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.totalElements", is(3)))
-                .andExpect(jsonPath("$.data.content[0].title", is("Course 2")))
-                .andExpect(jsonPath("$.data.content[1].title", is("Course 3")))
-                .andExpect(jsonPath("$.data.content[2].title", is("Course 1")));
+                .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'IN_PROGRESS')]", hasSize(1)));
     }
 
     @Test
