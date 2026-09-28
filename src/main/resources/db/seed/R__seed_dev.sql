@@ -1,6 +1,4 @@
--- =============================================================================
 -- Seed de desenvolvimento — Escapa!
--- =============================================================================
 --
 -- Ele NAO fica em db/migration de proposito. So e aplicado quando a location
 -- classpath:db/seed entra em spring.flyway.locations, o que o docker-compose.yml
@@ -17,7 +15,6 @@
 -- Senha em texto puro de TODOS os usuarios (hash BCrypt abaixo): escapa@2026
 --
 -- Os UUIDs sao fixos para facilitar testar endpoints com ids conhecidos.
--- =============================================================================
 
 TRUNCATE TABLE
     notifications,
@@ -1081,8 +1078,8 @@ INSERT INTO content (id, module_id, title, description, type, url, duration_minu
      'VIDEO', 'https://vimeo.com/1226382615?share=copy&fl=sv&fe=ci', 12, TRUE, 1,
      '{"legendas": ["pt-BR"]}', '2026-02-12 08:40:00'),
     ('02000000-0000-4000-9000-000000000182', '01000000-0000-4000-9000-000000000021',
-     'IA no Contexto do Turismo Global', 'IA no Contexto do Turismo Global do módulo Fundamentos de IA para o Turismo.',
-     'VIDEO', NULL, 13, TRUE, 2,
+     'IA no Contexto do Turismo Global', 'IA no Contexto do Turismo Global do módulo Fundamentos de IA para o Turismo.', 
+     'VIDEO', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', 13, TRUE, 2, 
      '{"legendas": ["pt-BR"]}', '2026-02-12 08:40:00'),
     ('02000000-0000-4000-9000-000000000183', '01000000-0000-4000-9000-000000000021',
      'Panorama das Ferramentas Disponíveis', 'Panorama das Ferramentas Disponíveis do módulo Fundamentos de IA para o Turismo.',
@@ -1393,3 +1390,12 @@ INSERT INTO user_courses (user_id, course_id, dt_inicio, dt_expiracao, progress,
 ('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000003', '2026-12-01', '2027-12-01', 0, NULL, NULL, FALSE, NULL, NULL),
 ('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000004', '2026-01-01', '2027-01-01', 100, '2026-05-01', '2026-05-01 10:00:00', TRUE, 'CERT-1234', '2026-05-01 10:00:00'),
 ('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000005', '2025-01-01', '2026-01-01', 20, NULL, '2025-06-01 10:00:00', FALSE, NULL, NULL);
+INSERT INTO content_concepts (content_id, name, "order") VALUES
+    ('02000000-0000-4000-9000-000000000181', 'Machine Learning', 1),
+    ('02000000-0000-4000-9000-000000000181', 'Redes Neurais', 2),
+    ('02000000-0000-4000-9000-000000000182', 'Turismo 4.0', 1);
+
+INSERT INTO content_references (id, content_id, title, url, "order") VALUES
+    ('04000000-0000-4000-9000-000000000001', '02000000-0000-4000-9000-000000000181', 'Introdução à IA', 'https://example.com/ia', 1),
+    ('04000000-0000-4000-9000-000000000002', '02000000-0000-4000-9000-000000000181', 'História da IA', 'https://example.com/historia-ia', 2),
+    ('04000000-0000-4000-9000-000000000003', '02000000-0000-4000-9000-000000000182', 'O futuro do turismo', 'https://example.com/turismo-futuro', 1);

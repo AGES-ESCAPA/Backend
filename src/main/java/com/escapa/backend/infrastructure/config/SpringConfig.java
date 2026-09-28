@@ -1,5 +1,10 @@
 package com.escapa.backend.infrastructure.config;
 
+import java.time.Clock;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
 import com.escapa.backend.application.port.ContentRepositoryPort;
@@ -8,7 +13,10 @@ import com.escapa.backend.application.port.CourseNotificationPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
+import com.escapa.backend.application.port.LessonProgressRepositoryPort;
 import com.escapa.backend.application.port.LessonRepositoryPort;
+import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
+import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
@@ -19,10 +27,12 @@ import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
+import com.escapa.backend.application.usecase.GetCertificateDetailsUseCase;
 import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
+import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
 import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
 import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
@@ -49,11 +59,8 @@ import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.course.CourseRepositoryAdapter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityManager;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
-import java.time.Clock;
+import jakarta.persistence.EntityManager;
 
 @Configuration
 public class SpringConfig {
@@ -253,10 +260,28 @@ public class SpringConfig {
 
     @Bean
     public GetStudentLessonUseCase getStudentLessonUseCase(
+            LessonSupplementRepositoryPort lessonSupplementRepositoryPort,
             LessonRepositoryPort lessonRepositoryPort,
             EnrollmentRepositoryPort enrollmentRepositoryPort
     ) {
-        return new GetStudentLessonUseCase(lessonRepositoryPort, enrollmentRepositoryPort, Clock.systemDefaultZone());
+        return new GetStudentLessonUseCase(lessonRepositoryPort, enrollmentRepositoryPort, lessonSupplementRepositoryPort, Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public GetStudentCourseCurriculumUseCase getStudentCourseCurriculumUseCase(
+            CourseRepositoryPort courseRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort,
+            LessonProgressRepositoryPort lessonProgressRepositoryPort,
+            ModulePrerequisiteRepositoryPort modulePrerequisiteRepositoryPort,
+            EnrollmentRepositoryPort enrollmentRepositoryPort
+    ) {
+        return new GetStudentCourseCurriculumUseCase(
+                courseRepositoryPort,
+                moduleRepositoryPort,
+                lessonProgressRepositoryPort,
+                modulePrerequisiteRepositoryPort,
+                enrollmentRepositoryPort,
+                Clock.systemDefaultZone());
     }
 
     @Bean
@@ -266,4 +291,12 @@ public class SpringConfig {
     ) {
         return new DownloadCertificateUseCase(certificateRepositoryPort, certificatePdfGeneratorPort);
     }
+
+    @Bean
+    public GetCertificateDetailsUseCase getCertificateDetailsUseCase(
+            CertificateRepositoryPort certificateRepositoryPort
+    ) {
+        return new GetCertificateDetailsUseCase(certificateRepositoryPort);
+    }
 }
+
