@@ -155,7 +155,17 @@ class StudentLessonControllerTest {
                 moduleRepositoryPort,
                 (user, course) -> List.of(),
                 moduleId -> List.of(),
-                (user, course) -> user.equals(userId) ? curriculumEnrollment : Optional.empty(),
+                new com.escapa.backend.application.port.EnrollmentRepositoryPort() {
+                    @Override
+                    public Optional<Enrollment> findByUserIdAndCourseId(UUID user, UUID course) {
+                        return user.equals(userId) ? curriculumEnrollment : Optional.empty();
+                    }
+
+                    @Override
+                    public com.escapa.backend.application.dto.PageResult<com.escapa.backend.application.model.StudentCourseCard> findStudentEnrollments(UUID userId, String title, com.escapa.backend.domain.course.EnrollmentStatus status, int page, int size) {
+                        return null;
+                    }
+                },
                 Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
         );
 
