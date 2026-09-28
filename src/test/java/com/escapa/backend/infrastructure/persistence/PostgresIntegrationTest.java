@@ -5,7 +5,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.testcontainers.containers.PostgreSQLContainer;
 
 @SpringBootTest
-abstract class PostgresIntegrationTest {
+public abstract class PostgresIntegrationTest {
 
     // Started manually instead of via @Container so a single container is shared
     // by every subclass, rather than one per test class.
