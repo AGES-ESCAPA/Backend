@@ -12,7 +12,8 @@ public record StudentCourseCardResponse(
         Integer durationTime,
         Integer lessonsCount,
         Integer progressPercentage,
-        String enrollmentStatus
+        String enrollmentStatus,
+        String certificateCode
 ) {
     public static StudentCourseCardResponse from(StudentCourseCard card) {
         return new StudentCourseCardResponse(
@@ -23,7 +24,8 @@ public record StudentCourseCardResponse(
                 card.durationTime(),
                 card.lessonsCount(),
                 card.progressPercentage(),
-                card.enrollmentStatus() != null ? card.enrollmentStatus().name() : null
+                card.enrollmentStatus() != null ? card.enrollmentStatus().name() : null,
+                card.certificateCode()
         );
     }
 }
