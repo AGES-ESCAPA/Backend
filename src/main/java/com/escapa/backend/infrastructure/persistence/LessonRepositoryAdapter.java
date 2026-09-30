@@ -6,7 +6,8 @@ import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.escapa.backend.application.model.LessonSupplement;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,7 +31,8 @@ public class LessonRepositoryAdapter implements LessonRepositoryPort {
                     course.getId(),
                     module.getTitle(),
                     module.getOrder(),
-                    Boolean.TRUE.equals(course.getEnforceDeadlineBlock())
+                    Boolean.TRUE.equals(course.getEnforceDeadlineBlock()),
+                    new LessonSupplement(List.of(), List.of())
             );
         });
     }

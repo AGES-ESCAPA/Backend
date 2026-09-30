@@ -1,6 +1,4 @@
--- =============================================================================
 -- Seed de desenvolvimento — Escapa!
--- =============================================================================
 --
 -- Ele NAO fica em db/migration de proposito. So e aplicado quando a location
 -- classpath:db/seed entra em spring.flyway.locations, o que o docker-compose.yml
@@ -17,13 +15,13 @@
 -- Senha em texto puro de TODOS os usuarios (hash BCrypt abaixo): escapa@2026
 --
 -- Os UUIDs sao fixos para facilitar testar endpoints com ids conhecidos.
--- =============================================================================
 
 TRUNCATE TABLE
     notifications,
     course_reviews,
     company_courses,
     user_courses,
+    user_content_progress,
     module_prerequisites,
     content,
     modules,
@@ -1080,8 +1078,8 @@ INSERT INTO content (id, module_id, title, description, type, url, duration_minu
      'VIDEO', 'https://vimeo.com/1226382615?share=copy&fl=sv&fe=ci', 12, TRUE, 1,
      '{"legendas": ["pt-BR"]}', '2026-02-12 08:40:00'),
     ('02000000-0000-4000-9000-000000000182', '01000000-0000-4000-9000-000000000021',
-     'IA no Contexto do Turismo Global', 'IA no Contexto do Turismo Global do módulo Fundamentos de IA para o Turismo.',
-     'VIDEO', NULL, 13, TRUE, 2,
+     'IA no Contexto do Turismo Global', 'IA no Contexto do Turismo Global do módulo Fundamentos de IA para o Turismo.', 
+     'VIDEO', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', 13, TRUE, 2, 
      '{"legendas": ["pt-BR"]}', '2026-02-12 08:40:00'),
     ('02000000-0000-4000-9000-000000000183', '01000000-0000-4000-9000-000000000021',
      'Panorama das Ferramentas Disponíveis', 'Panorama das Ferramentas Disponíveis do módulo Fundamentos de IA para o Turismo.',
@@ -1304,6 +1302,12 @@ INSERT INTO user_courses (
      '2026-03-11', '2027-03-11', 5, NULL, NULL,
      FALSE, NULL, NULL);
 
+INSERT INTO user_content_progress (
+    user_id, content_id, completed_at
+) VALUES
+    ('c0000000-0000-4000-c000-000000000001', '02000000-0000-4000-9000-000000000181', '2026-03-03 08:30:00'),
+    ('c0000000-0000-4000-c000-000000000001', '02000000-0000-4000-9000-000000000182', '2026-03-03 08:35:00');
+
 INSERT INTO company_courses (company_id, course_id, data_inicio, data_expiracao) VALUES
     ('d0000000-0000-4000-d000-000000000001', 'e0000000-0000-4000-e000-000000000005', '2026-02-25', '2027-02-25'),
     ('d0000000-0000-4000-d000-000000000001', 'e0000000-0000-4000-e000-000000000006', '2026-03-01', '2027-03-01'),
@@ -1369,3 +1373,29 @@ INSERT INTO notifications (id, user_id, type, title, message, course_id, is_read
      'Complete seu perfil para receber recomendações de cursos.',
      NULL, TRUE, '2026-02-03 11:00:00', '2026-02-03 10:20:00');
 
+
+-- User squad1
+INSERT INTO users (id, name, email, password_hash, role, status, created_at) VALUES 
+('b0000000-0000-4000-b000-000000000099', 'Squad 1', 'squad1@ages.com', '$2b$12$IL4.lPoBpkgdJN4.sm4cwOGMi9Aawu6tiTHEFyJKBih9aZG0abc5.', 'STUDENT', 'ACTIVE', '2026-09-23 18:00:00');
+
+INSERT INTO regular_users (user_id, cpf, phone) VALUES 
+('b0000000-0000-4000-b000-000000000099', '12345678900', '+55 11 99999-9999');
+
+INSERT INTO user_courses (user_id, course_id, dt_inicio, dt_expiracao, progress, conclusion_date, last_access_date, certificate_issued, certificate_code, certificate_issued_at) VALUES
+('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000001', '2026-09-01', '2027-09-01', 50, NULL, '2026-09-20 10:00:00', FALSE, NULL, NULL),
+('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000002', '2026-09-01', '2027-09-01', 0, NULL, '2026-09-20 10:00:00', FALSE, NULL, NULL);
+
+-- Enrollments for each status for Squad 1
+INSERT INTO user_courses (user_id, course_id, dt_inicio, dt_expiracao, progress, conclusion_date, last_access_date, certificate_issued, certificate_code, certificate_issued_at) VALUES
+('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000003', '2026-12-01', '2027-12-01', 0, NULL, NULL, FALSE, NULL, NULL),
+('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000004', '2026-01-01', '2027-01-01', 100, '2026-05-01', '2026-05-01 10:00:00', TRUE, 'CERT-1234', '2026-05-01 10:00:00'),
+('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000005', '2025-01-01', '2026-01-01', 20, NULL, '2025-06-01 10:00:00', FALSE, NULL, NULL);
+INSERT INTO content_concepts (content_id, name, "order") VALUES
+    ('02000000-0000-4000-9000-000000000181', 'Machine Learning', 1),
+    ('02000000-0000-4000-9000-000000000181', 'Redes Neurais', 2),
+    ('02000000-0000-4000-9000-000000000182', 'Turismo 4.0', 1);
+
+INSERT INTO content_references (id, content_id, title, url, "order") VALUES
+    ('04000000-0000-4000-9000-000000000001', '02000000-0000-4000-9000-000000000181', 'Introdução à IA', 'https://example.com/ia', 1),
+    ('04000000-0000-4000-9000-000000000002', '02000000-0000-4000-9000-000000000181', 'História da IA', 'https://example.com/historia-ia', 2),
+    ('04000000-0000-4000-9000-000000000003', '02000000-0000-4000-9000-000000000182', 'O futuro do turismo', 'https://example.com/turismo-futuro', 1);

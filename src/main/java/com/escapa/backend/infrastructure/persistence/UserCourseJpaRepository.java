@@ -5,7 +5,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -31,4 +34,122 @@ public interface UserCourseJpaRepository
                 + "where enrollment.id.userId = :userId and enrollment.id.courseId = :courseId")
             Optional<EnrollmentPeriod> findPeriodByUserIdAndCourseId(
                 @Param("userId") UUID userId, @Param("courseId") UUID courseId);
+
+            @Query(value = """
+                SELECT uc FROM UserCourseEntity uc
+                JOIN FETCH uc.course c
+                LEFT JOIN FETCH c.instructor
+                WHERE uc.user.id = :userId
+                AND (:titlePattern = '%%' OR LOWER(c.title) LIKE :titlePattern)
+                AND (
+                    :status IS NULL
+                    OR (:status = 'COMPLETED' AND (uc.conclusionDate IS NOT NULL OR uc.progress = 100))
+                    OR (:status = 'PENDING' AND (uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100)) AND uc.dtInicio > CURRENT_DATE)
+                    OR (:status = 'IN_PROGRESS' AND (uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100)) AND (uc.dtInicio IS NULL OR uc.dtInicio <= CURRENT_DATE))
+                )
+                ORDER BY uc.dtInicio DESC, c.id
+                """,
+                countQuery = """
+                SELECT COUNT(uc) FROM UserCourseEntity uc
+                JOIN uc.course c
+                WHERE uc.user.id = :userId
+                AND (:titlePattern = '%%' OR LOWER(c.title) LIKE :titlePattern)
+                AND (
+                    :status IS NULL
+                    OR (:status = 'COMPLETED' AND (uc.conclusionDate IS NOT NULL OR uc.progress = 100))
+                    OR (:status = 'PENDING' AND (uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100)) AND uc.dtInicio > CURRENT_DATE)
+                    OR (:status = 'IN_PROGRESS' AND (uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100)) AND (uc.dtInicio IS NULL OR uc.dtInicio <= CURRENT_DATE))
+                )
+                """)
+            Page<UserCourseEntity> findStudentEnrollments(
+                @Param("userId") UUID userId,
+                @Param("titlePattern") String titlePattern,
+                @Param("status") String status,
+                Pageable pageable
+            );
+
+            // Aluno e curso vem na mesma consulta (US-19): sao os unicos dados do
+            // agregado que o certificado precisa, alem dos campos da propria matricula.
+            // certificate_pdf fica de fora de proposito (ver UserCourseEntity): quem
+            // precisa dos bytes do cache usa findCachedCertificatePdfByCertificateCode.
+            @Query("select uc from UserCourseEntity uc "
+                + "join fetch uc.user join fetch uc.course "
+                + "where uc.certificateCode = :code and uc.certificateIssued = true")
+            Optional<UserCourseEntity> findIssuedByCertificateCode(@Param("code") String code);
+
+            /** Projecao plana da tela de certificado (US-18); o adapter monta o modelo. */
+            interface CertificateDetailsView {
+                LocalDate getConclusionDate();
+
+                String getVerificationCode();
+
+                String getStudentName();
+
+                String getStudentAvatarUrl();
+
+                boolean isStudentVerified();
+
+                UUID getCourseId();
+
+                String getCourseTitle();
+
+                String getCourseDescription();
+
+                String getCourseCategory();
+
+                String getCourseLevel();
+
+                String getCourseThumbnailUrl();
+
+                Integer getCourseDurationTime();
+
+                Integer getCourseLessonsCount();
+
+                Double getCoursePrice();
+
+                String getInstructorName();
+
+                Double getCourseRating();
+
+                Long getCourseReviewsCount();
+            }
+
+            // Uma unica consulta para a tela inteira (US-18). avatar_url so existe em
+            // admins, dai o LEFT JOIN pelo id do aluno; rating e reviewsCount sao
+            // agregados de course_reviews (indice idx_course_reviews_course).
+            @Query("select uc.conclusionDate as conclusionDate, uc.certificateCode as verificationCode, "
+                + "student.name as studentName, studentAdmin.avatarUrl as studentAvatarUrl, "
+                + "case when student.status = "
+                + "com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus.ACTIVE "
+                + "then true else false end as studentVerified, "
+                + "course.id as courseId, course.title as courseTitle, "
+                + "course.description as courseDescription, course.category as courseCategory, "
+                + "course.level as courseLevel, course.thumbnailUrl as courseThumbnailUrl, "
+                + "course.durationTime as courseDurationTime, course.lessonsCount as courseLessonsCount, "
+                + "course.price as coursePrice, instructor.name as instructorName, "
+                + "(select avg(review.rating) from CourseReviewEntity review "
+                + "where review.course = course) as courseRating, "
+                + "(select count(review) from CourseReviewEntity review "
+                + "where review.course = course) as courseReviewsCount "
+                + "from UserCourseEntity uc "
+                + "join uc.user student "
+                + "join uc.course course "
+                + "left join course.instructor instructor "
+                + "left join AdminEntity studentAdmin on studentAdmin.id = student.id "
+                + "where uc.certificateCode = :code and uc.certificateIssued = true")
+            Optional<CertificateDetailsView> findIssuedDetailsByCertificateCode(@Param("code") String code);
+
+            // Nativa e isolada do mapeamento da entidade (US-19): o PDF em cache so e
+            // buscado do banco na hora do download, nunca junto de UserCourseEntity.
+            @Query(value = "select certificate_pdf from user_courses "
+                + "where certificate_code = :code and certificate_issued = true",
+                nativeQuery = true)
+            Optional<byte[]> findCachedCertificatePdfByCertificateCode(@Param("code") String code);
+
+            @Modifying
+            @Query(value = "update user_courses set certificate_pdf = :pdf "
+                + "where user_id = :userId and course_id = :courseId",
+                nativeQuery = true)
+            void updateCertificatePdf(
+                @Param("userId") UUID userId, @Param("courseId") UUID courseId, @Param("pdf") byte[] pdf);
 }
