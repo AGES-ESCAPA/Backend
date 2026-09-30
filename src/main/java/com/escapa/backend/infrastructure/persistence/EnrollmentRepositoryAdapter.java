@@ -65,7 +65,8 @@ public class EnrollmentRepositoryAdapter implements EnrollmentRepositoryPort {
                 entity.getCourse().getDurationTime(),
                 entity.getCourse().getLessonsCount(),
                 entity.getProgress(),
-                calculateStatus(entity)
+                calculateStatus(entity),
+                Boolean.TRUE.equals(entity.getCertificateIssued()) ? entity.getCertificateCode() : null
         );
     }
 

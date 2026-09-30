@@ -16,7 +16,21 @@ public record StudentCourseCard(
         Integer durationTime,
         Integer lessonsCount,
         Integer progressPercentage,
-        EnrollmentStatus enrollmentStatus
+        EnrollmentStatus enrollmentStatus,
+        String certificateCode
 ) {
+    public StudentCourseCard(
+            UUID courseId,
+            String title,
+            String instructor,
+            String thumbnailUrl,
+            Integer durationTime,
+            Integer lessonsCount,
+            Integer progressPercentage,
+            EnrollmentStatus enrollmentStatus
+    ) {
+        this(courseId, title, instructor, thumbnailUrl, durationTime, lessonsCount,
+                progressPercentage, enrollmentStatus, null);
+    }
 }
 
