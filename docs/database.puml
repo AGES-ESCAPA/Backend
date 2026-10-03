@@ -153,6 +153,32 @@ entity "user_courses" as user_courses {
   certificate_issued : boolean
   certificate_code : varchar <<UNIQUE>>
   certificate_issued_at : datetime
+  certificate_pdf : bytea
+}
+
+entity "user_content_progress" as user_content_progress {
+  * user_id : uuid <<PK>> <<FK>>
+  * content_id : uuid <<PK>> <<FK>>
+  --
+  completed_at : datetime
+}
+
+entity "content_concepts" as content_concepts {
+  content_id : uuid <<FK>>
+  name : varchar
+  order : int
+  --
+  <<UNIQUE (content_id, order)>>
+}
+
+entity "content_references" as content_references {
+  * id : uuid <<PK>>
+  --
+  content_id : uuid <<FK>>
+  title : varchar
+  url : varchar
+  order : int
+  <<UNIQUE (content_id, order)>>
 }
 
 entity "company_courses" as company_courses {
@@ -200,6 +226,8 @@ courses ||--o{ modules : "has"
 modules ||--o{ content : "has"
 courses ||--o{ course_materials : "provides"
 courses ||--o{ course_change_log : "tracks history"
+content ||--o{ content_concepts : "has concepts"
+content ||--o{ content_references : "has references"
 
 ' Prerequisites
 courses ||--o{ course_prerequisites : "requires"
@@ -216,6 +244,9 @@ courses ||--o{ notifications : "triggers"
 ' Associative Relationships (Enrollments & Work)
 users ||--o{ user_courses : "enrolls"
 courses ||--o{ user_courses : "has enrollments"
+
+users ||--o{ user_content_progress : "completes"
+content ||--o{ user_content_progress : "tracked by"
 
 company ||--o{ company_courses : "licenses"
 courses ||--o{ company_courses : "licensed to"
