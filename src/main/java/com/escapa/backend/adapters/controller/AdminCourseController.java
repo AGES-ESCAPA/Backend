@@ -39,6 +39,7 @@ import com.escapa.backend.application.usecase.GetAdminCourseUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
 import com.escapa.backend.application.usecase.ListAdminCoursesUseCase;
+import com.escapa.backend.application.usecase.ListCourseCategoriesUseCase;
 import com.escapa.backend.application.usecase.PublishCourseUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
@@ -63,6 +64,7 @@ public class AdminCourseController {
     private final PublishCourseUseCase publishCourseUseCase;
     private final UpdateCourseUseCase updateCourseUseCase;
     private final ListAdminCoursesUseCase listAdminCoursesUseCase;
+    private final ListCourseCategoriesUseCase listCourseCategoriesUseCase;
     private final ArchiveCourseUseCase archiveCourseUseCase;
     private final UserRepositoryPort userRepositoryPort;
 
@@ -78,6 +80,7 @@ public class AdminCourseController {
             PublishCourseUseCase publishCourseUseCase,
             UpdateCourseUseCase updateCourseUseCase,
             ListAdminCoursesUseCase listAdminCoursesUseCase,
+            ListCourseCategoriesUseCase listCourseCategoriesUseCase,
             ArchiveCourseUseCase archiveCourseUseCase,
             UserRepositoryPort userRepositoryPort) {
         this.getCourseRulesUseCase = getCourseRulesUseCase;
@@ -91,6 +94,7 @@ public class AdminCourseController {
         this.publishCourseUseCase = publishCourseUseCase;
         this.updateCourseUseCase = updateCourseUseCase;
         this.listAdminCoursesUseCase = listAdminCoursesUseCase;
+        this.listCourseCategoriesUseCase = listCourseCategoriesUseCase;
         this.archiveCourseUseCase = archiveCourseUseCase;
         this.userRepositoryPort = userRepositoryPort;
     }
@@ -103,6 +107,13 @@ public class AdminCourseController {
                 .map(AdminCourseController::toListItem)
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(courses));
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<ApiResponse<List<String>>> listCategories(
+            @RequestHeader(value = "X-User-Id", required = false) String xUserId) {
+        requireAdmin(xUserId);
+        return ResponseEntity.ok(ApiResponse.success(listCourseCategoriesUseCase.execute()));
     }
 
     @GetMapping("/{courseId}")

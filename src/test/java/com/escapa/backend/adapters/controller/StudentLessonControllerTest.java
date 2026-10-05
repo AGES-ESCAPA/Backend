@@ -3,6 +3,7 @@ package com.escapa.backend.adapters.controller;
 import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.dto.PublishedCourseFilters;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.model.LessonDetails;
@@ -25,7 +26,6 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
-import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -104,6 +104,16 @@ class StudentLessonControllerTest {
             @Override
             public PageResult<CourseSummary> findPublished(
                     String title, String category, String level, int page, int size) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public PublishedCourseFilters findPublishedFilters() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public List<String> findDistinctCategories() {
                 throw new UnsupportedOperationException();
             }
 
