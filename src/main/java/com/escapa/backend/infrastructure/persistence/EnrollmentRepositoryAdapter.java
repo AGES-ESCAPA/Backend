@@ -75,6 +75,10 @@ public class EnrollmentRepositoryAdapter implements EnrollmentRepositoryPort {
             return EnrollmentStatus.COMPLETED;
         }
 
+        if (entity.getDtExpiracao() != null && entity.getDtExpiracao().isBefore(LocalDate.now())) {
+            return EnrollmentStatus.EXPIRED;
+        }
+
         if (entity.getDtInicio() != null && entity.getDtInicio().isAfter(LocalDate.now())) {
             return EnrollmentStatus.PENDING;
         }

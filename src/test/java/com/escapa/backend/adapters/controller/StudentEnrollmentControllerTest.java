@@ -93,8 +93,8 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.data.totalElements", is(4)))
                 .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'COMPLETED')]", hasSize(1)))
                 .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'PENDING')]", hasSize(1)))
-                // Course 2 with expired date will now be IN_PROGRESS
-                .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'IN_PROGRESS')]", hasSize(2)));
+                .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'EXPIRED')]", hasSize(1)))
+                .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'IN_PROGRESS')]", hasSize(1)));
     }
 
     @Test
@@ -111,6 +111,25 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
                         .header("X-User-Id", student.getId().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements", is(1)));
+    }
+
+    @Test
+    void shouldFilterExpiredEnrollmentsWithoutIncludingCompletedOnes() throws Exception {
+        CourseEntity expired = createCourse("Expired Course");
+        createUserCourse(student, expired, LocalDate.now().minusDays(30), LocalDate.now().minusDays(1), 20, null);
+
+        CourseEntity stillValidToday = createCourse("Valid Today");
+        createUserCourse(student, stillValidToday, LocalDate.now().minusDays(5), LocalDate.now(), 20, null);
+
+        CourseEntity completedAfterDeadline = createCourse("Completed Course");
+        createUserCourse(student, completedAfterDeadline, LocalDate.now().minusDays(40), LocalDate.now().minusDays(1), 100, LocalDate.now().minusDays(2));
+
+        mockMvc.perform(get("/api/v1/student/enrollments?status=EXPIRED")
+                        .header("X-User-Id", student.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements", is(1)))
+                .andExpect(jsonPath("$.data.content[0].title", is("Expired Course")))
+                .andExpect(jsonPath("$.data.content[0].enrollmentStatus", is("EXPIRED")));
     }
 
     @Test

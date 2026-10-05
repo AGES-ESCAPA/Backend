@@ -44,8 +44,9 @@ public interface UserCourseJpaRepository
                 AND (
                     :status IS NULL
                     OR (:status = 'COMPLETED' AND (uc.conclusionDate IS NOT NULL OR uc.progress = 100))
-                    OR (:status = 'PENDING' AND (uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100)) AND uc.dtInicio > CURRENT_DATE)
-                    OR (:status = 'IN_PROGRESS' AND (uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100)) AND (uc.dtInicio IS NULL OR uc.dtInicio <= CURRENT_DATE))
+                    OR (:status = 'EXPIRED' AND uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100) AND uc.dtExpiracao IS NOT NULL AND uc.dtExpiracao < CURRENT_DATE)
+                    OR (:status = 'PENDING' AND uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100) AND (uc.dtExpiracao IS NULL OR uc.dtExpiracao >= CURRENT_DATE) AND uc.dtInicio > CURRENT_DATE)
+                    OR (:status = 'IN_PROGRESS' AND uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100) AND (uc.dtExpiracao IS NULL OR uc.dtExpiracao >= CURRENT_DATE) AND (uc.dtInicio IS NULL OR uc.dtInicio <= CURRENT_DATE))
                 )
                 ORDER BY uc.dtInicio DESC, c.id
                 """,
@@ -57,8 +58,9 @@ public interface UserCourseJpaRepository
                 AND (
                     :status IS NULL
                     OR (:status = 'COMPLETED' AND (uc.conclusionDate IS NOT NULL OR uc.progress = 100))
-                    OR (:status = 'PENDING' AND (uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100)) AND uc.dtInicio > CURRENT_DATE)
-                    OR (:status = 'IN_PROGRESS' AND (uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100)) AND (uc.dtInicio IS NULL OR uc.dtInicio <= CURRENT_DATE))
+                    OR (:status = 'EXPIRED' AND uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100) AND uc.dtExpiracao IS NOT NULL AND uc.dtExpiracao < CURRENT_DATE)
+                    OR (:status = 'PENDING' AND uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100) AND (uc.dtExpiracao IS NULL OR uc.dtExpiracao >= CURRENT_DATE) AND uc.dtInicio > CURRENT_DATE)
+                    OR (:status = 'IN_PROGRESS' AND uc.conclusionDate IS NULL AND (uc.progress IS NULL OR uc.progress < 100) AND (uc.dtExpiracao IS NULL OR uc.dtExpiracao >= CURRENT_DATE) AND (uc.dtInicio IS NULL OR uc.dtInicio <= CURRENT_DATE))
                 )
                 """)
             Page<UserCourseEntity> findStudentEnrollments(
