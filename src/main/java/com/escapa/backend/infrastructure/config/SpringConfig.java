@@ -37,6 +37,7 @@ import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
 import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
 import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
+import com.escapa.backend.application.usecase.ListPublishedCourseFiltersUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
@@ -103,6 +104,12 @@ public class SpringConfig {
     @Bean
     public ListPublishedCoursesUseCase listPublishedCoursesUseCase(CourseRepositoryPort courseRepositoryPort) {
         return new ListPublishedCoursesUseCase(courseRepositoryPort);
+    }
+
+    @Bean
+    public ListPublishedCourseFiltersUseCase listPublishedCourseFiltersUseCase(
+            CourseRepositoryPort courseRepositoryPort) {
+        return new ListPublishedCourseFiltersUseCase(courseRepositoryPort);
     }
 
     @Bean

@@ -3,11 +3,14 @@ package com.escapa.backend.adapters.controller;
 import com.escapa.backend.adapters.dto.ApiResponse;
 import com.escapa.backend.adapters.dto.CourseCardResponse;
 import com.escapa.backend.adapters.dto.CourseDetailsResponse;
+import com.escapa.backend.adapters.dto.CourseFiltersResponse;
 import com.escapa.backend.adapters.dto.PageResponse;
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CourseDetails;
+import com.escapa.backend.application.dto.PublishedCourseFilters;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
+import com.escapa.backend.application.usecase.ListPublishedCourseFiltersUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,14 +27,23 @@ import java.util.UUID;
 public class PublicCourseController {
 
     private final ListPublishedCoursesUseCase listPublishedCoursesUseCase;
+    private final ListPublishedCourseFiltersUseCase listPublishedCourseFiltersUseCase;
     private final GetCourseDetailsUseCase getCourseDetailsUseCase;
 
     public PublicCourseController(
             ListPublishedCoursesUseCase listPublishedCoursesUseCase,
+            ListPublishedCourseFiltersUseCase listPublishedCourseFiltersUseCase,
             GetCourseDetailsUseCase getCourseDetailsUseCase
     ) {
         this.listPublishedCoursesUseCase = listPublishedCoursesUseCase;
+        this.listPublishedCourseFiltersUseCase = listPublishedCourseFiltersUseCase;
         this.getCourseDetailsUseCase = getCourseDetailsUseCase;
+    }
+
+    @GetMapping("/filters")
+    public ResponseEntity<CourseFiltersResponse> filters() {
+        final PublishedCourseFilters filters = listPublishedCourseFiltersUseCase.execute();
+        return ResponseEntity.ok(new CourseFiltersResponse(filters.categories(), filters.levels()));
     }
 
     @GetMapping

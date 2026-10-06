@@ -2,6 +2,7 @@ package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.dto.PublishedCourseFilters;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.domain.entity.Course;
@@ -88,6 +89,31 @@ final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
         final int totalPages = total == 0 ? 0 : (total + size - 1) / size;
 
         return new PageResult<>(content, page, size, total, totalPages);
+    }
+
+    @Override
+    public PublishedCourseFilters findPublishedFilters() {
+        final List<String> categories = courses.stream()
+                .map(CourseSummary::category)
+                .filter(value -> value != null && !value.isBlank())
+                .distinct()
+                .sorted()
+                .toList();
+        final List<String> levels = courses.stream()
+                .map(CourseSummary::level)
+                .filter(value -> value != null && !value.isBlank())
+                .distinct()
+                .toList();
+        return new PublishedCourseFilters(categories, levels);
+    }
+
+    @Override
+    public List<String> findDistinctCategories() {
+        return coursesById.values().stream()
+                .map(Course::getCategory)
+                .filter(value -> value != null && !value.isBlank())
+                .distinct()
+                .toList();
     }
 
     @Override

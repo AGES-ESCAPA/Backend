@@ -20,6 +20,31 @@ public interface CourseJpaRepository extends JpaRepository<CourseEntity, UUID> {
             UUID id
     );
 
+    @Query("""
+            SELECT DISTINCT c.category FROM CourseEntity c
+            WHERE c.status = :status
+            AND c.category IS NOT NULL
+            AND c.category <> ''
+            ORDER BY c.category
+            """)
+    List<String> findDistinctPublishedCategories(@Param("status") CourseStatus status);
+
+    @Query("""
+            SELECT DISTINCT c.category FROM CourseEntity c
+            WHERE c.category IS NOT NULL
+            AND c.category <> ''
+            ORDER BY c.category
+            """)
+    List<String> findDistinctCategories();
+
+    @Query("""
+            SELECT DISTINCT c.level FROM CourseEntity c
+            WHERE c.status = :status
+            AND c.level IS NOT NULL
+            AND c.level <> ''
+            """)
+    List<String> findDistinctPublishedLevels(@Param("status") CourseStatus status);
+
     @Query(value = """
             SELECT c FROM CourseEntity c
             LEFT JOIN FETCH c.instructor
