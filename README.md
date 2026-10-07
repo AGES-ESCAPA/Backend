@@ -391,6 +391,63 @@ GET /api/v1/users/{id}
 
 Retorna `404` com `ApiError` quando o `id` não existe.
 
+### Autenticação / Login
+```http
+POST /api/v1/auth/login
+```
+
+Endpoint público para autenticação por e-mail e senha. Retorna um token JWT assinado e os dados do usuário com o perfil (`profile`) resolvido para redirecionamento no frontend (`ADMIN`, `COMPANY`, `STUDENT` ou `EMPLOYEE`).
+
+#### Payload da requisição:
+```json
+{
+  "email": "mariana.costa@email.com",
+  "password": "senha-do-usuario"
+}
+```
+
+#### Resposta de sucesso (`200 OK`):
+```json
+{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
+    "tokenType": "Bearer",
+    "expiresIn": 3600,
+    "user": {
+      "id": "b0000000-0000-4000-b000-000000000001",
+      "name": "Mariana Costa",
+      "email": "mariana.costa@email.com",
+      "profile": "STUDENT"
+    }
+  },
+  "message": "Operation completed successfully"
+}
+```
+
+#### Respostas de erro:
+* `401 Unauthorized`: e-mail inexistente ou senha incorreta (com a mensagem unificada `"Invalid email or password"` para evitar enumeração de contas).
+* `403 Forbidden`: usuário com status `INACTIVE` (`"User account is inactive"`).
+* `400 Bad Request`: dados incompletos ou e-mail inválido.
+
+#### Variáveis de Ambiente do JWT:
+* `APP_JWT_SECRET`: Segredo de assinatura HMAC-SHA256 (mínimo de 256 bits / 32 caracteres).
+* `APP_JWT_EXPIRATION_MINUTES`: Tempo de expiração do token em minutos (padrão: `60`).
+
+#### 🔑 Credenciais do Seed para Testes Locais:
+Todos os usuários do seed de desenvolvimento (`db/seed/R__seed_dev.sql`) utilizam a mesma senha:
+* **Senha padrão:** `escapa@2026`
+
+Contas de referência para validar cada perfil e fluxo de redirecionamento:
+
+| Perfil / Cenário | E-mail no Seed | Senha | Perfil Retornado / Resposta |
+| :--- | :--- | :--- | :--- |
+| **ADMIN** | `barbara.diogo@escapa.com.br` | `escapa@2026` | `200 OK` ➔ `profile: "ADMIN"` |
+| **STUDENT** | `mariana.costa@email.com` | `escapa@2026` | `200 OK` ➔ `profile: "STUDENT"` |
+| **EMPLOYEE** | `luciana.prado@vistamar.com.br` | `escapa@2026` | `200 OK` ➔ `profile: "EMPLOYEE"` (aluno com vínculo em empresa) |
+| **COMPANY** | `contato@vistamar.com.br` | `escapa@2026` | `200 OK` ➔ `profile: "COMPANY"` |
+| **INACTIVE** | `carla.menezes@email.com` | `escapa@2026` | `403 Forbidden` |
+
 ---
 
 ## 🎬 Endpoints de Conteúdos/Aulas (Admin)
