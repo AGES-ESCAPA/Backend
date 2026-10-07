@@ -2,6 +2,7 @@ package com.escapa.backend.infrastructure.persistence.course;
 
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.dto.PublishedCourseFilters;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.domain.entity.Course;
@@ -121,6 +122,19 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
         return new PageResult<>(
                 content, jpaPage.getNumber(), jpaPage.getSize(),
                 jpaPage.getTotalElements(), jpaPage.getTotalPages());
+    }
+
+    @Override
+    public PublishedCourseFilters findPublishedFilters() {
+        return new PublishedCourseFilters(
+                courseJpaRepository.findDistinctPublishedCategories(CourseStatus.PUBLISHED),
+                courseJpaRepository.findDistinctPublishedLevels(CourseStatus.PUBLISHED)
+        );
+    }
+
+    @Override
+    public List<String> findDistinctCategories() {
+        return courseJpaRepository.findDistinctCategories();
     }
 
     @Override
