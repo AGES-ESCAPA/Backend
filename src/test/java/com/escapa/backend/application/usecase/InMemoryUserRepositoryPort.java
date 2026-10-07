@@ -36,4 +36,9 @@ final class InMemoryUserRepositoryPort implements UserRepositoryPort {
     public Optional<User> findById(UUID id) {
         return users.stream().filter(user -> id.equals(user.getId())).findFirst();
     }
+
+    @Override
+    public void updatePasswordHash(UUID id, String passwordHash) {
+        findById(id).ifPresent(user -> user.setPasswordHash(passwordHash));
+    }
 }

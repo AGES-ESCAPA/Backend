@@ -39,4 +39,9 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     public Optional<User> findById(UUID id) {
         return userJpaRepository.findById(id).map(UserMapper::toDomain);
     }
+
+    @Override
+    public void updatePasswordHash(UUID id, String passwordHash) {
+        userJpaRepository.updatePasswordHash(id, passwordHash);
+    }
 }
