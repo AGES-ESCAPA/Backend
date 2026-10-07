@@ -391,6 +391,18 @@ GET /api/v1/users/{id}
 
 Retorna `404` com `ApiError` quando o `id` não existe.
 
+### Alteração de Senha
+```http
+PUT /api/v1/me/password
+X-User-Id: <uuid do usuário logado>
+```
+
+```json
+{ "currentPassword": "senha-atual", "newPassword": "nova-senha-segura" }
+```
+
+Disponível para todos os perfis. Retorna `200` ao trocar a senha; o usuário continua logado. Senha atual incorreta ou nova senha com menos de 8 caracteres retornam `400` (e não `401`, para o frontend não tratar como sessão expirada). Sem `X-User-Id` válido retorna `401`. O header é provisório até a autenticação por token (US-23).
+
 ---
 
 ## 🎬 Endpoints de Conteúdos/Aulas (Admin)

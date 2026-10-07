@@ -6,6 +6,7 @@ import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CourseValidationException;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
+import com.escapa.backend.domain.user.InvalidCurrentPasswordException;
 import com.escapa.backend.domain.user.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -42,6 +43,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    // 400, e nao 401: o frontend trata 401 como sessao expirada e deslogaria o usuario.
+    @ExceptionHandler(InvalidCurrentPasswordException.class)
+    public ResponseEntity<ApiError> handleInvalidCurrentPasswordException(
+            InvalidCurrentPasswordException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 

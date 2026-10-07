@@ -11,4 +11,5 @@ public interface UserRepositoryPort {
     boolean existsByEmail(String email);
     List<User> findAll();
     Optional<User> findById(UUID id);
+    void updatePasswordHash(UUID id, String passwordHash);
 }
