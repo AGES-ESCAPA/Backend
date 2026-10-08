@@ -12,6 +12,8 @@ import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
 import com.escapa.backend.application.usecase.ReorderModulesUseCase;
 import com.escapa.backend.application.usecase.UpdateModuleUseCase;
 import com.escapa.backend.domain.entity.Module;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +36,7 @@ import java.util.UUID;
  * {@link AdminCourseController}; a ausencia ou outro tipo resulta em 403.
  */
 @RestController
+@Tag(name = "Admin - Modules", description = "Course module management for ADMIN users (requires the X-User-Id header)")
 @RequestMapping("/api/v1/admin")
 public class AdminModuleController {
 
@@ -61,6 +64,7 @@ public class AdminModuleController {
     }
 
     @GetMapping("/courses/{courseId}/modules")
+    @Operation(summary = "List the modules of a course")
     public ResponseEntity<ApiResponse<List<ModuleResponse>>> listByCourse(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId
@@ -73,6 +77,7 @@ public class AdminModuleController {
     }
 
     @PostMapping("/courses/{courseId}/modules")
+    @Operation(summary = "Create a module at the end of a course")
     public ResponseEntity<ApiResponse<ModuleResponse>> create(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
@@ -85,6 +90,7 @@ public class AdminModuleController {
     }
 
     @PutMapping("/modules/{id}")
+    @Operation(summary = "Rename a module")
     public ResponseEntity<ApiResponse<ModuleResponse>> update(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID id,
@@ -96,6 +102,7 @@ public class AdminModuleController {
     }
 
     @PutMapping("/courses/{courseId}/modules/reorder")
+    @Operation(summary = "Reorder the modules of a course")
     public ResponseEntity<ApiResponse<List<ModuleResponse>>> reorder(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
@@ -111,6 +118,7 @@ public class AdminModuleController {
     }
 
     @DeleteMapping("/modules/{id}")
+    @Operation(summary = "Delete a module")
     public ResponseEntity<Void> delete(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID id

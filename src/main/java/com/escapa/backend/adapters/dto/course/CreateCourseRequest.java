@@ -1,5 +1,6 @@
 package com.escapa.backend.adapters.dto.course;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import com.escapa.backend.adapters.dto.FieldLimits;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -7,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 
+@Schema(description = "Draft course creation payload; only the title is required")
 public record CreateCourseRequest(
         @NotBlank(message = "Title is required")
         @Size(max = FieldLimits.VARCHAR_MAX, message = "title " + FieldLimits.VARCHAR_MESSAGE)

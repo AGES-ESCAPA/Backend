@@ -2,6 +2,7 @@ package com.escapa.backend.adapters.dto;
 
 import com.escapa.backend.application.dto.PageResult;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.function.Function;
 
@@ -9,6 +10,7 @@ import java.util.function.Function;
  * Envelope genérico para respostas paginadas.
  * Formato: {@code {content, pageNumber, pageSize, totalElements, totalPages}}.
  */
+@Schema(description = "Page of results with its pagination metadata")
 public record PageResponse<T>(
         List<T> content,
         int pageNumber,

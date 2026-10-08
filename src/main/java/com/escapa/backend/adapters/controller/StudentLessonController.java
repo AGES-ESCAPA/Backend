@@ -8,6 +8,8 @@ import com.escapa.backend.application.model.LessonDetails;
 import com.escapa.backend.application.model.StudentCourseCurriculum;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
 import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +24,7 @@ import java.util.UUID;
  * {@code X-User-Id}, o mesmo das rotas /admin, ate o login da US-23 trazer o token.
  */
 @RestController
+@Tag(name = "Student - Lessons", description = "Lessons and curriculum of an enrolled student")
 @RequestMapping("/api/v1/student")
 public class StudentLessonController {
 
@@ -37,6 +40,7 @@ public class StudentLessonController {
     }
 
     @GetMapping("/courses/{courseId}/lessons/{lessonId}")
+    @Operation(summary = "Get a lesson the student can access")
     public ResponseEntity<ApiResponse<StudentLessonResponse>> getLesson(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
@@ -48,6 +52,7 @@ public class StudentLessonController {
     }
 
     @GetMapping("/courses/{courseId}/curriculum")
+    @Operation(summary = "Get the lesson grid of an enrolled course")
     public ResponseEntity<ApiResponse<StudentCourseCurriculumResponse>> getCourseCurriculum(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId

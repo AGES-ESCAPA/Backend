@@ -5,6 +5,8 @@ import com.escapa.backend.adapters.dto.CertificateDetailsResponse;
 import com.escapa.backend.application.model.CertificateFile;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
 import com.escapa.backend.application.usecase.GetCertificateDetailsUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
  * a validacao de dono do certificado depende da autenticacao ainda nao implementada.
  */
 @RestController
+@Tag(name = "Certificates", description = "Certificate lookup and PDF download by verification code")
 @RequestMapping("/api/v1/certificates")
 public class CertificateController {
 
@@ -35,6 +38,7 @@ public class CertificateController {
     }
 
     @GetMapping("/{verificationCode}")
+    @Operation(summary = "Get certificate details by verification code")
     public ResponseEntity<ApiResponse<CertificateDetailsResponse>> getByVerificationCode(
             @PathVariable String verificationCode
     ) {
@@ -43,6 +47,7 @@ public class CertificateController {
     }
 
     @GetMapping("/{verificationCode}/download")
+    @Operation(summary = "Download the certificate PDF")
     public ResponseEntity<byte[]> download(@PathVariable String verificationCode) {
         final CertificateFile file = downloadCertificateUseCase.execute(verificationCode);
         final ContentDisposition disposition = ContentDisposition.attachment()

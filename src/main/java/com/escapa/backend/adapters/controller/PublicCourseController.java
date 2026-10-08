@@ -10,6 +10,8 @@ import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCourseFiltersUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
+@Tag(name = "Public - Courses", description = "Public catalog of published courses")
 @RequestMapping("/api/v1/public/courses")
 public class PublicCourseController {
 
@@ -38,11 +41,13 @@ public class PublicCourseController {
     }
 
     @GetMapping("/filters")
+    @Operation(summary = "List the category and level filters of published courses")
     public ResponseEntity<CourseFiltersResponse> filters() {
         return ResponseEntity.ok(CourseFiltersResponse.from(listPublishedCourseFiltersUseCase.execute()));
     }
 
     @GetMapping
+    @Operation(summary = "Search published courses with pagination")
     public ResponseEntity<PageResponse<CourseCardResponse>> list(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String category,
@@ -56,6 +61,7 @@ public class PublicCourseController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get the full details of a published course")
     public ResponseEntity<ApiResponse<CourseDetailsResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(
                 ApiResponse.success(CourseDetailsResponse.from(getCourseDetailsUseCase.execute(id))));

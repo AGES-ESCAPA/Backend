@@ -7,6 +7,8 @@ import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
 import com.escapa.backend.domain.entity.User;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
+@Tag(name = "Users", description = "User registration and lookup")
 @RequestMapping("/api/v1/users")
 public class UserController {
 
@@ -39,6 +42,7 @@ public class UserController {
     }
 
     @PostMapping
+    @Operation(summary = "Register a user")
     public ResponseEntity<ApiResponse<UserResponse>> create(@Valid @RequestBody CreateUserRequest request) {
         final User user = createUserUseCase.execute(
                 request.name(), request.email(), request.password(), request.userType());
@@ -47,6 +51,7 @@ public class UserController {
     }
 
     @GetMapping
+    @Operation(summary = "List users")
     public ResponseEntity<ApiResponse<List<UserResponse>>> list() {
         final List<UserResponse> users = listUsersUseCase.execute().stream()
                 .map(UserResponse::from)
@@ -55,6 +60,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get a user by id")
     public ResponseEntity<ApiResponse<UserResponse>> getById(@PathVariable UUID id) {
         final User user = getUserByIdUseCase.execute(id);
         return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));

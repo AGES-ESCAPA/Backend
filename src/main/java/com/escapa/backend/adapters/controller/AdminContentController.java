@@ -13,6 +13,8 @@ import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
 import com.escapa.backend.application.usecase.ReorderContentsUseCase;
 import com.escapa.backend.application.usecase.UpdateContentUseCase;
 import com.escapa.backend.domain.entity.Content;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
+@Tag(name = "Admin - Contents", description = "Lesson management for ADMIN users (requires the X-User-Id header)")
 @RequestMapping("/api/v1/admin")
 public class AdminContentController {
 
@@ -60,6 +63,7 @@ public class AdminContentController {
     }
 
     @PostMapping("/modules/{moduleId}/contents")
+    @Operation(summary = "Create a lesson in a module")
     public ResponseEntity<ApiResponse<ContentResponse>> create(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID moduleId,
@@ -80,6 +84,7 @@ public class AdminContentController {
     }
 
     @GetMapping("/modules/{moduleId}/contents")
+    @Operation(summary = "List the lessons of a module")
     public ResponseEntity<ApiResponse<List<ContentResponse>>> listByModule(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID moduleId
@@ -92,6 +97,7 @@ public class AdminContentController {
     }
 
     @GetMapping("/modules/{moduleId}/contents/{id}")
+    @Operation(summary = "Get a lesson of a module")
     public ResponseEntity<ApiResponse<ContentResponse>> getById(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID moduleId,
@@ -103,6 +109,7 @@ public class AdminContentController {
     }
 
     @PutMapping("/contents/{id}")
+    @Operation(summary = "Update a lesson")
     public ResponseEntity<ApiResponse<ContentResponse>> update(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID id,
@@ -122,6 +129,7 @@ public class AdminContentController {
     }
 
     @PutMapping("/modules/{moduleId}/contents/reorder")
+    @Operation(summary = "Reorder the lessons of a module")
     public ResponseEntity<ApiResponse<List<ContentResponse>>> reorder(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID moduleId,
@@ -137,6 +145,7 @@ public class AdminContentController {
     }
 
     @DeleteMapping("/contents/{id}")
+    @Operation(summary = "Delete a lesson")
     public ResponseEntity<Void> delete(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID id

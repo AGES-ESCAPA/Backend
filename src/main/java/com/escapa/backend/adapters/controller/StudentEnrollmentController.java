@@ -8,6 +8,8 @@ import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.StudentCourseCard;
 import com.escapa.backend.application.usecase.ListStudentEnrollmentsUseCase;
 import com.escapa.backend.domain.course.EnrollmentStatus;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
+@Tag(name = "Student - Enrollments", description = "Enrollments of the student identified by X-User-Id")
 @RequestMapping("/api/v1/student")
 public class StudentEnrollmentController {
 
@@ -28,6 +31,7 @@ public class StudentEnrollmentController {
     }
 
     @GetMapping("/enrollments")
+    @Operation(summary = "List the enrollments of the student")
     public ResponseEntity<ApiResponse<PageResponse<StudentCourseCardResponse>>> listEnrollments(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @RequestParam(required = false) String query,

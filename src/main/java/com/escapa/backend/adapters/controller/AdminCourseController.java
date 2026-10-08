@@ -1,5 +1,7 @@
 package com.escapa.backend.adapters.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,6 +50,7 @@ import com.escapa.backend.domain.entity.User;
 import jakarta.validation.Valid;
 
 @RestController
+@Tag(name = "Admin - Courses", description = "Course management for ADMIN users (requires the X-User-Id header)")
 @RequestMapping("/api/v1/admin/courses")
 public class AdminCourseController {
     private final GetCourseRulesUseCase getCourseRulesUseCase;
@@ -97,6 +100,7 @@ public class AdminCourseController {
     }
 
     @GetMapping
+    @Operation(summary = "List non-archived courses")
     public ResponseEntity<ApiResponse<List<AdminCourseListItemResponse>>> list(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId) {
         adminRequestGuard.requireAdmin(xUserId);
@@ -107,6 +111,7 @@ public class AdminCourseController {
     }
 
     @GetMapping("/categories")
+    @Operation(summary = "List distinct course categories")
     public ResponseEntity<ApiResponse<List<String>>> listCategories(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId) {
         adminRequestGuard.requireAdmin(xUserId);
@@ -114,6 +119,7 @@ public class AdminCourseController {
     }
 
     @GetMapping("/{courseId}")
+    @Operation(summary = "Get a course by id")
     public ResponseEntity<ApiResponse<CourseResponse>> getById(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId) {
@@ -123,6 +129,7 @@ public class AdminCourseController {
     }
 
     @PostMapping
+    @Operation(summary = "Create a draft course")
     public ResponseEntity<ApiResponse<CourseResponse>> create(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @Valid @RequestBody CreateCourseRequest request) {
@@ -139,6 +146,7 @@ public class AdminCourseController {
     }
 
     @DeleteMapping("/{courseId}")
+    @Operation(summary = "Archive a course (soft delete)")
     public ResponseEntity<ApiResponse<Void>> archive(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId) {
@@ -148,6 +156,7 @@ public class AdminCourseController {
     }
 
     @GetMapping("/{courseId}/rules")
+    @Operation(summary = "Get progress rules, prerequisites and recent change log")
     public CourseRulesResponse getRules(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId
@@ -157,6 +166,7 @@ public class AdminCourseController {
     }
 
     @PutMapping("/{courseId}/progress-rules")
+    @Operation(summary = "Update the progress rules of a course")
     public CourseRulesResponse updateProgressRules(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
@@ -169,6 +179,7 @@ public class AdminCourseController {
     }
 
     @PostMapping("/{courseId}/prerequisites")
+    @Operation(summary = "Add a course prerequisite")
     public void addPrerequisite(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
@@ -179,6 +190,7 @@ public class AdminCourseController {
     }
 
     @GetMapping("/{courseId}/prerequisites/search")
+    @Operation(summary = "Search courses to use as prerequisite")
     public List<CourseSearchResponse> searchPrerequisites(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
@@ -190,6 +202,7 @@ public class AdminCourseController {
     }
 
     @DeleteMapping("/{courseId}/prerequisites/{prerequisiteCourseId}")
+    @Operation(summary = "Remove a course prerequisite")
     public void removePrerequisite(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
@@ -199,6 +212,7 @@ public class AdminCourseController {
     }
 
     @PutMapping("/{courseId}")
+    @Operation(summary = "Update a course")
     public ResponseEntity<ApiResponse<CourseResponse>> updateCourse(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
@@ -215,6 +229,7 @@ public class AdminCourseController {
     }
 
     @PostMapping("/{courseId}/publish")
+    @Operation(summary = "Publish a course")
     public ResponseEntity<ApiResponse<CourseResponse>> publishCourse(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
@@ -226,6 +241,7 @@ public class AdminCourseController {
     }
 
     @GetMapping("/{courseId}/change-log")
+    @Operation(summary = "Page through the change log of a course")
     public ChangeLogPageResponse getChangeLog(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,

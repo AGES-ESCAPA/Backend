@@ -1,11 +1,13 @@
 package com.escapa.backend.adapters.dto.course;
 
 import com.escapa.backend.adapters.dto.FieldLimits;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 
+@Schema(description = "Partial course update; omitted (null) fields are left unchanged")
 public record UpdateCourseRequest(
         @Size(max = FieldLimits.VARCHAR_MAX, message = "title " + FieldLimits.VARCHAR_MESSAGE)
         String title,

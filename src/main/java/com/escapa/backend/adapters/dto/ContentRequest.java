@@ -1,6 +1,7 @@
 package com.escapa.backend.adapters.dto;
 
 import com.escapa.backend.domain.content.ContentType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -10,6 +11,7 @@ import jakarta.validation.constraints.Size;
  * description) sao validados em ContentTypeRules, porque a obrigatoriedade depende do valor
  * de {@code type}.
  */
+@Schema(description = "Lesson create/update payload; url, durationMinutes and description depend on the type")
 public record ContentRequest(
         @NotBlank(message = "title is required")
         @Size(max = FieldLimits.VARCHAR_MAX, message = "title " + FieldLimits.VARCHAR_MESSAGE)
