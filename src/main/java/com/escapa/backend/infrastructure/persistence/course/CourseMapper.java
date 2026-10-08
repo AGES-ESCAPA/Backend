@@ -2,6 +2,7 @@ package com.escapa.backend.infrastructure.persistence.course;
 
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.infrastructure.persistence.ContentMapper;
 import com.escapa.backend.infrastructure.persistence.UserMapper;
@@ -136,6 +137,19 @@ public final class CourseMapper {
                     .toList());
         }
 
+        return course;
+    }
+
+    /** Curso apenas com os campos da listagem administrativa; sem instrutor, módulos ou aulas. */
+    public static Course toListingDomain(CourseJpaRepository.ListingRow row) {
+        final Course course = new Course();
+        course.setId(row.getId());
+        course.setTitle(row.getTitle());
+        course.setCategory(row.getCategory());
+        course.setPrice(row.getPrice());
+        course.setStatus(row.getStatus());
+        course.setMajorVersion(row.getMajorVersion());
+        course.setMinorVersion(row.getMinorVersion());
         return course;
     }
 

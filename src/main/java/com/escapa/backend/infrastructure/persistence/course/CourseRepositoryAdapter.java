@@ -93,10 +93,10 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
     }
 
     @Override
-    public List<Course> findAll() {
-        return courseJpaRepository.findAll().stream()
-                .map(CourseMapper::toDomain)
-                .collect(Collectors.toList());
+    public List<Course> findAllExcludingStatus(CourseStatus excludedStatus) {
+        return courseJpaRepository.findListingRowsExcludingStatus(excludedStatus).stream()
+                .map(CourseMapper::toListingDomain)
+                .toList();
     }
 
     @Override

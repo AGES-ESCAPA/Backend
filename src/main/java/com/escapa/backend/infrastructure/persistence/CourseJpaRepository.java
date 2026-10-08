@@ -15,6 +15,31 @@ import java.util.UUID;
 
 public interface CourseJpaRepository extends JpaRepository<CourseEntity, UUID> {
 
+    /** Colunas da listagem administrativa, lidas sem carregar a entidade nem suas coleções. */
+    interface ListingRow {
+        UUID getId();
+
+        String getTitle();
+
+        String getCategory();
+
+        Double getPrice();
+
+        CourseStatus getStatus();
+
+        Integer getMajorVersion();
+
+        Integer getMinorVersion();
+    }
+
+    @Query("""
+            SELECT c.id AS id, c.title AS title, c.category AS category, c.price AS price,
+                   c.status AS status, c.majorVersion AS majorVersion, c.minorVersion AS minorVersion
+            FROM CourseEntity c
+            WHERE c.status <> :excludedStatus
+            """)
+    List<ListingRow> findListingRowsExcludingStatus(@Param("excludedStatus") CourseStatus excludedStatus);
+
     List<CourseEntity> findByTitleContainingIgnoreCaseAndIdNot(
             String title,
             UUID id

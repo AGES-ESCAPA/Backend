@@ -5,6 +5,7 @@ import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.dto.PublishedCourseFilters;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
 
 import java.util.ArrayList;
@@ -58,8 +59,10 @@ final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
     }
 
     @Override
-    public List<Course> findAll() {
-        return List.copyOf(coursesById.values());
+    public List<Course> findAllExcludingStatus(CourseStatus excludedStatus) {
+        return coursesById.values().stream()
+                .filter(course -> course.getStatus() != excludedStatus)
+                .toList();
     }
 
     @Override
