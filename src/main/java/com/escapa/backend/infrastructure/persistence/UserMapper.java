@@ -1,6 +1,7 @@
 package com.escapa.backend.infrastructure.persistence;
 
 import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,8 +18,9 @@ public final class UserMapper {
         }
         final UUID id = user.getId() != null ? user.getId() : UUID.randomUUID();
         final LocalDateTime createdAt = user.getCreatedAt() != null ? user.getCreatedAt() : LocalDateTime.now();
+        final UserStatus status = user.getStatus() != null ? UserStatus.valueOf(user.getStatus()) : UserStatus.ACTIVE;
         return new UserEntity(id, user.getName(), user.getEmail(), user.getPasswordHash(),
-                user.getUserType(), createdAt);
+                user.getUserType(), status, createdAt);
     }
 
     public static User toDomain(UserEntity entity) {
@@ -31,6 +33,7 @@ public final class UserMapper {
                 entity.getEmail(),
                 entity.getPasswordHash(),
                 entity.getRole(),
+                entity.getStatus().name(),
                 entity.getCreatedAt(),
                 new ArrayList<>()
         );
