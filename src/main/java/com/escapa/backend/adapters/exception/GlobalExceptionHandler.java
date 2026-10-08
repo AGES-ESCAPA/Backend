@@ -1,13 +1,8 @@
 package com.escapa.backend.adapters.exception;
 
-import com.escapa.backend.domain.certificate.CertificateNotFoundException;
-import com.escapa.backend.domain.content.ContentNotFoundException;
-import com.escapa.backend.domain.content.LessonAccessDeniedException;
-import com.escapa.backend.domain.course.CourseNotFoundException;
-import com.escapa.backend.domain.course.CourseValidationException;
-import com.escapa.backend.domain.module.ModuleNotFoundException;
-import com.escapa.backend.domain.user.UserNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
+import java.time.Instant;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,8 +16,18 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import java.time.Instant;
-import java.util.stream.Collectors;
+import com.escapa.backend.domain.certificate.CertificateNotFoundException;
+import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.content.LessonAccessDeniedException;
+import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.course.CourseValidationException;
+import com.escapa.backend.domain.module.ModuleNotFoundException;
+import com.escapa.backend.domain.user.CompanyEmployeeCannotDeactivateException;
+import com.escapa.backend.domain.user.InvalidCurrentPasswordException;
+import com.escapa.backend.domain.user.UserAlreadyInactiveException;
+import com.escapa.backend.domain.user.UserNotFoundException;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -48,6 +53,24 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ApiError> handleUserNotFoundException(UserNotFoundException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+        @ExceptionHandler(InvalidCurrentPasswordException.class)
+    public ResponseEntity<ApiError> handleInvalidCurrentPasswordException(
+            InvalidCurrentPasswordException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(CompanyEmployeeCannotDeactivateException.class)
+    public ResponseEntity<ApiError> handleCompanyEmployeeCannotDeactivateException(
+            CompanyEmployeeCannotDeactivateException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(UserAlreadyInactiveException.class)
+    public ResponseEntity<ApiError> handleUserAlreadyInactiveException(
+            UserAlreadyInactiveException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
     @ExceptionHandler(ContentNotFoundException.class)
