@@ -40,6 +40,7 @@ import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
 import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCourseFiltersUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
+import com.escapa.backend.application.usecase.ListStudentEnrollmentsUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ReorderContentsUseCase;
@@ -295,6 +296,13 @@ public class SpringConfig {
                 modulePrerequisiteRepositoryPort,
                 enrollmentRepositoryPort,
                 Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public ListStudentEnrollmentsUseCase listStudentEnrollmentsUseCase(
+            EnrollmentRepositoryPort enrollmentRepositoryPort
+    ) {
+        return new ListStudentEnrollmentsUseCase(enrollmentRepositoryPort);
     }
 
     @Bean
