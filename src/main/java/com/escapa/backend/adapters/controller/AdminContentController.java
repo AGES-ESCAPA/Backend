@@ -2,9 +2,8 @@ package com.escapa.backend.adapters.controller;
 
 import com.escapa.backend.adapters.dto.ApiResponse;
 import com.escapa.backend.adapters.dto.ContentResponse;
-import com.escapa.backend.adapters.dto.CreateContentRequest;
+import com.escapa.backend.adapters.dto.ContentRequest;
 import com.escapa.backend.adapters.dto.ReorderContentsRequest;
-import com.escapa.backend.adapters.dto.UpdateContentRequest;
 import com.escapa.backend.adapters.security.AdminRequestGuard;
 import com.escapa.backend.adapters.security.UserIdHeader;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
@@ -64,7 +63,7 @@ public class AdminContentController {
     public ResponseEntity<ApiResponse<ContentResponse>> create(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID moduleId,
-            @Valid @RequestBody CreateContentRequest request
+            @Valid @RequestBody ContentRequest request
     ) {
         adminRequestGuard.requireAdmin(xUserId);
         final Content content = createContentUseCase.execute(
@@ -107,7 +106,7 @@ public class AdminContentController {
     public ResponseEntity<ApiResponse<ContentResponse>> update(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateContentRequest request
+            @Valid @RequestBody ContentRequest request
     ) {
         adminRequestGuard.requireAdmin(xUserId);
         final Content content = updateContentUseCase.execute(

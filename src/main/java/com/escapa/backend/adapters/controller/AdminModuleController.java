@@ -1,10 +1,9 @@
 package com.escapa.backend.adapters.controller;
 
 import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.dto.CreateModuleRequest;
+import com.escapa.backend.adapters.dto.ModuleRequest;
 import com.escapa.backend.adapters.dto.ModuleResponse;
 import com.escapa.backend.adapters.dto.ReorderModulesRequest;
-import com.escapa.backend.adapters.dto.UpdateModuleRequest;
 import com.escapa.backend.adapters.security.AdminRequestGuard;
 import com.escapa.backend.adapters.security.UserIdHeader;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
@@ -77,7 +76,7 @@ public class AdminModuleController {
     public ResponseEntity<ApiResponse<ModuleResponse>> create(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
-            @Valid @RequestBody CreateModuleRequest request
+            @Valid @RequestBody ModuleRequest request
     ) {
         adminRequestGuard.requireAdmin(xUserId);
         final Module module = createModuleUseCase.execute(courseId, request.title());
@@ -89,7 +88,7 @@ public class AdminModuleController {
     public ResponseEntity<ApiResponse<ModuleResponse>> update(
             @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateModuleRequest request
+            @Valid @RequestBody ModuleRequest request
     ) {
         adminRequestGuard.requireAdmin(xUserId);
         final Module module = updateModuleUseCase.execute(id, request.title());
