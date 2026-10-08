@@ -7,7 +7,7 @@ import com.escapa.backend.infrastructure.persistence.ContentMapper;
 import com.escapa.backend.infrastructure.persistence.UserMapper;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
+import com.escapa.backend.domain.course.CourseStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,7 +75,7 @@ public final class CourseMapper {
         entity.setTeaserVideoUrl(course.getTeaserVideoUrl());
 
         if (course.getStatus() != null) {
-            entity.setStatus(CourseStatus.valueOf(course.getStatus().name()));
+            entity.setStatus(course.getStatus());
         }
 
         entity.setMajorVersion(course.getMajorVersion());
@@ -120,7 +120,7 @@ public final class CourseMapper {
         course.setTeaserVideoUrl(entity.getTeaserVideoUrl());
 
         if (entity.getStatus() != null) {
-            course.setStatus(com.escapa.backend.domain.course.CourseStatus.valueOf(entity.getStatus().name()));
+            course.setStatus(entity.getStatus());
         }
 
         course.setCreatedBy(UserMapper.toDomain(entity.getCreatedBy()));

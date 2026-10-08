@@ -10,7 +10,7 @@ import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseMaterialEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
+import com.escapa.backend.domain.course.CourseStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

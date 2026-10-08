@@ -3,7 +3,6 @@ package com.escapa.backend.infrastructure.persistence;
 import com.escapa.backend.domain.entity.User;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.UUID;
 
 public final class UserMapper {
@@ -31,8 +30,7 @@ public final class UserMapper {
                 entity.getEmail(),
                 entity.getPasswordHash(),
                 entity.getRole(),
-                entity.getCreatedAt(),
-                new ArrayList<>()
+                entity.getCreatedAt()
         );
     }
 }

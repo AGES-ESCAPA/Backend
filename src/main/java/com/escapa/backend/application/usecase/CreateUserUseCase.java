@@ -5,7 +5,6 @@ import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 
 public class CreateUserUseCase {
     public static final int MIN_PASSWORD_LENGTH = 8;
@@ -47,8 +46,7 @@ public class CreateUserUseCase {
                 normalizedEmail,
                 passwordHasherPort.hash(password),
                 normalizedUserType,
-                LocalDateTime.now(),
-                new ArrayList<>()
+                LocalDateTime.now()
         );
         return userRepositoryPort.save(user);
     }
