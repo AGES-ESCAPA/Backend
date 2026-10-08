@@ -5,6 +5,8 @@ import com.escapa.backend.adapters.dto.ContentResponse;
 import com.escapa.backend.adapters.dto.CreateContentRequest;
 import com.escapa.backend.adapters.dto.ReorderContentsRequest;
 import com.escapa.backend.adapters.dto.UpdateContentRequest;
+import com.escapa.backend.adapters.security.AdminRequestGuard;
+import com.escapa.backend.adapters.security.UserIdHeader;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.GetContentUseCase;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,6 +40,7 @@ public class AdminContentController {
     private final ListModuleContentsUseCase listModuleContentsUseCase;
     private final DeleteContentUseCase deleteContentUseCase;
     private final ReorderContentsUseCase reorderContentsUseCase;
+    private final AdminRequestGuard adminRequestGuard;
 
     public AdminContentController(
             CreateContentUseCase createContentUseCase,
@@ -44,7 +48,8 @@ public class AdminContentController {
             GetContentUseCase getContentUseCase,
             ListModuleContentsUseCase listModuleContentsUseCase,
             DeleteContentUseCase deleteContentUseCase,
-            ReorderContentsUseCase reorderContentsUseCase
+            ReorderContentsUseCase reorderContentsUseCase,
+            AdminRequestGuard adminRequestGuard
     ) {
         this.createContentUseCase = createContentUseCase;
         this.updateContentUseCase = updateContentUseCase;
@@ -52,13 +57,16 @@ public class AdminContentController {
         this.listModuleContentsUseCase = listModuleContentsUseCase;
         this.deleteContentUseCase = deleteContentUseCase;
         this.reorderContentsUseCase = reorderContentsUseCase;
+        this.adminRequestGuard = adminRequestGuard;
     }
 
     @PostMapping("/modules/{moduleId}/contents")
     public ResponseEntity<ApiResponse<ContentResponse>> create(
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID moduleId,
             @Valid @RequestBody CreateContentRequest request
     ) {
+        adminRequestGuard.requireAdmin(xUserId);
         final Content content = createContentUseCase.execute(
                 moduleId,
                 request.title(),
@@ -73,7 +81,11 @@ public class AdminContentController {
     }
 
     @GetMapping("/modules/{moduleId}/contents")
-    public ResponseEntity<ApiResponse<List<ContentResponse>>> listByModule(@PathVariable UUID moduleId) {
+    public ResponseEntity<ApiResponse<List<ContentResponse>>> listByModule(
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
+            @PathVariable UUID moduleId
+    ) {
+        adminRequestGuard.requireAdmin(xUserId);
         final List<ContentResponse> contents = listModuleContentsUseCase.execute(moduleId).stream()
                 .map(ContentResponse::from)
                 .toList();
@@ -82,18 +94,22 @@ public class AdminContentController {
 
     @GetMapping("/modules/{moduleId}/contents/{id}")
     public ResponseEntity<ApiResponse<ContentResponse>> getById(
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID moduleId,
             @PathVariable UUID id
     ) {
+        adminRequestGuard.requireAdmin(xUserId);
         final Content content = getContentUseCase.execute(moduleId, id);
         return ResponseEntity.ok(ApiResponse.success(ContentResponse.from(content)));
     }
 
     @PutMapping("/contents/{id}")
     public ResponseEntity<ApiResponse<ContentResponse>> update(
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID id,
             @Valid @RequestBody UpdateContentRequest request
     ) {
+        adminRequestGuard.requireAdmin(xUserId);
         final Content content = updateContentUseCase.execute(
                 id,
                 request.title(),
@@ -108,9 +124,11 @@ public class AdminContentController {
 
     @PutMapping("/modules/{moduleId}/contents/reorder")
     public ResponseEntity<ApiResponse<List<ContentResponse>>> reorder(
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID moduleId,
             @Valid @RequestBody ReorderContentsRequest request
     ) {
+        adminRequestGuard.requireAdmin(xUserId);
         final List<ContentResponse> contents = reorderContentsUseCase
                 .execute(moduleId, request.contentIds())
                 .stream()
@@ -120,7 +138,11 @@ public class AdminContentController {
     }
 
     @DeleteMapping("/contents/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
+            @PathVariable UUID id
+    ) {
+        adminRequestGuard.requireAdmin(xUserId);
         deleteContentUseCase.execute(id);
         return ResponseEntity.noContent().build();
     }

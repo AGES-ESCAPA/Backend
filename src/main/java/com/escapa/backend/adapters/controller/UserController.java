@@ -23,6 +23,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
+
     private final CreateUserUseCase createUserUseCase;
     private final ListUsersUseCase listUsersUseCase;
     private final GetUserByIdUseCase getUserByIdUseCase;
@@ -42,13 +43,13 @@ public class UserController {
         final User user = createUserUseCase.execute(
                 request.name(), request.email(), request.password(), request.userType());
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(toResponse(user), "User created successfully"));
+                .body(ApiResponse.success(UserResponse.from(user), "User created successfully"));
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<UserResponse>>> list() {
         final List<UserResponse> users = listUsersUseCase.execute().stream()
-                .map(UserController::toResponse)
+                .map(UserResponse::from)
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(users));
     }
@@ -56,11 +57,6 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> getById(@PathVariable UUID id) {
         final User user = getUserByIdUseCase.execute(id);
-        return ResponseEntity.ok(ApiResponse.success(toResponse(user)));
-    }
-
-    private static UserResponse toResponse(User user) {
-        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getUserType(),
-                user.getCreatedAt());
+        return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
     }
 }

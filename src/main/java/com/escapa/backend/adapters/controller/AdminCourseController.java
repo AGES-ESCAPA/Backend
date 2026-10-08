@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.escapa.backend.adapters.dto.AddCoursePrerequisiteRequest;
 import com.escapa.backend.adapters.dto.ApiResponse;
@@ -28,10 +27,8 @@ import com.escapa.backend.adapters.dto.course.AdminCourseListItemResponse;
 import com.escapa.backend.adapters.dto.course.CourseResponse;
 import com.escapa.backend.adapters.dto.course.CreateCourseRequest;
 import com.escapa.backend.adapters.dto.course.UpdateCourseRequest;
-import com.escapa.backend.application.dto.ChangeLogEntry;
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CourseRules;
-import com.escapa.backend.application.port.UserRepositoryPort;
+import com.escapa.backend.adapters.security.AdminRequestGuard;
+import com.escapa.backend.adapters.security.UserIdHeader;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ArchiveCourseUseCase;
 import com.escapa.backend.application.usecase.CreateCourseUseCase;
@@ -66,7 +63,7 @@ public class AdminCourseController {
     private final ListAdminCoursesUseCase listAdminCoursesUseCase;
     private final ListCourseCategoriesUseCase listCourseCategoriesUseCase;
     private final ArchiveCourseUseCase archiveCourseUseCase;
-    private final UserRepositoryPort userRepositoryPort;
+    private final AdminRequestGuard adminRequestGuard;
 
     public AdminCourseController(
             GetCourseRulesUseCase getCourseRulesUseCase,
@@ -82,7 +79,7 @@ public class AdminCourseController {
             ListAdminCoursesUseCase listAdminCoursesUseCase,
             ListCourseCategoriesUseCase listCourseCategoriesUseCase,
             ArchiveCourseUseCase archiveCourseUseCase,
-            UserRepositoryPort userRepositoryPort) {
+            AdminRequestGuard adminRequestGuard) {
         this.getCourseRulesUseCase = getCourseRulesUseCase;
         this.updateProgressRulesUseCase = updateProgressRulesUseCase;
         this.addCoursePrerequisiteUseCase = addCoursePrerequisiteUseCase;
@@ -96,40 +93,40 @@ public class AdminCourseController {
         this.listAdminCoursesUseCase = listAdminCoursesUseCase;
         this.listCourseCategoriesUseCase = listCourseCategoriesUseCase;
         this.archiveCourseUseCase = archiveCourseUseCase;
-        this.userRepositoryPort = userRepositoryPort;
+        this.adminRequestGuard = adminRequestGuard;
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<AdminCourseListItemResponse>>> list(
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId) {
-        requireAdmin(xUserId);
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId) {
+        adminRequestGuard.requireAdmin(xUserId);
         final List<AdminCourseListItemResponse> courses = listAdminCoursesUseCase.execute().stream()
-                .map(AdminCourseController::toListItem)
+                .map(AdminCourseListItemResponse::from)
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(courses));
     }
 
     @GetMapping("/categories")
     public ResponseEntity<ApiResponse<List<String>>> listCategories(
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId) {
-        requireAdmin(xUserId);
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId) {
+        adminRequestGuard.requireAdmin(xUserId);
         return ResponseEntity.ok(ApiResponse.success(listCourseCategoriesUseCase.execute()));
     }
 
     @GetMapping("/{courseId}")
     public ResponseEntity<ApiResponse<CourseResponse>> getById(
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId) {
-        requireAdmin(xUserId);
+        adminRequestGuard.requireAdmin(xUserId);
         final Course course = getAdminCourseUseCase.execute(courseId);
-        return ResponseEntity.ok(ApiResponse.success(toCourseResponse(course)));
+        return ResponseEntity.ok(ApiResponse.success(CourseResponse.from(course)));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<CourseResponse>> create(
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @Valid @RequestBody CreateCourseRequest request) {
-        final User admin = requireAdmin(xUserId);
+        final User admin = adminRequestGuard.requireAdmin(xUserId);
         final Course course = createCourseUseCase.execute(
                 request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
                 request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
@@ -138,92 +135,75 @@ public class AdminCourseController {
                 admin.getId()
         );
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(toCourseResponse(course), "Course created successfully"));
+                .body(ApiResponse.success(CourseResponse.from(course), "Course created successfully"));
     }
 
     @DeleteMapping("/{courseId}")
     public ResponseEntity<ApiResponse<Void>> archive(
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId) {
-        requireAdmin(xUserId);
+        adminRequestGuard.requireAdmin(xUserId);
         archiveCourseUseCase.execute(courseId);
         return ResponseEntity.ok(ApiResponse.success(null, "Course archived successfully"));
     }
 
-    private User requireAdmin(String xUserId) {
-        if (xUserId == null || xUserId.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing X-User-Id header");
-        }
-        try {
-            final UUID userId = UUID.fromString(xUserId);
-            final User user = userRepositoryPort.findById(userId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "User not found"));
-            if (!"ADMIN".equalsIgnoreCase(user.getUserType())) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: user is not ADMIN");
-            }
-            return user;
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid X-User-Id: must be a valid UUID");
-        }
-    }
-
     @GetMapping("/{courseId}/rules")
     public CourseRulesResponse getRules(
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId
     ) {
-        requireAdmin(xUserId);
-        return toResponse(getCourseRulesUseCase.execute(courseId));
+        adminRequestGuard.requireAdmin(xUserId);
+        return CourseRulesResponse.from(getCourseRulesUseCase.execute(courseId));
     }
 
     @PutMapping("/{courseId}/progress-rules")
     public CourseRulesResponse updateProgressRules(
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
             @Valid @RequestBody UpdateProgressRulesRequest request
     ) {
-        final User admin = requireAdmin(xUserId);
+        final User admin = adminRequestGuard.requireAdmin(xUserId);
         updateProgressRulesUseCase.execute(
                 courseId, request.requireSequentialProgress(), request.enforceDeadlineBlock(), admin);
-        return toResponse(getCourseRulesUseCase.execute(courseId));
+        return CourseRulesResponse.from(getCourseRulesUseCase.execute(courseId));
     }
 
     @PostMapping("/{courseId}/prerequisites")
     public void addPrerequisite(
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
             @Valid @RequestBody AddCoursePrerequisiteRequest request
     ) {
-        final User admin = requireAdmin(xUserId);
+        final User admin = adminRequestGuard.requireAdmin(xUserId);
         addCoursePrerequisiteUseCase.execute(courseId, request.prerequisiteCourseId(), admin);
     }
 
     @GetMapping("/{courseId}/prerequisites/search")
     public List<CourseSearchResponse> searchPrerequisites(
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
             @RequestParam String query) {
-        requireAdmin(xUserId);
+        adminRequestGuard.requireAdmin(xUserId);
         return searchCoursesForPrerequisiteUseCase.execute(courseId, query).stream()
-                .map(course -> new CourseSearchResponse(course.getId(), course.getTitle()))
+                .map(CourseSearchResponse::from)
                 .toList();
     }
 
     @DeleteMapping("/{courseId}/prerequisites/{prerequisiteCourseId}")
     public void removePrerequisite(
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
             @PathVariable UUID prerequisiteCourseId) {
-        final User admin = requireAdmin(xUserId);
+        final User admin = adminRequestGuard.requireAdmin(xUserId);
         removeCoursePrerequisiteUseCase.execute(courseId, prerequisiteCourseId, admin);
     }
 
     @PutMapping("/{courseId}")
     public ResponseEntity<ApiResponse<CourseResponse>> updateCourse(
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
             @Valid @RequestBody UpdateCourseRequest request) {
-        final User admin = requireAdmin(xUserId);
+        final User admin = adminRequestGuard.requireAdmin(xUserId);
         final Course course = updateCourseUseCase.execute(
                 courseId, request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
                 request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
@@ -231,94 +211,27 @@ public class AdminCourseController {
                 request.learningObjectives(), request.requireSequentialProgress(), request.enforceDeadlineBlock(),
                 admin
         );
-        return ResponseEntity.ok(ApiResponse.success(toCourseResponse(course), "Course updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(CourseResponse.from(course), "Course updated successfully"));
     }
 
     @PostMapping("/{courseId}/publish")
     public ResponseEntity<ApiResponse<CourseResponse>> publishCourse(
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
             @RequestBody(required = false) PublishCourseRequest request) {
-        final User admin = requireAdmin(xUserId);
+        final User admin = adminRequestGuard.requireAdmin(xUserId);
         final boolean notify = request != null && Boolean.TRUE.equals(request.notifyEnrolledStudents());
         final Course course = publishCourseUseCase.execute(courseId, notify, admin);
-        return ResponseEntity.ok(ApiResponse.success(toCourseResponse(course), "Course published successfully"));
+        return ResponseEntity.ok(ApiResponse.success(CourseResponse.from(course), "Course published successfully"));
     }
 
     @GetMapping("/{courseId}/change-log")
     public ChangeLogPageResponse getChangeLog(
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        requireAdmin(xUserId);
-        if (page < 0 || size < 1 || size > 100) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pagination");
-        }
-        final PageResult<ChangeLogEntry> result = getCourseChangeLogUseCase.execute(courseId, page, size);
-        return new ChangeLogPageResponse(
-                result.content().stream().map(AdminCourseController::toEntry).toList(),
-                result.pageNumber(), result.pageSize(), result.totalElements(), result.totalPages());
-    }
-
-    private static ChangeLogPageResponse.Entry toEntry(ChangeLogEntry entry) {
-        return new ChangeLogPageResponse.Entry(
-                entry.id(), entry.description(), entry.changedByName(),
-                entry.majorVersion() + "." + entry.minorVersion(),
-                entry.createdAt() == null ? null : entry.createdAt().toString());
-    }
-
-    private static CourseResponse toCourseResponse(Course course) {
-        return new CourseResponse(
-                course.getId(),
-                course.getTitle(),
-                course.getShortDescription(),
-                course.getDescription(),
-                course.getThumbnailUrl(),
-                course.getTeaserVideoUrl(),
-                course.getStatus(),
-                course.getInstructor() != null ? course.getInstructor().getId() : null,
-                course.getCreatedBy() != null ? course.getCreatedBy().getId() : null,
-                course.getCategory(),
-                course.getLevel(),
-                course.getDurationTime(),
-                course.getDeadline(),
-                course.getAccessDurationDays(),
-                course.getPrice(),
-                course.getLearningObjectives(),
-                course.getRequireSequentialProgress(),
-                course.getEnforceDeadlineBlock(),
-                course.getCreatedAt(),
-                course.getUpdatedAt()
-        );
-    }
-
-    private static AdminCourseListItemResponse toListItem(Course course) {
-        final int major = course.getMajorVersion() == null ? 0 : course.getMajorVersion();
-        final int minor = course.getMinorVersion() == null ? 0 : course.getMinorVersion();
-        return new AdminCourseListItemResponse(
-                course.getId(),
-                course.getTitle(),
-                course.getCategory(),
-                course.getPrice(),
-                course.getStatus(),
-                major,
-                minor);
-    }
-
-    private static CourseRulesResponse toResponse(CourseRules rules) {
-        return new CourseRulesResponse(
-                rules.requireSequentialProgress(),
-                rules.enforceDeadlineBlock(),
-                rules.version(),
-                rules.prerequisites().stream()
-                        .map(p -> new CourseRulesResponse.PrerequisiteResponse(
-                                p.courseId().toString(), p.courseTitle()))
-                        .toList(),
-                rules.recentChangeLog().stream()
-                        .map(log -> new CourseRulesResponse.ChangeLogResponse(
-                                log.id(), log.description(), log.changedByName(),
-                                log.createdAt() == null ? null : log.createdAt().toString()))
-                        .toList());
+            @RequestParam(defaultValue = PaginationDefaults.FIRST_PAGE) int page,
+            @RequestParam(defaultValue = PaginationDefaults.CHANGE_LOG_PAGE_SIZE) int size) {
+        adminRequestGuard.requireAdmin(xUserId);
+        return ChangeLogPageResponse.from(getCourseChangeLogUseCase.execute(courseId, page, size));
     }
 }

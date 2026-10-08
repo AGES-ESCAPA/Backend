@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class GetCourseChangeLogUseCaseTest {
 
@@ -22,5 +23,24 @@ class GetCourseChangeLogUseCaseTest {
 
         assertEquals(2, result.totalElements());
         assertEquals("Segunda alteração.", result.content().get(0).description());
+    }
+
+    @Test
+    void shouldRejectNegativePage() {
+        final GetCourseChangeLogUseCase useCase = new GetCourseChangeLogUseCase(new InMemoryCourseChangeLogRepositoryPort());
+
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(UUID.randomUUID(), -1, 20));
+    }
+
+    @Test
+    void shouldRejectSizeOutsideTheAllowedRange() {
+        final GetCourseChangeLogUseCase useCase = new GetCourseChangeLogUseCase(new InMemoryCourseChangeLogRepositoryPort());
+        final UUID courseId = UUID.randomUUID();
+
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(courseId, 0, 0));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> useCase.execute(courseId, 0, GetCourseChangeLogUseCase.MAX_PAGE_SIZE + 1)
+        );
     }
 }

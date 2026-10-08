@@ -6,6 +6,7 @@ import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CourseValidationException;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
+import com.escapa.backend.domain.user.AdminAccessDeniedException;
 import com.escapa.backend.domain.user.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -45,34 +47,20 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ApiError> handleUserNotFoundException(UserNotFoundException ex, HttpServletRequest request) {
+    @ExceptionHandler({
+            UserNotFoundException.class,
+            ContentNotFoundException.class,
+            ModuleNotFoundException.class,
+            CourseNotFoundException.class,
+            CertificateNotFoundException.class
+    })
+    public ResponseEntity<ApiError> handleNotFoundException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(ContentNotFoundException.class)
-    public ResponseEntity<ApiError> handleContentNotFoundException(ContentNotFoundException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
-    }
-
-    @ExceptionHandler(LessonAccessDeniedException.class)
-    public ResponseEntity<ApiError> handleLessonAccessDeniedException(LessonAccessDeniedException ex, HttpServletRequest request) {
+    @ExceptionHandler({LessonAccessDeniedException.class, AdminAccessDeniedException.class})
+    public ResponseEntity<ApiError> handleAccessDeniedException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
-    }
-
-    @ExceptionHandler(ModuleNotFoundException.class)
-    public ResponseEntity<ApiError> handleModuleNotFoundException(ModuleNotFoundException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
-    }
-
-    @ExceptionHandler(CourseNotFoundException.class)
-    public ResponseEntity<ApiError> handleCourseNotFoundException(CourseNotFoundException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
-    }
-
-    @ExceptionHandler(CertificateNotFoundException.class)
-    public ResponseEntity<ApiError> handleCertificateNotFoundException(CertificateNotFoundException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
     @ExceptionHandler(CourseValidationException.class)
@@ -90,6 +78,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiError> handleTypeMismatchException(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.BAD_REQUEST, "Invalid value for parameter '" + ex.getName() + "'", request);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiError> handleMissingParameterException(
+            MissingServletRequestParameterException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Missing required parameter '" + ex.getParameterName() + "'", request);
     }
 
     @ExceptionHandler(ResponseStatusException.class)

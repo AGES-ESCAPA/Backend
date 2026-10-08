@@ -1,5 +1,6 @@
 package com.escapa.backend.domain.entity;
 
+import com.escapa.backend.domain.user.UserTypes;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -24,5 +25,9 @@ public class User {
 
     public User(String name, String email, String passwordHash, String userType) {
         this(null, name, email, passwordHash, userType, LocalDateTime.now());
+    }
+
+    public boolean isAdmin() {
+        return UserTypes.ADMIN.equalsIgnoreCase(userType);
     }
 }

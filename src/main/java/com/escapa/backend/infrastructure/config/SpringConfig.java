@@ -23,6 +23,7 @@ import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
+import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
@@ -87,6 +88,11 @@ public class SpringConfig {
     @Bean
     public GetUserByIdUseCase getUserByIdUseCase(UserRepositoryPort userRepositoryPort) {
         return new GetUserByIdUseCase(userRepositoryPort);
+    }
+
+    @Bean
+    public AuthorizeAdminUseCase authorizeAdminUseCase(UserRepositoryPort userRepositoryPort) {
+        return new AuthorizeAdminUseCase(userRepositoryPort);
     }
 
     @Bean

@@ -1,5 +1,6 @@
 package com.escapa.backend.adapters.dto.course;
 
+import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.course.CourseStatus;
 
 import java.time.LocalDateTime;
@@ -27,5 +28,30 @@ public record CourseResponse(
         Boolean enforceDeadlineBlock,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
-) {}
+) {
 
+    public static CourseResponse from(Course course) {
+        return new CourseResponse(
+                course.getId(),
+                course.getTitle(),
+                course.getShortDescription(),
+                course.getDescription(),
+                course.getThumbnailUrl(),
+                course.getTeaserVideoUrl(),
+                course.getStatus(),
+                course.getInstructor() != null ? course.getInstructor().getId() : null,
+                course.getCreatedBy() != null ? course.getCreatedBy().getId() : null,
+                course.getCategory(),
+                course.getLevel(),
+                course.getDurationTime(),
+                course.getDeadline(),
+                course.getAccessDurationDays(),
+                course.getPrice(),
+                course.getLearningObjectives(),
+                course.getRequireSequentialProgress(),
+                course.getEnforceDeadlineBlock(),
+                course.getCreatedAt(),
+                course.getUpdatedAt()
+        );
+    }
+}
