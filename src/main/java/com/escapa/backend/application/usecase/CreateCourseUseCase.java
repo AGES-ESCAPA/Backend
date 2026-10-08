@@ -6,10 +6,14 @@ import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserNotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.UUID;
 
 public class CreateCourseUseCase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CreateCourseUseCase.class);
+
     private final CourseRepositoryPort courseRepositoryPort;
     private final UserRepositoryPort userRepositoryPort;
 
@@ -28,14 +32,7 @@ public class CreateCourseUseCase {
             throw new IllegalArgumentException("Title is required");
         }
 
-        User instructor = null;
-        if (instructorId != null) {
-            instructor = userRepositoryPort.findById(instructorId)
-                    .orElseThrow(() -> new UserNotFoundException(instructorId));
-            if (!instructor.isAdmin()) {
-                throw new IllegalArgumentException("instructorId must reference a user with userType ADMIN");
-            }
-        }
+        final User instructor = resolveInstructor(instructorId);
 
         final User createdBy = userRepositoryPort.findById(createdById)
                 .orElseThrow(() -> new UserNotFoundException(createdById));
@@ -59,6 +56,20 @@ public class CreateCourseUseCase {
                 createdBy
         );
 
-        return courseRepositoryPort.save(course);
+        final Course saved = courseRepositoryPort.save(course);
+        LOGGER.info("Course {} created by user {}", saved.getId(), createdById);
+        return saved;
+    }
+
+    private User resolveInstructor(UUID instructorId) {
+        if (instructorId == null) {
+            return null;
+        }
+        final User instructor = userRepositoryPort.findById(instructorId)
+                .orElseThrow(() -> new UserNotFoundException(instructorId));
+        if (!instructor.isAdmin()) {
+            throw new IllegalArgumentException("instructorId must reference a user with userType ADMIN");
+        }
+        return instructor;
     }
 }

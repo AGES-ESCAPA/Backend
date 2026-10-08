@@ -104,6 +104,9 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ApiError> buildResponse(HttpStatus status, String message, HttpServletRequest request) {
+        if (status.is4xxClientError()) {
+            LOGGER.warn("{} {} -> {}: {}", request.getMethod(), request.getRequestURI(), status.value(), message);
+        }
         final ApiError apiError = new ApiError(
                 status.value(),
                 status.getReasonPhrase(),
