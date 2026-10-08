@@ -86,6 +86,19 @@ src/
 
 ---
 
+## Convenções de Implementação (resumo)
+
+Detalhes e justificativas em `AGENTS.md`, seção "Convenções de Implementação".
+
+- Prefixos `Get`/`List`/`Search`/`Authorize` no nome do caso de uso = transação **somente leitura**; caso de uso que grava não pode usá-los.
+- `application/` não usa anotações do Spring; casos de uso são `@Bean` em `SpringConfig` / `CourseConfig`.
+- Rotas `/admin`: `AdminRequestGuard.requireAdmin(...)` com o header `X-User-Id`; rotas do aluno: `UserIdHeader.requireStudentId(...)`. Sem `"ADMIN"` como texto: use `User.isAdmin()`.
+- Controllers só roteiam: mapeamento em `XxxResponse.from(...)`, páginas via `PageResponse.of(...)`.
+- Não mude o formato de resposta de endpoints existentes (alguns não usam `ApiResponse` de propósito) sem combinar com o frontend.
+- Checkstyle: métodos com até 40 linhas. Testes: fakes `InMemory*Port`, sem Mockito; todo controller novo com teste MockMvc.
+
+---
+
 ## Boas Práticas do Backend
 
 - Prefira composição e injeção de dependência.
