@@ -21,21 +21,21 @@ import java.util.UUID;
  * Simula filtragem e paginação (US-01), busca de detalhes (US-04) e o
  * CRUD administrativo (US-05) sem banco de dados.
  */
-final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
+public final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
 
     private final List<CourseSummary> courses = new ArrayList<>();
     private final Map<UUID, CourseDetails> detailsById = new HashMap<>();
     private final Map<UUID, Course> coursesById = new HashMap<>();
 
-    void addCourse(CourseSummary course) {
+    public void addCourse(CourseSummary course) {
         courses.add(course);
     }
 
-    void clear() {
+    public void clear() {
         courses.clear();
     }
 
-    void saveDetails(CourseDetails course) {
+    public void saveDetails(CourseDetails course) {
         detailsById.put(course.id(), course);
     }
 

@@ -9,11 +9,11 @@ import java.util.UUID;
 /**
  * Fake em memória de {@link CourseNotificationPort} para testes unitários.
  */
-final class InMemoryCourseNotificationPort implements CourseNotificationPort {
+public final class InMemoryCourseNotificationPort implements CourseNotificationPort {
 
     private final List<UUID> notifiedCourseIds = new ArrayList<>();
 
-    List<UUID> notifiedCourseIds() {
+    public List<UUID> notifiedCourseIds() {
         return notifiedCourseIds;
     }
 

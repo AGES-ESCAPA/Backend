@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Fake em memória de {@link CourseChangeLogRepositoryPort} para testes unitários.
  */
-final class InMemoryCourseChangeLogRepositoryPort implements CourseChangeLogRepositoryPort {
+public final class InMemoryCourseChangeLogRepositoryPort implements CourseChangeLogRepositoryPort {
 
     private record Entry(UUID courseId, ChangeLogEntry entry) {
     }
@@ -25,11 +25,11 @@ final class InMemoryCourseChangeLogRepositoryPort implements CourseChangeLogRepo
     private final Map<UUID, String> adminNamesById = new HashMap<>();
     private final AtomicInteger sequence = new AtomicInteger();
 
-    void registerAdmin(UUID id, String name) {
+    public void registerAdmin(UUID id, String name) {
         adminNamesById.put(id, name);
     }
 
-    List<ChangeLogEntry> entriesFor(UUID courseId) {
+    public List<ChangeLogEntry> entriesFor(UUID courseId) {
         return entries.stream()
                 .filter(e -> e.courseId().equals(courseId))
                 .map(Entry::entry)

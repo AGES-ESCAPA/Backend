@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-final class InMemoryLessonRepositoryPort implements LessonRepositoryPort {
+public final class InMemoryLessonRepositoryPort implements LessonRepositoryPort {
     private final List<LessonDetails> lessons = new ArrayList<>();
 
-    void add(LessonDetails lesson) {
+    public void add(LessonDetails lesson) {
         lessons.add(lesson);
     }
 
