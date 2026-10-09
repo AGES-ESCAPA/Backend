@@ -14,18 +14,18 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-final class InMemoryEnrollmentRepositoryPort implements EnrollmentRepositoryPort {
+public final class InMemoryEnrollmentRepositoryPort implements EnrollmentRepositoryPort {
     private record Key(UUID userId, UUID courseId) {
     }
 
     private final Map<Key, Enrollment> enrollments = new HashMap<>();
     private final List<StudentCourseCard> courseCards = new ArrayList<>();
 
-    void enroll(UUID userId, UUID courseId, Enrollment enrollment) {
+    public void enroll(UUID userId, UUID courseId, Enrollment enrollment) {
         enrollments.put(new Key(userId, courseId), enrollment);
     }
     
-    void addCourseCard(StudentCourseCard card) {
+    public void addCourseCard(StudentCourseCard card) {
         courseCards.add(card);
     }
 

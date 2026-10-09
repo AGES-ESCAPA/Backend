@@ -4,6 +4,7 @@ import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.dto.PublishedCourseFilters;
 import com.escapa.backend.application.model.CourseDetails;
+import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
 
 import java.util.List;
@@ -23,7 +24,12 @@ public interface CourseRepositoryPort {
     /** Checagem leve de existencia, sem materializar o agregado do curso. */
     boolean existsById(UUID id);
 
-    List<Course> findAll();
+    /**
+     * Lista os cursos que não estão no status informado, apenas com os campos da listagem
+     * administrativa (id, título, categoria, preço, status e versão). Módulos e aulas não são
+     * carregados: esta consulta existe para não materializar o agregado de cada curso.
+     */
+    List<Course> findAllExcludingStatus(CourseStatus excludedStatus);
 
     /**
      * Busca cursos por título, excluindo um curso (tipicamente o próprio curso ao

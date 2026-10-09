@@ -9,7 +9,7 @@ import java.util.UUID;
 /**
  * Fake em memória de {@link CoursePrerequisiteRepositoryPort} para testes unitários.
  */
-final class InMemoryCoursePrerequisiteRepositoryPort implements CoursePrerequisiteRepositoryPort {
+public final class InMemoryCoursePrerequisiteRepositoryPort implements CoursePrerequisiteRepositoryPort {
 
     private record Link(UUID courseId, UUID prerequisiteCourseId) {
     }

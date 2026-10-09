@@ -10,12 +10,16 @@ import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.domain.entity.User;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class PublishCourseUseCase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PublishCourseUseCase.class);
+
 
     private final CourseRepositoryPort courseRepository;
     private final CourseChangeLogRepositoryPort changeLogRepository;
@@ -54,6 +58,9 @@ public class PublishCourseUseCase {
         if (notifyEnrolledStudents) {
             courseNotificationPort.notifyCoursePublished(id);
         }
+
+        LOGGER.info("Course {} published as version {}.0 (notify enrolled students: {})",
+                saved.getId(), saved.getMajorVersion(), notifyEnrolledStudents);
 
         return saved;
     }

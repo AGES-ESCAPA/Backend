@@ -14,7 +14,7 @@ import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseMaterialEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
+import com.escapa.backend.domain.course.CourseStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -93,10 +93,10 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
     }
 
     @Override
-    public List<Course> findAll() {
-        return courseJpaRepository.findAll().stream()
-                .map(CourseMapper::toDomain)
-                .collect(Collectors.toList());
+    public List<Course> findAllExcludingStatus(CourseStatus excludedStatus) {
+        return courseJpaRepository.findListingRowsExcludingStatus(excludedStatus).stream()
+                .map(CourseMapper::toListingDomain)
+                .toList();
     }
 
     @Override

@@ -7,11 +7,11 @@ import com.escapa.backend.adapters.dto.CourseFiltersResponse;
 import com.escapa.backend.adapters.dto.PageResponse;
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CourseDetails;
-import com.escapa.backend.application.dto.PublishedCourseFilters;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCourseFiltersUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,10 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
+@Tag(name = "Public - Courses", description = "Public catalog of published courses")
 @RequestMapping("/api/v1/public/courses")
 public class PublicCourseController {
 
@@ -41,12 +41,13 @@ public class PublicCourseController {
     }
 
     @GetMapping("/filters")
+    @Operation(summary = "List the category and level filters of published courses")
     public ResponseEntity<CourseFiltersResponse> filters() {
-        final PublishedCourseFilters filters = listPublishedCourseFiltersUseCase.execute();
-        return ResponseEntity.ok(new CourseFiltersResponse(filters.categories(), filters.levels()));
+        return ResponseEntity.ok(CourseFiltersResponse.from(listPublishedCourseFiltersUseCase.execute()));
     }
 
     @GetMapping
+    @Operation(summary = "Search published courses with pagination")
     public ResponseEntity<PageResponse<CourseCardResponse>> list(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String category,
@@ -56,112 +57,13 @@ public class PublicCourseController {
     ) {
         final PageResult<CourseSummary> result = listPublishedCoursesUseCase.execute(
                 title, category, level, page, size);
-        final List<CourseCardResponse> cards = result.content().stream()
-                .map(PublicCourseController::toCardResponse)
-                .toList();
-        return ResponseEntity.ok(new PageResponse<>(
-                cards, result.pageNumber(), result.pageSize(),
-                result.totalElements(), result.totalPages()));
+        return ResponseEntity.ok(PageResponse.of(result, CourseCardResponse::from));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<CourseDetailsResponse>> getById(
-            @PathVariable UUID id
-    ) {
-        final CourseDetails course = getCourseDetailsUseCase.execute(id);
-
+    @Operation(summary = "Get the full details of a published course")
+    public ResponseEntity<ApiResponse<CourseDetailsResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(
-                ApiResponse.success(toDetailsResponse(course))
-        );
-    }
-
-    private static CourseCardResponse toCardResponse(CourseSummary summary) {
-        return new CourseCardResponse(
-                summary.id(), summary.title(), summary.shortDescription(),
-                summary.category(), summary.level(), summary.durationTime(),
-                summary.lessonsCount(), summary.price(), summary.thumbnailUrl(),
-                summary.instructorName(), summary.ratingAverage(), summary.reviewsCount());
-    }
-
-    private static CourseDetailsResponse toDetailsResponse(CourseDetails course) {
-        return new CourseDetailsResponse(
-                course.id(),
-                course.title(),
-                course.shortDescription(),
-                course.description(),
-                course.category(),
-                course.level(),
-                course.durationTime(),
-                course.price(),
-                course.deadline(),
-                course.thumbnailUrl(),
-                course.teaserVideoUrl(),
-                course.rating(),
-                course.reviewsCount(),
-                course.studentsCount(),
-                toInstructorResponse(course.instructor()),
-                course.learningObjectives(),
-                course.materials().stream()
-                        .map(PublicCourseController::toMaterialResponse)
-                        .toList(),
-                course.modules().stream()
-                        .map(PublicCourseController::toModuleResponse)
-                        .toList()
-        );
-    }
-
-    private static CourseDetailsResponse.InstructorResponse toInstructorResponse(
-            CourseDetails.Instructor instructor
-    ) {
-        if (instructor == null) {
-            return null;
-        }
-
-        return new CourseDetailsResponse.InstructorResponse(
-                instructor.id(),
-                instructor.name(),
-                instructor.headline(),
-                instructor.bio(),
-                instructor.avatarUrl()
-        );
-    }
-
-    private static CourseDetailsResponse.MaterialResponse toMaterialResponse(
-            CourseDetails.Material material
-    ) {
-        return new CourseDetailsResponse.MaterialResponse(
-                material.title(),
-                material.format(),
-                material.fileUrl()
-        );
-    }
-
-    private static CourseDetailsResponse.ModuleResponse toModuleResponse(
-            CourseDetails.Module module
-    ) {
-        return new CourseDetailsResponse.ModuleResponse(
-                module.id(),
-                module.title(),
-                module.order(),
-                module.totalContents(),
-                module.durationMinutes(),
-                module.contents().stream()
-                        .map(PublicCourseController::toContentResponse)
-                        .toList()
-        );
-    }
-
-    private static CourseDetailsResponse.ContentResponse toContentResponse(
-            CourseDetails.Content content
-    ) {
-        return new CourseDetailsResponse.ContentResponse(
-                content.id(),
-                content.title(),
-                content.type(),
-                content.order(),
-                content.durationMinutes(),
-                content.isFree(),
-                content.url()
-        );
+                ApiResponse.success(CourseDetailsResponse.from(getCourseDetailsUseCase.execute(id))));
     }
 }

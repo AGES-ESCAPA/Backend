@@ -4,10 +4,13 @@ import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 
 public class CreateUserUseCase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CreateUserUseCase.class);
+
     public static final int MIN_PASSWORD_LENGTH = 8;
 
     private final UserRepositoryPort userRepositoryPort;
@@ -47,9 +50,10 @@ public class CreateUserUseCase {
                 normalizedEmail,
                 passwordHasherPort.hash(password),
                 normalizedUserType,
-                LocalDateTime.now(),
-                new ArrayList<>()
+                LocalDateTime.now()
         );
-        return userRepositoryPort.save(user);
+        final User saved = userRepositoryPort.save(user);
+        LOGGER.info("User {} created with type {}", saved.getId(), saved.getUserType());
+        return saved;
     }
 }

@@ -1,7 +1,7 @@
 package com.escapa.backend.infrastructure.persistence;
 
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
+import com.escapa.backend.domain.course.CourseStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -14,6 +14,31 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CourseJpaRepository extends JpaRepository<CourseEntity, UUID> {
+
+    /** Colunas da listagem administrativa, lidas sem carregar a entidade nem suas coleções. */
+    interface ListingRow {
+        UUID getId();
+
+        String getTitle();
+
+        String getCategory();
+
+        Double getPrice();
+
+        CourseStatus getStatus();
+
+        Integer getMajorVersion();
+
+        Integer getMinorVersion();
+    }
+
+    @Query("""
+            SELECT c.id AS id, c.title AS title, c.category AS category, c.price AS price,
+                   c.status AS status, c.majorVersion AS majorVersion, c.minorVersion AS minorVersion
+            FROM CourseEntity c
+            WHERE c.status <> :excludedStatus
+            """)
+    List<ListingRow> findListingRowsExcludingStatus(@Param("excludedStatus") CourseStatus excludedStatus);
 
     List<CourseEntity> findByTitleContainingIgnoreCaseAndIdNot(
             String title,
