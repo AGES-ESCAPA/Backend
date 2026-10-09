@@ -127,6 +127,9 @@ services:
 
       APP_CORS_ALLOWED_ORIGINS: http://localhost:3000
 
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-escapa-jwt-secret-key-development-minimum-256-bits-length}
+      APP_JWT_EXPIRATION_MINUTES: ${APP_JWT_EXPIRATION_MINUTES:-60}
+
     ports:
       - "8080:8080"
 
