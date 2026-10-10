@@ -76,6 +76,18 @@
             <artifactId>openpdf</artifactId>
             <version>2.2.2</version>
         </dependency>
+        <!-- Cliente para o MinIO (upload/delete de arquivos no bucket escapa-media, US-24). -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>9.0.3</version>
+        </dependency>
+        <!-- Fixa o OkHttp numa versão estável, pois a versão transitiva do minio (5.x) é publicada em um formato (Kotlin Multiplatform) que o Maven não consegue resolver corretamente. -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

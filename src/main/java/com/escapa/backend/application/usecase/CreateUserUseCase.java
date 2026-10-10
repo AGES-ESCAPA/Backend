@@ -1,12 +1,13 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.PasswordHasherPort;
-import com.escapa.backend.application.port.UserRepositoryPort;
-import com.escapa.backend.domain.entity.User;
+import java.time.LocalDateTime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.time.LocalDateTime;
+
+import com.escapa.backend.application.port.PasswordHasherPort;
+import com.escapa.backend.application.port.UserRepositoryPort;
+import com.escapa.backend.domain.entity.User;
 
 public class CreateUserUseCase {
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateUserUseCase.class);
@@ -50,6 +51,7 @@ public class CreateUserUseCase {
                 normalizedEmail,
                 passwordHasherPort.hash(password),
                 normalizedUserType,
+                null,
                 LocalDateTime.now()
         );
         final User saved = userRepositoryPort.save(user);
