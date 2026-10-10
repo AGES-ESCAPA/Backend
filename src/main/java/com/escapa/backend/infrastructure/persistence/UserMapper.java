@@ -25,7 +25,7 @@ public final class UserMapper {
         entity.setEmail(user.getEmail());
         entity.setPasswordHash(user.getPasswordHash());
         entity.setRole(user.getUserType());
-        entity.setAvatarUrl(user.getAvatarUrl());
+        entity.setProfileAvatarUrl(user.getAvatarUrl());
     }
 
     public static User toDomain(UserEntity entity) {
@@ -38,7 +38,7 @@ public final class UserMapper {
                 entity.getEmail(),
                 entity.getPasswordHash(),
                 entity.getRole(),
-                entity.getAvatarUrl(),
+                entity.getProfileAvatarUrl(),
                 entity.getCreatedAt()
         );
     }

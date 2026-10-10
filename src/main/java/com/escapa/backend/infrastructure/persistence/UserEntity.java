@@ -48,7 +48,7 @@ public class UserEntity {
     private UserStatus status = UserStatus.ACTIVE;
 
     @Column(name = "avatar_url")
-    private String avatarUrl;
+    private String profileAvatarUrl;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
