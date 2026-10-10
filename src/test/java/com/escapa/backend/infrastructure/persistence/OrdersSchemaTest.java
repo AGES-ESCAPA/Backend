@@ -1,5 +1,6 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -27,6 +28,13 @@ class OrdersSchemaTest extends PostgresIntegrationTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    // O banco é compartilhado entre as classes de teste e pedidos não têm ON DELETE CASCADE:
+    // sem esta limpeza, outros testes que fazem deleteAll em users/courses quebram.
+    @AfterEach
+    void cleanUpOrders() {
+        jdbcTemplate.update("delete from orders");
+    }
 
     private UUID givenUser() {
         final UUID id = UUID.randomUUID();

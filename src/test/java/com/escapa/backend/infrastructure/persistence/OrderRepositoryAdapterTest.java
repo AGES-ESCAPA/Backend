@@ -10,6 +10,7 @@ import com.escapa.backend.domain.order.OrderStatusChange;
 import com.escapa.backend.domain.order.OrderType;
 import com.escapa.backend.domain.order.PaymentMethod;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -41,6 +42,13 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
     // company nao tem repositorio JPA proprio para escrita nos testes: grava direto na tabela.
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    // O banco é compartilhado entre as classes de teste e pedidos não têm ON DELETE CASCADE:
+    // sem esta limpeza, outros testes que fazem deleteAll em users/courses quebram.
+    @AfterEach
+    void cleanUpOrders() {
+        jdbcTemplate.update("delete from orders");
+    }
 
     private UUID givenUser(String role) {
         final String email = "comprador-" + UUID.randomUUID() + "@email.com";
