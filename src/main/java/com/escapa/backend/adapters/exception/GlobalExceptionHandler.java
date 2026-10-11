@@ -1,14 +1,8 @@
 package com.escapa.backend.adapters.exception;
 
-import com.escapa.backend.domain.certificate.CertificateNotFoundException;
-import com.escapa.backend.domain.content.ContentNotFoundException;
-import com.escapa.backend.domain.content.LessonAccessDeniedException;
-import com.escapa.backend.domain.course.CourseNotFoundException;
-import com.escapa.backend.domain.course.CourseValidationException;
-import com.escapa.backend.domain.module.ModuleNotFoundException;
-import com.escapa.backend.domain.user.AdminAccessDeniedException;
-import com.escapa.backend.domain.user.UserNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
+import java.time.Instant;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,11 +14,21 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import java.time.Instant;
-import java.util.stream.Collectors;
+import com.escapa.backend.domain.certificate.CertificateNotFoundException;
+import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.content.LessonAccessDeniedException;
+import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.course.CourseValidationException;
+import com.escapa.backend.domain.module.ModuleNotFoundException;
+import com.escapa.backend.domain.user.AdminAccessDeniedException;
+import com.escapa.backend.domain.user.InvalidAvatarFileException;
+import com.escapa.backend.domain.user.UserNotFoundException;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -56,6 +60,12 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ApiError> handleNotFoundException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+        @ExceptionHandler(InvalidAvatarFileException.class)
+    public ResponseEntity<ApiError> handleInvalidAvatarFileException(
+            InvalidAvatarFileException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
     @ExceptionHandler({LessonAccessDeniedException.class, AdminAccessDeniedException.class})
@@ -95,6 +105,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiError> handleNoResourceFoundException(NoResourceFoundException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.NOT_FOUND, "Resource not found: " + request.getRequestURI(), request);
+    }
+
+        @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "File exceeds the maximum upload size allowed", request);
     }
 
     @ExceptionHandler(Exception.class)
