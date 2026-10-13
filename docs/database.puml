@@ -153,7 +153,15 @@ entity "user_courses" as user_courses {
   certificate_issued : boolean
   certificate_code : varchar <<UNIQUE>>
   certificate_issued_at : datetime
-  certificate_pdf : bytea
+}
+
+entity "certificate_pdfs" as certificate_pdfs {
+  * certificate_code : varchar <<PK>> <<FK>>
+  * theme : varchar <<PK>>
+  * template_version : varchar <<PK>>
+  --
+  pdf : bytea
+  created_at : datetime
 }
 
 entity "user_content_progress" as user_content_progress {
@@ -244,6 +252,7 @@ courses ||--o{ notifications : "triggers"
 ' Associative Relationships (Enrollments & Work)
 users ||--o{ user_courses : "enrolls"
 courses ||--o{ user_courses : "has enrollments"
+user_courses ||--o{ certificate_pdfs : "caches PDFs"
 
 users ||--o{ user_content_progress : "completes"
 content ||--o{ user_content_progress : "tracked by"

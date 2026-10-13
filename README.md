@@ -113,6 +113,7 @@ src/
 - **Cobertura de testes**: Jacoco (relatório gerado em `target/site/jacoco/`)
 - **Containerização**: Docker + Docker Compose
 - **Testes**: JUnit 5 + Spring Test + Testcontainers
+- **PDF do certificado**: template Thymeleaf impresso pelo Chromium do Playwright (PDFBox nos testes)
 
 ---
 
@@ -175,8 +176,15 @@ A API ficará disponível em: `http://localhost:8080`
 | `mvn clean package` | Gera o pacote compilado da aplicação. | Verificação de build final. |
 | `mvn validate` | Valida a estrutura e dependências do Maven. | Para checar a configuração do projeto. |
 | `mvn checkstyle:check` | Roda só as regras de `checkstyle.xml`, sem compilar/testar. | Para checar estilo isoladamente e mais rápido. |
+| `mvn test -Dsurefire.excludedGroups= -Dgroups=pdf` | Roda só os testes que geram o PDF do certificado com o Chromium (`@Tag("pdf")`). Precisa do Chromium instalado (ver abaixo). | Ao mexer no template ou na geração do PDF. |
 
 > 📊 Após rodar os testes, o relatório de cobertura do Jacoco fica em `target/site/jacoco/index.html`.
+
+> 🖨️ Os testes `@Tag("pdf")` ficam fora do `mvn test`/`mvn verify` padrão. Para rodá-los, instale o Chromium do Playwright uma vez (algumas centenas de MB):
+> ```bash
+> mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install chromium"
+> ```
+> Eles salvam o PDF e uma imagem dele, nos temas claro e escuro, em `target/certificate-preview/`. A CI publica essa pasta como o artefato `certificate-preview`.
 
 ---
 
@@ -521,6 +529,31 @@ Resposta (`200`):
 ```
 
 `module.order` e `order` alimentam o cabeçalho "Módulo X · Aula Y".
+
+---
+
+## 🎓 Certificado digital (tela e PDF)
+
+```http
+GET /api/v1/certificates/{verificationCode}
+GET /api/v1/certificates/{verificationCode}/download?theme=light|dark
+```
+
+- **Tela (US-18):** além dos campos crus (`conclusionDate`, `workload` em minutos), `certificate` traz os textos já formatados — `formattedConclusionDate` ("21 de agosto de 2025"), `formattedWorkload` ("16 horas") e `validationUrl`. São os mesmos textos do PDF, formatados num único lugar (`FormattedCertificate`).
+- **PDF (US-19):** A4 horizontal, fiel ao certificado da tela, gerado a partir de `templates/certificate/certificate.html` pelo Chromium do Playwright. `theme` aceita `light` ou `dark` (sem diferenciar maiúsculas); sem o parâmetro vale `certificate.default-theme`; outro valor retorna `400`. Código inexistente ou curso não concluído retornam `404`.
+- **Cache:** cada PDF gerado fica em `certificate_pdfs`, por código, tema e `certificate.template.version`. **Ao mudar o template (HTML, CSS, tokens, fontes ou imagens em `src/main/resources/certificate/`), incremente `certificate.template.version`**, senão o cache continua servindo o PDF antigo.
+- **Erros da geração:** fila cheia ou prazo esgotado retornam `503`; falha do navegador retorna `500` com mensagem genérica (a causa fica no log). Nada é salvo no cache quando a geração falha.
+- **Tokens visuais:** `certificate/certificate-tokens.css` copia os valores do frontend (`src/index.css` e `CertificateCard.module.css`). Ao mudarem lá, atualize aqui e incremente a versão do template.
+
+| Propriedade | Padrão | Para que serve |
+|---|---|---|
+| `certificate.template.version` | `v2` | Versão do template, parte da chave do cache |
+| `certificate.default-theme` | `dark` | Tema quando o `?theme=` não vem |
+| `certificate.pdf.timeout-seconds` | `30` | Prazo da geração antes do `503` |
+| `certificate.pdf.queue-capacity` | `20` | Gerações na fila antes do `503` |
+| `certificate.pdf.warm-up` | `true` | Sobe o Chromium logo após o startup (a primeira subida no container leva dezenas de segundos) |
+
+A imagem Docker usa `mcr.microsoft.com/playwright/java`, na mesma versão de `playwright.version` do `pom.xml` (a CI confere). O Chromium já vem instalado nela, e a aplicação nunca baixa o navegador no startup.
 
 ---
 
