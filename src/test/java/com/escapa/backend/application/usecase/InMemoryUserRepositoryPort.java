@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-final class InMemoryUserRepositoryPort implements UserRepositoryPort {
+public final class InMemoryUserRepositoryPort implements UserRepositoryPort {
     private final List<User> users = new ArrayList<>();
 
     @Override

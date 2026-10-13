@@ -10,15 +10,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-final class InMemoryModuleRepositoryPort implements ModuleRepositoryPort {
+public final class InMemoryModuleRepositoryPort implements ModuleRepositoryPort {
     private final List<Module> modules = new ArrayList<>();
 
     /** Modulo avulso, em um curso qualquer; mantido para os testes de conteudo (BE-05). */
-    UUID createModule() {
+    public UUID createModule() {
         return createModule(UUID.randomUUID());
     }
 
-    UUID createModule(UUID courseId) {
+    public UUID createModule(UUID courseId) {
         final Module module = new Module(UUID.randomUUID(), courseId, "Modulo", nextOrder(courseId));
         modules.add(module);
         return module.getId();

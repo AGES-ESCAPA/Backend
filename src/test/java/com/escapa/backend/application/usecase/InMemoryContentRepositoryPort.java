@@ -10,7 +10,7 @@ import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.entity.Content;
 
-final class InMemoryContentRepositoryPort implements ContentRepositoryPort {
+public final class InMemoryContentRepositoryPort implements ContentRepositoryPort {
     private final List<Content> contents = new ArrayList<>();
 
     @Override

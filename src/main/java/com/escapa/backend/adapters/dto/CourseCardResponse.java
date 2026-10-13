@@ -1,5 +1,6 @@
 package com.escapa.backend.adapters.dto;
 
+import com.escapa.backend.application.dto.CourseSummary;
 import java.util.UUID;
 
 /**
@@ -20,4 +21,13 @@ public record CourseCardResponse(
         Double ratingAverage,
         Integer reviewsCount
 ) {
+
+
+    public static CourseCardResponse from(CourseSummary summary) {
+        return new CourseCardResponse(
+                summary.id(), summary.title(), summary.shortDescription(),
+                summary.category(), summary.level(), summary.durationTime(),
+                summary.lessonsCount(), summary.price(), summary.thumbnailUrl(),
+                summary.instructorName(), summary.ratingAverage(), summary.reviewsCount());
+    }
 }

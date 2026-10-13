@@ -416,6 +416,8 @@ DELETE /api/v1/admin/contents/{id}
 
 O `order` é calculado automaticamente no `POST` (`max(order do módulo) + 1`), nunca vem no payload.
 
+Todos os endpoints de conteúdo exigem o header `X-User-Id` de um usuário `ADMIN`, como os de cursos e módulos: header ausente, inválido, de usuário inexistente ou que não seja `ADMIN` retorna `403 Forbidden`.
+
 Payload do `POST` (tipo Vídeo):
 ```json
 {

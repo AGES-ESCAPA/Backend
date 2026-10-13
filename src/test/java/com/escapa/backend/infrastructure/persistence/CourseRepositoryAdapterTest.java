@@ -10,7 +10,8 @@ import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseMaterialEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Course;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -64,6 +67,28 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
 
         assertEquals(1, result.totalElements());
         assertEquals("Curso Publicado", result.content().get(0).title());
+    }
+
+    @Test
+    void shouldListAdminCoursesWithoutArchivedOnesAndWithoutLoadingModules() {
+        final AdminEntity instructor = createInstructor("Instrutora Listagem");
+        createCourse("Curso Publicado", "Turismo", "INICIANTE", CourseStatus.PUBLISHED, instructor);
+        createCourse("Curso Rascunho", "Hotelaria", "INICIANTE", CourseStatus.DRAFT, instructor);
+        createCourse("Curso Arquivado", "Turismo", "INICIANTE", CourseStatus.ARCHIVED, instructor);
+
+        final List<Course> courses = courseRepositoryPort.findAllExcludingStatus(CourseStatus.ARCHIVED);
+
+        assertEquals(
+                Set.of("Curso Publicado", "Curso Rascunho"),
+                courses.stream().map(Course::getTitle).collect(Collectors.toSet()));
+        final Course published = courses.stream()
+                .filter(course -> course.getStatus() == CourseStatus.PUBLISHED)
+                .findFirst()
+                .orElseThrow();
+        assertEquals("Turismo", published.getCategory());
+        assertEquals(99.90, published.getPrice());
+        assertEquals(0, published.getMajorVersion());
+        assertTrue(published.getModules().isEmpty());
     }
 
     @Test

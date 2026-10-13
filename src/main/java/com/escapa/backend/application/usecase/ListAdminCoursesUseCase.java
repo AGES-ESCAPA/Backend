@@ -20,8 +20,7 @@ public class ListAdminCoursesUseCase {
     }
 
     public List<Course> execute() {
-        return courseRepositoryPort.findAll().stream()
-                .filter(course -> course.getStatus() != CourseStatus.ARCHIVED)
+        return courseRepositoryPort.findAllExcludingStatus(CourseStatus.ARCHIVED).stream()
                 .sorted(Comparator.comparing(
                         Course::getTitle, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
                 .toList();

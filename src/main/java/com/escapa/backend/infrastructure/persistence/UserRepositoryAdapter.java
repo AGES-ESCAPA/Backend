@@ -1,12 +1,13 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.port.UserRepositoryPort;
-import com.escapa.backend.domain.entity.User;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+
+import com.escapa.backend.application.port.UserRepositoryPort;
+import com.escapa.backend.domain.entity.User;
 
 @Repository
 public class UserRepositoryAdapter implements UserRepositoryPort {
@@ -16,9 +17,16 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         this.userJpaRepository = userJpaRepository;
     }
 
-    @Override
+        @Override
     public User save(User user) {
-        final UserEntity entity = UserMapper.toEntity(user);
+        final UserEntity entity;
+        if (user.getId() != null) {
+            entity = userJpaRepository.findById(user.getId())
+                    .orElseGet(() -> UserMapper.toEntity(user));
+            UserMapper.updateEntity(entity, user);
+        } else {
+            entity = UserMapper.toEntity(user);
+        }
         final UserEntity saved = userJpaRepository.save(entity);
         return UserMapper.toDomain(saved);
     }

@@ -42,8 +42,6 @@ public class Course {
     private Integer minorVersion = 0;
 
     private List<Module> modules = new ArrayList<>();
-    private List<UserCourse> userCourses = new ArrayList<>();
-    private List<CompanyCourse> companyCourses = new ArrayList<>();
 
     public Course(String title, String shortDescription, String description, String thumbnailUrl,
                   String teaserVideoUrl, User instructor, String category, String level,

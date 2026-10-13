@@ -5,6 +5,7 @@ import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.dto.PublishedCourseFilters;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
 
 import java.util.ArrayList;
@@ -20,21 +21,21 @@ import java.util.UUID;
  * Simula filtragem e paginação (US-01), busca de detalhes (US-04) e o
  * CRUD administrativo (US-05) sem banco de dados.
  */
-final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
+public final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
 
     private final List<CourseSummary> courses = new ArrayList<>();
     private final Map<UUID, CourseDetails> detailsById = new HashMap<>();
     private final Map<UUID, Course> coursesById = new HashMap<>();
 
-    void addCourse(CourseSummary course) {
+    public void addCourse(CourseSummary course) {
         courses.add(course);
     }
 
-    void clear() {
+    public void clear() {
         courses.clear();
     }
 
-    void saveDetails(CourseDetails course) {
+    public void saveDetails(CourseDetails course) {
         detailsById.put(course.id(), course);
     }
 
@@ -58,8 +59,10 @@ final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
     }
 
     @Override
-    public List<Course> findAll() {
-        return List.copyOf(coursesById.values());
+    public List<Course> findAllExcludingStatus(CourseStatus excludedStatus) {
+        return coursesById.values().stream()
+                .filter(course -> course.getStatus() != excludedStatus)
+                .toList();
     }
 
     @Override

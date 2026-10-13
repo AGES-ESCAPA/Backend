@@ -1,10 +1,9 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.domain.entity.User;
-
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.UUID;
+
+import com.escapa.backend.domain.entity.User;
 
 public final class UserMapper {
 
@@ -21,6 +20,14 @@ public final class UserMapper {
                 user.getUserType(), createdAt);
     }
 
+        public static void updateEntity(UserEntity entity, User user) {
+        entity.setName(user.getName());
+        entity.setEmail(user.getEmail());
+        entity.setPasswordHash(user.getPasswordHash());
+        entity.setRole(user.getUserType());
+        entity.setProfileAvatarUrl(user.getAvatarUrl());
+    }
+
     public static User toDomain(UserEntity entity) {
         if (entity == null) {
             return null;
@@ -31,8 +38,8 @@ public final class UserMapper {
                 entity.getEmail(),
                 entity.getPasswordHash(),
                 entity.getRole(),
-                entity.getCreatedAt(),
-                new ArrayList<>()
+                entity.getProfileAvatarUrl(),
+                entity.getCreatedAt()
         );
     }
 }

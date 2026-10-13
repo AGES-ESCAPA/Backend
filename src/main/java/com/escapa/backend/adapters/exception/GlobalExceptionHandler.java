@@ -1,13 +1,8 @@
 package com.escapa.backend.adapters.exception;
 
-import com.escapa.backend.domain.certificate.CertificateNotFoundException;
-import com.escapa.backend.domain.content.ContentNotFoundException;
-import com.escapa.backend.domain.content.LessonAccessDeniedException;
-import com.escapa.backend.domain.course.CourseNotFoundException;
-import com.escapa.backend.domain.course.CourseValidationException;
-import com.escapa.backend.domain.module.ModuleNotFoundException;
-import com.escapa.backend.domain.user.UserNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
+import java.time.Instant;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -15,14 +10,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import java.time.Instant;
-import java.util.stream.Collectors;
+import com.escapa.backend.domain.certificate.CertificateNotFoundException;
+import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.content.LessonAccessDeniedException;
+import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.course.CourseValidationException;
+import com.escapa.backend.domain.module.ModuleNotFoundException;
+import com.escapa.backend.domain.user.AdminAccessDeniedException;
+import com.escapa.backend.domain.user.InvalidAvatarFileException;
+import com.escapa.backend.domain.user.UserNotFoundException;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -45,34 +51,26 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ApiError> handleUserNotFoundException(UserNotFoundException ex, HttpServletRequest request) {
+    @ExceptionHandler({
+            UserNotFoundException.class,
+            ContentNotFoundException.class,
+            ModuleNotFoundException.class,
+            CourseNotFoundException.class,
+            CertificateNotFoundException.class
+    })
+    public ResponseEntity<ApiError> handleNotFoundException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(ContentNotFoundException.class)
-    public ResponseEntity<ApiError> handleContentNotFoundException(ContentNotFoundException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+        @ExceptionHandler(InvalidAvatarFileException.class)
+    public ResponseEntity<ApiError> handleInvalidAvatarFileException(
+            InvalidAvatarFileException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(LessonAccessDeniedException.class)
-    public ResponseEntity<ApiError> handleLessonAccessDeniedException(LessonAccessDeniedException ex, HttpServletRequest request) {
+    @ExceptionHandler({LessonAccessDeniedException.class, AdminAccessDeniedException.class})
+    public ResponseEntity<ApiError> handleAccessDeniedException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
-    }
-
-    @ExceptionHandler(ModuleNotFoundException.class)
-    public ResponseEntity<ApiError> handleModuleNotFoundException(ModuleNotFoundException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
-    }
-
-    @ExceptionHandler(CourseNotFoundException.class)
-    public ResponseEntity<ApiError> handleCourseNotFoundException(CourseNotFoundException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
-    }
-
-    @ExceptionHandler(CertificateNotFoundException.class)
-    public ResponseEntity<ApiError> handleCertificateNotFoundException(CertificateNotFoundException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
     @ExceptionHandler(CourseValidationException.class)
@@ -92,6 +90,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, "Invalid value for parameter '" + ex.getName() + "'", request);
     }
 
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiError> handleMissingParameterException(
+            MissingServletRequestParameterException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Missing required parameter '" + ex.getParameterName() + "'", request);
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiError> handleResponseStatusException(
             ResponseStatusException ex, HttpServletRequest request) {
@@ -103,6 +107,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, "Resource not found: " + request.getRequestURI(), request);
     }
 
+        @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "File exceeds the maximum upload size allowed", request);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGenericException(Exception ex, HttpServletRequest request) {
         LOGGER.error("Unexpected error handling {} {}", request.getMethod(), request.getRequestURI(), ex);
@@ -110,6 +120,9 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ApiError> buildResponse(HttpStatus status, String message, HttpServletRequest request) {
+        if (status.is4xxClientError()) {
+            LOGGER.warn("{} {} -> {}: {}", request.getMethod(), request.getRequestURI(), status.value(), message);
+        }
         final ApiError apiError = new ApiError(
                 status.value(),
                 status.getReasonPhrase(),

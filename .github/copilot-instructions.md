@@ -59,6 +59,26 @@ Nunca misture DTO, entidade de domínio e entidade JPA na mesma classe ou assina
 
 ---
 
+## Convenções do projeto (apontar quando violadas)
+
+- **Transação pelo nome do caso de uso:** `UseCaseTransactionConfig` torna `Get*`, `List*`, `Search*`
+  e `Authorize*` somente leitura. Caso de uso com prefixo de leitura que grava dados é bug.
+  Não peça `@Transactional` em caso de uso: ele já é transacional por esse advice.
+- **Sem Spring em `application/`** (`@Service`, `@Transactional`, `@Component`). Casos de uso são
+  `@Bean` em `SpringConfig` / `CourseConfig`.
+- **Acesso admin/aluno:** rotas `/admin` usam `AdminRequestGuard`; rotas do aluno usam
+  `UserIdHeader.requireStudentId`. Sinalize parse manual do `X-User-Id`, `try/catch` de `UUID` no
+  controller ou o texto `"ADMIN"` comparado diretamente (use `User.isAdmin()`). Toda rota `/admin`
+  nova precisa do guard; endpoint admin sem ele é bloqueante.
+- **Mapeamento fora do controller:** conversão para resposta em `XxxResponse.from(...)` /
+  `PageResponse.of(...)`.
+- **Listagens:** carregar o agregado inteiro (módulos, aulas) só para exibir poucas colunas, ou
+  mapper que percorre coleção lazy, é N+1; sugira projeção ou `@EntityGraph`.
+- **DTOs de entrada:** campos de texto que vão para `VARCHAR(255)` precisam de `@Size` (use
+  `FieldLimits`) e números que não podem ser negativos, de `@PositiveOrZero`.
+
+---
+
 ## Migrations (Flyway)
 
 O schema é gerenciado por Flyway, e o Hibernate roda com `ddl-auto=validate` — ele apenas confere,
@@ -79,11 +99,12 @@ nunca cria nem altera tabelas.
 ## Testes
 
 - Todo caso de uso novo precisa de teste unitário.
-- Casos de uso são testados contra o fake `InMemoryUserRepositoryPort`, **não** com mocks de
-  repositório. Prefira sugerir o fake existente a introduzir Mockito.
+- Casos de uso são testados contra os fakes `InMemory*Port` (ex.: `InMemoryUserRepositoryPort`),
+  **não** com mocks de repositório. Prefira sugerir o fake existente a introduzir Mockito.
 - Persistência, mapeamento JPA e migrations são testados com **Testcontainers**, estendendo
   `PostgresIntegrationTest` (o container é compartilhado; não crie um novo por classe).
-- Endpoints devem ter teste de controller (`@WebMvcTest`) cobrindo status codes e o caminho de erro.
+- Endpoints devem ter teste de controller com `MockMvcBuilders.standaloneSetup(...)` e o
+  `GlobalExceptionHandler`, cobrindo status codes, acesso (401/403) e o caminho de erro.
 - Asserts significativos: prefira verificar comportamento e valores a apenas checar `notNull`.
 
 ---
@@ -93,8 +114,9 @@ nunca cria nem altera tabelas.
 - Todas as rotas usam o prefixo `/api/v1`.
 - Sucesso usa o envelope `ApiResponse` (`success`, `data`, `message`); erro usa `ApiError`
   (`status`, `error`, `message`, `path`, `timestamp`).
-- O `GlobalExceptionHandler` mapeia: **400** validação e regra de domínio, **404** recurso não
-  encontrado, **409** conflito de dados, **500** erro inesperado. Endpoints novos devem se encaixar
+- O `GlobalExceptionHandler` mapeia: **400** validação, regra de domínio e parâmetro ausente,
+  **401/403** acesso negado, **404** recurso não encontrado, **409** conflito de dados, **422**
+  publicação de curso incompleto, **500** erro inesperado. Endpoints novos devem se encaixar
   nesse mapeamento em vez de tratar exceção no controller.
 - Valide entrada com `@Valid` e anotações no DTO, nunca com `if` manual no controller.
 - Prefira `record` para DTOs.
@@ -116,6 +138,10 @@ nunca cria nem altera tabelas.
 
 ## O que NÃO comentar
 
+- Endpoints existentes que respondem sem `ApiResponse` (lista e filtros públicos, regras do curso,
+  change-log, busca de pré-requisitos): o frontend depende desse formato. Só aponte se um endpoint
+  **novo** não usar o envelope.
+- Falta de Mockito: o padrão do projeto são os fakes em memória.
 - Formatação, chaves, imports e variáveis locais `final` — o Checkstyle já reprova o build.
 - Sugestões de trocar a arquitetura por Controller/Service/Repository.
 - Pedidos de cobertura de teste em DTOs, getters e classes de configuração triviais.

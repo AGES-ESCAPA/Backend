@@ -1,8 +1,6 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.application.model.Enrollment;
-import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
-import com.escapa.backend.domain.course.EnrollmentStatus;
+import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
