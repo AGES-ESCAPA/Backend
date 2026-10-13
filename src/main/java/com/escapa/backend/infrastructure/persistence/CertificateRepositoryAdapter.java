@@ -1,31 +1,26 @@
 package com.escapa.backend.infrastructure.persistence;
 
 import com.escapa.backend.application.model.CertificateDetails;
-import com.escapa.backend.application.model.CertificateRecord;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
+import com.escapa.backend.domain.certificate.CertificateTheme;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository.CertificateDetailsView;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 public class CertificateRepositoryAdapter implements CertificateRepositoryPort {
 
     private final UserCourseJpaRepository userCourseJpaRepository;
+    // O cache de PDFs (certificate_pdfs) nao tem entidade JPA: so e lido e gravado
+    // aqui, por SQL direto, e assim o BYTEA nunca e carregado junto de outra entidade.
+    private final JdbcClient jdbcClient;
 
-    public CertificateRepositoryAdapter(UserCourseJpaRepository userCourseJpaRepository) {
+    public CertificateRepositoryAdapter(UserCourseJpaRepository userCourseJpaRepository, JdbcClient jdbcClient) {
         this.userCourseJpaRepository = userCourseJpaRepository;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<CertificateRecord> findByVerificationCode(String verificationCode) {
-        return userCourseJpaRepository.findIssuedByCertificateCode(verificationCode)
-                .map(entity -> toRecord(entity, verificationCode));
+        this.jdbcClient = jdbcClient;
     }
 
     @Override
@@ -36,28 +31,37 @@ public class CertificateRepositoryAdapter implements CertificateRepositoryPort {
     }
 
     @Override
-    @Transactional
-    public void saveCachedPdf(UUID userId, UUID courseId, byte[] pdf) {
-        userCourseJpaRepository.updateCertificatePdf(userId, courseId, pdf);
+    @Transactional(readOnly = true)
+    public Optional<byte[]> findCachedPdf(String verificationCode, CertificateTheme theme, String templateVersion) {
+        return jdbcClient.sql("select pdf from certificate_pdfs "
+                        + "where certificate_code = :code and theme = :theme and template_version = :version")
+                .param("code", verificationCode)
+                .param("theme", theme.name())
+                .param("version", templateVersion)
+                .query(byte[].class)
+                .optional();
     }
 
-    private CertificateRecord toRecord(UserCourseEntity entity, String verificationCode) {
-        final CourseEntity course = entity.getCourse();
-        // Busca isolada do PDF em cache (ver UserCourseEntity): so ele carrega o BYTEA,
-        // nunca o SELECT acima nem qualquer outro load de UserCourseEntity.
-        final byte[] cachedPdf = userCourseJpaRepository
-                .findCachedCertificatePdfByCertificateCode(verificationCode)
-                .orElse(null);
-        return new CertificateRecord(
-                entity.getId().getUserId(),
-                entity.getId().getCourseId(),
-                entity.getUser().getName(),
-                course.getTitle(),
-                course.getDurationTime(),
-                entity.getConclusionDate(),
-                entity.getCertificateCode(),
-                cachedPdf
-        );
+    @Override
+    @Transactional
+    public void saveCachedPdf(String verificationCode, CertificateTheme theme, String templateVersion, byte[] pdf) {
+        // ON CONFLICT: com varias instancias, duas podem gerar o mesmo PDF ao mesmo
+        // tempo; o segundo insert e ignorado em vez de falhar o download.
+        jdbcClient.sql("insert into certificate_pdfs (certificate_code, theme, template_version, pdf) "
+                        + "values (:code, :theme, :version, :pdf) on conflict do nothing")
+                .param("code", verificationCode)
+                .param("theme", theme.name())
+                .param("version", templateVersion)
+                .param("pdf", pdf)
+                .update();
+        // PDFs do mesmo certificado e tema gerados por templates anteriores nao
+        // serao mais servidos: sai o lixo junto com a gravacao do novo.
+        jdbcClient.sql("delete from certificate_pdfs "
+                        + "where certificate_code = :code and theme = :theme and template_version <> :version")
+                .param("code", verificationCode)
+                .param("theme", theme.name())
+                .param("version", templateVersion)
+                .update();
     }
 
     private CertificateDetails toDetails(CertificateDetailsView view) {

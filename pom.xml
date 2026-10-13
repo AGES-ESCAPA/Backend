@@ -77,13 +77,6 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-        <!-- Geracao do PDF do certificado (US-19). Fork open-source do iText 4,
-        sem restricao de licenca (LGPL/MPL), API simples para um template fixo. -->
-        <dependency>
-            <groupId>com.github.librepdf</groupId>
-            <artifactId>openpdf</artifactId>
-            <version>2.2.2</version>
-        </dependency>
         <!-- Geracao do PDF do certificado (US-19): o template HTML/CSS e montado
         com Thymeleaf e impresso pelo Chromium do Playwright, para o PDF ficar
         igual a tela de certificado (US-18). -->
