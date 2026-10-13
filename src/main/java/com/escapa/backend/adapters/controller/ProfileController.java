@@ -17,7 +17,7 @@ import com.escapa.backend.adapters.dto.ProfileUpdateDTO;
 
 @RestController
 // Define o prefixo comum das rotas de consulta e atualização do perfil.
-@RequestMapping("/api/v1/me/profile")
+@RequestMapping("/api/v1/me")
 public class ProfileController {
 
     // Serviço responsável por buscar e atualizar os dados do perfil.
@@ -29,22 +29,23 @@ public class ProfileController {
     }
 
     // Busca o perfil do usuário identificado pelo UUID informado na URL.
-    @GetMapping
-    public ResponseEntity<ApiResponse<ProfileResponseDTO>> getProfile(Principal authentication) {
-        final UUID userId = UUID.fromString(authentication.getName());
-        final ProfileResponseDTO response = profileService.getProfile(userId);
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse<ProfileResponseDTO>> getProfile(Principal principal) {
+        UUID userId = UUID.fromString(principal.getName());
+        ProfileResponseDTO response = profileService.getProfile(userId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // Recebe os novos dados do perfil e devolve o perfil atualizado.
-    @PutMapping
-    public ResponseEntity<ProfileResponseDTO> updateProfile(
-            @PathVariable UUID userId,
-            @RequestBody ProfileUpdateDTO updateDTO
+    @PutMapping("/profile")
+    public ResponseEntity<ApiResponse<ProfileResponseDTO>> updateProfile(
+            @Valid @RequestBody ProfileUpdateDTO updateDTO,
+            Principal principal
     ) {
-        final ProfileResponseDTO response = profileService.updateProfile(userId, updateDTO);
+        UUID userId = UUID.fromString(principal.getName());
+        ProfileResponseDTO response = profileService.updateProfile(userId, updateDTO);
 
         // Retorna HTTP 200 com os dados atualizados no corpo da resposta.
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
