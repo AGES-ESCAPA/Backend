@@ -57,9 +57,53 @@ jobs:
           name: jacoco-report
           path: target/site/jacoco/
 
+  # Testes que geram o PDF do certificado com o Chromium de verdade (@Tag("pdf")).
+  # Ficam fora do `mvn verify` do job build para ele continuar rapido.
+  pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # O navegador instalado precisa ser o da versao da biblioteca, senao o
+      # Chromium nao e encontrado em producao.
+      - name: Check Playwright version in pom.xml and Dockerfile
+        run: |
+          POM_VERSION=$(mvn -B -q help:evaluate -Dexpression=playwright.version -DforceStdout)
+          DOCKER_VERSION=$(sed -n 's/^ARG PLAYWRIGHT_VERSION=//p' Dockerfile)
+          echo "pom.xml: $POM_VERSION / Dockerfile: $DOCKER_VERSION"
+          test "$POM_VERSION" = "$DOCKER_VERSION"
+
+      - name: Install Chromium
+        run: mvn -B exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps chromium"
+
+      - name: Generate certificate PDFs
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: mvn -B test -Dsurefire.excludedGroups= -Dgroups=pdf
+
+      # PDFs e imagens gerados nos dois temas, para a comparacao lado a lado com a tela.
+      - name: Upload certificate previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: certificate-preview
+          path: target/certificate-preview/
+
   docker:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
