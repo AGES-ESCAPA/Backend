@@ -27,6 +27,14 @@
         plugin, para que -Dspring-boot.run.profiles=... na linha de comando
         ainda consiga sobrescrever. Nao afeta o jar, os testes nem o Docker. -->
         <spring-boot.run.profiles>dev</spring-boot.run.profiles>
+        <!-- Reaproveitada no Dockerfile (imagem mcr.microsoft.com/playwright/java):
+        a versao da biblioteca e a do navegador instalado precisam ser a mesma,
+        senao o Chromium nao e encontrado. -->
+        <playwright.version>1.63.0</playwright.version>
+        <!-- Testes que sobem o Chromium de verdade (@Tag("pdf")) ficam fora do
+        `mvn verify` padrao; o CI roda esses testes num passo proprio, com
+        -Dsurefire.excludedGroups= -Dgroups=pdf. -->
+        <surefire.excludedGroups>pdf</surefire.excludedGroups>
     </properties>
 
     <dependencies>
@@ -93,6 +101,25 @@
             <artifactId>openpdf</artifactId>
             <version>2.2.2</version>
         </dependency>
+        <!-- Geracao do PDF do certificado (US-19): o template HTML/CSS e montado
+        com Thymeleaf e impresso pelo Chromium do Playwright, para o PDF ficar
+        igual a tela de certificado (US-18). -->
+        <dependency>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+            <version>${playwright.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <!-- Leitura do PDF gerado nos testes (paginas, dimensoes e texto). -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.8</version>
+            <scope>test</scope>
+        </dependency>
         <!-- Cliente para o MinIO (upload/delete de arquivos no bucket escapa-media, US-24). -->
         <dependency>
             <groupId>io.minio</groupId>
@@ -157,6 +184,18 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>${surefire.excludedGroups}</excludedGroups>
+                    <!-- Os testes que sobem o contexto do Spring nao lancam o Chromium:
+                    so os @Tag("pdf") usam o navegador, e criam o proprio renderer. -->
+                    <systemPropertyVariables>
+                        <certificate.pdf.warm-up>false</certificate.pdf.warm-up>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
