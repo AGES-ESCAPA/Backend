@@ -25,7 +25,9 @@ import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CourseValidationException;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
 import com.escapa.backend.domain.user.AdminAccessDeniedException;
+import com.escapa.backend.domain.user.InactiveUserException;
 import com.escapa.backend.domain.user.InvalidAvatarFileException;
+import com.escapa.backend.domain.user.InvalidCredentialsException;
 import com.escapa.backend.domain.user.UserNotFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -62,7 +64,19 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
-        @ExceptionHandler(InvalidAvatarFileException.class)
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiError> handleInvalidCredentialsException(
+            InvalidCredentialsException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(InactiveUserException.class)
+    public ResponseEntity<ApiError> handleInactiveUserException(
+            InactiveUserException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(InvalidAvatarFileException.class)
     public ResponseEntity<ApiError> handleInvalidAvatarFileException(
             InvalidAvatarFileException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);

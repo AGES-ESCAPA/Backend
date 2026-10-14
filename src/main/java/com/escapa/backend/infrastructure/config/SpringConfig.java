@@ -22,12 +22,14 @@ import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
+import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
+import com.escapa.backend.application.usecase.LoginUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
@@ -66,6 +68,7 @@ import com.escapa.backend.infrastructure.persistence.OrderRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
+import com.escapa.backend.infrastructure.persistence.UsersCompanyJpaRepository;
 import com.escapa.backend.infrastructure.persistence.course.CourseRepositoryAdapter;
 import com.escapa.backend.infrastructure.storage.MinioFileStorageAdapter;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -77,8 +80,20 @@ import jakarta.persistence.EntityManager;
 public class SpringConfig {
 
     @Bean
-    public UserRepositoryPort userRepositoryPort(UserJpaRepository userJpaRepository) {
-        return new UserRepositoryAdapter(userJpaRepository);
+    public UserRepositoryPort userRepositoryPort(
+            UserJpaRepository userJpaRepository,
+            UsersCompanyJpaRepository usersCompanyJpaRepository
+    ) {
+        return new UserRepositoryAdapter(userJpaRepository, usersCompanyJpaRepository);
+    }
+
+    @Bean
+    public LoginUseCase loginUseCase(
+            UserRepositoryPort userRepositoryPort,
+            PasswordHasherPort passwordHasherPort,
+            TokenProviderPort tokenProviderPort
+    ) {
+        return new LoginUseCase(userRepositoryPort, passwordHasherPort, tokenProviderPort);
     }
 
     @Bean
