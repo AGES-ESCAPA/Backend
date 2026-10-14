@@ -11,4 +11,6 @@ public interface UserRepositoryPort {
     boolean existsByEmail(String email);
     List<User> findAll();
     Optional<User> findById(UUID id);
+    Optional<User> findByEmail(String email);
+    boolean isUserLinkedToCompany(UUID userId);
 }

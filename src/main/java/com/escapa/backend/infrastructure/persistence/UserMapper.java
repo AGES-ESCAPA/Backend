@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.domain.user.UserStatus;
 
 public final class UserMapper {
 
@@ -16,15 +17,24 @@ public final class UserMapper {
         }
         final UUID id = user.getId() != null ? user.getId() : UUID.randomUUID();
         final LocalDateTime createdAt = user.getCreatedAt() != null ? user.getCreatedAt() : LocalDateTime.now();
-        return new UserEntity(id, user.getName(), user.getEmail(), user.getPasswordHash(),
-                user.getUserType(), createdAt);
+        return new UserEntity(
+                id,
+                user.getName(),
+                user.getEmail(),
+                user.getPasswordHash(),
+                user.getUserType(),
+                toEntityStatus(user.getStatus()),
+                user.getAvatarUrl(),
+                createdAt
+        );
     }
 
-        public static void updateEntity(UserEntity entity, User user) {
+    public static void updateEntity(UserEntity entity, User user) {
         entity.setName(user.getName());
         entity.setEmail(user.getEmail());
         entity.setPasswordHash(user.getPasswordHash());
         entity.setRole(user.getUserType());
+        entity.setStatus(toEntityStatus(user.getStatus()));
         entity.setProfileAvatarUrl(user.getAvatarUrl());
     }
 
@@ -39,7 +49,22 @@ public final class UserMapper {
                 entity.getPasswordHash(),
                 entity.getRole(),
                 entity.getProfileAvatarUrl(),
+                toDomainStatus(entity.getStatus()),
                 entity.getCreatedAt()
         );
+    }
+
+    private static com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus toEntityStatus(
+            UserStatus status) {
+        return status == UserStatus.INACTIVE
+                ? com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus.INACTIVE
+                : com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus.ACTIVE;
+    }
+
+    private static UserStatus toDomainStatus(
+            com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus status) {
+        return status == com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus.INACTIVE
+                ? UserStatus.INACTIVE
+                : UserStatus.ACTIVE;
     }
 }
