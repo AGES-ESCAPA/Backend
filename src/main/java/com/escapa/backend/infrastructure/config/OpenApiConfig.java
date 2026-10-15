@@ -1,6 +1,7 @@
 package com.escapa.backend.infrastructure.config;
 
 import com.escapa.backend.adapters.exception.ApiError;
+import com.escapa.backend.adapters.security.UserIdHeader;
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.core.converter.ResolvedSchema;
@@ -64,8 +65,7 @@ public class OpenApiConfig implements WebMvcConfigurer {
             addError(operation, "400", "Invalid request");
             if (controller.startsWith("Admin")) {
                 addError(operation, "403", "Missing, invalid or non-ADMIN X-User-Id header");
-            }
-            if (controller.startsWith("Student")) {
+            } else if (controller.startsWith("Student") || hasUserIdHeader(operation)) {
                 addError(operation, "401", "Missing or invalid X-User-Id header");
             }
             if (hasPathParameter(operation)) {
@@ -79,6 +79,12 @@ public class OpenApiConfig implements WebMvcConfigurer {
     private static boolean hasPathParameter(Operation operation) {
         return operation.getParameters() != null
                 && operation.getParameters().stream().map(Parameter::getIn).anyMatch("path"::equals);
+    }
+
+    private static boolean hasUserIdHeader(Operation operation) {
+        return operation.getParameters() != null
+                && operation.getParameters().stream()
+                        .anyMatch(p -> "header".equals(p.getIn()) && UserIdHeader.NAME.equals(p.getName()));
     }
 
     private static void addError(Operation operation, String status, String description) {
