@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<!--
+  PDF do certificado (US-19), fiel ao CertificateCard da tela (US-18).
+
+  Dados do aluno e do curso so com th:text, que escapa HTML: nunca th:utext para
+  dados vindos do banco. O unico th:utext e o CSS, montado no startup a partir de
+  arquivos do classpath (CertificateAssets).
+
+  A fita, o selo e a assinatura sao os mesmos SVGs do front
+  (Frontend/src/pages/DigitalCertificate/components/CertificateCard/CertificateCard.tsx),
+  e os icones sao os do lucide-react 1.33.0 (CalendarDays, Clock, IdCard).
+-->
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" th:attr="data-theme=${theme}">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="|Certificado ${certificate.verificationCode()}|">Certificado</title>
+  <style th:utext="${stylesheet}"></style>
+</head>
+<body>
+<main class="certificate" aria-label="Certificado de conclusão">
+  <svg class="ribbon" viewBox="0 0 330 920" aria-hidden="true">
+    <g class="ribbon-tails">
+      <rect x="101" y="443" width="150" height="300" rx="14" transform="rotate(16 176 593)"/>
+      <rect x="24" y="767" width="160" height="130" rx="16" transform="rotate(10 104 832)"/>
+    </g>
+    <polygon class="ribbon-band" points="110,0 302,0 302,415 206,492 110,415"/>
+  </svg>
+
+  <svg class="seal" viewBox="0 0 216 216" aria-hidden="true">
+    <defs>
+      <path id="seal-top-arc" d="M 34,108 A 74,74 0 0 1 182,108"/>
+      <path id="seal-bottom-arc" d="M 19,108 A 89,89 0 0 0 197,108"/>
+    </defs>
+    <circle class="seal-outer" cx="108" cy="108" r="103"/>
+    <circle class="seal-inner" cx="108" cy="108" r="58"/>
+    <circle class="seal-dot" cx="29" cy="108" r="5"/>
+    <circle class="seal-dot" cx="187" cy="108" r="5"/>
+    <text class="seal-text">
+      <textPath href="#seal-top-arc" startOffset="50%" text-anchor="middle">CERTIFICADO</textPath>
+    </text>
+    <text class="seal-text">
+      <textPath href="#seal-bottom-arc" startOffset="50%" text-anchor="middle">DE CONCLUSÃO</textPath>
+    </text>
+    <polyline class="seal-check" points="79,114 100,133 137,85"/>
+  </svg>
+
+  <div class="content" th:classappend="${compactLayout} ? 'is-compact'">
+    <header class="header">
+      <img class="logo" th:src="${logo}" alt="escapa!">
+      <span class="divider" aria-hidden="true"></span>
+      <span class="context">Cursos</span>
+    </header>
+
+    <p class="eyebrow">Certificado de conclusão</p>
+
+    <div class="intro">
+      <p class="intro-line">Certificamos que</p>
+      <h1 class="student-name" th:classappend="${studentNameSize}"
+          th:text="${certificate.studentName()}">Jorge Amado</h1>
+      <p class="intro-line">concluiu com sucesso o curso</p>
+      <h2 class="course-name" th:classappend="${courseTitleSize}"
+          th:text="${certificate.courseTitle()}">Marketing Digital para Hospitalidade</h2>
+      <p class="offered-by"
+         th:text="|oferecido pela Escapa! Cursos, com carga horária total de ${certificate.workload()}.|">
+        oferecido pela Escapa! Cursos, com carga horária total de 16 horas.
+      </p>
+    </div>
+
+    <dl class="details">
+      <div class="detail-item">
+        <svg class="detail-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 2v3"/>
+          <path d="M16 2v3"/>
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M3 9h18"/>
+          <path d="M8 13h.01"/>
+          <path d="M12 13h.01"/>
+          <path d="M16 13h.01"/>
+          <path d="M8 17h.01"/>
+          <path d="M12 17h.01"/>
+          <path d="M16 17h.01"/>
+        </svg>
+        <div>
+          <dt>Data de conclusão</dt>
+          <dd th:text="${certificate.conclusionDate()}">21 de agosto de 2025</dd>
+        </div>
+      </div>
+      <div class="detail-item">
+        <svg class="detail-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+        <div>
+          <dt>Carga horária</dt>
+          <dd th:text="${certificate.workload()}">16 horas</dd>
+        </div>
+      </div>
+      <div class="detail-item">
+        <svg class="detail-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M16 10h2"/>
+          <path d="M16 14h2"/>
+          <path d="M6.17 15a3 3 0 0 1 5.66 0"/>
+          <circle cx="9" cy="11" r="2"/>
+          <rect x="2" y="5" width="20" height="14" rx="2"/>
+        </svg>
+        <div>
+          <dt>Código de verificação</dt>
+          <dd th:text="${certificate.verificationCode()}">ESC-21AGO25-7X9L2M3N</dd>
+        </div>
+      </div>
+    </dl>
+
+    <footer class="footer">
+      <div class="verify">
+        <p>Verifique a autenticidade deste certificado em:</p>
+        <a class="verify-link" th:href="|https://${certificate.validationUrl()}|"
+           th:text="${certificate.validationUrl()}">escapa.com.br/certificados/ESC-21AGO25-7X9L2M3N</a>
+      </div>
+    </footer>
+
+    <div class="signature">
+      <svg class="signature-stroke" viewBox="0 0 240 90" aria-hidden="true">
+        <path d="M8 88 C30 60 42 20 40 8 C38 30 30 60 24 78 C40 50 55 40 62 52 C66 60 60 70 70 62 C80 54 88 48 95 52 C100 56 98 62 106 58 M118 30 C120 45 118 60 116 66 C124 52 132 42 140 46 C146 50 140 62 150 58 C160 54 170 50 178 54 C186 58 188 62 196 58 C206 52 216 54 236 58"/>
+      </svg>
+      <span class="signature-line" aria-hidden="true"></span>
+      <span class="signature-name">Equipe Escapa! Cursos</span>
+      <span class="signature-caption">Plataforma de Ensino Online</span>
+    </div>
+  </div>
+</main>
+</body>
+</html>

@@ -2,11 +2,14 @@ package com.escapa.backend.adapters.controller;
 
 import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
 import com.escapa.backend.application.model.CertificateDetails;
-import com.escapa.backend.application.model.CertificateRecord;
+import com.escapa.backend.application.model.FormattedCertificate;
 import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
 import com.escapa.backend.application.usecase.GetCertificateDetailsUseCase;
+import com.escapa.backend.domain.certificate.CertificateGenerationException;
+import com.escapa.backend.domain.certificate.CertificateGenerationUnavailableException;
+import com.escapa.backend.domain.certificate.CertificateTheme;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +25,7 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -38,15 +42,14 @@ class CertificateControllerTest {
     private static final String ISSUED_CODE = "ESC-2026-MKT-0001";
     private static final String UNCONCLUDED_CODE = "ESC-2026-MKT-0002";
     private static final UUID COURSE_ID = UUID.fromString("b2c3d4e5-1111-2222-3333-444455556666");
-    private static final byte[] GENERATED_PDF = "%PDF-1.4 fake content".getBytes(StandardCharsets.UTF_8);
 
     private MockMvc mockMvc;
+    // Erro que o generator fake lanca, quando definido. Sem erro, ele devolve
+    // "%PDF-<tema>", para o teste conferir qual tema chegou ate ele.
+    private Supplier<RuntimeException> generationFailure = () -> null;
 
     @BeforeEach
     void setUp() {
-        final CertificateRecord certificate = new CertificateRecord(
-                UUID.randomUUID(), UUID.randomUUID(), "Jorge Amado", "Marketing Digital para Hospitalidade",
-                960, LocalDate.of(2026, 8, 21), ISSUED_CODE, null);
         final CertificateDetails.Course course = new CertificateDetails.Course(
                 COURSE_ID, "Marketing Digital para Hospitalidade",
                 "Estrategias de marketing digital para hoteis", "Marketing", "Intermediario",
@@ -58,29 +61,43 @@ class CertificateControllerTest {
                 ISSUED_CODE, new CertificateDetails(LocalDate.of(2026, 8, 21), 960, ISSUED_CODE, student, course),
                 UNCONCLUDED_CODE, new CertificateDetails(null, 960, UNCONCLUDED_CODE, student, course));
 
-        final CertificateRepositoryPort certificateRepositoryPort =
-                new CertificateRepositoryPort() {
-                    @Override
-                    public Optional<CertificateRecord> findByVerificationCode(String verificationCode) {
-                        return Optional.of(certificate).filter(c -> c.verificationCode().equals(verificationCode));
-                    }
+        final CertificateRepositoryPort certificateRepositoryPort = new CertificateRepositoryPort() {
+            @Override
+            public Optional<CertificateDetails> findDetailsByVerificationCode(String verificationCode) {
+                return Optional.ofNullable(detailsByCode.get(verificationCode));
+            }
 
-                    @Override
-                    public Optional<CertificateDetails> findDetailsByVerificationCode(String verificationCode) {
-                        return Optional.ofNullable(detailsByCode.get(verificationCode));
-                    }
+            @Override
+            public Optional<byte[]> findCachedPdf(String code, CertificateTheme theme, String version) {
+                // Sem cache nesse teste: todo download passa pelo generator fake.
+                return Optional.empty();
+            }
 
-                    @Override
-                    public void saveCachedPdf(UUID userId, UUID courseId, byte[] pdf) {
-                        // Sem cache real nesse teste: o generator fake sempre devolve o mesmo PDF.
-                    }
-                };
-        final CertificatePdfGeneratorPort certificatePdfGeneratorPort = c -> GENERATED_PDF;
+            @Override
+            public void saveCachedPdf(String code, CertificateTheme theme, String version, byte[] pdf) {
+                // Sem cache nesse teste.
+            }
+        };
+        final CertificatePdfGeneratorPort certificatePdfGeneratorPort = new CertificatePdfGeneratorPort() {
+            @Override
+            public String templateVersion() {
+                return "v2";
+            }
 
-        final DownloadCertificateUseCase useCase =
-                new DownloadCertificateUseCase(certificateRepositoryPort, certificatePdfGeneratorPort);
+            @Override
+            public byte[] generate(FormattedCertificate certificate, CertificateTheme theme) {
+                final RuntimeException failure = generationFailure.get();
+                if (failure != null) {
+                    throw failure;
+                }
+                return pdfFor(theme);
+            }
+        };
+
         final GetCertificateDetailsUseCase detailsUseCase = new GetCertificateDetailsUseCase(certificateRepositoryPort);
-        mockMvc = MockMvcBuilders.standaloneSetup(new CertificateController(detailsUseCase, useCase))
+        final DownloadCertificateUseCase useCase =
+                new DownloadCertificateUseCase(detailsUseCase, certificateRepositoryPort, certificatePdfGeneratorPort);
+        mockMvc = MockMvcBuilders.standaloneSetup(new CertificateController(detailsUseCase, useCase, "dark"))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 // Mesmo ObjectMapper do Spring Boot: datas em ISO-8601 ("2026-08-21"), nao em array.
                 .setMessageConverters(
@@ -91,9 +108,13 @@ class CertificateControllerTest {
                 .build();
     }
 
+    private static byte[] pdfFor(CertificateTheme theme) {
+        return ("%PDF-" + theme).getBytes(StandardCharsets.UTF_8);
+    }
+
     @Test
     void shouldReturn200WithThePdfFileAndHeaders() throws Exception {
-        mockMvc.perform(get(URL, ISSUED_CODE))
+        mockMvc.perform(get(URL, ISSUED_CODE).param("theme", "dark"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/pdf"))
                 .andExpect(header().string(
@@ -102,7 +123,29 @@ class CertificateControllerTest {
                 .andExpect(header().string(
                         HttpHeaders.CONTENT_DISPOSITION,
                         containsString("filename=\"certificado-marketing-digital-para-hospitalidade.pdf\"")))
-                .andExpect(content().bytes(GENERATED_PDF));
+                .andExpect(content().bytes(pdfFor(CertificateTheme.DARK)));
+    }
+
+    @Test
+    void shouldUseTheDarkThemeWhenTheParameterIsMissing() throws Exception {
+        mockMvc.perform(get(URL, ISSUED_CODE))
+                .andExpect(status().isOk())
+                .andExpect(content().bytes(pdfFor(CertificateTheme.DARK)));
+    }
+
+    @Test
+    void shouldAcceptTheThemeIgnoringCase() throws Exception {
+        mockMvc.perform(get(URL, ISSUED_CODE).param("theme", "LIGHT"))
+                .andExpect(status().isOk())
+                .andExpect(content().bytes(pdfFor(CertificateTheme.LIGHT)));
+    }
+
+    @Test
+    void shouldReturn400ForAnInvalidTheme() throws Exception {
+        mockMvc.perform(get(URL, ISSUED_CODE).param("theme", "blue"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Invalid theme 'blue': use light or dark"));
     }
 
     @Test
@@ -114,6 +157,31 @@ class CertificateControllerTest {
     }
 
     @Test
+    void shouldReturn404WhenTheCourseIsNotConcluded() throws Exception {
+        mockMvc.perform(get(URL, UNCONCLUDED_CODE).param("theme", "dark"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturn503WhenTheGeneratorIsBusy() throws Exception {
+        generationFailure = () -> new CertificateGenerationUnavailableException("Certificate generation is busy");
+
+        mockMvc.perform(get(URL, ISSUED_CODE))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.status").value(503));
+    }
+
+    @Test
+    void shouldReturnAGeneric500WhenTheGenerationFails() throws Exception {
+        generationFailure = () -> new CertificateGenerationException(
+                "Failed to generate the certificate PDF", new IllegalStateException("Chromium crashed"));
+
+        mockMvc.perform(get(URL, ISSUED_CODE))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Could not generate the certificate PDF"));
+    }
+
+    @Test
     void shouldReturn200WithTheCertificateScreenData() throws Exception {
         mockMvc.perform(get(DETAILS_URL, ISSUED_CODE))
                 .andExpect(status().isOk())
@@ -121,6 +189,10 @@ class CertificateControllerTest {
                 .andExpect(jsonPath("$.data.certificate.conclusionDate").value("2026-08-21"))
                 .andExpect(jsonPath("$.data.certificate.workload").value(960))
                 .andExpect(jsonPath("$.data.certificate.verificationCode").value(ISSUED_CODE))
+                .andExpect(jsonPath("$.data.certificate.formattedConclusionDate").value("21 de agosto de 2026"))
+                .andExpect(jsonPath("$.data.certificate.formattedWorkload").value("16 horas"))
+                .andExpect(jsonPath("$.data.certificate.validationUrl")
+                        .value("escapa.com.br/certificados/" + ISSUED_CODE))
                 .andExpect(jsonPath("$.data.student.name").value("Jorge Amado"))
                 .andExpect(jsonPath("$.data.student.avatarUrl").value("https://cdn.escapa.com.br/users/42/avatar.jpg"))
                 .andExpect(jsonPath("$.data.student.isVerified").value(true))
