@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -32,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PasswordControllerTest extends PostgresIntegrationTest {
 
     private static final String URL = "/api/v1/me/password";
+    private static final String LOGIN_URL = "/api/v1/auth/login";
 
     @Autowired
     private MockMvc mockMvc;
@@ -47,7 +49,7 @@ class PasswordControllerTest extends PostgresIntegrationTest {
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
-        userJpaRepository.save(new UserEntity(userId, "Senha Test", "senha." + userId + "@test.com",
+        userJpaRepository.save(new UserEntity(userId, "Senha Test", email(),
                 passwordHasherPort.hash("senha-atual"), "STUDENT", LocalDateTime.now()));
     }
 
@@ -75,6 +77,26 @@ class PasswordControllerTest extends PostgresIntegrationTest {
         assertFalse(passwordHasherPort.matches("senha-atual", updated.getPasswordHash()));
         assertEquals(UserStatus.INACTIVE, updated.getStatus());
         assertEquals("Senha Test", updated.getName());
+    }
+
+    @Test
+    void shouldLoginWithNewPasswordAndRejectOldOneAfterChange() throws Exception {
+        mockMvc.perform(put(URL)
+                        .header("X-User-Id", userId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("senha-atual", "nova-senha-segura")))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post(LOGIN_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginBody("nova-senha-segura")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.user.id", is(userId.toString())));
+
+        mockMvc.perform(post(LOGIN_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginBody("senha-atual")))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -110,5 +132,13 @@ class PasswordControllerTest extends PostgresIntegrationTest {
 
     private static String body(String currentPassword, String newPassword) {
         return "{\"currentPassword\":\"" + currentPassword + "\",\"newPassword\":\"" + newPassword + "\"}";
+    }
+
+    private String loginBody(String password) {
+        return "{\"email\":\"" + email() + "\",\"password\":\"" + password + "\"}";
+    }
+
+    private String email() {
+        return "senha." + userId + "@test.com";
     }
 }

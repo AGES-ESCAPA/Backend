@@ -8,82 +8,80 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ChangePasswordUseCaseTest {
 
+    private static final String CURRENT_PASSWORD = "senha-atual";
+    private static final String NEW_PASSWORD = "nova-senha-segura";
+
     private final InMemoryUserRepositoryPort repository = new InMemoryUserRepositoryPort();
     private final FakePasswordHasher hasher = new FakePasswordHasher();
     private final ChangePasswordUseCase useCase = new ChangePasswordUseCase(repository, hasher);
 
-    private UUID userId;
+    private User user;
 
     @BeforeEach
     void setUp() {
-        final User user = repository.save(
-                new User("Maria Silva", "maria@email.com", hasher.hash("senha-atual"), "STUDENT"));
-        userId = user.getId();
+        user = repository.save(new User("Maria Silva", "maria@email.com", hasher.hash(CURRENT_PASSWORD), "STUDENT"));
     }
 
     @Test
     void shouldReplaceHashWhenCurrentPasswordMatches() {
-        useCase.execute(userId, "senha-atual", "nova-senha-segura");
+        useCase.execute(user.getId(), CURRENT_PASSWORD, NEW_PASSWORD);
 
-        final String storedHash = storedHash();
-        assertTrue(hasher.matches("nova-senha-segura", storedHash));
-        assertFalse(hasher.matches("senha-atual", storedHash));
+        final String storedHash = repository.findById(user.getId()).orElseThrow().getPasswordHash();
+        assertTrue(hasher.matches(NEW_PASSWORD, storedHash));
+        assertFalse(hasher.matches(CURRENT_PASSWORD, storedHash));
     }
 
     @Test
     void shouldRejectWrongCurrentPasswordAndKeepHash() {
-        assertThrows(
-                InvalidCurrentPasswordException.class,
-                () -> useCase.execute(userId, "senha-errada", "nova-senha-segura")
-        );
+        final String originalHash = user.getPasswordHash();
 
-        assertTrue(hasher.matches("senha-atual", storedHash()));
+        assertThrows(InvalidCurrentPasswordException.class,
+                () -> useCase.execute(user.getId(), "senha-errada", NEW_PASSWORD));
+
+        assertEquals(originalHash, repository.findById(user.getId()).orElseThrow().getPasswordHash());
     }
 
     @Test
     void shouldRejectNewPasswordShorterThanMinimum() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> useCase.execute(userId, "senha-atual", "1234567")
-        );
+        final String shortPassword = "a".repeat(CreateUserUseCase.MIN_PASSWORD_LENGTH - 1);
+        final String originalHash = user.getPasswordHash();
 
-        assertTrue(hasher.matches("senha-atual", storedHash()));
+        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute(user.getId(), CURRENT_PASSWORD, shortPassword));
+
+        assertEquals("Password must be at least 8 characters", ex.getMessage());
+        assertEquals(originalHash, repository.findById(user.getId()).orElseThrow().getPasswordHash());
     }
 
     @Test
     void shouldAcceptNewPasswordWithExactlyMinimumLength() {
-        useCase.execute(userId, "senha-atual", "12345678");
+        final String minimumPassword = "a".repeat(CreateUserUseCase.MIN_PASSWORD_LENGTH);
 
-        assertTrue(hasher.matches("12345678", storedHash()));
+        useCase.execute(user.getId(), CURRENT_PASSWORD, minimumPassword);
+
+        assertTrue(hasher.matches(minimumPassword, repository.findById(user.getId()).orElseThrow().getPasswordHash()));
     }
 
     @Test
     void shouldRejectBlankCurrentPassword() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> useCase.execute(userId, "   ", "nova-senha-segura")
-        );
+        final String originalHash = user.getPasswordHash();
 
-        assertTrue(hasher.matches("senha-atual", storedHash()));
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute(user.getId(), " ", NEW_PASSWORD));
+
+        assertEquals(originalHash, repository.findById(user.getId()).orElseThrow().getPasswordHash());
     }
 
     @Test
     void shouldThrowWhenUserNotFound() {
-        final UUID unknownId = UUID.randomUUID();
-
-        assertThrows(
-                UserNotFoundException.class,
-                () -> useCase.execute(unknownId, "senha-atual", "nova-senha-segura")
-        );
-    }
-
-    private String storedHash() {
-        return repository.findById(userId).orElseThrow().getPasswordHash();
+        assertThrows(UserNotFoundException.class,
+                () -> useCase.execute(UUID.randomUUID(), CURRENT_PASSWORD, NEW_PASSWORD));
     }
 }

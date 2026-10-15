@@ -14,8 +14,7 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, UUID> {
 
     Optional<UserEntity> findByEmail(String email);
 
-    // Atualiza só o hash: o save() recria a entidade a partir do dominio e
-    // sobrescreveria colunas que ele nao carrega, como o status.
+    // Update pontual: salvar a entidade inteira reescreveria status e as colunas das subclasses.
     @Transactional
     @Modifying(clearAutomatically = true)
     @Query("UPDATE UserEntity u SET u.passwordHash = :passwordHash WHERE u.id = :id")

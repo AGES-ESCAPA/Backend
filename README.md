@@ -458,7 +458,7 @@ X-User-Id: <uuid do usuário logado>
 { "currentPassword": "senha-atual", "newPassword": "nova-senha-segura" }
 ```
 
-Disponível para todos os perfis. Retorna `200` ao trocar a senha; o usuário continua logado. Senha atual incorreta ou nova senha com menos de 8 caracteres retornam `400` (e não `401`, para o frontend não tratar como sessão expirada). Sem `X-User-Id` válido retorna `401`. O header é provisório até a autenticação por token (US-23).
+Disponível para todos os perfis. Retorna `200` ao trocar a senha; o usuário continua logado. Senha atual incorreta ou nova senha com menos de 8 caracteres retornam `400` (e não `401`, para o frontend não tratar como sessão expirada). Sem `X-User-Id` válido retorna `401`. Depois da troca, o login (`POST /api/v1/auth/login`) passa a aceitar só a nova senha. O header é provisório até as rotas validarem o token emitido pelo login.
 
 ---
 
