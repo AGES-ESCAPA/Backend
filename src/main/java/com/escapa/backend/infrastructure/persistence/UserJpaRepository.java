@@ -6,10 +6,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface UserJpaRepository extends JpaRepository<UserEntity, UUID> {
     boolean existsByEmail(String email);
+
+    Optional<UserEntity> findByEmail(String email);
 
     // Atualiza só o hash: o save() recria a entidade a partir do dominio e
     // sobrescreveria colunas que ele nao carrega, como o status.

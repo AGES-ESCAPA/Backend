@@ -6,7 +6,7 @@ import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
 import java.nio.charset.StandardCharsets;
 
 /** Nao chama nenhuma biblioteca de PDF: devolve bytes previsiveis e conta as chamadas. */
-final class FakeCertificatePdfGeneratorPort implements CertificatePdfGeneratorPort {
+public final class FakeCertificatePdfGeneratorPort implements CertificatePdfGeneratorPort {
     private int calls;
 
     @Override

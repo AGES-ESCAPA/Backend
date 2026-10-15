@@ -9,15 +9,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-final class InMemoryCertificateRepositoryPort implements CertificateRepositoryPort {
+public final class InMemoryCertificateRepositoryPort implements CertificateRepositoryPort {
     private final Map<String, CertificateRecord> byCode = new HashMap<>();
     private final Map<String, CertificateDetails> detailsByCode = new HashMap<>();
 
-    void add(CertificateRecord certificate) {
+    public void add(CertificateRecord certificate) {
         byCode.put(certificate.verificationCode(), certificate);
     }
 
-    void addDetails(CertificateDetails details) {
+    public void addDetails(CertificateDetails details) {
         detailsByCode.put(details.verificationCode(), details);
     }
 

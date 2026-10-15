@@ -1,20 +1,19 @@
 package com.escapa.backend.domain.entity;
 
-import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import com.escapa.backend.domain.user.UserStatus;
+import com.escapa.backend.domain.user.UserTypes;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(of = {"id", "email"})
 public class User {
     private UUID id;
@@ -22,14 +21,32 @@ public class User {
     private String email;
     private String passwordHash;
     private String userType;
+    private String avatarUrl;
+    private UserStatus status = UserStatus.ACTIVE;
     private LocalDateTime createdAt;
-    private List<UserCourse> userCourses = new ArrayList<>();
 
-    public User(UUID id, String name, String email, String passwordHash, String userType, LocalDateTime createdAt) {
-        this(id, name, email, passwordHash, userType, createdAt, new ArrayList<>());
+    public User(UUID id, String name, String email, String passwordHash, String userType,
+                String avatarUrl, UserStatus status, LocalDateTime createdAt) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.userType = userType;
+        this.avatarUrl = avatarUrl;
+        this.status = status != null ? status : UserStatus.ACTIVE;
+        this.createdAt = createdAt;
+    }
+
+    public User(UUID id, String name, String email, String passwordHash, String userType,
+                String avatarUrl, LocalDateTime createdAt) {
+        this(id, name, email, passwordHash, userType, avatarUrl, UserStatus.ACTIVE, createdAt);
     }
 
     public User(String name, String email, String passwordHash, String userType) {
-        this(null, name, email, passwordHash, userType, LocalDateTime.now(), new ArrayList<>());
+        this(null, name, email, passwordHash, userType, null, UserStatus.ACTIVE, LocalDateTime.now());
+    }
+
+    public boolean isAdmin() {
+        return UserTypes.ADMIN.equalsIgnoreCase(userType);
     }
 }

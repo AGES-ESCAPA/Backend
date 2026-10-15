@@ -2,6 +2,7 @@ package com.escapa.backend.infrastructure.config;
 
 import java.time.Clock;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,18 +14,23 @@ import com.escapa.backend.application.port.CourseNotificationPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
+import com.escapa.backend.application.port.FileStoragePort;
 import com.escapa.backend.application.port.LessonProgressRepositoryPort;
 import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
 import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
+import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
+import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
+import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.application.usecase.ChangePasswordUseCase;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
+import com.escapa.backend.application.usecase.LoginUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
@@ -40,6 +46,7 @@ import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
 import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCourseFiltersUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
+import com.escapa.backend.application.usecase.ListStudentEnrollmentsUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ReorderContentsUseCase;
@@ -48,6 +55,7 @@ import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCas
 import com.escapa.backend.application.usecase.UpdateContentUseCase;
 import com.escapa.backend.application.usecase.UpdateModuleUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
+import com.escapa.backend.application.usecase.UploadAvatarUseCase;
 import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseChangeLogJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseChangeLogRepositoryAdapter;
@@ -56,20 +64,37 @@ import com.escapa.backend.infrastructure.persistence.CourseNotificationAdapter;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.NotificationJpaRepository;
+import com.escapa.backend.infrastructure.persistence.OrderJpaRepository;
+import com.escapa.backend.infrastructure.persistence.OrderRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
+import com.escapa.backend.infrastructure.persistence.UsersCompanyJpaRepository;
 import com.escapa.backend.infrastructure.persistence.course.CourseRepositoryAdapter;
+import com.escapa.backend.infrastructure.storage.MinioFileStorageAdapter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.minio.MinioClient;
 import jakarta.persistence.EntityManager;
 
 @Configuration
 public class SpringConfig {
 
     @Bean
-    public UserRepositoryPort userRepositoryPort(UserJpaRepository userJpaRepository) {
-        return new UserRepositoryAdapter(userJpaRepository);
+    public UserRepositoryPort userRepositoryPort(
+            UserJpaRepository userJpaRepository,
+            UsersCompanyJpaRepository usersCompanyJpaRepository
+    ) {
+        return new UserRepositoryAdapter(userJpaRepository, usersCompanyJpaRepository);
+    }
+
+    @Bean
+    public LoginUseCase loginUseCase(
+            UserRepositoryPort userRepositoryPort,
+            PasswordHasherPort passwordHasherPort,
+            TokenProviderPort tokenProviderPort
+    ) {
+        return new LoginUseCase(userRepositoryPort, passwordHasherPort, tokenProviderPort);
     }
 
     @Bean
@@ -96,6 +121,11 @@ public class SpringConfig {
     @Bean
     public GetUserByIdUseCase getUserByIdUseCase(UserRepositoryPort userRepositoryPort) {
         return new GetUserByIdUseCase(userRepositoryPort);
+    }
+
+    @Bean
+    public AuthorizeAdminUseCase authorizeAdminUseCase(UserRepositoryPort userRepositoryPort) {
+        return new AuthorizeAdminUseCase(userRepositoryPort);
     }
 
     @Bean
@@ -126,6 +156,11 @@ public class SpringConfig {
             CourseRepositoryPort courseRepositoryPort
     ) {
         return new GetCourseDetailsUseCase(courseRepositoryPort);
+    }
+
+    @Bean
+    public OrderRepositoryPort orderRepositoryPort(OrderJpaRepository repository) {
+        return new OrderRepositoryAdapter(repository);
     }
 
     @Bean
@@ -301,6 +336,13 @@ public class SpringConfig {
     }
 
     @Bean
+    public ListStudentEnrollmentsUseCase listStudentEnrollmentsUseCase(
+            EnrollmentRepositoryPort enrollmentRepositoryPort
+    ) {
+        return new ListStudentEnrollmentsUseCase(enrollmentRepositoryPort);
+    }
+
+    @Bean
     public DownloadCertificateUseCase downloadCertificateUseCase(
             CertificateRepositoryPort certificateRepositoryPort,
             CertificatePdfGeneratorPort certificatePdfGeneratorPort
@@ -313,6 +355,34 @@ public class SpringConfig {
             CertificateRepositoryPort certificateRepositoryPort
     ) {
         return new GetCertificateDetailsUseCase(certificateRepositoryPort);
+    }
+        @Bean
+    public MinioClient minioClient(
+            @Value("${app.storage.minio.endpoint}") String endpoint,
+            @Value("${app.storage.minio.access-key}") String accessKey,
+            @Value("${app.storage.minio.secret-key}") String secretKey
+    ) {
+        return MinioClient.builder()
+                .endpoint(endpoint)
+                .credentials(accessKey, secretKey)
+                .build();
+    }
+
+    @Bean
+    public FileStoragePort fileStoragePort(
+            MinioClient minioClient,
+            @Value("${app.storage.minio.bucket}") String bucket,
+            @Value("${app.storage.minio.public-base-url}") String publicBaseUrl
+    ) {
+        return new MinioFileStorageAdapter(minioClient, bucket, publicBaseUrl);
+    }
+
+        @Bean
+    public UploadAvatarUseCase uploadAvatarUseCase(
+            UserRepositoryPort userRepositoryPort,
+            FileStoragePort fileStoragePort
+    ) {
+        return new UploadAvatarUseCase(userRepositoryPort, fileStoragePort);
     }
 }
 

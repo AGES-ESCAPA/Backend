@@ -49,7 +49,7 @@ src/
 │   │   │   ├── controller/
 │   │   │   ├── dto/
 │   │   │   ├── exception/
-│   │   │   └── mapper/
+│   │   │   └── security/        → leitura do header X-User-Id e guarda de acesso ADMIN
 │   │   ├── infrastructure/          → JPA, repositórios, configurações e integração externa
 │   │   │   ├── config/
 │   │   │   └── persistence/
@@ -94,6 +94,8 @@ infrastructure ┘
 
 ### ✅ Padrões Obrigatórios de Código
 
+> Os exemplos abaixo são simplificados: consulte `User`, `CreateUserUseCase` e `UserController` para a versão real.
+
 #### 1. Entidade de domínio
 
 ```java
@@ -101,13 +103,13 @@ public class User {
     private final String id;
     private final String name;
     private final String email;
-    private final String role;
+    private final String userType;
 
-    public User(String id, String name, String email, String role) {
+    public User(String id, String name, String email, String userType) {
         this.id = id;
         this.name = name;
         this.email = email;
-        this.role = role;
+        this.userType = userType;
     }
 }
 ```
@@ -122,8 +124,8 @@ public class CreateUserUseCase {
         this.userRepositoryPort = userRepositoryPort;
     }
 
-    public User execute(String name, String email, String role) {
-        User user = User.create(name, email, role);
+    public User execute(String name, String email, String userType) {
+        User user = new User(name, email, userType);
         if (userRepositoryPort.existsByEmail(user.getEmail())) {
             throw new IllegalArgumentException("User already exists");
         }
@@ -146,8 +148,8 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<UserResponse>> create(@Valid @RequestBody CreateUserRequest request) {
-        User user = createUserUseCase.execute(request.name(), request.email(), request.role());
-        UserResponse response = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole());
+        User user = createUserUseCase.execute(request.name(), request.email(), request.password(), request.userType());
+        UserResponse response = UserResponse.from(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "User created successfully"));
     }
 }
@@ -172,7 +174,7 @@ class CreateUserUseCaseTest {
         assertNotNull(user.getId());
         assertEquals("maria", user.getName());
         assertEquals("maria@email.com", user.getEmail());
-        assertEquals("STUDENT", user.getRole());
+        assertEquals("STUDENT", user.getUserType());
     }
 }
 ```
@@ -184,9 +186,24 @@ class CreateUserUseCaseTest {
 - Todo caso de uso deve ter teste unitário correspondente.
 - Todo endpoint novo deve ter teste de integração ou teste de controller quando aplicável.
 - Validação de entrada deve ocorrer no DTO/controller via Bean Validation.
-- Erros de domínio devem ser transformados em respostas padronizadas da API (ver `GlobalExceptionHandler`: 400 para validação/regra de domínio, 404 para recurso não encontrado, 409 para conflito de dados, 500 para erro inesperado).
+- Erros de domínio devem ser transformados em respostas padronizadas da API (ver `GlobalExceptionHandler`: 400 para validação/regra de domínio e parâmetro ausente, 401/403 para acesso negado, 404 para recurso não encontrado, 409 para conflito de dados, 422 para publicação de curso incompleto, 500 para erro inesperado).
 - O Checkstyle (`checkstyle.xml`) roda na fase `validate` do Maven e quebra o build em caso de violação — rode `mvn checkstyle:check` antes de abrir MR.
 - O projeto deve continuar funcionando em Maven e em Docker Compose (o `Dockerfile` precisa copiar `checkstyle.xml`, não só `pom.xml`, para o build multi-stage não quebrar).
+
+---
+
+### 🧩 Convenções de Implementação
+
+- **O nome do caso de uso define a transação.** `UseCaseTransactionConfig` envolve o `execute` de toda classe `*UseCase`: os prefixos `Get`, `List`, `Search` e `Authorize` rodam em transação **somente leitura**; os demais, em transação de escrita. Um caso de uso que grave dados **não** pode usar esses prefixos (no PostgreSQL falha em tempo de execução).
+- **Sem Spring em `application/`**: nada de `@Service` ou `@Transactional`. Casos de uso são classes puras registradas como `@Bean` em `SpringConfig` / `CourseConfig`.
+- **Acesso às rotas `/admin`**: receba `@RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId` e chame `AdminRequestGuard.requireAdmin(xUserId)` (403). Rotas do aluno usam `UserIdHeader.requireStudentId(xUserId)` (401). Nunca reimplemente o parse do header nem compare `"ADMIN"` como texto: use `User.isAdmin()` / `UserTypes`. O header é provisório até o login (US-23).
+- **Controllers só roteiam**: a conversão entidade/modelo → resposta fica em `XxxResponse.from(...)` e páginas usam `PageResponse.of(...)`. Regras (ex.: limites de paginação) ficam no caso de uso.
+- **DTOs de entrada**: Bean Validation em todos os campos; textos gravados em `VARCHAR(255)` usam `@Size(max = FieldLimits.VARCHAR_MAX, ...)` e números não negativos usam `@PositiveOrZero`. Um único DTO atende criação e edição quando os campos coincidem (`ContentRequest`, `ModuleRequest`).
+- **Contratos existentes não mudam sem combinar com o frontend**: alguns endpoints respondem sem `ApiResponse` (lista e filtros públicos, regras do curso, change-log, busca de pré-requisitos). Não "padronize" o envelope por conta própria.
+- **Consultas**: não carregue o agregado inteiro (ex.: `CourseEntity` com módulos e aulas) só para listar; use projeção (ex.: `findAllExcludingStatus`) ou `@EntityGraph`. Mappers que percorrem coleções lazy geram N+1.
+- **Checkstyle**: método com no máximo **40 linhas** e variáveis locais `final`; a build quebra se violar.
+- **OpenAPI**: todo controller novo tem `@Tag` e cada endpoint `@Operation(summary = ...)`. As respostas de erro padrão (400/401/403/404/500) são anexadas automaticamente pelo `OpenApiConfig`.
+- **Testes**: reutilize os fakes `InMemory*Port` (públicos, em `src/test/.../application/usecase/`), sem Mockito. Todo controller novo ganha teste com `MockMvcBuilders.standaloneSetup(controller).setControllerAdvice(new GlobalExceptionHandler())` cobrindo acesso (403/401), validação (400) e o formato da resposta. Testes de persistência estendem `PostgresIntegrationTest`.
 
 ---
 

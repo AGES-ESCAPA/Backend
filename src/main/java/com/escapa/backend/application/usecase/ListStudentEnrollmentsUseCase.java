@@ -4,11 +4,9 @@ import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.StudentCourseCard;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.domain.course.EnrollmentStatus;
-import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-@Service
 public class ListStudentEnrollmentsUseCase {
 
     private final EnrollmentRepositoryPort enrollmentRepositoryPort;

@@ -9,12 +9,16 @@ import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserNotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 public class UpdateCourseUseCase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UpdateCourseUseCase.class);
+
     private final CourseRepositoryPort courseRepositoryPort;
     private final UserRepositoryPort userRepositoryPort;
     private final CourseChangeLogRepositoryPort changeLogRepositoryPort;
@@ -54,6 +58,8 @@ public class UpdateCourseUseCase {
         if (changed) {
             changeLogRepositoryPort.save(id, changedBy != null ? changedBy.getId() : null,
                     "Curso atualizado.", saved.getMajorVersion(), saved.getMinorVersion());
+            LOGGER.info("Published course {} updated to version {}.{}",
+                    id, saved.getMajorVersion(), saved.getMinorVersion());
         }
 
         return saved;
@@ -82,7 +88,7 @@ public class UpdateCourseUseCase {
         if (instructorId != null) {
             final User instructor = userRepositoryPort.findById(instructorId)
                     .orElseThrow(() -> new UserNotFoundException(instructorId));
-            if (!"ADMIN".equalsIgnoreCase(instructor.getUserType())) {
+            if (!instructor.isAdmin()) {
                 throw new IllegalArgumentException("instructorId must reference a user with userType ADMIN");
             }
             course.setInstructor(instructor);

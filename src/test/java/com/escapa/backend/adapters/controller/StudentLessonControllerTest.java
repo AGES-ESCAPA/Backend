@@ -92,7 +92,7 @@ class StudentLessonControllerTest {
             }
 
             @Override
-            public List<Course> findAll() {
+            public List<Course> findAllExcludingStatus(com.escapa.backend.domain.course.CourseStatus excludedStatus) {
                 throw new UnsupportedOperationException();
             }
 
