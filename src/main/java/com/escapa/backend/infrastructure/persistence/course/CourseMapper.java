@@ -90,7 +90,6 @@ public final class CourseMapper {
         entity.setLevel(course.getLevel());
         entity.setDurationTime(course.getDurationTime());
         entity.setDeadline(course.getDeadline());
-        entity.setAccessDurationDays(course.getAccessDurationDays());
         entity.setPrice(course.getPrice());
 
         if (course.getLearningObjectives() != null) {
@@ -168,7 +167,6 @@ public final class CourseMapper {
         course.setLevel(entity.getLevel());
         course.setDurationTime(entity.getDurationTime());
         course.setDeadline(entity.getDeadline());
-        course.setAccessDurationDays(entity.getAccessDurationDays());
         course.setPrice(entity.getPrice());
 
         if (entity.getLearningObjectives() != null && !entity.getLearningObjectives().isBlank()) {
