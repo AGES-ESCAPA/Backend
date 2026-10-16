@@ -96,9 +96,6 @@ public class PublishCourseUseCase {
         if (course.getDeadline() == null) {
             missingFields.add("deadline");
         }
-        if (course.getAccessDurationDays() == null) {
-            missingFields.add("accessDurationDays");
-        }
     }
 
     private void validateContent(Course course, List<String> missingFields) {
