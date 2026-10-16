@@ -43,11 +43,11 @@ class RequestValidationTest {
     @Test
     void shouldRejectNegativeNumbersOnCourseUpdate() {
         final UpdateCourseRequest request = new UpdateCourseRequest(
-                null, null, null, null, null, null, null, null, -1, -2, -3, -4.0, null, null, null);
+                null, null, null, null, null, null, null, null, -1, -2, -4.0, null, null, null);
 
         assertEquals(
                 Set.of("durationTime must not be negative", "deadline must not be negative",
-                        "accessDurationDays must not be negative", "price must not be negative"),
+                        "price must not be negative"),
                 messages(validator.validate(request))
         );
     }
@@ -84,7 +84,7 @@ class RequestValidationTest {
 
     private static CreateCourseRequest createCourse(String title, Integer durationTime, Double price) {
         return new CreateCourseRequest(
-                title, null, null, null, null, null, null, null, durationTime, null, null, price, null, null, null);
+                title, null, null, null, null, null, null, null, durationTime, null, price, null, null, null);
     }
 
     private static Set<String> messages(Set<? extends ConstraintViolation<?>> violations) {
