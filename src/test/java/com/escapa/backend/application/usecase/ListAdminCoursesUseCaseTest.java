@@ -59,7 +59,7 @@ class ListAdminCoursesUseCaseTest {
     private Course saveCourse(String title, CourseStatus status) {
         final Course course = new Course(
                 title, null, null, null, null, null, null, null,
-                null, null, null, null, List.of(), true, false, admin);
+                null, null, null, List.of(), true, false, admin);
         course.setStatus(status);
         return repository.save(course);
     }

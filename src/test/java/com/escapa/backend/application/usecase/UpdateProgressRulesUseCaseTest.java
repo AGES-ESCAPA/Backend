@@ -68,6 +68,6 @@ class UpdateProgressRulesUseCaseTest {
 
     private static Course course(User createdBy) {
         return new Course("Curso", null, null, null, null, null, null, null,
-                null, null, null, null, List.of(), true, false, createdBy);
+                null, null, null, List.of(), true, false, createdBy);
     }
 }
