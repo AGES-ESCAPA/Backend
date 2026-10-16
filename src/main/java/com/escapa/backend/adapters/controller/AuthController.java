@@ -4,10 +4,13 @@ import com.escapa.backend.adapters.dto.ApiResponse;
 import com.escapa.backend.adapters.dto.LoginRequest;
 import com.escapa.backend.adapters.dto.LoginResponse;
 import com.escapa.backend.adapters.dto.RegisterStudentRequest;
+import com.escapa.backend.adapters.exception.ApiError;
 import com.escapa.backend.application.usecase.LoginOutput;
 import com.escapa.backend.application.usecase.LoginUseCase;
 import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -40,6 +43,11 @@ public class AuthController {
 
     @PostMapping("/register/student")
     @Operation(summary = "Register a student account")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "201", description = "Student created with an access token", useReturnTypeSchema = true)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "409", description = "Email or CPF already registered",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
     public ResponseEntity<ApiResponse<LoginResponse>> registerStudent(
             @Valid @RequestBody RegisterStudentRequest request
     ) {

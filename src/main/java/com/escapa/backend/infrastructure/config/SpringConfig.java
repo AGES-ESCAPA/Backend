@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
+import com.escapa.backend.application.port.ContactValidatorPort;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CourseNotificationPort;
@@ -112,10 +113,12 @@ public class SpringConfig {
             UserRepositoryPort userRepositoryPort,
             RegularUserRepositoryPort regularUserRepositoryPort,
             PasswordHasherPort passwordHasherPort,
-            TokenProviderPort tokenProviderPort
+            TokenProviderPort tokenProviderPort,
+            ContactValidatorPort contactValidatorPort
     ) {
         return new RegisterStudentUseCase(
-                userRepositoryPort, regularUserRepositoryPort, passwordHasherPort, tokenProviderPort);
+                userRepositoryPort, regularUserRepositoryPort, passwordHasherPort, tokenProviderPort,
+                contactValidatorPort);
     }
 
     @Bean

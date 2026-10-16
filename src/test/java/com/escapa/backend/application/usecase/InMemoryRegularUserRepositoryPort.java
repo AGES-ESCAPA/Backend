@@ -6,17 +6,27 @@ import java.util.UUID;
 
 import com.escapa.backend.application.port.RegularUserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.domain.user.RegistrationConflictException;
 
 public final class InMemoryRegularUserRepositoryPort implements RegularUserRepositoryPort {
 
     private final Map<String, User> usersByCpf = new HashMap<>();
     private final Map<UUID, String> phonesByUserId = new HashMap<>();
+    private final InMemoryUserRepositoryPort userRepository;
+
+    public InMemoryRegularUserRepositoryPort(InMemoryUserRepositoryPort userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public User save(User user, String cpf, String phone) {
-        if (user.getId() == null) {
-            user.setId(UUID.randomUUID());
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RegistrationConflictException("Email");
         }
+        if (existsByCpf(cpf)) {
+            throw new RegistrationConflictException("CPF");
+        }
+        userRepository.save(user);
         usersByCpf.put(cpf, user);
         phonesByUserId.put(user.getId(), phone);
         return user;

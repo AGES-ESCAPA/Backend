@@ -1,5 +1,7 @@
 package com.escapa.backend.adapters.dto;
 
+import java.util.Locale;
+
 import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.RegisterStudentCommand;
 
@@ -21,14 +23,21 @@ public record RegisterStudentRequest(
         @Size(max = FieldLimits.VARCHAR_MAX, message = "email " + FieldLimits.VARCHAR_MESSAGE)
         String email,
         @Size(max = FieldLimits.VARCHAR_MAX, message = "phone " + FieldLimits.VARCHAR_MESSAGE)
+        @Schema(description = "Optional international phone with country code; BR when omitted. Masks and extensions accepted.",
+                example = "+55 (54) 99999-8888")
         String phone,
         @NotBlank(message = "Password is required")
         @Size(
                 min = CreateUserUseCase.MIN_PASSWORD_LENGTH,
-                message = "Password must be at least 8 characters"
+                message = "Password must be at least " + CreateUserUseCase.MIN_PASSWORD_LENGTH + " characters"
         )
         String password
 ) {
+
+    public RegisterStudentRequest {
+        name = name == null ? null : name.trim();
+        email = email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
 
     public RegisterStudentCommand toCommand() {
         return new RegisterStudentCommand(name, cpf, email, phone, password);

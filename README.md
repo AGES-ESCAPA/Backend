@@ -450,6 +450,10 @@ Cria o usuário com papel e perfil `STUDENT`, grava o CPF apenas com dígitos e 
 
 Em caso de sucesso, retorna `201 Created`. CPF ou e-mail inválido e senha com menos de 8 caracteres retornam `400 Bad Request`. E-mail ou CPF já cadastrado retorna `409 Conflict`, indicando o campo conflitante na mensagem.
 
+O telefone é opcional e aceita formatos internacionais, com máscara e DDI, incluindo ramal. Sem DDI, o país padrão é Brasil. A persistência usa o formato internacional `+DDI` seguido dos dígitos, com `;ext=...` quando houver ramal. Entrada vazia vira `null`; telefone inválido retorna `400`.
+
+Veja o [README da US-21](docs/US-21-cadastro-aluno/README.md) para as decisões de validação e máscara, contrato, cobertura de testes e limites de escopo.
+
 #### Variáveis de Ambiente do JWT:
 * `APP_JWT_SECRET`: Segredo de assinatura HMAC-SHA256 (mínimo de 256 bits / 32 caracteres).
 * `APP_JWT_EXPIRATION_MINUTES`: Tempo de expiração do token em minutos (padrão: `60`).
