@@ -22,6 +22,7 @@ import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
+import com.escapa.backend.application.port.RegularUserRepositoryPort;
 import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
@@ -30,6 +31,7 @@ import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.LoginUseCase;
+import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
@@ -65,6 +67,8 @@ import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteRepositor
 import com.escapa.backend.infrastructure.persistence.NotificationJpaRepository;
 import com.escapa.backend.infrastructure.persistence.OrderJpaRepository;
 import com.escapa.backend.infrastructure.persistence.OrderRepositoryAdapter;
+import com.escapa.backend.infrastructure.persistence.RegularUserJpaRepository;
+import com.escapa.backend.infrastructure.persistence.RegularUserRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
@@ -94,6 +98,24 @@ public class SpringConfig {
             TokenProviderPort tokenProviderPort
     ) {
         return new LoginUseCase(userRepositoryPort, passwordHasherPort, tokenProviderPort);
+    }
+
+    @Bean
+    public RegularUserRepositoryPort regularUserRepositoryPort(
+            RegularUserJpaRepository regularUserJpaRepository
+    ) {
+        return new RegularUserRepositoryAdapter(regularUserJpaRepository);
+    }
+
+    @Bean
+    public RegisterStudentUseCase registerStudentUseCase(
+            UserRepositoryPort userRepositoryPort,
+            RegularUserRepositoryPort regularUserRepositoryPort,
+            PasswordHasherPort passwordHasherPort,
+            TokenProviderPort tokenProviderPort
+    ) {
+        return new RegisterStudentUseCase(
+                userRepositoryPort, regularUserRepositoryPort, passwordHasherPort, tokenProviderPort);
     }
 
     @Bean
