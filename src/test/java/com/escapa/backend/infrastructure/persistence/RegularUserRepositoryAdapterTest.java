@@ -43,6 +43,23 @@ class RegularUserRepositoryAdapterTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void shouldIdentifyDuplicateEmailContainingCpfAndNotSaveAnotherProfile() {
+        final String suffix = UUID.randomUUID().toString();
+        final String email = "cpf-" + suffix + "@exemplo.com";
+        regularUserRepositoryPort.save(
+                new User("First Student", email, "hash", "STUDENT"), "first-" + suffix, null);
+        final String secondCpf = "second-" + suffix;
+
+        final RegistrationConflictException exception = assertThrows(
+                RegistrationConflictException.class,
+                () -> regularUserRepositoryPort.save(
+                        new User("Second Student", email, "hash", "STUDENT"), secondCpf, null));
+
+        assertEquals("Email already registered", exception.getMessage());
+        assertFalse(regularUserRepositoryPort.existsByCpf(secondCpf));
+    }
+
+    @Test
     void shouldRollbackUserWhenRegularUserProfileFails() {
         final String suffix = UUID.randomUUID().toString();
         final String cpf = "duplicate-" + suffix;
@@ -53,12 +70,13 @@ class RegularUserRepositoryAdapterTest extends PostgresIntegrationTest {
         );
         final String orphanEmail = "orphan-" + suffix + "@email.com";
 
-        assertThrows(
+        final RegistrationConflictException exception = assertThrows(
                 RegistrationConflictException.class,
                 () -> regularUserRepositoryPort.save(
                         new User("Second Student", orphanEmail, "hash", "STUDENT"), cpf, null)
         );
 
+        assertEquals("CPF already registered", exception.getMessage());
         assertFalse(userJpaRepository.existsByEmail(orphanEmail));
     }
 }
