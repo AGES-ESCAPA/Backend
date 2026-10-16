@@ -21,7 +21,7 @@ class ArchiveCourseUseCaseTest {
         admin.setId(UUID.randomUUID());
         final Course course = courseRepository.save(new Course(
                 "Titulo", null, null, null, null, null, null, null,
-                null, null, null, null, List.of(), true, false, admin));
+                null, null, null, List.of(), true, false, admin));
         final ArchiveCourseUseCase useCase = new ArchiveCourseUseCase(courseRepository);
 
         final Course archived = useCase.execute(course.getId());
