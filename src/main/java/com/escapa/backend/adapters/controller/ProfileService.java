@@ -39,7 +39,7 @@ public class ProfileService {
         user.setEmail(dto.email());
 
         // Persiste o usuário e usa o objeto salvo para montar a resposta final.
-        User savedUser = userRepositoryPort.save(user);
+        final User savedUser = userRepositoryPort.save(user);
         return mapToResponse(savedUser);
     }
 
@@ -52,7 +52,7 @@ public class ProfileService {
     // Converte a entidade de domínio para o formato exposto pela API.
     private ProfileResponseDTO mapToResponse(User user) {
         // STUDENT e COMPANY podem editar o perfil; EMPLOYEE pode apenas consultá-lo.
-        boolean isEditable = !"EMPLOYEE".equals(user.getUserType());
+        final boolean isEditable = !"EMPLOYEE".equals(user.getUserType());
 
         return new ProfileResponseDTO(
                 user.getUserType(),
