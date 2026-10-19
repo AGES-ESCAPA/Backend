@@ -63,7 +63,7 @@ class PublishCourseUseCaseTest {
         admin.setId(UUID.randomUUID());
         final Course course = courseRepository.save(new Course(
                 "Titulo", null, null, null, null, null, null, null,
-                null, null, null, null, List.of(), true, false, admin));
+                null, null, null, List.of(), true, false, admin));
         final PublishCourseUseCase useCase =
                 new PublishCourseUseCase(courseRepository, changeLogRepository, notificationPort);
 
@@ -87,7 +87,7 @@ class PublishCourseUseCaseTest {
     private static Course completeCourse(User instructor) {
         final Course course = new Course(
                 "Fundamentos de Design", "Resumo curto", "Descricao completa", null, null,
-                instructor, "Design", "INICIANTE", 40, 365, 365, 499.00,
+                instructor, "Design", "INICIANTE", 40, 365, 499.00,
                 List.of("Objetivo 1"), true, false, instructor);
 
         final Module module = new Module(UUID.randomUUID(), course, "Modulo 1", 1);

@@ -63,4 +63,9 @@ public final class InMemoryUserRepositoryPort implements UserRepositoryPort {
             companyLinkedUserIds.add(userId);
         }
     }
+
+    @Override
+    public void updatePasswordHash(UUID id, String passwordHash) {
+        findById(id).ifPresent(user -> user.setPasswordHash(passwordHash));
+    }
 }

@@ -34,7 +34,7 @@ public class UpdateCourseUseCase {
 
     public Course execute(UUID id, String title, String shortDescription, String description, String thumbnailUrl,
                           String teaserVideoUrl, UUID instructorId, String category, String level,
-                          Integer durationTime, Integer deadline, Integer accessDurationDays, Double price,
+                          Integer durationTime, Integer deadline, Double price,
                           List<String> learningObjectives, Boolean requireSequentialProgress,
                           Boolean enforceDeadlineBlock, User changedBy) {
 
@@ -44,7 +44,7 @@ public class UpdateCourseUseCase {
 
         updateBasicFields(course, title, shortDescription, description, thumbnailUrl, teaserVideoUrl);
         updateInstructor(course, instructorId);
-        updateDetails(course, category, level, durationTime, deadline, accessDurationDays, price);
+        updateDetails(course, category, level, durationTime, deadline, price);
         updateSettings(course, learningObjectives, requireSequentialProgress, enforceDeadlineBlock);
 
         final boolean changed = wasPublished && before.differsFrom(course);
@@ -96,7 +96,7 @@ public class UpdateCourseUseCase {
     }
 
     private void updateDetails(Course course, String category, String level, Integer durationTime,
-                               Integer deadline, Integer accessDurationDays, Double price) {
+                               Integer deadline, Double price) {
         if (category != null) {
             course.setCategory(category);
         }
@@ -108,9 +108,6 @@ public class UpdateCourseUseCase {
         }
         if (deadline != null) {
             course.setDeadline(deadline);
-        }
-        if (accessDurationDays != null) {
-            course.setAccessDurationDays(accessDurationDays);
         }
         if (price != null) {
             course.setPrice(price);
@@ -137,7 +134,7 @@ public class UpdateCourseUseCase {
     private record Snapshot(
             String title, String shortDescription, String description, String thumbnailUrl, String teaserVideoUrl,
             UUID instructorId, String category, String level, Integer durationTime, Integer deadline,
-            Integer accessDurationDays, Double price, List<String> learningObjectives,
+            Double price, List<String> learningObjectives,
             Boolean requireSequentialProgress, Boolean enforceDeadlineBlock) {
 
         static Snapshot of(Course course) {
@@ -146,7 +143,7 @@ public class UpdateCourseUseCase {
                     course.getThumbnailUrl(), course.getTeaserVideoUrl(),
                     course.getInstructor() != null ? course.getInstructor().getId() : null,
                     course.getCategory(), course.getLevel(), course.getDurationTime(), course.getDeadline(),
-                    course.getAccessDurationDays(), course.getPrice(), List.copyOf(course.getLearningObjectives()),
+                    course.getPrice(), List.copyOf(course.getLearningObjectives()),
                     course.getRequireSequentialProgress(), course.getEnforceDeadlineBlock());
         }
 
@@ -162,7 +159,6 @@ public class UpdateCourseUseCase {
                     || !Objects.equals(level, course.getLevel())
                     || !Objects.equals(durationTime, course.getDurationTime())
                     || !Objects.equals(deadline, course.getDeadline())
-                    || !Objects.equals(accessDurationDays, course.getAccessDurationDays())
                     || !Objects.equals(price, course.getPrice())
                     || !Objects.equals(learningObjectives, course.getLearningObjectives())
                     || !Objects.equals(requireSequentialProgress, course.getRequireSequentialProgress())

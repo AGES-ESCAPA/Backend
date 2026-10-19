@@ -27,6 +27,7 @@ import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
+import com.escapa.backend.application.usecase.ChangePasswordUseCase;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
@@ -91,7 +92,7 @@ public class SpringConfig {
         return new UserRepositoryAdapter(userJpaRepository, usersCompanyJpaRepository);
     }
 
-        @Bean
+    @Bean
     public CompanyRepositoryPort companyRepositoryPort(CompanyJpaRepository companyJpaRepository) {
         return new CompanyRepositoryAdapter(companyJpaRepository);
     }
@@ -111,6 +112,14 @@ public class SpringConfig {
             PasswordHasherPort passwordHasherPort
     ) {
         return new CreateUserUseCase(userRepositoryPort, passwordHasherPort);
+    }
+
+    @Bean
+    public ChangePasswordUseCase changePasswordUseCase(
+            UserRepositoryPort userRepositoryPort,
+            PasswordHasherPort passwordHasherPort
+    ) {
+        return new ChangePasswordUseCase(userRepositoryPort, passwordHasherPort);
     }
 
     @Bean

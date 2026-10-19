@@ -23,13 +23,13 @@ class UpdateCourseUseCaseTest {
         final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
         final Course course = courseRepository.save(new Course(
                 "Titulo original", null, null, null, null, null, null, null,
-                null, null, null, null, List.of(), true, false, admin));
+                null, null, null, List.of(), true, false, admin));
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, changeLogRepository);
 
         final Course updated = useCase.execute(
                 course.getId(), "Titulo novo", null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, admin);
+                null, null, null, null, null, null, null, admin);
 
         assertEquals("Titulo novo", updated.getTitle());
         assertEquals(admin.getId(), updated.getCreatedBy().getId());
@@ -44,13 +44,13 @@ class UpdateCourseUseCaseTest {
         final User newInstructor = userRepository.save(new User("Instrutora Nova", "nova@escapa.com", "hash", "ADMIN"));
         final Course course = courseRepository.save(new Course(
                 "Titulo", null, null, null, null, null, null, null,
-                null, null, null, null, List.of(), true, false, admin));
+                null, null, null, List.of(), true, false, admin));
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, changeLogRepository);
 
         final Course updated = useCase.execute(
                 course.getId(), null, null, null, null, null, newInstructor.getId(), null,
-                null, null, null, null, null, null, null, null, admin);
+                null, null, null, null, null, null, null, admin);
 
         assertEquals(newInstructor.getId(), updated.getInstructor().getId());
     }
@@ -64,7 +64,7 @@ class UpdateCourseUseCaseTest {
 
         assertThrows(CourseNotFoundException.class, () -> useCase.execute(
                 UUID.randomUUID(), "Titulo", null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null));
+                null, null, null, null, null, null, null, null));
     }
 
     @Test
@@ -76,13 +76,13 @@ class UpdateCourseUseCaseTest {
         final User student = userRepository.save(new User("Aluno Um", "aluno@escapa.com", "hash", "STUDENT"));
         final Course course = courseRepository.save(new Course(
                 "Titulo", null, null, null, null, null, null, null,
-                null, null, null, null, List.of(), true, false, admin));
+                null, null, null, List.of(), true, false, admin));
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, changeLogRepository);
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(
                 course.getId(), null, null, null, null, null, student.getId(), null,
-                null, null, null, null, null, null, null, null, admin));
+                null, null, null, null, null, null, null, admin));
     }
 
     @Test
@@ -93,7 +93,7 @@ class UpdateCourseUseCaseTest {
         final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
         final Course course = courseRepository.save(new Course(
                 "Titulo", null, null, null, null, null, null, null,
-                null, null, null, null, List.of(), true, false, admin));
+                null, null, null, List.of(), true, false, admin));
         course.setStatus(CourseStatus.PUBLISHED);
         courseRepository.save(course);
         final UpdateCourseUseCase useCase =
@@ -101,7 +101,7 @@ class UpdateCourseUseCaseTest {
 
         final Course updated = useCase.execute(
                 course.getId(), "Titulo revisado", null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, admin);
+                null, null, null, null, null, null, null, admin);
 
         assertEquals(1, updated.getMinorVersion());
         assertEquals(1, changeLogRepository.entriesFor(course.getId()).size());
@@ -115,13 +115,13 @@ class UpdateCourseUseCaseTest {
         final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
         final Course course = courseRepository.save(new Course(
                 "Titulo", null, null, null, null, null, null, null,
-                null, null, null, null, List.of(), true, false, admin));
+                null, null, null, List.of(), true, false, admin));
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, changeLogRepository);
 
         final Course updated = useCase.execute(
                 course.getId(), "Titulo revisado", null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, admin);
+                null, null, null, null, null, null, null, admin);
 
         assertEquals(0, updated.getMinorVersion());
         assertTrue(changeLogRepository.entriesFor(course.getId()).isEmpty());
