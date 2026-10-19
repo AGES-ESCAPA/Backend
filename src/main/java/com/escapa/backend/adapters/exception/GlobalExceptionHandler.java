@@ -18,6 +18,8 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import com.escapa.backend.domain.certificate.CertificateGenerationException;
+import com.escapa.backend.domain.certificate.CertificateGenerationUnavailableException;
 import com.escapa.backend.domain.certificate.CertificateNotFoundException;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
@@ -85,6 +87,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({LessonAccessDeniedException.class, AdminAccessDeniedException.class})
     public ResponseEntity<ApiError> handleAccessDeniedException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(CertificateGenerationUnavailableException.class)
+    public ResponseEntity<ApiError> handleCertificateGenerationUnavailableException(
+            CertificateGenerationUnavailableException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(CertificateGenerationException.class)
+    public ResponseEntity<ApiError> handleCertificateGenerationException(
+            CertificateGenerationException ex, HttpServletRequest request) {
+        // A causa (Chromium, template) fica so no log; o cliente recebe uma mensagem generica.
+        LOGGER.error("Certificate PDF generation failed for {}", request.getRequestURI(), ex);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Could not generate the certificate PDF", request);
     }
 
     @ExceptionHandler(CourseValidationException.class)
