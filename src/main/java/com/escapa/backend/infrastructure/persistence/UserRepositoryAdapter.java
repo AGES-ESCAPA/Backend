@@ -65,4 +65,9 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         }
         return usersCompanyJpaRepository.existsByIdUserId(userId);
     }
+
+    @Override
+    public void updatePasswordHash(UUID id, String passwordHash) {
+        userJpaRepository.updatePasswordHash(id, passwordHash);
+    }
 }
