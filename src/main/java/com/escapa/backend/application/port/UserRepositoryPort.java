@@ -13,4 +13,5 @@ public interface UserRepositoryPort {
     Optional<User> findById(UUID id);
     Optional<User> findByEmail(String email);
     boolean isUserLinkedToCompany(UUID userId);
+    void updatePasswordHash(UUID id, String passwordHash);
 }
