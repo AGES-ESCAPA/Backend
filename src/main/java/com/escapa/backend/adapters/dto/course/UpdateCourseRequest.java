@@ -26,8 +26,6 @@ public record UpdateCourseRequest(
         Integer durationTime,
         @PositiveOrZero(message = "deadline must not be negative")
         Integer deadline,
-        @PositiveOrZero(message = "accessDurationDays must not be negative")
-        Integer accessDurationDays,
         @PositiveOrZero(message = "price must not be negative")
         Double price,
         List<String> learningObjectives,

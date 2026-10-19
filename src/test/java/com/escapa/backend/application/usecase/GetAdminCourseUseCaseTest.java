@@ -20,7 +20,7 @@ class GetAdminCourseUseCaseTest {
         admin.setId(UUID.randomUUID());
         final Course course = courseRepository.save(new Course(
                 "Titulo", null, null, null, null, null, null, null,
-                null, null, null, null, List.of(), true, false, admin));
+                null, null, null, List.of(), true, false, admin));
         final GetAdminCourseUseCase useCase = new GetAdminCourseUseCase(courseRepository);
 
         final Course found = useCase.execute(course.getId());

@@ -32,6 +32,9 @@ public class CompanyEntity extends UserEntity {
     @Column(name = "company_email")
     private String companyEmail;
 
+    @Column(name = "phone")
+    private String phone;
+
     @Column(name = "matricula")
     private Integer matricula;
 

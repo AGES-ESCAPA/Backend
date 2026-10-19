@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
+import com.escapa.backend.application.port.CompanyRepositoryPort;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CourseNotificationPort;
@@ -50,6 +51,7 @@ import com.escapa.backend.application.usecase.ListPublishedCourseFiltersUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
 import com.escapa.backend.application.usecase.ListStudentEnrollmentsUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
+import com.escapa.backend.application.usecase.RegisterCompanyUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ReorderContentsUseCase;
 import com.escapa.backend.application.usecase.ReorderModulesUseCase;
@@ -58,6 +60,8 @@ import com.escapa.backend.application.usecase.UpdateContentUseCase;
 import com.escapa.backend.application.usecase.UpdateModuleUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.application.usecase.UploadAvatarUseCase;
+import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
+import com.escapa.backend.infrastructure.persistence.CompanyRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseChangeLogJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseChangeLogRepositoryAdapter;
@@ -89,6 +93,11 @@ public class SpringConfig {
             UsersCompanyJpaRepository usersCompanyJpaRepository
     ) {
         return new UserRepositoryAdapter(userJpaRepository, usersCompanyJpaRepository);
+    }
+
+    @Bean
+    public CompanyRepositoryPort companyRepositoryPort(CompanyJpaRepository companyJpaRepository) {
+        return new CompanyRepositoryAdapter(companyJpaRepository);
     }
 
     @Bean
@@ -128,6 +137,17 @@ public class SpringConfig {
             PasswordHasherPort passwordHasherPort
     ) {
         return new ChangePasswordUseCase(userRepositoryPort, passwordHasherPort);
+    }
+
+    @Bean
+    public RegisterCompanyUseCase registerCompanyUseCase(
+            UserRepositoryPort userRepositoryPort,
+            CompanyRepositoryPort companyRepositoryPort,
+            PasswordHasherPort passwordHasherPort,
+            TokenProviderPort tokenProviderPort
+    ) {
+        return new RegisterCompanyUseCase(
+                userRepositoryPort, companyRepositoryPort, passwordHasherPort, tokenProviderPort);
     }
 
     @Bean
