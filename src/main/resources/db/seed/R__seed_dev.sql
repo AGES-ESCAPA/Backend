@@ -126,14 +126,14 @@ INSERT INTO regular_users (user_id, cpf, phone) VALUES
     ('c0000000-0000-4000-c000-000000000006', '40666677788', '+55 54 99444-0011');
 
 -- seats_total = soma dos pedidos de assentos APPROVED da empresa (ver "orders" abaixo).
-INSERT INTO company (id, company_name, cnpj_id, company_email, matricula, seats_total) VALUES
-    ('d0000000-0000-4000-d000-000000000001', 'Pousada Vista Mar LTDA', '12345678000191', 'rh@vistamar.com.br', 2048, 10),
-    ('d0000000-0000-4000-d000-000000000002', 'Hotel Atlântico Palace LTDA', '22333444000102', 'rh@atlanticopalace.com.br', 3102, 20),
-    ('d0000000-0000-4000-d000-000000000003', 'Resort Costa Dourada S.A.', '33444555000113', 'pessoas@costadourada.com.br', 4410, 0),
-    ('d0000000-0000-4000-d000-000000000004', 'Hostel Centro Histórico ME', '44555666000124', 'admin@hostelcentro.com.br', 1507, 0),
-    ('d0000000-0000-4000-d000-000000000005', 'Destinos do Sul Operadora de Turismo LTDA', '55666777000135', 'comercial@destinosdosul.com.br', 8821, 15),
-    ('d0000000-0000-4000-d000-000000000006', 'Spa & Wellness Gramado LTDA', '66777888000146', 'rh@spagramado.com.br', 6734, 0);
-
+INSERT INTO company (id, company_name, cnpj_id, company_email, matricula, seats_total, phone) VALUES
+    ('d0000000-0000-4000-d000-000000000001', 'Pousada Vista Mar LTDA', '12345678000191', 'rh@vistamar.com.br', 2048, 10, '51999990001'),
+    ('d0000000-0000-4000-d000-000000000002', 'Hotel Atlântico Palace LTDA', '22333444000102', 'rh@atlanticopalace.com.br', 3102, 20, '51999990002'),
+    ('d0000000-0000-4000-d000-000000000003', 'Resort Costa Dourada S.A.', '33444555000113', 'pessoas@costadourada.com.br', 4410, 0, '51999990003'),
+    ('d0000000-0000-4000-d000-000000000004', 'Hostel Centro Histórico ME', '44555666000124', 'admin@hostelcentro.com.br', 1507, 0, '51999990004'),
+    ('d0000000-0000-4000-d000-000000000005', 'Destinos do Sul Operadora de Turismo LTDA', '55666777000135', 'comercial@destinosdosul.com.br', 8821, 15, '51999990005'),
+    ('d0000000-0000-4000-d000-000000000006', 'Spa & Wellness Gramado LTDA', '66777888000146', 'rh@spagramado.com.br', 6734, 0, '51999990006');
+    
 INSERT INTO users_company (user_id, company_id, role) VALUES
     ('c0000000-0000-4000-c000-000000000001', 'd0000000-0000-4000-d000-000000000001', 'RECEPCAO'),
     ('c0000000-0000-4000-c000-000000000002', 'd0000000-0000-4000-d000-000000000002', 'GERENCIA'),
