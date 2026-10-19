@@ -344,10 +344,12 @@ public class SpringConfig {
 
     @Bean
     public DownloadCertificateUseCase downloadCertificateUseCase(
+            GetCertificateDetailsUseCase getCertificateDetailsUseCase,
             CertificateRepositoryPort certificateRepositoryPort,
             CertificatePdfGeneratorPort certificatePdfGeneratorPort
     ) {
-        return new DownloadCertificateUseCase(certificateRepositoryPort, certificatePdfGeneratorPort);
+        return new DownloadCertificateUseCase(
+                getCertificateDetailsUseCase, certificateRepositoryPort, certificatePdfGeneratorPort);
     }
 
     @Bean

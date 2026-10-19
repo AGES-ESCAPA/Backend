@@ -1,0 +1,63 @@
+/*
+ * Tokens do certificado, copiados do frontend. Fonte da verdade:
+ *   - Frontend/src/index.css (design tokens: cores, tipografia, raios)
+ *   - Frontend/src/pages/DigitalCertificate/components/CertificateCard/CertificateCard.module.css
+ * Quando algum desses valores mudar no front, atualizar aqui e incrementar
+ * certificate.template.version (application.properties), senao o cache continua
+ * servindo o PDF antigo.
+ *
+ * O tema escuro reproduz a tela. A tela ainda nao tem versao clara: o tema
+ * claro abaixo foi derivado dos mesmos tokens e aguarda validacao do design.
+ */
+:root {
+  --font-family-base: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --tracking-wide: 0.025em;
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --radius-md: 0.375rem;
+}
+
+/* --color-* de referencia: surface-raised #0f0f1f, surface #0c0c1a,
+   info #1adbff, primary-700 #1c1c38, neutral-100/300/400/500. */
+[data-theme='dark'] {
+  --cert-bg-start: #0f0f1f;
+  --cert-bg-end: #0c0c1a;
+  --cert-frame: color-mix(in srgb, #1adbff 45%, transparent);
+  --cert-accent: #1adbff;
+  --cert-accent-text: #1adbff;
+  --cert-text-primary: #f4f5f6;
+  --cert-text-body: #c7ccd1;
+  --cert-text-soft: #a5adb6;
+  --cert-divider: #848f9a;
+  --cert-line: #848f9a;
+  --cert-ribbon-fill: color-mix(in srgb, #1c1c38 75%, transparent);
+  --cert-ribbon-stroke: color-mix(in srgb, #1adbff 45%, transparent);
+  --cert-ribbon-tail: color-mix(in srgb, #1adbff 22%, transparent);
+  --cert-seal-fill: #0c0c1a;
+  --cert-seal-text: #f4f5f6;
+}
+
+/* Derivado dos tokens: fundo white/neutral-100, textos neutral-900/700/600,
+   destaque info-400 (#00a3c2) e, nos textos, info-500 (#005e70) para manter o
+   contraste em fundo claro. */
+[data-theme='light'] {
+  --cert-bg-start: #fff;
+  --cert-bg-end: #f4f5f6;
+  --cert-frame: color-mix(in srgb, #00a3c2 45%, transparent);
+  --cert-accent: #00a3c2;
+  --cert-accent-text: #005e70;
+  --cert-text-primary: #17191c;
+  --cert-text-body: #49525a;
+  --cert-text-soft: #65707b;
+  --cert-divider: #a5adb6;
+  --cert-line: #a5adb6;
+  --cert-ribbon-fill: #e5efff;
+  --cert-ribbon-stroke: color-mix(in srgb, #00a3c2 45%, transparent);
+  --cert-ribbon-tail: color-mix(in srgb, #00a3c2 22%, transparent);
+  --cert-seal-fill: #fff;
+  --cert-seal-text: #17191c;
+}

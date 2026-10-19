@@ -1,9 +1,9 @@
 package com.escapa.backend.infrastructure.persistence;
 
 import com.escapa.backend.application.model.CertificateDetails;
-import com.escapa.backend.application.model.CertificateRecord;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
+import com.escapa.backend.domain.certificate.CertificateTheme;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
@@ -93,53 +94,59 @@ class CertificateRepositoryAdapterTest extends PostgresIntegrationTest {
         userCourseJpaRepository.save(enrollment);
     }
 
-    @Test
-    void shouldFindAnIssuedCertificateByVerificationCode() {
-        final CourseEntity course = givenCourse(960);
-        final UUID userId = givenUser("Jorge Amado");
-        givenEnrollment(userId, course, "ESC-2026-MKT-0001", true, LocalDate.of(2026, 8, 21));
+    private String givenIssuedCertificate(String code) {
+        givenEnrollment(givenUser("Jorge Amado"), givenCourse(960), code, true, LocalDate.of(2026, 8, 21));
+        return code;
+    }
 
-        final Optional<CertificateRecord> found = certificateRepositoryPort.findByVerificationCode("ESC-2026-MKT-0001");
-
-        assertTrue(found.isPresent());
-        assertEquals(userId, found.get().userId());
-        assertEquals(course.getId(), found.get().courseId());
-        assertEquals("Jorge Amado", found.get().studentName());
-        assertEquals("Marketing Digital para Hospitalidade", found.get().courseTitle());
-        assertEquals(960, found.get().workloadMinutes());
-        assertEquals(LocalDate.of(2026, 8, 21), found.get().conclusionDate());
-        assertEquals("ESC-2026-MKT-0001", found.get().verificationCode());
-        assertNull(found.get().cachedPdf());
+    private static byte[] pdf(String content) {
+        return content.getBytes(StandardCharsets.UTF_8);
     }
 
     @Test
-    void shouldNotFindAnUnknownVerificationCode() {
-        assertTrue(certificateRepositoryPort.findByVerificationCode("DOES-NOT-EXIST").isEmpty());
+    void shouldFindNoCachedPdfBeforeTheFirstSave() {
+        final String code = givenIssuedCertificate("ESC-2026-MKT-0001");
+
+        assertTrue(certificateRepositoryPort.findCachedPdf(code, CertificateTheme.LIGHT, "v2").isEmpty());
     }
 
     @Test
-    void shouldNotFindACertificateThatWasNotIssuedYet() {
-        final CourseEntity course = givenCourse(960);
-        final UUID userId = givenUser("Aluno Em Andamento");
-        // Sem certificado emitido, certificate_code normalmente ficaria nulo; o teste
-        // forca um valor para provar que o filtro por certificate_issued e' respeitado.
-        givenEnrollment(userId, course, "ESC-NOT-ISSUED", false, null);
+    void shouldSaveAndReuseTheCachedPdfPerThemeAndVersion() {
+        final String code = givenIssuedCertificate("ESC-2026-MKT-0002");
 
-        assertTrue(certificateRepositoryPort.findByVerificationCode("ESC-NOT-ISSUED").isEmpty());
+        certificateRepositoryPort.saveCachedPdf(code, CertificateTheme.LIGHT, "v2", pdf("%PDF light"));
+        certificateRepositoryPort.saveCachedPdf(code, CertificateTheme.DARK, "v2", pdf("%PDF dark"));
+
+        assertArrayEquals(pdf("%PDF light"),
+                certificateRepositoryPort.findCachedPdf(code, CertificateTheme.LIGHT, "v2").orElseThrow());
+        assertArrayEquals(pdf("%PDF dark"),
+                certificateRepositoryPort.findCachedPdf(code, CertificateTheme.DARK, "v2").orElseThrow());
+        assertTrue(certificateRepositoryPort.findCachedPdf(code, CertificateTheme.LIGHT, "v3").isEmpty());
     }
 
     @Test
-    void shouldSaveAndReuseTheCachedPdf() {
-        final CourseEntity course = givenCourse(960);
-        final UUID userId = givenUser("Jorge Amado");
-        givenEnrollment(userId, course, "ESC-2026-MKT-0002", true, LocalDate.of(2026, 8, 21));
-        final byte[] pdf = "%PDF-1.4 fake content".getBytes();
+    void shouldDiscardOlderTemplateVersionsOfTheSameThemeWhenSavingANewOne() {
+        final String code = givenIssuedCertificate("ESC-2026-MKT-0003");
+        certificateRepositoryPort.saveCachedPdf(code, CertificateTheme.LIGHT, "v2", pdf("%PDF light v2"));
+        certificateRepositoryPort.saveCachedPdf(code, CertificateTheme.DARK, "v2", pdf("%PDF dark v2"));
 
-        certificateRepositoryPort.saveCachedPdf(userId, course.getId(), pdf);
+        certificateRepositoryPort.saveCachedPdf(code, CertificateTheme.LIGHT, "v3", pdf("%PDF light v3"));
 
-        final Optional<CertificateRecord> found = certificateRepositoryPort.findByVerificationCode("ESC-2026-MKT-0002");
-        assertTrue(found.isPresent());
-        assertArrayEquals(pdf, found.get().cachedPdf());
+        assertTrue(certificateRepositoryPort.findCachedPdf(code, CertificateTheme.LIGHT, "v2").isEmpty());
+        assertTrue(certificateRepositoryPort.findCachedPdf(code, CertificateTheme.LIGHT, "v3").isPresent());
+        // O outro tema so e trocado quando ele mesmo for gerado na versao nova.
+        assertTrue(certificateRepositoryPort.findCachedPdf(code, CertificateTheme.DARK, "v2").isPresent());
+    }
+
+    @Test
+    void shouldKeepTheFirstPdfWhenTheSameKeyIsSavedTwice() {
+        final String code = givenIssuedCertificate("ESC-2026-MKT-0004");
+
+        certificateRepositoryPort.saveCachedPdf(code, CertificateTheme.DARK, "v2", pdf("%PDF first"));
+        certificateRepositoryPort.saveCachedPdf(code, CertificateTheme.DARK, "v2", pdf("%PDF second"));
+
+        assertArrayEquals(pdf("%PDF first"),
+                certificateRepositoryPort.findCachedPdf(code, CertificateTheme.DARK, "v2").orElseThrow());
     }
 
     @Test
