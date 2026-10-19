@@ -21,6 +21,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import com.escapa.backend.domain.certificate.CertificateGenerationException;
 import com.escapa.backend.domain.certificate.CertificateGenerationUnavailableException;
 import com.escapa.backend.domain.certificate.CertificateNotFoundException;
+import com.escapa.backend.domain.company.DuplicateRegistrationException;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
@@ -107,6 +108,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleCourseValidationException(CourseValidationException ex, HttpServletRequest request) {
         final String msg = ex.getMessage() + ": " + String.join(", ", ex.getMissingFields());
         return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, msg, request);
+    }
+
+    @ExceptionHandler(DuplicateRegistrationException.class)
+    public ResponseEntity<ApiError> handleDuplicateRegistrationException(DuplicateRegistrationException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
