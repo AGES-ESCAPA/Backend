@@ -456,6 +456,18 @@ Contas de referência para validar cada perfil e fluxo de redirecionamento:
 | **COMPANY** | `contato@vistamar.com.br` | `escapa@2026` | `200 OK` ➔ `profile: "COMPANY"` |
 | **INACTIVE** | `carla.menezes@email.com` | `escapa@2026` | `403 Forbidden` |
 
+### Alteração de Senha
+```http
+PUT /api/v1/me/password
+X-User-Id: <uuid do usuário logado>
+```
+
+```json
+{ "currentPassword": "senha-atual", "newPassword": "nova-senha-segura" }
+```
+
+Disponível para todos os perfis. Retorna `200` ao trocar a senha; o usuário continua logado. Senha atual incorreta ou nova senha com menos de 8 caracteres retornam `400` (e não `401`, para o frontend não tratar como sessão expirada). Sem `X-User-Id` válido retorna `401`. Depois da troca, o login (`POST /api/v1/auth/login`) passa a aceitar só a nova senha. O header é provisório até as rotas validarem o token emitido pelo login.
+
 ---
 
 ## 🎬 Endpoints de Conteúdos/Aulas (Admin)
