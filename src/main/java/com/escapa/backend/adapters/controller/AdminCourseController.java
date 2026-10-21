@@ -137,7 +137,7 @@ public class AdminCourseController {
         final Course course = createCourseUseCase.execute(
                 request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
                 request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
-                request.durationTime(), request.deadline(), request.accessDurationDays(), request.price(),
+                request.durationTime(), request.deadline(), request.price(),
                 request.learningObjectives(), request.requireSequentialProgress(), request.enforceDeadlineBlock(),
                 admin.getId()
         );
@@ -221,7 +221,7 @@ public class AdminCourseController {
         final Course course = updateCourseUseCase.execute(
                 courseId, request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
                 request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
-                request.durationTime(), request.deadline(), request.accessDurationDays(), request.price(),
+                request.durationTime(), request.deadline(), request.price(),
                 request.learningObjectives(), request.requireSequentialProgress(), request.enforceDeadlineBlock(),
                 admin
         );

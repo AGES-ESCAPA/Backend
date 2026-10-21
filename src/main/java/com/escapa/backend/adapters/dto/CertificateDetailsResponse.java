@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.escapa.backend.application.model.CertificateDetails;
 import com.escapa.backend.application.model.CertificateView;
+import com.escapa.backend.application.model.FormattedCertificate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -20,9 +21,11 @@ public record CertificateDetailsResponse(
 ) {
     public record CertificateResponse(
             LocalDate conclusionDate,
-            /** Carga horaria em minutos (mesmo valor de course.durationTime). */
             Integer workload,
-            String verificationCode
+            String verificationCode,
+            String formattedConclusionDate,
+            String formattedWorkload,
+            String validationUrl
     ) {
     }
 
@@ -53,11 +56,15 @@ public record CertificateDetailsResponse(
         final CertificateDetails details = view.details();
         final CertificateDetails.Student student = details.student();
         final CertificateDetails.Course course = details.course();
+        final FormattedCertificate formatted = FormattedCertificate.from(details);
         return new CertificateDetailsResponse(
                 new CertificateResponse(
                         details.conclusionDate(),
                         details.workloadMinutes(),
-                        details.verificationCode()),
+                        details.verificationCode(),
+                        formatted.conclusionDate(),
+                        formatted.workload(),
+                        formatted.validationUrl()),
                 new StudentResponse(student.name(), student.avatarUrl(), student.verified()),
                 new CourseResponse(
                         course.id(),

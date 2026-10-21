@@ -6,6 +6,8 @@ import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.usecase.FakePasswordHasher;
 import com.escapa.backend.application.usecase.LoginOutput;
 import com.escapa.backend.application.usecase.LoginUseCase;
+import com.escapa.backend.application.usecase.RegisterCompanyUseCase;
+import com.escapa.backend.domain.company.DuplicateRegistrationException;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.InactiveUserException;
 import com.escapa.backend.domain.user.InvalidCredentialsException;
@@ -30,6 +32,7 @@ class AuthControllerTest {
 
     private MockMvc mockMvc;
     private LoginUseCase loginUseCase;
+    private RegisterCompanyUseCase registerCompanyUseCase;
 
     @BeforeEach
     void setUp() {
@@ -60,8 +63,32 @@ class AuthControllerTest {
             }
         };
 
-        final AuthController controller = new AuthController(loginUseCase);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+        registerCompanyUseCase = new RegisterCompanyUseCase(null, null, null, null) {
+            @Override
+            public LoginOutput execute(
+                    String responsibleName, String cnpj, String companyName,
+                    String email, String phone, String password) {
+                if ("11111111111111".equals(cnpj)) {
+                    throw new IllegalArgumentException("cnpj is invalid");
+                }
+                if ("duplicado@empresa.com".equalsIgnoreCase(email)) {
+                    throw new DuplicateRegistrationException("email");
+                }
+                final User user = new User(
+                        UUID.fromString("3f1c2b9e-0000-4000-a000-000000000001"),
+                        responsibleName,
+                        email,
+                        "hash",
+                        "COMPANY",
+                        null,
+                        UserStatus.ACTIVE,
+                        LocalDateTime.now()
+                );
+                return new LoginOutput("fake-company-jwt", "Bearer", 3600L, user, "COMPANY");
+            }
+        };
+
+        final AuthController controller = new AuthController(loginUseCase, registerCompanyUseCase);        mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -150,6 +177,105 @@ class AuthControllerTest {
                         .content(requestBody))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value("User account is inactive"));
+    }
+
+        private static final String REGISTER_COMPANY_URL = "/api/v1/auth/register/company";
+
+    @Test
+    void shouldReturn201WithTokenAndCompanyProfileOnCompanyRegistration() throws Exception {
+        final String requestBody = """
+                {
+                    "responsibleName": "Maria Souza",
+                    "cnpj": "11222333000181",
+                    "companyName": "Hotel Vista Mar LTDA",
+                    "email": "rh@vistamar.com.br",
+                    "phone": "51999990001",
+                    "password": "senha1234"
+                }
+                """;
+
+        mockMvc.perform(post(REGISTER_COMPANY_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.accessToken").value("fake-company-jwt"))
+                .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.data.expiresIn").value(3600))
+                .andExpect(jsonPath("$.data.user.name").value("Maria Souza"))
+                .andExpect(jsonPath("$.data.user.email").value("rh@vistamar.com.br"))
+                .andExpect(jsonPath("$.data.user.profile").value("COMPANY"));
+    }
+
+    @Test
+    void shouldReturn400WhenCompanyRegistrationHasMissingFields() throws Exception {
+        final String requestBody = """
+                {
+                    "cnpj": "11222333000181",
+                    "companyName": "Hotel Vista Mar LTDA",
+                    "email": "rh@vistamar.com.br",
+                    "password": "senha1234"
+                }
+                """;
+
+        mockMvc.perform(post(REGISTER_COMPANY_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400WhenCompanyRegistrationHasShortPassword() throws Exception {
+        final String requestBody = """
+                {
+                    "responsibleName": "Maria Souza",
+                    "cnpj": "11222333000181",
+                    "companyName": "Hotel Vista Mar LTDA",
+                    "email": "rh@vistamar.com.br",
+                    "password": "1234567"
+                }
+                """;
+
+        mockMvc.perform(post(REGISTER_COMPANY_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400WhenUseCaseRejectsCnpj() throws Exception {
+        final String requestBody = """
+                {
+                    "responsibleName": "Maria Souza",
+                    "cnpj": "11111111111111",
+                    "companyName": "Hotel Vista Mar LTDA",
+                    "email": "rh@vistamar.com.br",
+                    "password": "senha1234"
+                }
+                """;
+
+        mockMvc.perform(post(REGISTER_COMPANY_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn409WhenEmailIsAlreadyRegistered() throws Exception {
+        final String requestBody = """
+                {
+                    "responsibleName": "Maria Souza",
+                    "cnpj": "11222333000181",
+                    "companyName": "Hotel Vista Mar LTDA",
+                    "email": "duplicado@empresa.com",
+                    "password": "senha1234"
+                }
+                """;
+
+        mockMvc.perform(post(REGISTER_COMPANY_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isConflict());
     }
 }
 

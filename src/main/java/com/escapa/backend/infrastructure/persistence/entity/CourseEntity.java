@@ -78,12 +78,9 @@ public class CourseEntity implements Persistable<UUID> {
     @Column(name = "duration_time")
     private Integer durationTime;
 
+    /** Dias de acesso concedidos ao aluno a partir da matricula; alimenta user_courses.dt_expiracao. */
     @Column(name = "deadline")
     private Integer deadline;
-
-    /** Dias de acesso concedidos ao aluno a partir da compra; alimenta user_courses.dt_expiracao. */
-    @Column(name = "access_duration_days")
-    private Integer accessDurationDays;
 
     @Column(name = "price")
     private Double price;

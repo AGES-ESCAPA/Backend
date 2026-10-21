@@ -18,7 +18,10 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import com.escapa.backend.domain.certificate.CertificateGenerationException;
+import com.escapa.backend.domain.certificate.CertificateGenerationUnavailableException;
 import com.escapa.backend.domain.certificate.CertificateNotFoundException;
+import com.escapa.backend.domain.company.DuplicateRegistrationException;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
@@ -28,6 +31,7 @@ import com.escapa.backend.domain.user.AdminAccessDeniedException;
 import com.escapa.backend.domain.user.InactiveUserException;
 import com.escapa.backend.domain.user.InvalidAvatarFileException;
 import com.escapa.backend.domain.user.InvalidCredentialsException;
+import com.escapa.backend.domain.user.InvalidCurrentPasswordException;
 import com.escapa.backend.domain.user.UserNotFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,6 +54,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    // 400, e nao 401: o frontend trata 401 como sessao expirada e deslogaria o usuario.
+    @ExceptionHandler(InvalidCurrentPasswordException.class)
+    public ResponseEntity<ApiError> handleInvalidCurrentPasswordException(
+            InvalidCurrentPasswordException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
@@ -87,10 +98,29 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(CertificateGenerationUnavailableException.class)
+    public ResponseEntity<ApiError> handleCertificateGenerationUnavailableException(
+            CertificateGenerationUnavailableException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(CertificateGenerationException.class)
+    public ResponseEntity<ApiError> handleCertificateGenerationException(
+            CertificateGenerationException ex, HttpServletRequest request) {
+        // A causa (Chromium, template) fica so no log; o cliente recebe uma mensagem generica.
+        LOGGER.error("Certificate PDF generation failed for {}", request.getRequestURI(), ex);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Could not generate the certificate PDF", request);
+    }
+
     @ExceptionHandler(CourseValidationException.class)
     public ResponseEntity<ApiError> handleCourseValidationException(CourseValidationException ex, HttpServletRequest request) {
         final String msg = ex.getMessage() + ": " + String.join(", ", ex.getMissingFields());
         return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, msg, request);
+    }
+
+    @ExceptionHandler(DuplicateRegistrationException.class)
+    public ResponseEntity<ApiError> handleDuplicateRegistrationException(DuplicateRegistrationException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

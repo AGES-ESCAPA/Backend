@@ -24,7 +24,7 @@ class CreateCourseUseCaseTest {
 
         final Course course = useCase.execute(
                 "Fundamentos de Design", null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, admin.getId());
+                null, null, null, null, null, null, admin.getId());
 
         assertEquals("Fundamentos de Design", course.getTitle());
         assertEquals(CourseStatus.DRAFT, course.getStatus());
@@ -42,7 +42,7 @@ class CreateCourseUseCaseTest {
 
         final Course course = useCase.execute(
                 "Fundamentos de Design", "Resumo", "Descricao", null, null, instructor.getId(),
-                "Design", "INICIANTE", 40, 365, 365, 499.00,
+                "Design", "INICIANTE", 40, 365, 499.00,
                 List.of("Objetivo 1"), true, false, admin.getId());
 
         assertEquals(instructor.getId(), course.getInstructor().getId());
@@ -58,7 +58,7 @@ class CreateCourseUseCaseTest {
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(
                 " ", null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, admin.getId()));
+                null, null, null, null, null, null, admin.getId()));
     }
 
     @Test
@@ -71,7 +71,7 @@ class CreateCourseUseCaseTest {
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(
                 "Curso", null, null, null, null, student.getId(), null, null,
-                null, null, null, null, null, null, null, admin.getId()));
+                null, null, null, null, null, null, admin.getId()));
     }
 
     @Test
@@ -82,6 +82,6 @@ class CreateCourseUseCaseTest {
 
         assertThrows(UserNotFoundException.class, () -> useCase.execute(
                 "Curso", null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, UUID.randomUUID()));
+                null, null, null, null, null, null, UUID.randomUUID()));
     }
 }

@@ -5,6 +5,7 @@ public final class UserTypes {
 
     public static final String ADMIN = "ADMIN";
     public static final String STUDENT = "STUDENT";
+    public static final String COMPANY = "COMPANY";
 
     private UserTypes() {
     }
