@@ -22,6 +22,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <testcontainers.version>1.21.4</testcontainers.version>
         <!-- `mvn spring-boot:run` sobe com o perfil dev (aplica o seed de
         desenvolvimento). Definido como propriedade, e nao na configuracao do
         plugin, para que -Dspring-boot.run.profiles=... na linha de comando
