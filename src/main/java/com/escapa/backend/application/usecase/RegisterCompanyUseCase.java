@@ -78,12 +78,12 @@ public class RegisterCompanyUseCase {
         }
     }
 
-    private static String normalizeCnpj(String cnpj) {
-        final String digits = onlyDigits(cnpj);
-        if (!CnpjValidator.isValid(digits)) {
+        private static String normalizeCnpj(String cnpj) {
+        final String normalized = CnpjValidator.normalize(cnpj);
+        if (!CnpjValidator.isValid(normalized)) {
             throw new IllegalArgumentException("cnpj is invalid");
         }
-        return digits;
+        return normalized;
     }
 
     private static String normalizeEmail(String email) {
