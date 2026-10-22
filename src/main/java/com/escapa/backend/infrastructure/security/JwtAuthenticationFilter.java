@@ -10,7 +10,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,11 +22,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final TokenProviderPort tokenProviderPort;
-    private final SecurityErrorResponseWriter errorResponseWriter;
 
-    public JwtAuthenticationFilter(TokenProviderPort tokenProviderPort, SecurityErrorResponseWriter errorResponseWriter) {
+    public JwtAuthenticationFilter(TokenProviderPort tokenProviderPort) {
         this.tokenProviderPort = tokenProviderPort;
-        this.errorResponseWriter = errorResponseWriter;
     }
 
     @Override
@@ -39,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         if (!authorization.startsWith(BEARER_PREFIX) || authorization.length() == BEARER_PREFIX.length()) {
-            errorResponseWriter.write(request, response, HttpStatus.UNAUTHORIZED, "Invalid access token");
+            continueWithoutAuthentication(request, response, filterChain);
             return;
         }
 
@@ -52,8 +49,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             filterChain.doFilter(request, response);
         } catch (IllegalArgumentException ex) {
-            SecurityContextHolder.clearContext();
-            errorResponseWriter.write(request, response, HttpStatus.UNAUTHORIZED, "Invalid or expired access token");
+            continueWithoutAuthentication(request, response, filterChain);
         }
+    }
+
+    private void continueWithoutAuthentication(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws IOException, ServletException {
+        // SecurityConfig libera rotas publicas ou devolve 401 para as protegidas.
+        SecurityContextHolder.clearContext();
+        filterChain.doFilter(request, response);
     }
 }

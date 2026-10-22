@@ -453,7 +453,7 @@ Depois do login, envie o valor de `accessToken` em todas as rotas privadas:
 Authorization: Bearer <accessToken>
 ```
 
-As rotas em `/api/v1/auth/**` (exceto `GET /api/v1/auth/me`), `/api/v1/public/**`, health e OpenAPI são públicas. As demais exigem token; `/api/v1/admin/**` e `/api/v1/users/**` exigem também o perfil `ADMIN`. Sem token válido a API responde `401` no formato `ApiError`; token de um perfil sem permissão recebe `403`.
+As rotas em `/api/v1/auth/**` (exceto `GET /api/v1/auth/me`), `/api/v1/public/**`, `GET /api/v1/health`, OpenAPI e `GET /api/v1/certificates/{verificationCode}` são públicas. As demais exigem token; `/api/v1/admin/**` e `/api/v1/users/**` exigem também o perfil `ADMIN`. Sem token válido a API responde `401` no formato `ApiError`; token de um perfil sem permissão recebe `403`.
 
 ```http
 GET /api/v1/auth/me
@@ -534,7 +534,7 @@ Payload do `/reorder` — precisa listar **todos** os conteúdos do módulo, na 
 
 > ⚠️ **Pendências herdadas da BE-04:** o `DELETE` remove em definitivo — a troca por soft-delete quando houver progresso de aluno ainda não foi decidida. O campo `resources` é devolvido nas respostas, mas não é validado nem editado por estes endpoints até o produto definir onde ele é preenchido.
 
-> 🔓 **Sem restrição de acesso ainda:** os critérios pedem `userType = ADMIN` com `403 Forbidden`, mas o projeto ainda não tem autenticação (ver "Fora do Escopo Inicial"). As rotas estão sob `/admin` e prontas para receber o filtro quando a task de autenticação entrar.
+> 🔒 Todos os endpoints de conteúdo estão sob `/api/v1/admin/**` e exigem token Bearer de usuário `ADMIN`.
 
 ---
 
@@ -628,8 +628,8 @@ GET /api/v1/certificates/{verificationCode}
 GET /api/v1/certificates/{verificationCode}/download?theme=light|dark
 ```
 
-- **Tela (US-18):** além dos campos crus (`conclusionDate`, `workload` em minutos), `certificate` traz os textos já formatados — `formattedConclusionDate` ("21 de agosto de 2025"), `formattedWorkload` ("16 horas") e `validationUrl`. São os mesmos textos do PDF, formatados num único lugar (`FormattedCertificate`).
-- **PDF (US-19):** A4 horizontal, fiel ao certificado da tela, gerado a partir de `templates/certificate/certificate.html` pelo Chromium do Playwright. `theme` aceita `light` ou `dark` (sem diferenciar maiúsculas); sem o parâmetro vale `certificate.default-theme`; outro valor retorna `400`. Código inexistente ou curso não concluído retornam `404`.
+- **Tela (US-18):** `GET /api/v1/certificates/{verificationCode}` é público. Além dos campos crus (`conclusionDate`, `workload` em minutos), `certificate` traz os textos já formatados — `formattedConclusionDate` ("21 de agosto de 2025"), `formattedWorkload` ("16 horas") e `validationUrl`. São os mesmos textos do PDF, formatados num único lugar (`FormattedCertificate`).
+- **PDF (US-19):** `GET /api/v1/certificates/{verificationCode}/download` exige `Authorization: Bearer <accessToken>` do dono do certificado. Sem token retorna `401`; token de outro usuário retorna `403`. O PDF é A4 horizontal, gerado a partir de `templates/certificate/certificate.html` pelo Chromium do Playwright. `theme` aceita `light` ou `dark` (sem diferenciar maiúsculas); sem o parâmetro vale `certificate.default-theme`; outro valor retorna `400`. Código inexistente ou curso não concluído retornam `404`.
 - **Cache:** cada PDF gerado fica em `certificate_pdfs`, por código, tema e `certificate.template.version`. **Ao mudar o template (HTML, CSS, tokens, fontes ou imagens em `src/main/resources/certificate/`), incremente `certificate.template.version`**, senão o cache continua servindo o PDF antigo.
 - **Erros da geração:** fila cheia ou prazo esgotado retornam `503`; falha do navegador retorna `500` com mensagem genérica (a causa fica no log). Nada é salvo no cache quando a geração falha.
 - **Tokens visuais:** `certificate/certificate-tokens.css` copia os valores do frontend (`src/index.css` e `CertificateCard.module.css`). Ao mudarem lá, atualize aqui e incremente a versão do template.

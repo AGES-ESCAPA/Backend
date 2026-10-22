@@ -13,6 +13,7 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
@@ -62,9 +63,16 @@ public class OpenApiConfig implements WebMvcConfigurer {
         return (operation, handlerMethod) -> {
             final String controller = handlerMethod.getBeanType().getSimpleName();
             addError(operation, "400", "Invalid request");
-            if (isProtectedController(controller) || isAuthenticatedUserEndpoint(controller, handlerMethod.getMethod().getName())) {
+            final String method = handlerMethod.getMethod().getName();
+            final boolean requiresToken = isProtectedController(controller)
+                    || isAuthenticatedUserEndpoint(controller, method)
+                    || isCertificateDownloadEndpoint(controller, method);
+            if (requiresToken) {
+                operation.addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
                 addError(operation, "401", "Missing or invalid Bearer token");
-                if (controller.startsWith("Admin") || "UserController".equals(controller)) {
+                if (isCertificateDownloadEndpoint(controller, method)) {
+                    addError(operation, "403", "Certificate owner required");
+                } else if (controller.startsWith("Admin") || "UserController".equals(controller)) {
                     addError(operation, "403", "Administrator role required");
                 }
             }
@@ -91,6 +99,10 @@ public class OpenApiConfig implements WebMvcConfigurer {
 
     private static boolean isAuthenticatedUserEndpoint(String controller, String method) {
         return "AuthController".equals(controller) && "me".equals(method);
+    }
+
+    private static boolean isCertificateDownloadEndpoint(String controller, String method) {
+        return "CertificateController".equals(controller) && "download".equals(method);
     }
 
     private static void addError(Operation operation, String status, String description) {

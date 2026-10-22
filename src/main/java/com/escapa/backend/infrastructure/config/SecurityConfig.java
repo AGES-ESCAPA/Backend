@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -49,9 +50,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/auth/me").authenticated()
                         .requestMatchers(
-                                "/", "/error", "/actuator/health", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
+                                "/", "/error", "/actuator/health", "/api/v1/health", "/swagger-ui/**", "/swagger-ui.html",
+                                "/v3/api-docs/**",
                                 "/api/v1/auth/**", "/api/v1/public/**")
                         .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/certificates/*").permitAll()
                         .requestMatchers("/api/v1/admin/**", "/api/v1/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

@@ -17,7 +17,7 @@ class FormattedCertificateTest {
     void shouldFormatEveryFieldShownOnTheCertificate() {
         final CertificateDetails details = new CertificateDetails(
                 LocalDate.of(2025, 8, 21), 960, "ESC-21AGO25-7X9L2M3N",
-                new CertificateDetails.Student("Jorge Amado", null, true),
+                new CertificateDetails.Student(UUID.randomUUID(), "Jorge Amado", null, true),
                 new CertificateDetails.Course(
                         UUID.randomUUID(), "Marketing Digital para Hospitalidade", null, null, null, null,
                         960, 44, null, 0, null, null));

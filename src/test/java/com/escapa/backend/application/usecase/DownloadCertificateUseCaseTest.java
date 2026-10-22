@@ -3,6 +3,7 @@ package com.escapa.backend.application.usecase;
 import com.escapa.backend.application.model.CertificateDetails;
 import com.escapa.backend.application.model.CertificateFile;
 import com.escapa.backend.domain.certificate.CertificateGenerationException;
+import com.escapa.backend.domain.certificate.CertificateAccessDeniedException;
 import com.escapa.backend.domain.certificate.CertificateNotFoundException;
 import com.escapa.backend.domain.certificate.CertificateTheme;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DownloadCertificateUseCaseTest {
 
     private static final String COURSE_TITLE = "Marketing Digital para Hospitalidade";
+    private static final UUID STUDENT_ID = UUID.fromString("a0000000-0000-4000-a000-000000000010");
 
     private final InMemoryCertificateRepositoryPort certificateRepository = new InMemoryCertificateRepositoryPort();
     private final FakeCertificatePdfGeneratorPort pdfGenerator = new FakeCertificatePdfGeneratorPort();
@@ -37,7 +39,7 @@ class DownloadCertificateUseCaseTest {
     private void givenCertificate(String code, String courseTitle, LocalDate conclusionDate) {
         certificateRepository.addDetails(new CertificateDetails(
                 conclusionDate, 960, code,
-                new CertificateDetails.Student("Jorge Amado", null, true),
+                new CertificateDetails.Student(STUDENT_ID, "Jorge Amado", null, true),
                 new CertificateDetails.Course(
                         UUID.randomUUID(), courseTitle, "Estrategias de marketing", "Marketing",
                         "Intermediario", null, 960, 44, 5.0, 183, "Thamiris Magalhaes", 117.0)));
@@ -55,7 +57,7 @@ class DownloadCertificateUseCaseTest {
     void shouldGeneratePdfInTheLightTheme() {
         givenCertificate("ESC-1");
 
-        final CertificateFile file = useCase.execute("ESC-1", CertificateTheme.LIGHT);
+        final CertificateFile file = useCase.execute(STUDENT_ID, "ESC-1", CertificateTheme.LIGHT);
 
         assertArrayEquals(expectedPdf("ESC-1", CertificateTheme.LIGHT, "v2"), file.content());
     }
@@ -64,7 +66,7 @@ class DownloadCertificateUseCaseTest {
     void shouldGeneratePdfInTheDarkTheme() {
         givenCertificate("ESC-1");
 
-        final CertificateFile file = useCase.execute("ESC-1", CertificateTheme.DARK);
+        final CertificateFile file = useCase.execute(STUDENT_ID, "ESC-1", CertificateTheme.DARK);
 
         assertArrayEquals(expectedPdf("ESC-1", CertificateTheme.DARK, "v2"), file.content());
     }
@@ -73,8 +75,8 @@ class DownloadCertificateUseCaseTest {
     void shouldReuseTheCachedPdfOnTheSecondDownload() {
         givenCertificate("ESC-2");
 
-        final CertificateFile first = useCase.execute("ESC-2", CertificateTheme.LIGHT);
-        final CertificateFile second = useCase.execute("ESC-2", CertificateTheme.LIGHT);
+        final CertificateFile first = useCase.execute(STUDENT_ID, "ESC-2", CertificateTheme.LIGHT);
+        final CertificateFile second = useCase.execute(STUDENT_ID, "ESC-2", CertificateTheme.LIGHT);
 
         assertArrayEquals(first.content(), second.content());
         assertEquals(1, pdfGenerator.calls());
@@ -84,10 +86,10 @@ class DownloadCertificateUseCaseTest {
     void shouldKeepAnIndependentCachePerTheme() {
         givenCertificate("ESC-3");
 
-        useCase.execute("ESC-3", CertificateTheme.LIGHT);
-        useCase.execute("ESC-3", CertificateTheme.DARK);
-        useCase.execute("ESC-3", CertificateTheme.LIGHT);
-        useCase.execute("ESC-3", CertificateTheme.DARK);
+        useCase.execute(STUDENT_ID, "ESC-3", CertificateTheme.LIGHT);
+        useCase.execute(STUDENT_ID, "ESC-3", CertificateTheme.DARK);
+        useCase.execute(STUDENT_ID, "ESC-3", CertificateTheme.LIGHT);
+        useCase.execute(STUDENT_ID, "ESC-3", CertificateTheme.DARK);
 
         assertEquals(2, pdfGenerator.calls());
         assertEquals(2, certificateRepository.cachedPdfCount());
@@ -96,10 +98,10 @@ class DownloadCertificateUseCaseTest {
     @Test
     void shouldRegenerateWhenTheTemplateVersionChanges() {
         givenCertificate("ESC-4");
-        useCase.execute("ESC-4", CertificateTheme.LIGHT);
+        useCase.execute(STUDENT_ID, "ESC-4", CertificateTheme.LIGHT);
 
         pdfGenerator.useTemplateVersion("v3");
-        final CertificateFile file = useCase.execute("ESC-4", CertificateTheme.LIGHT);
+        final CertificateFile file = useCase.execute(STUDENT_ID, "ESC-4", CertificateTheme.LIGHT);
 
         assertArrayEquals(expectedPdf("ESC-4", CertificateTheme.LIGHT, "v3"), file.content());
         assertEquals(2, pdfGenerator.calls());
@@ -110,7 +112,7 @@ class DownloadCertificateUseCaseTest {
     @Test
     void shouldRejectUnknownVerificationCode() {
         assertThrows(CertificateNotFoundException.class,
-                () -> useCase.execute("DOES-NOT-EXIST", CertificateTheme.LIGHT));
+                () -> useCase.execute(STUDENT_ID, "DOES-NOT-EXIST", CertificateTheme.LIGHT));
         assertEquals(0, pdfGenerator.calls());
     }
 
@@ -120,7 +122,8 @@ class DownloadCertificateUseCaseTest {
         certificateRepository.saveCachedPdf(
                 "ESC-5", CertificateTheme.LIGHT, "v2", "stale".getBytes(StandardCharsets.UTF_8));
 
-        assertThrows(CertificateNotFoundException.class, () -> useCase.execute("ESC-5", CertificateTheme.LIGHT));
+        assertThrows(CertificateNotFoundException.class,
+                () -> useCase.execute(STUDENT_ID, "ESC-5", CertificateTheme.LIGHT));
         assertEquals(0, pdfGenerator.calls());
     }
 
@@ -129,7 +132,8 @@ class DownloadCertificateUseCaseTest {
         givenCertificate("ESC-6");
         pdfGenerator.failWith(new CertificateGenerationException("Chromium crashed", null));
 
-        assertThrows(CertificateGenerationException.class, () -> useCase.execute("ESC-6", CertificateTheme.LIGHT));
+        assertThrows(CertificateGenerationException.class,
+                () -> useCase.execute(STUDENT_ID, "ESC-6", CertificateTheme.LIGHT));
 
         assertTrue(certificateRepository.findCachedPdf("ESC-6", CertificateTheme.LIGHT, "v2").isEmpty());
     }
@@ -171,7 +175,7 @@ class DownloadCertificateUseCaseTest {
     void shouldBuildTheDownloadFilenameFromTheCourseTitle() {
         givenCertificate("ESC-9");
 
-        final CertificateFile file = useCase.execute("ESC-9", CertificateTheme.LIGHT);
+        final CertificateFile file = useCase.execute(STUDENT_ID, "ESC-9", CertificateTheme.LIGHT);
 
         assertEquals("certificado-marketing-digital-para-hospitalidade.pdf", file.filename());
     }
@@ -180,7 +184,7 @@ class DownloadCertificateUseCaseTest {
     void shouldStripAccentsAndSpecialCharactersFromTheFilename() {
         givenCertificate("ESC-10", "Gestão de Áreas & Operações!", LocalDate.of(2026, 8, 21));
 
-        final CertificateFile file = useCase.execute("ESC-10", CertificateTheme.LIGHT);
+        final CertificateFile file = useCase.execute(STUDENT_ID, "ESC-10", CertificateTheme.LIGHT);
 
         assertEquals("certificado-gestao-de-areas-operacoes.pdf", file.filename());
     }
@@ -197,7 +201,7 @@ class DownloadCertificateUseCaseTest {
         for (int i = 0; i < requests; i++) {
             downloads.add(pool.submit(() -> {
                 started.countDown();
-                return useCase.execute(code, theme);
+                return useCase.execute(STUDENT_ID, code, theme);
             }));
         }
         assertTrue(started.await(5, TimeUnit.SECONDS));
@@ -206,5 +210,16 @@ class DownloadCertificateUseCaseTest {
         release.countDown();
         pool.shutdown();
         return downloads;
+    }
+
+    @Test
+    void shouldRejectDownloadWhenTheUserIsNotTheCertificateOwnerEvenWithACachedPdf() {
+        givenCertificate("ESC-11");
+        certificateRepository.saveCachedPdf(
+                "ESC-11", CertificateTheme.LIGHT, "v2", "cached".getBytes(StandardCharsets.UTF_8));
+
+        assertThrows(CertificateAccessDeniedException.class,
+                () -> useCase.execute(UUID.randomUUID(), "ESC-11", CertificateTheme.LIGHT));
+        assertEquals(0, pdfGenerator.calls());
     }
 }
