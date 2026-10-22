@@ -364,6 +364,8 @@ Resposta esperada:
 POST /api/v1/users
 ```
 
+Endpoint administrativo. Envie `Authorization: Bearer <accessToken>` de um usuário `ADMIN`. Os cadastros públicos são feitos pelos endpoints em `/api/v1/auth`.
+
 Payload:
 ```json
 {
@@ -391,6 +393,8 @@ Resposta (`201 Created`):
 ```http
 GET /api/v1/users
 ```
+
+Exige token de administrador, assim como a consulta por ID.
 
 ### Consulta de Usuário por ID
 ```http
@@ -466,6 +470,22 @@ Veja o [README da US-21](docs/US-21-cadastro-aluno/README.md) para as decisões 
 * `APP_JWT_SECRET`: Segredo de assinatura HMAC-SHA256 (mínimo de 256 bits / 32 caracteres).
 * `APP_JWT_EXPIRATION_MINUTES`: Tempo de expiração do token em minutos (padrão: `60`).
 
+#### Uso do token nas rotas privadas
+Depois do login, envie o valor de `accessToken` em todas as rotas privadas:
+
+```http
+Authorization: Bearer <accessToken>
+```
+
+As rotas em `/api/v1/auth/**` (exceto `GET /api/v1/auth/me`), `/api/v1/public/**`, `GET /api/v1/health`, OpenAPI e `GET /api/v1/certificates/{verificationCode}` são públicas. As demais exigem token; `/api/v1/admin/**` e `/api/v1/users/**` exigem também o perfil `ADMIN`. Sem token válido a API responde `401` no formato `ApiError`; token de um perfil sem permissão recebe `403`.
+
+```http
+GET /api/v1/auth/me
+Authorization: Bearer <accessToken>
+```
+
+`GET /api/v1/auth/me` devolve o mesmo objeto `user` retornado pelo login e deve ser usado pelo frontend para restaurar a sessão após recarregar a página.
+
 #### 🔑 Credenciais do Seed para Testes Locais:
 Todos os usuários do seed de desenvolvimento (`db/seed/R__seed_dev.sql`) utilizam a mesma senha:
 * **Senha padrão:** `escapa@2026`
@@ -483,14 +503,14 @@ Contas de referência para validar cada perfil e fluxo de redirecionamento:
 ### Alteração de Senha
 ```http
 PUT /api/v1/me/password
-X-User-Id: <uuid do usuário logado>
+Authorization: Bearer <accessToken>
 ```
 
 ```json
 { "currentPassword": "senha-atual", "newPassword": "nova-senha-segura" }
 ```
 
-Disponível para todos os perfis. Retorna `200` ao trocar a senha; o usuário continua logado. Senha atual incorreta ou nova senha com menos de 8 caracteres retornam `400` (e não `401`, para o frontend não tratar como sessão expirada). Sem `X-User-Id` válido retorna `401`. Depois da troca, o login (`POST /api/v1/auth/login`) passa a aceitar só a nova senha. O header é provisório até as rotas validarem o token emitido pelo login.
+Disponível para todos os perfis autenticados. Retorna `200` ao trocar a senha; o usuário continua logado. Senha atual incorreta ou nova senha com menos de 8 caracteres retornam `400` (e não `401`, para o frontend não tratar como sessão expirada). Sem token válido retorna `401`.
 
 ---
 
@@ -517,7 +537,7 @@ DELETE /api/v1/admin/contents/{id}
 
 O `order` é calculado automaticamente no `POST` (`max(order do módulo) + 1`), nunca vem no payload.
 
-Todos os endpoints de conteúdo exigem o header `X-User-Id` de um usuário `ADMIN`, como os de cursos e módulos: header ausente, inválido, de usuário inexistente ou que não seja `ADMIN` retorna `403 Forbidden`.
+Todos os endpoints de conteúdo exigem `Authorization: Bearer <accessToken>` de um usuário `ADMIN`: token ausente ou inválido retorna `401`, e perfil diferente de `ADMIN` retorna `403 Forbidden`.
 
 Payload do `POST` (tipo Vídeo):
 ```json
@@ -538,7 +558,7 @@ Payload do `/reorder` — precisa listar **todos** os conteúdos do módulo, na 
 
 > ⚠️ **Pendências herdadas da BE-04:** o `DELETE` remove em definitivo — a troca por soft-delete quando houver progresso de aluno ainda não foi decidida. O campo `resources` é devolvido nas respostas, mas não é validado nem editado por estes endpoints até o produto definir onde ele é preenchido.
 
-> 🔓 **Sem restrição de acesso ainda:** os critérios pedem `userType = ADMIN` com `403 Forbidden`, mas o projeto ainda não tem autenticação (ver "Fora do Escopo Inicial"). As rotas estão sob `/admin` e prontas para receber o filtro quando a task de autenticação entrar.
+> 🔒 Todos os endpoints de conteúdo estão sob `/api/v1/admin/**` e exigem token Bearer de usuário `ADMIN`.
 
 ---
 
@@ -578,10 +598,10 @@ Carrega uma aula específica com os dados do player e do cabeçalho "Módulo X �
 
 ```text
 GET /api/v1/student/courses/{courseId}/lessons/{lessonId}
-X-User-Id: <uuid do aluno>
+Authorization: Bearer <accessToken>
 ```
 
-🔓 **Identificação provisória:** o aluno é identificado pelo header `X-User-Id`, o mesmo mecanismo das rotas `/admin`. Ele será trocado pelo token quando o login da US-23 entrar.
+O aluno é identificado pelo token Bearer; o UUID não é recebido por header separado.
 
 **Regras de acesso** (avaliadas nesta ordem):
 
@@ -595,7 +615,7 @@ O bloqueio por ordem obrigatória (`require_sequential_progress`) fica fora dest
 | Status | Quando |
 |--------|--------|
 | `200` | Aula devolvida no envelope `ApiResponse` |
-| `401` | Header `X-User-Id` ausente ou que não seja um UUID válido |
+| `401` | Token ausente, inválido ou expirado |
 | `403` | Sem matrícula em aula paga, matrícula ainda não iniciada ou prazo expirado com bloqueio por prazo |
 | `404` | Aula não existe ou não pertence ao curso informado |
 
@@ -632,8 +652,8 @@ GET /api/v1/certificates/{verificationCode}
 GET /api/v1/certificates/{verificationCode}/download?theme=light|dark
 ```
 
-- **Tela (US-18):** além dos campos crus (`conclusionDate`, `workload` em minutos), `certificate` traz os textos já formatados — `formattedConclusionDate` ("21 de agosto de 2025"), `formattedWorkload` ("16 horas") e `validationUrl`. São os mesmos textos do PDF, formatados num único lugar (`FormattedCertificate`).
-- **PDF (US-19):** A4 horizontal, fiel ao certificado da tela, gerado a partir de `templates/certificate/certificate.html` pelo Chromium do Playwright. `theme` aceita `light` ou `dark` (sem diferenciar maiúsculas); sem o parâmetro vale `certificate.default-theme`; outro valor retorna `400`. Código inexistente ou curso não concluído retornam `404`.
+- **Tela (US-18):** `GET /api/v1/certificates/{verificationCode}` é público. Além dos campos crus (`conclusionDate`, `workload` em minutos), `certificate` traz os textos já formatados — `formattedConclusionDate` ("21 de agosto de 2025"), `formattedWorkload` ("16 horas") e `validationUrl`. São os mesmos textos do PDF, formatados num único lugar (`FormattedCertificate`).
+- **PDF (US-19):** `GET /api/v1/certificates/{verificationCode}/download` exige `Authorization: Bearer <accessToken>` do dono do certificado. Sem token retorna `401`; token de outro usuário retorna `403`. O PDF é A4 horizontal, gerado a partir de `templates/certificate/certificate.html` pelo Chromium do Playwright. `theme` aceita `light` ou `dark` (sem diferenciar maiúsculas); sem o parâmetro vale `certificate.default-theme`; outro valor retorna `400`. Código inexistente ou curso não concluído retornam `404`.
 - **Cache:** cada PDF gerado fica em `certificate_pdfs`, por código, tema e `certificate.template.version`. **Ao mudar o template (HTML, CSS, tokens, fontes ou imagens em `src/main/resources/certificate/`), incremente `certificate.template.version`**, senão o cache continua servindo o PDF antigo.
 - **Erros da geração:** fila cheia ou prazo esgotado retornam `503`; falha do navegador retorna `500` com mensagem genérica (a causa fica no log). Nada é salvo no cache quando a geração falha.
 - **Tokens visuais:** `certificate/certificate-tokens.css` copia os valores do frontend (`src/index.css` e `CertificateCard.module.css`). Ao mudarem lá, atualize aqui e incremente a versão do template.

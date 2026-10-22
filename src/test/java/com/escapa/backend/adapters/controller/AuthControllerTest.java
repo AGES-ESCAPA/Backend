@@ -91,7 +91,7 @@ class AuthControllerTest {
 
         final RegisterStudentUseCase registerStudentUseCase = new RegisterStudentUseCase(null, null, null, null, null);
         final AuthController controller = new AuthController(
-                loginUseCase, registerCompanyUseCase, registerStudentUseCase);
+                loginUseCase, registerCompanyUseCase, registerStudentUseCase, null);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();

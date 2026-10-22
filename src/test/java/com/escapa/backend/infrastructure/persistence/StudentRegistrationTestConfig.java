@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Primary;
 import com.escapa.backend.application.port.FileStoragePort;
 import com.escapa.backend.application.port.RegularUserRepositoryPort;
 import com.escapa.backend.application.port.TokenProviderPort;
+import com.escapa.backend.application.model.TokenClaims;
 import com.escapa.backend.application.usecase.InMemoryFileStoragePort;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.infrastructure.security.JwtTokenProviderAdapter;
@@ -115,6 +116,11 @@ class StudentRegistrationTestConfig {
                 throw new IllegalStateException("Token generation failed for the test");
             }
             return delegate.generateToken(userId, email, role, profile);
+        }
+
+        @Override
+        public TokenClaims validateToken(String token) {
+            return delegate.validateToken(token);
         }
 
         @Override

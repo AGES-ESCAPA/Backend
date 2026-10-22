@@ -49,7 +49,7 @@ src/
 │   │   │   ├── controller/
 │   │   │   ├── dto/
 │   │   │   ├── exception/
-│   │   │   └── security/        → leitura do header X-User-Id e guarda de acesso ADMIN
+│   │   │   └── security/        → identidade autenticada pelo JWT e guarda de acesso ADMIN
 │   │   ├── infrastructure/          → JPA, repositórios, configurações e integração externa
 │   │   │   ├── config/
 │   │   │   └── persistence/
@@ -196,7 +196,7 @@ class CreateUserUseCaseTest {
 
 - **O nome do caso de uso define a transação.** `UseCaseTransactionConfig` envolve o `execute` de toda classe `*UseCase`: os prefixos `Get`, `List`, `Search` e `Authorize` rodam em transação **somente leitura**; os demais, em transação de escrita. Um caso de uso que grave dados **não** pode usar esses prefixos (no PostgreSQL falha em tempo de execução).
 - **Sem Spring em `application/`**: nada de `@Service` ou `@Transactional`. Casos de uso são classes puras registradas como `@Bean` em `SpringConfig` / `CourseConfig`.
-- **Acesso às rotas `/admin`**: receba `@RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId` e chame `AdminRequestGuard.requireAdmin(xUserId)` (403). Rotas do aluno usam `UserIdHeader.requireStudentId(xUserId)` (401). Nunca reimplemente o parse do header nem compare `"ADMIN"` como texto: use `User.isAdmin()` / `UserTypes`. O header é provisório até o login (US-23).
+- **Acesso às rotas autenticadas**: o `JwtAuthenticationFilter` valida `Authorization: Bearer <token>` e coloca `AuthenticatedUser` no contexto. Controllers obtêm a identidade com `AuthenticationContext.requireUser()`. Rotas `/admin` usam também `AdminRequestGuard.requireAdmin(userId)`; nunca receba ou faça parse de UUID pelo header. Sem token válido a rota protegida responde `401`; usuário sem permissão recebe `403`.
 - **Controllers só roteiam**: a conversão entidade/modelo → resposta fica em `XxxResponse.from(...)` e páginas usam `PageResponse.of(...)`. Regras (ex.: limites de paginação) ficam no caso de uso.
 - **DTOs de entrada**: Bean Validation em todos os campos; textos gravados em `VARCHAR(255)` usam `@Size(max = FieldLimits.VARCHAR_MAX, ...)` e números não negativos usam `@PositiveOrZero`. Um único DTO atende criação e edição quando os campos coincidem (`ContentRequest`, `ModuleRequest`).
 - **Contratos existentes não mudam sem combinar com o frontend**: alguns endpoints respondem sem `ApiResponse` (lista e filtros públicos, regras do curso, change-log, busca de pré-requisitos). Não "padronize" o envelope por conta própria.

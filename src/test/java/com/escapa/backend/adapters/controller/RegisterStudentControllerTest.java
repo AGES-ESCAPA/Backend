@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
 import com.escapa.backend.application.port.TokenProviderPort;
+import com.escapa.backend.application.model.TokenClaims;
 import com.escapa.backend.application.usecase.FakePasswordHasher;
 import com.escapa.backend.application.usecase.InMemoryRegularUserRepositoryPort;
 import com.escapa.backend.application.usecase.InMemoryUserRepositoryPort;
@@ -65,7 +66,7 @@ class RegisterStudentControllerTest {
                 userRepository, regularUserRepository, new FakePasswordHasher(), tokenProvider(),
                 new RegistrationContactValidator(validatorFactory.getValidator()));
         final LoginUseCase loginUseCase = new LoginUseCase(userRepository, new FakePasswordHasher(), tokenProvider());
-        final AuthController controller = new AuthController(loginUseCase, null, registerStudentUseCase);
+        final AuthController controller = new AuthController(loginUseCase, null, registerStudentUseCase, null);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
@@ -206,6 +207,11 @@ class RegisterStudentControllerTest {
             @Override
             public String generateToken(UUID userId, String email, String role, String profile) {
                 return "student-token";
+            }
+
+            @Override
+            public TokenClaims validateToken(String token) {
+                return new TokenClaims(null, null, null, null);
             }
 
             @Override
