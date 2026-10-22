@@ -2,9 +2,10 @@ package com.escapa.backend.adapters.security;
 
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.domain.entity.User;
+import java.util.UUID;
 import org.springframework.stereotype.Component;
 
-/** Resolve o ADMIN autenticado a partir do header {@code X-User-Id} das rotas /admin. */
+/** Revalida no banco o ADMIN identificado pelo token da requisicao. */
 @Component
 public class AdminRequestGuard {
 
@@ -14,7 +15,7 @@ public class AdminRequestGuard {
         this.authorizeAdminUseCase = authorizeAdminUseCase;
     }
 
-    public User requireAdmin(String userIdHeader) {
-        return authorizeAdminUseCase.execute(UserIdHeader.requireAdminId(userIdHeader));
+    public User requireAdmin(UUID userId) {
+        return authorizeAdminUseCase.execute(userId);
     }
 }

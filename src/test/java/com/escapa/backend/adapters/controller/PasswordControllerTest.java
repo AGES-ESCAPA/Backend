@@ -1,6 +1,7 @@
 package com.escapa.backend.adapters.controller;
 
 import com.escapa.backend.application.port.PasswordHasherPort;
+import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
 import com.escapa.backend.infrastructure.persistence.UserEntity;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
@@ -44,6 +45,9 @@ class PasswordControllerTest extends PostgresIntegrationTest {
     @Autowired
     private PasswordHasherPort passwordHasherPort;
 
+    @Autowired
+    private TokenProviderPort tokenProviderPort;
+
     private UUID userId;
 
     @BeforeEach
@@ -65,7 +69,7 @@ class PasswordControllerTest extends PostgresIntegrationTest {
         userJpaRepository.save(inactive);
 
         mockMvc.perform(put(URL)
-                        .header("X-User-Id", userId.toString())
+                        .header("Authorization", authorization())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body("senha-atual", "nova-senha-segura")))
                 .andExpect(status().isOk())
@@ -82,7 +86,7 @@ class PasswordControllerTest extends PostgresIntegrationTest {
     @Test
     void shouldLoginWithNewPasswordAndRejectOldOneAfterChange() throws Exception {
         mockMvc.perform(put(URL)
-                        .header("X-User-Id", userId.toString())
+                        .header("Authorization", authorization())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body("senha-atual", "nova-senha-segura")))
                 .andExpect(status().isOk());
@@ -102,7 +106,7 @@ class PasswordControllerTest extends PostgresIntegrationTest {
     @Test
     void shouldReturnBadRequestWhenCurrentPasswordIsWrong() throws Exception {
         mockMvc.perform(put(URL)
-                        .header("X-User-Id", userId.toString())
+                        .header("Authorization", authorization())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body("senha-errada", "nova-senha-segura")))
                 .andExpect(status().isBadRequest())
@@ -115,7 +119,7 @@ class PasswordControllerTest extends PostgresIntegrationTest {
     @Test
     void shouldReturnBadRequestWhenNewPasswordIsTooShort() throws Exception {
         mockMvc.perform(put(URL)
-                        .header("X-User-Id", userId.toString())
+                        .header("Authorization", authorization())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body("senha-atual", "curta")))
                 .andExpect(status().isBadRequest())
@@ -140,5 +144,9 @@ class PasswordControllerTest extends PostgresIntegrationTest {
 
     private String email() {
         return "senha." + userId + "@test.com";
+    }
+
+    private String authorization() {
+        return "Bearer " + tokenProviderPort.generateToken(userId, email(), "STUDENT", "STUDENT");
     }
 }

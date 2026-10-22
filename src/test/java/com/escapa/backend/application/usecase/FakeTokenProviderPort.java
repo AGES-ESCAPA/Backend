@@ -1,6 +1,7 @@
 package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.application.port.TokenProviderPort;
+import com.escapa.backend.application.model.TokenClaims;
 
 import java.util.UUID;
 
@@ -26,6 +27,11 @@ final class FakeTokenProviderPort implements TokenProviderPort {
     @Override
     public long getExpirationSeconds() {
         return DEFAULT_EXPIRATION_SECONDS;
+    }
+
+    @Override
+    public TokenClaims validateToken(String token) {
+        return new TokenClaims(lastUserId, null, lastRole, lastProfile);
     }
 
     UUID getLastUserId() {
