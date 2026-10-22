@@ -69,7 +69,7 @@ class RegisterCompanyUseCaseTest {
     }
 
     @Test
-    void shouldStoreOnlyDigitsOfCnpjAndPhoneAndNormalizeEmail() {
+    void shouldStoreNormalizedCnpjAndPhoneAndNormalizeEmail() {
         final LoginOutput output = useCase.execute(
                 RESPONSIBLE, "11.222.333/0001-81", COMPANY_NAME, "  RH@VistaMar.com.br ",
                 "(51) 99999-0001", PASSWORD);
@@ -79,6 +79,26 @@ class RegisterCompanyUseCaseTest {
         assertEquals(PHONE, company.getPhone());
         assertEquals(EMAIL, company.getCompanyEmail());
         assertEquals(EMAIL, output.user().getEmail());
+    }
+
+    @Test
+    void shouldRegisterCompanyWithAlphanumericCnpj() {
+        final LoginOutput output = useCase.execute(
+                RESPONSIBLE, "12.abc.345/01de-35", COMPANY_NAME, EMAIL, PHONE, PASSWORD);
+
+        final Company company = companyRepository.find(output.user().getId());
+        assertEquals("12ABC34501DE35", company.getCnpjId());
+    }
+
+    @Test
+    void shouldRejectDuplicateAlphanumericCnpjRegardlessOfFormatting() {
+        register("12ABC34501DE35", EMAIL);
+
+        final DuplicateRegistrationException exception = assertThrows(
+                DuplicateRegistrationException.class,
+                () -> register("12.abc.345/01de-35", "outro@vistamar.com.br"));
+
+        assertEquals("cnpj", exception.getField());
     }
 
     @Test
@@ -110,8 +130,10 @@ class RegisterCompanyUseCaseTest {
 
     @Test
     void shouldRejectInvalidCnpj() {
-        final String[] invalidCnpjs = {"11222333000182", "11222333", "11111111111111", "abc", "", null};
-
+        final String[] invalidCnpjs = {
+            "11222333000182", "11222333", "11111111111111", "abc", "", null,
+            "12ABC34501DE36", "12ABC34501DEA5"
+        };
         for (final String invalid : invalidCnpjs) {
             final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                     () -> register(invalid, EMAIL));
