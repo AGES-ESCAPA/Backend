@@ -13,7 +13,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.dao.DataIntegrityViolationException;
 
-import com.escapa.backend.domain.user.RegistrationConflictException;
+import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 
 class RegularUserConflictTranslationTest {
 
@@ -28,8 +28,8 @@ class RegularUserConflictTranslationTest {
 
         final RuntimeException translated = RegularUserRepositoryAdapter.translateConflict(exception);
 
-        assertInstanceOf(RegistrationConflictException.class, translated);
-        assertEquals("Email already registered", translated.getMessage());
+        assertInstanceOf(DuplicateRegistrationException.class, translated);
+        assertEquals("email already registered", translated.getMessage());
     }
 
     @Test
@@ -38,8 +38,8 @@ class RegularUserConflictTranslationTest {
 
         final RuntimeException translated = RegularUserRepositoryAdapter.translateConflict(exception);
 
-        assertInstanceOf(RegistrationConflictException.class, translated);
-        assertEquals("CPF already registered", translated.getMessage());
+        assertInstanceOf(DuplicateRegistrationException.class, translated);
+        assertEquals("cpf already registered", translated.getMessage());
     }
 
     @ParameterizedTest

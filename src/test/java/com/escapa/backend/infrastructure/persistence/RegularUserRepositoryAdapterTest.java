@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.escapa.backend.application.port.RegularUserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
-import com.escapa.backend.domain.user.RegistrationConflictException;
+import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.infrastructure.persistence.entity.RegularUserEntity;
 
 class RegularUserRepositoryAdapterTest extends PostgresIntegrationTest {
@@ -50,12 +50,12 @@ class RegularUserRepositoryAdapterTest extends PostgresIntegrationTest {
                 new User("First Student", email, "hash", "STUDENT"), "first-" + suffix, null);
         final String secondCpf = "second-" + suffix;
 
-        final RegistrationConflictException exception = assertThrows(
-                RegistrationConflictException.class,
+        final DuplicateRegistrationException exception = assertThrows(
+                DuplicateRegistrationException.class,
                 () -> regularUserRepositoryPort.save(
                         new User("Second Student", email, "hash", "STUDENT"), secondCpf, null));
 
-        assertEquals("Email already registered", exception.getMessage());
+        assertEquals("email already registered", exception.getMessage());
         assertFalse(regularUserRepositoryPort.existsByCpf(secondCpf));
     }
 
@@ -70,13 +70,13 @@ class RegularUserRepositoryAdapterTest extends PostgresIntegrationTest {
         );
         final String orphanEmail = "orphan-" + suffix + "@email.com";
 
-        final RegistrationConflictException exception = assertThrows(
-                RegistrationConflictException.class,
+        final DuplicateRegistrationException exception = assertThrows(
+                DuplicateRegistrationException.class,
                 () -> regularUserRepositoryPort.save(
                         new User("Second Student", orphanEmail, "hash", "STUDENT"), cpf, null)
         );
 
-        assertEquals("CPF already registered", exception.getMessage());
+        assertEquals("cpf already registered", exception.getMessage());
         assertFalse(userJpaRepository.existsByEmail(orphanEmail));
     }
 }

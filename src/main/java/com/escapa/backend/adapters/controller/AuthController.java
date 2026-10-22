@@ -69,7 +69,7 @@ public class AuthController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "201", description = "Student created with an access token", useReturnTypeSchema = true)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "409", description = "Email or CPF already registered",
+            responseCode = "409", description = "email or cpf already registered",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
     public ResponseEntity<ApiResponse<LoginResponse>> registerStudent(
             @Valid @RequestBody RegisterStudentRequest request

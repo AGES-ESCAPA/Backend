@@ -8,7 +8,7 @@ import com.escapa.backend.application.usecase.LoginOutput;
 import com.escapa.backend.application.usecase.LoginUseCase;
 import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import com.escapa.backend.application.usecase.RegisterCompanyUseCase;
-import com.escapa.backend.domain.company.DuplicateRegistrationException;
+import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.InactiveUserException;
 import com.escapa.backend.domain.user.InvalidCredentialsException;
@@ -64,7 +64,7 @@ class AuthControllerTest {
             }
         };
 
-        registerCompanyUseCase = new RegisterCompanyUseCase(null, null, null, null) {
+        registerCompanyUseCase = new RegisterCompanyUseCase(null, null, null, null, null) {
             @Override
             public LoginOutput execute(
                     String responsibleName, String cnpj, String companyName,

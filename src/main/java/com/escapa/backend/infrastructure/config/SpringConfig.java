@@ -152,10 +152,12 @@ public class SpringConfig {
             UserRepositoryPort userRepositoryPort,
             CompanyRepositoryPort companyRepositoryPort,
             PasswordHasherPort passwordHasherPort,
-            TokenProviderPort tokenProviderPort
+            TokenProviderPort tokenProviderPort,
+            ContactValidatorPort contactValidatorPort
     ) {
         return new RegisterCompanyUseCase(
-                userRepositoryPort, companyRepositoryPort, passwordHasherPort, tokenProviderPort);
+                userRepositoryPort, companyRepositoryPort, passwordHasherPort, tokenProviderPort,
+                contactValidatorPort);
     }
 
     @Bean

@@ -23,8 +23,8 @@ public record RegisterStudentRequest(
         @Size(max = FieldLimits.VARCHAR_MAX, message = "email " + FieldLimits.VARCHAR_MESSAGE)
         String email,
         @Size(max = FieldLimits.VARCHAR_MAX, message = "phone " + FieldLimits.VARCHAR_MESSAGE)
-        @Schema(description = "Optional international phone with country code; BR when omitted. Masks and extensions accepted.",
-                example = "+55 (54) 99999-8888")
+        @Schema(description = "Optional Brazilian phone. Masks are accepted and only digits are stored.",
+                example = "(54) 99999-8888")
         String phone,
         @NotBlank(message = "Password is required")
         @Size(

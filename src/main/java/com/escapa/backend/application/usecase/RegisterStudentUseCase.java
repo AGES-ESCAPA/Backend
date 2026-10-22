@@ -9,7 +9,7 @@ import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.CpfValidator;
-import com.escapa.backend.domain.user.RegistrationConflictException;
+import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.user.UserTypes;
 
 public class RegisterStudentUseCase {
@@ -84,10 +84,10 @@ public class RegisterStudentUseCase {
 
     private void ensureUniqueData(String email, String cpf) {
         if (userRepositoryPort.existsByEmail(email)) {
-            throw new RegistrationConflictException("Email");
+            throw new DuplicateRegistrationException("email");
         }
         if (regularUserRepositoryPort.existsByCpf(cpf)) {
-            throw new RegistrationConflictException("CPF");
+            throw new DuplicateRegistrationException("cpf");
         }
     }
 

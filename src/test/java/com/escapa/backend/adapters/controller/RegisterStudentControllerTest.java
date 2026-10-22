@@ -123,7 +123,7 @@ class RegisterStudentControllerTest {
 
         mockMvc.perform(post(REGISTER_URL).contentType(MediaType.APPLICATION_JSON).content(validRequest()))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("Email already registered"));
+                .andExpect(jsonPath("$.message").value("email already registered"));
     }
 
     @Test
@@ -133,7 +133,7 @@ class RegisterStudentControllerTest {
 
         mockMvc.perform(post(REGISTER_URL).contentType(MediaType.APPLICATION_JSON).content(validRequest()))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("CPF already registered"));
+                .andExpect(jsonPath("$.message").value("cpf already registered"));
     }
 
     @Test
@@ -160,7 +160,7 @@ class RegisterStudentControllerTest {
 
         mockMvc.perform(post(REGISTER_URL).contentType(MediaType.APPLICATION_JSON).content(duplicate))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("Email already registered"));
+                .andExpect(jsonPath("$.message").value("email already registered"));
     }
 
     @ParameterizedTest

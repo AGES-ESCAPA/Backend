@@ -97,7 +97,7 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
         assertEquals("Student Test", saved.getName());
         assertEquals("STUDENT", saved.getUserType());
         assertEquals(CPF, profile.getCpf());
-        assertEquals("+442079460018;ext=123", profile.getPhone());
+        assertEquals("51999990000", profile.getPhone());
         assertTrue(passwords.matches(PASSWORD, saved.getPasswordHash()));
         assertEquals(saved.getId().toString(), data.path("user").path("id").asText());
         assertEquals("STUDENT", data.path("user").path("profile").asText());
@@ -145,7 +145,7 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
         assertEquals(List.of(201, 409), results.stream().map(result -> result.getResponse().getStatus()).sorted().toList());
         final MvcResult conflict = results.stream().filter(result -> result.getResponse().getStatus() == 409)
                 .findFirst().orElseThrow();
-        assertEquals((sameEmail ? "Email" : "CPF") + " already registered", response(conflict).path("message").asText());
+        assertEquals((sameEmail ? "email" : "cpf") + " already registered", response(conflict).path("message").asText());
         assertEquals(1, countUsers());
         assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM regular_users r JOIN users u ON u.id = r.user_id "
                 + "WHERE u.email LIKE ?", Integer.class, "%" + suffix + "@example.com"));
@@ -161,7 +161,7 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
 
         final RegularUserEntity profile = regularUsers.findById(id).orElseThrow();
         assertEquals(CPF, profile.getCpf());
-        assertEquals("+442079460018;ext=123", profile.getPhone());
+        assertEquals("51999990000", profile.getPhone());
         assertEquals(updated.getAvatarUrl(), profile.getProfileAvatarUrl());
         assertTrue(updated.getAvatarUrl().startsWith("https://storage.test/avatars/"));
     }
@@ -186,7 +186,7 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
     }
 
     private static RegisterStudentCommand command(String email, String cpf) {
-        return new RegisterStudentCommand("  Student Test  ", cpf, email, "+44 (20) 7946-0018 ext. 123", PASSWORD);
+        return new RegisterStudentCommand("  Student Test  ", cpf, email, "(51) 99999-0000", PASSWORD);
     }
 
     private int countUsers() {

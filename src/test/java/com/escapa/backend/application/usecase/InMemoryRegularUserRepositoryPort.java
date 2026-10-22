@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import com.escapa.backend.application.port.RegularUserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
-import com.escapa.backend.domain.user.RegistrationConflictException;
+import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 
 public final class InMemoryRegularUserRepositoryPort implements RegularUserRepositoryPort {
 
@@ -21,10 +21,10 @@ public final class InMemoryRegularUserRepositoryPort implements RegularUserRepos
     @Override
     public User save(User user, String cpf, String phone) {
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RegistrationConflictException("Email");
+            throw new DuplicateRegistrationException("email");
         }
         if (existsByCpf(cpf)) {
-            throw new RegistrationConflictException("CPF");
+            throw new DuplicateRegistrationException("cpf");
         }
         userRepository.save(user);
         usersByCpf.put(cpf, user);

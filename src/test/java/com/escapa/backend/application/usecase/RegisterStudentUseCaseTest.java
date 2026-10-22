@@ -19,7 +19,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.escapa.backend.domain.entity.User;
-import com.escapa.backend.domain.user.RegistrationConflictException;
+import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.infrastructure.validation.RegistrationContactValidator;
 
 import jakarta.validation.Validation;
@@ -64,7 +64,7 @@ class RegisterStudentUseCaseTest {
         assertEquals("maria@email.com", saved.getEmail());
         assertEquals("hashed:12345678", saved.getPasswordHash());
         assertEquals("STUDENT", saved.getUserType());
-        assertEquals("+5551999990000", regularUserRepository.findPhoneByUserId(saved.getId()));
+        assertEquals("51999990000", regularUserRepository.findPhoneByUserId(saved.getId()));
         assertEquals(saved.getId(), userRepository.findByEmail("maria@email.com").orElseThrow().getId());
         assertEquals("mocked-jwt-student", output.accessToken());
         assertEquals("Bearer", output.tokenType());
@@ -115,11 +115,11 @@ class RegisterStudentUseCaseTest {
     void shouldRejectDuplicateEmailAndIdentifyField() {
         userRepository.save(new User("Outra Maria", "maria@email.com", "hash", "STUDENT"));
 
-        final RegistrationConflictException exception = assertThrows(
-                RegistrationConflictException.class,
+        final DuplicateRegistrationException exception = assertThrows(
+                DuplicateRegistrationException.class,
                 () -> useCase.execute(command("Maria", "52998224725", "maria@email.com", null, "12345678")));
 
-        assertEquals("Email already registered", exception.getMessage());
+        assertEquals("email already registered", exception.getMessage());
     }
 
     @Test
@@ -127,11 +127,11 @@ class RegisterStudentUseCaseTest {
         regularUserRepository.save(
                 new User("Outra Maria", "outra@email.com", "hash", "STUDENT"), "52998224725", null);
 
-        final RegistrationConflictException exception = assertThrows(
-                RegistrationConflictException.class,
+        final DuplicateRegistrationException exception = assertThrows(
+                DuplicateRegistrationException.class,
                 () -> useCase.execute(command("Maria", "529.982.247-25", "maria@email.com", null, "12345678")));
 
-        assertEquals("CPF already registered", exception.getMessage());
+        assertEquals("cpf already registered", exception.getMessage());
     }
 
     @Test
@@ -151,10 +151,10 @@ class RegisterStudentUseCaseTest {
     void shouldRejectASecondRegistrationWithTheSameEmailAndAnotherCpf() {
         useCase.execute(command("Maria", "52998224725", "maria@email.com", null, "12345678"));
 
-        final RegistrationConflictException exception = assertThrows(RegistrationConflictException.class,
+        final DuplicateRegistrationException exception = assertThrows(DuplicateRegistrationException.class,
                 () -> useCase.execute(command("Outra", "12345678909", " MARIA@EMAIL.COM ", null, "12345678")));
 
-        assertEquals("Email already registered", exception.getMessage());
+        assertEquals("email already registered", exception.getMessage());
         assertEquals(1, userRepository.findAll().size());
         assertNull(regularUserRepository.findByCpf("12345678909"));
     }
@@ -163,10 +163,10 @@ class RegisterStudentUseCaseTest {
     void shouldRejectASecondRegistrationWithTheSameCpfAndAnotherEmail() {
         useCase.execute(command("Maria", "52998224725", "maria@email.com", null, "12345678"));
 
-        final RegistrationConflictException exception = assertThrows(RegistrationConflictException.class,
+        final DuplicateRegistrationException exception = assertThrows(DuplicateRegistrationException.class,
                 () -> useCase.execute(command("Outra", "529.982.247-25", "outra@email.com", null, "12345678")));
 
-        assertEquals("CPF already registered", exception.getMessage());
+        assertEquals("cpf already registered", exception.getMessage());
         assertTrue(userRepository.findByEmail("outra@email.com").isEmpty());
     }
 
@@ -205,6 +205,7 @@ class RegisterStudentUseCaseTest {
                 invalid("Maria", "52998224725", "maria@email.com", null, "        ", "Password is required"),
                 invalid("Maria", "52998224725", "maria@email.com", "abc", "12345678", "Invalid phone"),
                 invalid("Maria", "52998224725", "maria@email.com", "+1 123", "12345678", "Invalid phone"),
+                invalid("Maria", "52998224725", "maria@email.com", "+55 (51) 99999-0000", "12345678", "Invalid phone"),
                 invalid(longText, "52998224725", "maria@email.com", null, "12345678", "name must have at most 255 characters"),
                 invalid("Maria", longText, "maria@email.com", null, "12345678", "cpf must have at most 255 characters"),
                 invalid("Maria", "52998224725", longText, null, "12345678", "email must have at most 255 characters"),

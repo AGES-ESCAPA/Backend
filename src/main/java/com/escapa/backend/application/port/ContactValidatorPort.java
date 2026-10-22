@@ -5,6 +5,6 @@ public interface ContactValidatorPort {
 
     boolean isValidEmail(String email);
 
-    /** Retorna o telefone internacional normalizado, ou null quando ausente; rejeita formatos invalidos. */
+    /** Retorna o telefone com apenas digitos, ou null quando ausente; rejeita formatos invalidos. */
     String normalizePhone(String phone);
 }
