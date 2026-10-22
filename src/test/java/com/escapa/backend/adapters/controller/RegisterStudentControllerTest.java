@@ -65,7 +65,7 @@ class RegisterStudentControllerTest {
                 userRepository, regularUserRepository, new FakePasswordHasher(), tokenProvider(),
                 new RegistrationContactValidator(validatorFactory.getValidator()));
         final LoginUseCase loginUseCase = new LoginUseCase(userRepository, new FakePasswordHasher(), tokenProvider());
-        final AuthController controller = new AuthController(loginUseCase, registerStudentUseCase);
+        final AuthController controller = new AuthController(loginUseCase, null, registerStudentUseCase);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();

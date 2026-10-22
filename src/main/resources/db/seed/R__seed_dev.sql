@@ -126,14 +126,14 @@ INSERT INTO regular_users (user_id, cpf, phone) VALUES
     ('c0000000-0000-4000-c000-000000000006', '40666677788', '+55 54 99444-0011');
 
 -- seats_total = soma dos pedidos de assentos APPROVED da empresa (ver "orders" abaixo).
-INSERT INTO company (id, company_name, cnpj_id, company_email, matricula, seats_total) VALUES
-    ('d0000000-0000-4000-d000-000000000001', 'Pousada Vista Mar LTDA', '12345678000191', 'rh@vistamar.com.br', 2048, 10),
-    ('d0000000-0000-4000-d000-000000000002', 'Hotel Atlântico Palace LTDA', '22333444000102', 'rh@atlanticopalace.com.br', 3102, 20),
-    ('d0000000-0000-4000-d000-000000000003', 'Resort Costa Dourada S.A.', '33444555000113', 'pessoas@costadourada.com.br', 4410, 0),
-    ('d0000000-0000-4000-d000-000000000004', 'Hostel Centro Histórico ME', '44555666000124', 'admin@hostelcentro.com.br', 1507, 0),
-    ('d0000000-0000-4000-d000-000000000005', 'Destinos do Sul Operadora de Turismo LTDA', '55666777000135', 'comercial@destinosdosul.com.br', 8821, 15),
-    ('d0000000-0000-4000-d000-000000000006', 'Spa & Wellness Gramado LTDA', '66777888000146', 'rh@spagramado.com.br', 6734, 0);
-
+INSERT INTO company (id, company_name, cnpj_id, company_email, matricula, seats_total, phone) VALUES
+    ('d0000000-0000-4000-d000-000000000001', 'Pousada Vista Mar LTDA', '12345678000191', 'rh@vistamar.com.br', 2048, 10, '51999990001'),
+    ('d0000000-0000-4000-d000-000000000002', 'Hotel Atlântico Palace LTDA', '22333444000102', 'rh@atlanticopalace.com.br', 3102, 20, '51999990002'),
+    ('d0000000-0000-4000-d000-000000000003', 'Resort Costa Dourada S.A.', '33444555000113', 'pessoas@costadourada.com.br', 4410, 0, '51999990003'),
+    ('d0000000-0000-4000-d000-000000000004', 'Hostel Centro Histórico ME', '44555666000124', 'admin@hostelcentro.com.br', 1507, 0, '51999990004'),
+    ('d0000000-0000-4000-d000-000000000005', 'Destinos do Sul Operadora de Turismo LTDA', '55666777000135', 'comercial@destinosdosul.com.br', 8821, 15, '51999990005'),
+    ('d0000000-0000-4000-d000-000000000006', 'Spa & Wellness Gramado LTDA', '66777888000146', 'rh@spagramado.com.br', 6734, 0, '51999990006');
+    
 INSERT INTO users_company (user_id, company_id, role) VALUES
     ('c0000000-0000-4000-c000-000000000001', 'd0000000-0000-4000-d000-000000000001', 'RECEPCAO'),
     ('c0000000-0000-4000-c000-000000000002', 'd0000000-0000-4000-d000-000000000002', 'GERENCIA'),
@@ -147,7 +147,7 @@ INSERT INTO users_company (user_id, company_id, role) VALUES
 -- -----------------------------------------------------------------------------
 INSERT INTO courses (
     id, title, description, short_description, thumbnail_url, teaser_video_url, status,
-    created_by, instructor_id, category, level, duration_time, deadline, access_duration_days,
+    created_by, instructor_id, category, level, duration_time, deadline,
     price, learning_objectives, require_sequential_progress, enforce_deadline_block,
     major_version, minor_version, lessons_count, materials_count, students_count,
     reviews_count, rating_average, created_at, updated_at
@@ -160,7 +160,7 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000002',
-     'Inovação', 'AVANCADO', 840, NULL, NULL, 127,
+     'Inovação', 'AVANCADO', 840, 365, 127,
      '["Diagnosticar a competitividade de um destino","Desenhar produtos turísticos inovadores","Articular governança público-privada","Aplicar inteligência de mercado em destinos","Estruturar indicadores de inovação territorial","Construir um roadmap de destino competitivo"]',
      TRUE, FALSE, 1, 0, 38, 3, 620,
      94, 4.7,
@@ -173,7 +173,7 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000002',
-     'Marketing', 'AVANCADO', 1200, NULL, NULL, 147,
+     'Marketing', 'AVANCADO', 1200, 365, 147,
      '["Calcular RevPAR, ADR e occupancy com segurança","Montar uma grade tarifária por segmento","Prever demanda e ajustar preços no dia a dia","Equilibrar OTAs, site oficial e contratos","Definir limites de overbooking com dados de no-show","Implantar um ritual semanal de revenue na operação"]',
      TRUE, FALSE, 1, 0, 52, 3, 1420,
      201, 4.8,
@@ -186,7 +186,7 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000002',
-     'Marketing', 'INTERMEDIARIO', 1080, NULL, NULL, 117,
+     'Marketing', 'INTERMEDIARIO', 1080, 365, 117,
      '["Construir a presença digital do meio de hospedagem","Produzir conteúdo que gera intenção de reserva","Operar mídia paga e presença em OTAs com critério","Montar um CRM simples para recompra","Medir CAC, ROAS e taxa de conversão do site","Integrar marketing e receita em um calendário único"]',
      TRUE, FALSE, 1, 0, 44, 3, 1280,
      183, 5,
@@ -199,7 +199,7 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000001',
-     'Hospitalidade', 'AVANCADO', 1080, NULL, NULL, 167,
+     'Hospitalidade', 'AVANCADO', 1080, 365, 167,
      '["Traduzir a cultura do luxo em rotina de equipe","Liderar com presença de palco e escuta ativa","Construir padrões de serviço observáveis","Dar feedback em operações de alta pressão","Gerir crises sem perder a experiência do hóspede","Formar sucessores na linha de frente e na gerência"]',
      TRUE, FALSE, 1, 0, 46, 3, 910,
      128, 4.9,
@@ -212,7 +212,7 @@ INSERT INTO courses (
      'https://vimeo.com/1226382615?share=copy&fl=sv&fe=ci',
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000001',
-     'Inteligência Artificial', 'INICIANTE', 720, NULL, NULL, 97,
+     'Inteligência Artificial', 'INICIANTE', 720, 365, 97,
      '["Usar o ChatGPT para criar roteiros e atender clientes","Analisar dados de demanda e tendências de viagens","Implementar chatbots para atendimento 24/7","Automatizar processos repetitivos com IA generativa","Criar conteúdo de marketing com ferramentas de IA","Personalizar experiências com machine learning"]',
      TRUE, FALSE, 1, 0, 15, 3, 1840,
      247, 4.9,
@@ -225,7 +225,7 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000001',
-     'Hospitalidade', 'INTERMEDIARIO', 600, NULL, NULL, 87,
+     'Hospitalidade', 'INTERMEDIARIO', 600, 365, 87,
      '["Mapear a jornada completa do hóspede","Desenhar momentos memoráveis em cada etapa","Personalizar o serviço com dados e escuta","Treinar a linha de frente para antecipação","Medir satisfação além do NPS","Corrigir falhas sem quebrar a experiência"]',
      TRUE, FALSE, 1, 0, 28, 3, 1050,
      156, 4.9,

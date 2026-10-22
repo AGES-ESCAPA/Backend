@@ -7,11 +7,13 @@ import com.escapa.backend.adapters.dto.RegisterStudentRequest;
 import com.escapa.backend.adapters.exception.ApiError;
 import com.escapa.backend.application.usecase.LoginOutput;
 import com.escapa.backend.application.usecase.LoginUseCase;
-import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import com.escapa.backend.adapters.dto.RegisterCompanyRequest;
+import com.escapa.backend.application.usecase.RegisterCompanyUseCase;
+import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +28,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final LoginUseCase loginUseCase;
+    private final RegisterCompanyUseCase registerCompanyUseCase;
     private final RegisterStudentUseCase registerStudentUseCase;
 
-    public AuthController(LoginUseCase loginUseCase, RegisterStudentUseCase registerStudentUseCase) {
+    public AuthController(
+            LoginUseCase loginUseCase,
+            RegisterCompanyUseCase registerCompanyUseCase,
+            RegisterStudentUseCase registerStudentUseCase
+    ) {
         this.loginUseCase = loginUseCase;
+        this.registerCompanyUseCase = registerCompanyUseCase;
         this.registerStudentUseCase = registerStudentUseCase;
     }
 
@@ -37,8 +45,23 @@ public class AuthController {
     @Operation(summary = "Authenticate a user")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         final LoginOutput output = loginUseCase.execute(request.email(), request.password());
-        final LoginResponse response = LoginResponse.from(output);
-        return ResponseEntity.ok(ApiResponse.success(response, "Operation completed successfully"));
+        return ResponseEntity.ok(ApiResponse.success(LoginResponse.from(output), "Operation completed successfully"));
+    }
+
+    @PostMapping("/register/company")
+    public ResponseEntity<ApiResponse<LoginResponse>> registerCompany(
+            @Valid @RequestBody RegisterCompanyRequest request
+    ) {
+        final LoginOutput output = registerCompanyUseCase.execute(
+                request.responsibleName(),
+                request.cnpj(),
+                request.companyName(),
+                request.email(),
+                request.phone(),
+                request.password()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(LoginResponse.from(output), "Company registered successfully"));
     }
 
     @PostMapping("/register/student")
@@ -52,9 +75,7 @@ public class AuthController {
             @Valid @RequestBody RegisterStudentRequest request
     ) {
         final LoginOutput output = registerStudentUseCase.execute(request.toCommand());
-        final LoginResponse response = LoginResponse.from(output);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "Student registered successfully"));
+                .body(ApiResponse.success(LoginResponse.from(output), "Student registered successfully"));
     }
 }
-

@@ -24,7 +24,7 @@ public class CreateCourseUseCase {
 
     public Course execute(String title, String shortDescription, String description, String thumbnailUrl,
                           String teaserVideoUrl, UUID instructorId, String category, String level,
-                          Integer durationTime, Integer deadline, Integer accessDurationDays, Double price,
+                          Integer durationTime, Integer deadline, Double price,
                           List<String> learningObjectives, Boolean requireSequentialProgress,
                           Boolean enforceDeadlineBlock, UUID createdById) {
 
@@ -48,7 +48,6 @@ public class CreateCourseUseCase {
                 level,
                 durationTime,
                 deadline,
-                accessDurationDays,
                 price,
                 learningObjectives,
                 requireSequentialProgress,

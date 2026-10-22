@@ -99,6 +99,6 @@ class AddCoursePrerequisiteUseCaseTest {
 
     private static Course course(String title, User createdBy) {
         return new Course(title, null, null, null, null, null, null, null,
-                null, null, null, null, List.of(), true, false, createdBy);
+                null, null, null, List.of(), true, false, createdBy);
     }
 }
