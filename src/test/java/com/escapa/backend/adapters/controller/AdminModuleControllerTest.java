@@ -2,6 +2,7 @@ package com.escapa.backend.adapters.controller;
 
 import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
 import com.escapa.backend.adapters.security.AdminRequestGuard;
+import com.escapa.backend.adapters.security.AuthenticatedUser;
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
@@ -13,9 +14,13 @@ import com.escapa.backend.application.usecase.ReorderModulesUseCase;
 import com.escapa.backend.application.usecase.UpdateModuleUseCase;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -32,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /** Mapeamento HTTP e controle de acesso ADMIN dos módulos (US-06). */
 class AdminModuleControllerTest {
 
-    private static final String USER_HEADER = "X-User-Id";
+    private static final String USER_HEADER = "Authorization";
     private static final String MODULES_URL = "/api/v1/admin/courses/{courseId}/modules";
 
     private final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
@@ -59,13 +64,20 @@ class AdminModuleControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
+        authenticate(adminId, "ADMIN");
+    }
+
+    @AfterEach
+    void clearAuthentication() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
-    void shouldRejectRequestsWithoutTheUserHeader() throws Exception {
+    void shouldRejectRequestsWithoutAuthentication() throws Exception {
+        SecurityContextHolder.clearContext();
         mockMvc.perform(get(MODULES_URL, courseId))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message").value("Missing X-User-Id header"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Missing or invalid access token"));
     }
 
     @Test
@@ -118,5 +130,11 @@ class AdminModuleControllerTest {
         return mockMvc.perform(post(MODULES_URL, courseId).header(USER_HEADER, adminId)
                         .contentType(MediaType.APPLICATION_JSON).content("{\"title\": \"" + title + "\"}"))
                 .andExpect(status().isCreated());
+    }
+
+    private static void authenticate(String userId, String role) {
+        final var user = new AuthenticatedUser(UUID.fromString(userId), "test@escapa.com", role, role);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                user, null, AuthorityUtils.createAuthorityList("ROLE_" + role)));
     }
 }

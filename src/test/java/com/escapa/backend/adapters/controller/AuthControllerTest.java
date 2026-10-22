@@ -88,7 +88,8 @@ class AuthControllerTest {
             }
         };
 
-        final AuthController controller = new AuthController(loginUseCase, registerCompanyUseCase);        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+        final AuthController controller = new AuthController(loginUseCase, registerCompanyUseCase, null);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }

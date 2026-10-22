@@ -71,6 +71,8 @@ public interface UserCourseJpaRepository
 
             /** Projecao plana da tela de certificado (US-18); o adapter monta o modelo. */
             interface CertificateDetailsView {
+                UUID getStudentId();
+
                 LocalDate getConclusionDate();
 
                 String getVerificationCode();
@@ -109,7 +111,7 @@ public interface UserCourseJpaRepository
             // Uma unica consulta para a tela inteira (US-18). avatar_url so existe em
             // admins, dai o LEFT JOIN pelo id do aluno; rating e reviewsCount sao
             // agregados de course_reviews (indice idx_course_reviews_course).
-            @Query("select uc.conclusionDate as conclusionDate, uc.certificateCode as verificationCode, "
+            @Query("select student.id as studentId, uc.conclusionDate as conclusionDate, uc.certificateCode as verificationCode, "
                 + "student.name as studentName, studentAdmin.avatarUrl as studentAvatarUrl, "
                 + "case when student.status = "
                 + "com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus.ACTIVE "

@@ -5,11 +5,13 @@ import com.escapa.backend.application.model.CertificateFile;
 import com.escapa.backend.application.model.FormattedCertificate;
 import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
+import com.escapa.backend.domain.certificate.CertificateAccessDeniedException;
 import com.escapa.backend.domain.certificate.CertificateTheme;
 
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,9 +49,13 @@ public class DownloadCertificateUseCase {
         this.certificatePdfGeneratorPort = certificatePdfGeneratorPort;
     }
 
-    public CertificateFile execute(String verificationCode, CertificateTheme theme) {
-        // Antes do cache: o 404 vale mesmo que ja exista um PDF salvo para o codigo.
+    public CertificateFile execute(UUID userId, String verificationCode, CertificateTheme theme) {
+        // Antes do cache: o 404 e a verificacao de dono valem mesmo que ja exista
+        // um PDF salvo para o codigo.
         final CertificateDetails details = getCertificateDetailsUseCase.execute(verificationCode).details();
+        if (!userId.equals(details.student().id())) {
+            throw new CertificateAccessDeniedException();
+        }
         final String templateVersion = certificatePdfGeneratorPort.templateVersion();
 
         final byte[] pdf = certificateRepositoryPort

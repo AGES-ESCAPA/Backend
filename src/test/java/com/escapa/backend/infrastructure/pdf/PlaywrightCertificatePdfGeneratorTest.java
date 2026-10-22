@@ -82,7 +82,7 @@ class PlaywrightCertificatePdfGeneratorTest {
     private static CertificateDetails details(String studentName, String courseTitle) {
         return new CertificateDetails(
                 LocalDate.of(2025, 8, 21), 960, "ESC-21AGO25-7X9L2M3N",
-                new CertificateDetails.Student(studentName, null, true),
+                new CertificateDetails.Student(UUID.randomUUID(), studentName, null, true),
                 new CertificateDetails.Course(
                         UUID.randomUUID(), courseTitle, "Estrategias de marketing", "Marketing",
                         "Intermediario", null, 960, 44, 5.0, 183, "Thamiris Magalhaes", 117.0));
