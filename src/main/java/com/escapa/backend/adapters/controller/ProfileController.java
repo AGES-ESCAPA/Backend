@@ -8,12 +8,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.escapa.backend.adapters.dto.ApiResponse;
 import com.escapa.backend.adapters.dto.ProfileResponseDTO;
 import com.escapa.backend.adapters.dto.ProfileUpdateDTO;
+import com.escapa.backend.adapters.security.UserIdHeader;
 
 import jakarta.validation.Valid;
 
@@ -32,8 +34,9 @@ public class ProfileController {
 
     // Busca o perfil do usuário identificado pelo UUID informado na URL.
     @GetMapping("/profile")
-    public ResponseEntity<ApiResponse<ProfileResponseDTO>> getProfile(Principal principal) {
-        final UUID userId = UUID.fromString(principal.getName());
+    public ResponseEntity<ApiResponse<ProfileResponseDTO>> getProfile(@RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId) {
+    //  final UUID userId = UUID.fromString(principal.getName());
+        final UUID userId = UserIdHeader.requireStudentId(xUserId);  
         final ProfileResponseDTO response = profileService.getProfile(userId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
