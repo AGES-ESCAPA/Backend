@@ -22,7 +22,6 @@ import com.escapa.backend.domain.certificate.CertificateGenerationException;
 import com.escapa.backend.domain.certificate.CertificateGenerationUnavailableException;
 import com.escapa.backend.domain.certificate.CertificateAccessDeniedException;
 import com.escapa.backend.domain.certificate.CertificateNotFoundException;
-import com.escapa.backend.domain.company.DuplicateRegistrationException;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
@@ -33,6 +32,7 @@ import com.escapa.backend.domain.user.InactiveUserException;
 import com.escapa.backend.domain.user.InvalidAvatarFileException;
 import com.escapa.backend.domain.user.InvalidCredentialsException;
 import com.escapa.backend.domain.user.InvalidCurrentPasswordException;
+import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.user.UserNotFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,41 +1,40 @@
 package com.escapa.backend.application.usecase;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
+import com.escapa.backend.application.port.ContactValidatorPort;
 import com.escapa.backend.application.port.CompanyRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.company.CnpjValidator;
-import com.escapa.backend.domain.company.DuplicateRegistrationException;
 import com.escapa.backend.domain.entity.Company;
+import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserTypes;
 
 public class RegisterCompanyUseCase {
 
-    public static final int PHONE_MIN_DIGITS = 10;
-    public static final int PHONE_MAX_DIGITS = 11;
-
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
-
     private final UserRepositoryPort userRepositoryPort;
     private final CompanyRepositoryPort companyRepositoryPort;
     private final PasswordHasherPort passwordHasherPort;
     private final TokenProviderPort tokenProviderPort;
+    private final ContactValidatorPort contactValidatorPort;
 
     public RegisterCompanyUseCase(
             UserRepositoryPort userRepositoryPort,
             CompanyRepositoryPort companyRepositoryPort,
             PasswordHasherPort passwordHasherPort,
-            TokenProviderPort tokenProviderPort
+            TokenProviderPort tokenProviderPort,
+            ContactValidatorPort contactValidatorPort
     ) {
         this.userRepositoryPort = userRepositoryPort;
         this.companyRepositoryPort = companyRepositoryPort;
         this.passwordHasherPort = passwordHasherPort;
         this.tokenProviderPort = tokenProviderPort;
+        this.contactValidatorPort = contactValidatorPort;
     }
 
     public LoginOutput execute(
@@ -50,7 +49,7 @@ public class RegisterCompanyUseCase {
         requireText(companyName, "companyName");
         final String normalizedCnpj = normalizeCnpj(cnpj);
         final String normalizedEmail = normalizeEmail(email);
-        final String normalizedPhone = normalizePhone(phone);
+        final String normalizedPhone = contactValidatorPort.normalizePhone(phone);
         requireValidPassword(password);
 
         if (userRepositoryPort.existsByEmail(normalizedEmail)) {
@@ -78,7 +77,7 @@ public class RegisterCompanyUseCase {
         }
     }
 
-        private static String normalizeCnpj(String cnpj) {
+    private static String normalizeCnpj(String cnpj) {
         final String normalized = CnpjValidator.normalize(cnpj);
         if (!CnpjValidator.isValid(normalized)) {
             throw new IllegalArgumentException("cnpj is invalid");
@@ -86,23 +85,12 @@ public class RegisterCompanyUseCase {
         return normalized;
     }
 
-    private static String normalizeEmail(String email) {
-        final String normalized = email != null ? email.trim().toLowerCase() : "";
-        if (!EMAIL_PATTERN.matcher(normalized).matches()) {
-            throw new IllegalArgumentException("email is invalid");
+    private String normalizeEmail(String email) {
+        final String normalized = email != null ? email.trim().toLowerCase(Locale.ROOT) : "";
+        if (!contactValidatorPort.isValidEmail(normalized)) {
+            throw new IllegalArgumentException("Invalid email");
         }
         return normalized;
-    }
-
-    private static String normalizePhone(String phone) {
-        if (phone == null || phone.isBlank()) {
-            return null;
-        }
-        final String digits = onlyDigits(phone);
-        if (digits.length() < PHONE_MIN_DIGITS || digits.length() > PHONE_MAX_DIGITS) {
-            throw new IllegalArgumentException("phone is invalid");
-        }
-        return digits;
     }
 
     private static void requireValidPassword(String password) {
@@ -110,9 +98,5 @@ public class RegisterCompanyUseCase {
             throw new IllegalArgumentException(
                     "password must have at least " + CreateUserUseCase.MIN_PASSWORD_LENGTH + " characters");
         }
-    }
-
-    private static String onlyDigits(String value) {
-        return value == null ? "" : value.replaceAll("\\D", "");
     }
 }

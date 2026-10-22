@@ -1,5 +1,8 @@
-package com.escapa.backend.domain.company;
+package com.escapa.backend.domain.registration;
 
+/**
+ * A unique registration field is already associated with an existing account.
+ */
 public class DuplicateRegistrationException extends RuntimeException {
 
     private final String field;
