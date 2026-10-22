@@ -44,10 +44,9 @@ public class ProfileController {
     // Recebe os novos dados do perfil e devolve o perfil atualizado.
     @PutMapping("/profile")
     public ResponseEntity<ApiResponse<ProfileResponseDTO>> updateProfile(
-            @Valid @RequestBody ProfileUpdateDTO updateDTO,
-            Principal principal
-    ) {
-        final UUID userId = UUID.fromString(principal.getName());
+            @Valid @RequestBody ProfileUpdateDTO updateDTO, @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId) {
+        //  final UUID userId = UUID.fromString(principal.getName());
+            final UUID userId = UserIdHeader.requireStudentId(xUserId);
         final ProfileResponseDTO response = profileService.updateProfile(userId, updateDTO);
 
         // Retorna HTTP 200 com os dados atualizados no corpo da resposta.
