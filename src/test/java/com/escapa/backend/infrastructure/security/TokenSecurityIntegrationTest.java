@@ -16,6 +16,7 @@ import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserCourseId;
+import com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -135,6 +136,19 @@ class TokenSecurityIntegrationTest extends PostgresIntegrationTest {
     void shouldReturn401WhenAuthorizationHeaderDoesNotUseBearerPrefix() throws Exception {
         mockMvc.perform(get("/api/v1/student/enrollments")
                         .header(HttpHeaders.AUTHORIZATION, studentToken()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status", is(401)));
+    }
+
+    @Test
+    void shouldReturn401WhenTokenBelongsToDeactivatedAccount() throws Exception {
+        final String token = studentToken();
+        final UserEntity student = userJpaRepository.findById(studentId).orElseThrow();
+        student.setStatus(UserStatus.INACTIVE);
+        userJpaRepository.save(student);
+
+        mockMvc.perform(get("/api/v1/student/enrollments")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status", is(401)));
     }

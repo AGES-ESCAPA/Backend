@@ -64,9 +64,9 @@ class PasswordControllerTest extends PostgresIntegrationTest {
 
     @Test
     void shouldChangePasswordAndKeepOtherColumns() throws Exception {
-        final UserEntity inactive = userJpaRepository.findById(userId).orElseThrow();
-        inactive.setStatus(UserStatus.INACTIVE);
-        userJpaRepository.save(inactive);
+        final UserEntity withAvatar = userJpaRepository.findById(userId).orElseThrow();
+        withAvatar.setProfileAvatarUrl("avatars/senha-test.png");
+        userJpaRepository.save(withAvatar);
 
         mockMvc.perform(put(URL)
                         .header("Authorization", authorization())
@@ -79,7 +79,8 @@ class PasswordControllerTest extends PostgresIntegrationTest {
         final UserEntity updated = userJpaRepository.findById(userId).orElseThrow();
         assertTrue(passwordHasherPort.matches("nova-senha-segura", updated.getPasswordHash()));
         assertFalse(passwordHasherPort.matches("senha-atual", updated.getPasswordHash()));
-        assertEquals(UserStatus.INACTIVE, updated.getStatus());
+        assertEquals("avatars/senha-test.png", updated.getProfileAvatarUrl());
+        assertEquals(UserStatus.ACTIVE, updated.getStatus());
         assertEquals("Senha Test", updated.getName());
     }
 
