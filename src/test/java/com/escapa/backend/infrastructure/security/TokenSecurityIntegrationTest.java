@@ -140,6 +140,22 @@ class TokenSecurityIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void shouldReturn401WhenBearerPrefixHasNoToken() throws Exception {
+        mockMvc.perform(get("/api/v1/student/enrollments")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer "))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status", is(401)));
+    }
+
+    @Test
+    void shouldReturn401WhenAuthorizationHeaderIsBlank() throws Exception {
+        mockMvc.perform(get("/api/v1/student/enrollments")
+                        .header(HttpHeaders.AUTHORIZATION, "   "))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status", is(401)));
+    }
+
+    @Test
     void shouldBlockStudentFromAdminRoutes() throws Exception {
         mockMvc.perform(get("/api/v1/admin/courses")
                         .header(HttpHeaders.AUTHORIZATION, bearer(studentToken())))

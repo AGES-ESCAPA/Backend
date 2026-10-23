@@ -14,6 +14,7 @@ O backend foi pensado para servir o frontend e manter o domínio isolado de deta
 - [Pré-requisitos](#-pré-requisitos)
 - [Instalação e Setup](#-instalação-e-setup)
 - [Comandos Disponíveis (Maven)](#-comandos-disponíveis-maven)
+- [Testes Unitários e Cobertura](#-testes-unitários-e-cobertura)
 - [Fluxo de Validação de Tarefas (Evite falhas na CI)](#-fluxo-de-validação-de-tarefas-evite-falhas-na-ci)
 - [Padrão de Commits](#-padrão-de-commits)
 - [Estratégia de Branches](#-estratégia-de-branches)
@@ -185,6 +186,96 @@ A API ficará disponível em: `http://localhost:8080`
 > mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install chromium"
 > ```
 > Eles salvam o PDF e uma imagem dele, nos temas claro e escuro, em `target/certificate-preview/`. A CI publica essa pasta como o artefato `certificate-preview`.
+
+---
+
+## 🧪 Testes Unitários e Cobertura
+
+O projeto usa **JUnit 5** e Spring Test. Os testes unitários não precisam de
+PostgreSQL; os testes de integração de persistência usam **Testcontainers** e
+precisam do Docker em execução. A suíte com `mvn test` exclui somente os testes
+`@Tag("pdf")`, que executam o Chromium real.
+
+No Windows com Docker Desktop, se o Testcontainers não detectar o contexto
+ativo, informe o pipe do engine Linux na mesma sessão do PowerShell antes de
+rodar os testes:
+
+```powershell
+$env:DOCKER_HOST = 'npipe:////./pipe/dockerDesktopLinuxEngine'
+mvn verify
+```
+
+### Onde criar e o que testar
+
+Crie o teste em `src/test/java` espelhando o pacote da classe de produção e use
+o sufixo `Test`:
+
+```text
+src/main/java/com/escapa/backend/application/usecase/CreateUserUseCase.java
+src/test/java/com/escapa/backend/application/usecase/CreateUserUseCaseTest.java
+```
+
+Todo caso de uso deve ter teste unitário. Use os fakes `InMemory*Port` existentes
+para verificar entradas, resultados e efeitos de domínio; não mocke as portas
+dos casos de uso. Em testes de controller, use
+`MockMvcBuilders.standaloneSetup(controller).setControllerAdvice(new GlobalExceptionHandler())`
+e verifique status, resposta e cenários de erro/acesso sem subir o contexto Spring.
+
+Para persistência, mapeamento JPA e migrations, estenda `PostgresIntegrationTest`
+e reutilize o container PostgreSQL compartilhado. Não crie um container novo por
+classe e não substitua o teste de integração por mocks de repositório.
+
+### Como evitar falso positivo e duplicidade
+
+- Dê nome ao teste pelo comportamento que ele verifica, não pela implementação.
+- Organize o cenário em preparação, execução e assert; confira valores exatos e
+  efeitos observáveis em vez de apenas `notNull`, `notEmpty` ou `isTrue`.
+- Em teste de ausência, prepare o cenário em que a informação apareceria se
+  houvesse um bug. Ao verificar atualização/persistência, leia novamente pelo
+  repositório e confira o campo atualizado, não apenas o ID.
+- Cubra caminho feliz, falhas relevantes, limites e cenários vazios; não crie
+  casos que repetem o mesmo comportamento com nomes diferentes.
+- Para exceções, use `assertThrows(...)` e confira o tipo e os detalhes que
+  fazem parte do contrato; não capture exceções manualmente para o teste passar.
+- Evite estado compartilhado entre testes e limpe recursos, stubs e dados que
+  alterar. Um teste deve continuar válido quando executado sozinho.
+
+### Como executar e ver a cobertura
+
+```bash
+mvn test
+mvn -Dtest=CreateUserUseCaseTest test
+mvn clean verify
+mvn jacoco:report
+```
+
+`mvn test` e `mvn clean verify` executam os testes unitários e de integração
+regulares; ambos exigem Docker para os testes que estendem
+`PostgresIntegrationTest`. O comando com `-Dtest` roda somente a classe
+selecionada. Para rodar o conjunto de testes PDF com Chromium instalado:
+
+```bash
+mvn test -Dsurefire.excludedGroups= -Dgroups=pdf
+```
+
+Para medir a cobertura combinada, rode o `verify` padrão e depois os testes PDF
+na mesma pasta, sem executar `clean` entre eles; o JaCoCo acumula as execuções
+em `target/jacoco.exec`:
+
+```bash
+mvn clean verify
+mvn test -Dsurefire.excludedGroups= -Dgroups=pdf
+mvn jacoco:report
+```
+
+O JaCoCo gera o relatório em `target/site/jacoco/index.html` e o CSV em
+`target/site/jacoco/jacoco.csv`. O `mvn clean verify` falha se a cobertura de
+**branches** ou **linhas** ficar abaixo de **90%**. No HTML, confira as colunas
+**Branch Coverage** e **Line Coverage**, além das linhas não executadas. Não
+exclua classes de produção da medição apenas para atingir o percentual. Os testes
+`@Tag("pdf")` não entram na execução padrão e dependem do Chromium; execute-os
+separadamente quando alterar a geração ou o template do certificado. A sequência
+acima atualiza o relatório combinado incluindo esses testes PDF.
 
 ---
 

@@ -106,6 +106,10 @@ class RegisterCompanyUseCaseTest {
         final LoginOutput output = useCase.execute(RESPONSIBLE, CNPJ, COMPANY_NAME, EMAIL, null, PASSWORD);
 
         assertNull(companyRepository.find(output.user().getId()).getPhone());
+
+        final LoginOutput blankPhoneOutput = useCase.execute(
+                RESPONSIBLE, OTHER_CNPJ, COMPANY_NAME, "blank-phone@vistamar.com.br", "  ", PASSWORD);
+        assertNull(companyRepository.find(blankPhoneOutput.user().getId()).getPhone());
     }
 
     @Test
@@ -170,6 +174,17 @@ class RegisterCompanyUseCaseTest {
                 () -> useCase.execute(RESPONSIBLE, CNPJ, COMPANY_NAME, EMAIL, "12345", PASSWORD));
 
         assertEquals("phone is invalid", exception.getMessage());
+        assertEquals("phone is invalid", assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute(RESPONSIBLE, OTHER_CNPJ, COMPANY_NAME,
+                        "long-phone@vistamar.com.br", "123456789012", PASSWORD)).getMessage());
+    }
+
+    @Test
+    void shouldAcceptMinimumPhoneLength() {
+        final LoginOutput output = useCase.execute(
+                RESPONSIBLE, CNPJ, COMPANY_NAME, EMAIL, "1234567890", PASSWORD);
+
+        assertEquals("1234567890", companyRepository.find(output.user().getId()).getPhone());
     }
 
     @Test

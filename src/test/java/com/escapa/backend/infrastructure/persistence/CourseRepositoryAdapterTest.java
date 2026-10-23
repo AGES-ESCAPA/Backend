@@ -12,6 +12,7 @@ import com.escapa.backend.infrastructure.persistence.entity.CourseMaterialEntity
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.domain.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -48,6 +50,25 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
 
     @Autowired
     private UserJpaRepository userJpaRepository;
+
+    @Test
+    void shouldPersistNewCourseFromDomainAndReturnMappedFields() {
+        final Course course = new Course("Curso novo", "Resumo", "Descrição",
+                "/thumb.png", null, null, "Turismo", "INICIANTE",
+                60, 30, 49.90, List.of("Objetivo"), false, true, null);
+
+        final Course saved = courseRepositoryPort.save(course);
+
+        assertNotNull(saved.getId());
+        assertEquals("Curso novo", saved.getTitle());
+        assertEquals(CourseStatus.DRAFT, saved.getStatus());
+        assertEquals("Turismo", saved.getCategory());
+        assertEquals(List.of("Objetivo"), saved.getLearningObjectives());
+        final Course persisted = courseRepositoryPort.findById(saved.getId()).orElseThrow();
+        assertEquals(saved.getId(), persisted.getId());
+        assertEquals("Descrição", persisted.getDescription());
+        assertEquals(49.90, persisted.getPrice());
+    }
 
     @BeforeEach
     void cleanUp() {
@@ -233,6 +254,65 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
         final Optional<CourseDetails> found = courseRepositoryPort.findDetailsById(UUID.randomUUID());
 
         assertTrue(found.isEmpty());
+    }
+
+    @Test
+    void shouldMapPublishedCourseWithoutOptionalRelatedData() {
+        final CourseEntity course = buildCourse(
+                "Curso sem dados opcionais", "Turismo", "INICIANTE", CourseStatus.PUBLISHED, null);
+        courseJpaRepository.save(course);
+
+        final CourseDetails details = courseRepositoryPort.findDetailsById(course.getId()).orElseThrow();
+
+        assertNull(details.instructor());
+        assertTrue(details.learningObjectives().isEmpty());
+        assertTrue(details.materials().isEmpty());
+        assertTrue(details.modules().isEmpty());
+    }
+
+    @Test
+    void shouldUpdateCourseWithoutErasingCountersOrItsAssociations() {
+        final AdminEntity instructorEntity = createInstructor("Instrutora Update");
+        final CourseEntity persistedEntity = buildCourse(
+                "Course before update", "Tourism", "Beginner", CourseStatus.PUBLISHED, instructorEntity);
+        persistedEntity.setLessonsCount(7);
+        persistedEntity.setMaterialsCount(3);
+        persistedEntity.setStudentsCount(11);
+        persistedEntity.setReviewsCount(5);
+        persistedEntity.setRatingAverage(4.7);
+        courseJpaRepository.save(persistedEntity);
+        final User instructor = new User(
+                instructorEntity.getId(), instructorEntity.getName(), instructorEntity.getEmail(),
+                "hash", "ADMIN", null, instructorEntity.getCreatedAt());
+        final Course updatedCourse = new Course(
+                "Course after update", null, null, null, null, instructor,
+                "Hospitality", "Advanced", 20, 30, 15.0, List.of("Objective"),
+                false, true, instructor);
+        updatedCourse.setId(persistedEntity.getId());
+
+        courseRepositoryPort.save(updatedCourse);
+
+        final CourseEntity reloaded = courseJpaRepository.findById(persistedEntity.getId()).orElseThrow();
+        assertEquals("Course after update", reloaded.getTitle());
+        assertEquals(instructorEntity.getId(), reloaded.getInstructor().getId());
+        assertEquals(instructorEntity.getId(), reloaded.getCreatedBy().getId());
+        assertEquals(7, reloaded.getLessonsCount());
+        assertEquals(3, reloaded.getMaterialsCount());
+        assertEquals(11, reloaded.getStudentsCount());
+        assertEquals(5, reloaded.getReviewsCount());
+        assertEquals(4.7, reloaded.getRatingAverage());
+    }
+
+    @Test
+    void shouldTreatNullAndUnknownIdsAsNonexistent() {
+        assertFalse(courseRepositoryPort.existsById(null));
+        assertFalse(courseRepositoryPort.existsById(UUID.randomUUID()));
+
+        final CourseEntity course = buildCourse(
+                "Curso existente", "Turismo", "INICIANTE", CourseStatus.DRAFT, null);
+        courseJpaRepository.save(course);
+
+        assertTrue(courseRepositoryPort.existsById(course.getId()));
     }
 
     private AdminEntity createInstructor(String name) {

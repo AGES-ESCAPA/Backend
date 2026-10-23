@@ -179,6 +179,39 @@ class CreateUserUseCaseTest {
 }
 ```
 
+### 🧪 Como implementar e respeitar os testes
+
+- O teste fica em `src/test/java` no mesmo pacote da classe testada, com o sufixo
+  `Test` (por exemplo, `CreateUserUseCaseTest`). Cada caso de uso novo precisa de
+  teste unitário com os fakes `InMemory*Port`; não use Mockito para substituir
+  uma porta de caso de uso.
+- Organize cada cenário em **preparação, execução e verificação**. Cubra o caminho
+  feliz e os caminhos relevantes de erro, valores limites e cenários vazios; use
+  nomes que descrevam o resultado efetivamente verificado.
+- Controllers devem ser exercitados com `MockMvcBuilders.standaloneSetup(...)` e
+  `GlobalExceptionHandler`, sem subir o contexto ou acessar o banco. Verifique
+  status HTTP, contrato da resposta e acesso (401/403) quando aplicável.
+- Persistência, mapeamento JPA e migrations usam PostgreSQL com Testcontainers:
+  estenda `PostgresIntegrationTest` para reutilizar o container compartilhado.
+  Não crie um container por classe nem substitua esses testes por mocks de JPA.
+- Teste o comportamento público e valores exatos. Evite asserts que só provam
+  existência (`notNull`, `notEmpty`, `isTrue`) quando é possível verificar o
+  valor; não repita cenários equivalentes com nomes diferentes.
+- Um teste de ausência precisa preparar dados que fariam o elemento aparecer se
+  a implementação estivesse errada. Para conferir persistência, leia de volta
+  pelo repositório e valide o campo alterado, não apenas o identificador.
+- Não use `try/catch` para fazer asserts de exceção: prefira
+  `assertThrows(...)` e confira tipo, mensagem ou causa quando fizerem parte do
+  contrato. Evite dependência de estado compartilhado e limpe recursos que o
+  teste criar.
+- Rode os testes focados durante o desenvolvimento e `mvn clean verify` antes
+  de abrir o MR. O JaCoCo verifica no `verify` cobertura de branches e linhas
+  **acima de 90%** e gera o relatório em `target/site/jacoco/index.html`; não
+  exclua código de produção apenas para aumentar o percentual. Testes marcados
+  `@Tag("pdf")` são executados separadamente e exigem Chromium; rode-os também
+  para atualizar a cobertura combinada quando alterar a geração ou o template
+  do certificado.
+
 ---
 
 ### 🧪 Regras de Validação e Qualidade

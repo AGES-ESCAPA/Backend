@@ -76,6 +76,73 @@ class PublishCourseUseCaseTest {
     }
 
     @Test
+    void shouldReportEveryMissingRequirementForNullAndBlankFields() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final Course course = courseRepository.save(new Course(
+                null, " ", " ", null, null, null, " ", " ",
+                null, null, null, List.of(), true, false, null));
+        final PublishCourseUseCase useCase = new PublishCourseUseCase(
+                courseRepository, new InMemoryCourseChangeLogRepositoryPort(), new InMemoryCourseNotificationPort());
+
+        final CourseValidationException exception = assertThrows(
+                CourseValidationException.class,
+                () -> useCase.execute(course.getId(), false, null));
+
+        assertEquals(List.of(
+                "title", "description", "shortDescription", "instructorId", "category", "level",
+                "price", "durationTime", "deadline",
+                "modules (at least one module with content is required)"), exception.getMissingFields());
+    }
+
+    @Test
+    void shouldSkipModulesWithoutContentsAndAcceptTheFirstModuleWithContent() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final User admin = new User("Admin", "admin@escapa.com", "hash", "ADMIN");
+        admin.setId(UUID.randomUUID());
+        final Course course = completeCourse(admin);
+        final Module emptyModule = new Module(UUID.randomUUID(), course, "Empty", 1);
+        emptyModule.setContents(null);
+        course.getModules().add(0, emptyModule);
+        courseRepository.save(course);
+        final InMemoryCourseChangeLogRepositoryPort changeLogRepository =
+                new InMemoryCourseChangeLogRepositoryPort();
+        final InMemoryCourseNotificationPort notificationPort = new InMemoryCourseNotificationPort();
+        final PublishCourseUseCase useCase =
+                new PublishCourseUseCase(courseRepository, changeLogRepository, notificationPort);
+
+        final Course published = useCase.execute(course.getId(), false, admin);
+
+        assertEquals(CourseStatus.PUBLISHED, published.getStatus());
+        assertEquals(1, changeLogRepository.entriesFor(course.getId()).size());
+    }
+
+    @Test
+    void shouldRejectCoursesWithNullOrEmptyModuleCollections() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final User admin = new User("Admin", "admin@escapa.com", "hash", "ADMIN");
+        admin.setId(UUID.randomUUID());
+        final Course withoutModules = completeCourse(admin);
+        withoutModules.setModules(null);
+        final Course withEmptyModule = completeCourse(admin);
+        withEmptyModule.getModules().clear();
+        withEmptyModule.getModules().add(new Module(UUID.randomUUID(), withEmptyModule, "Empty", 1));
+        courseRepository.save(withoutModules);
+        courseRepository.save(withEmptyModule);
+        final PublishCourseUseCase useCase = new PublishCourseUseCase(
+                courseRepository, new InMemoryCourseChangeLogRepositoryPort(), new InMemoryCourseNotificationPort());
+
+        final CourseValidationException nullModulesException = assertThrows(
+                CourseValidationException.class,
+                () -> useCase.execute(withoutModules.getId(), false, admin));
+        final CourseValidationException emptyContentsException = assertThrows(
+                CourseValidationException.class,
+                () -> useCase.execute(withEmptyModule.getId(), false, admin));
+
+        assertTrue(nullModulesException.getMissingFields().stream().anyMatch(field -> field.startsWith("modules")));
+        assertTrue(emptyContentsException.getMissingFields().stream().anyMatch(field -> field.startsWith("modules")));
+    }
+
+    @Test
     void shouldThrowWhenCourseNotFound() {
         final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
         final PublishCourseUseCase useCase = new PublishCourseUseCase(

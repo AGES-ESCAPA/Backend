@@ -111,6 +111,18 @@ class CreateContentUseCaseTest {
     }
 
     @Test
+    void shouldRejectMissingModuleIdAndNullTitle() {
+        assertEquals("moduleId is required", assertThrows(
+                IllegalArgumentException.class,
+                () -> useCase.execute(null, "Aula", ContentType.TEXT, null, null, "Texto", false))
+                .getMessage());
+        assertEquals("title is required", assertThrows(
+                IllegalArgumentException.class,
+                () -> useCase.execute(moduleId, null, ContentType.TEXT, null, null, "Texto", false))
+                .getMessage());
+    }
+
+    @Test
     void shouldTreatNullIsFreeAsPaidContent() {
         final Content content = useCase.execute(moduleId, "Aula", ContentType.TEXT, null, null, "Texto", null);
 

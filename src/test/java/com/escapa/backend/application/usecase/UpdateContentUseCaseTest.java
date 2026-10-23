@@ -81,4 +81,29 @@ class UpdateContentUseCaseTest {
                 () -> useCase.execute(UUID.randomUUID(), "Aula", ContentType.TEXT, null, null, "Texto", false)
         );
     }
+
+    @Test
+    void shouldRejectMissingIdAndBlankTitle() {
+        assertEquals("id is required", assertThrows(
+                IllegalArgumentException.class,
+                () -> useCase.execute(null, "Aula", ContentType.TEXT, null, null, "Texto", false))
+                .getMessage());
+
+        final Content created = givenVideoContent();
+        assertEquals("title is required", assertThrows(
+                IllegalArgumentException.class,
+                () -> useCase.execute(created.getId(), " \t ", ContentType.VIDEO,
+                        "https://vimeo.com/2", 10, "Description", false))
+                .getMessage());
+    }
+
+    @Test
+    void shouldTreatMissingFreeFlagAsNotFree() {
+        final Content created = givenVideoContent();
+
+        final Content updated = useCase.execute(created.getId(), "Aula", ContentType.VIDEO,
+                "https://vimeo.com/2", 10, "Description", null);
+
+        assertEquals(false, updated.getIsFree());
+    }
 }

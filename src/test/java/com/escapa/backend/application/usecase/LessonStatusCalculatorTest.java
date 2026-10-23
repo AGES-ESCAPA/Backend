@@ -13,6 +13,7 @@ import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LessonStatusCalculatorTest {
@@ -184,5 +185,24 @@ class LessonStatusCalculatorTest {
         assertEquals(1, result.modules().get(1).totalLessons());
         assertEquals(2, result.completedLessons());
         assertEquals(3, result.totalLessons());
+    }
+
+    @Test
+    void shouldLeaveEmptyModuleUnlockedAndIgnoreUnknownPrerequisiteIds() {
+        final Module emptyModule = new Module(UUID.randomUUID(), courseId, "Empty", 1);
+        final Module moduleWithUnknownPrerequisite = new Module(UUID.randomUUID(), courseId, "Next", 2);
+        final Content lesson = content(moduleWithUnknownPrerequisite.getId(), "Lesson", 1);
+        lesson.setType(null);
+        moduleWithUnknownPrerequisite.getContents().add(lesson);
+        final UUID missingModuleId = UUID.randomUUID();
+        final Function<UUID, List<UUID>> prerequisites = moduleId ->
+                moduleId.equals(moduleWithUnknownPrerequisite.getId()) ? List.of(missingModuleId) : List.of();
+
+        final StudentCourseCurriculum result = calculator.calculate(
+                courseId, List.of(emptyModule, moduleWithUnknownPrerequisite), List.of(), prerequisites, false);
+
+        assertFalse(result.modules().get(0).locked());
+        assertNull(result.modules().get(1).lessons().get(0).type());
+        assertEquals(LessonStatus.AVAILABLE, result.modules().get(1).lessons().get(0).status());
     }
 }

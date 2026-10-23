@@ -51,6 +51,23 @@ class UpdateProgressRulesUseCaseTest {
     }
 
     @Test
+    void shouldLogDraftRuleChangesWithoutBumpingVersionWhenAuthorIsMissing() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryCourseChangeLogRepositoryPort changeLogRepository = new InMemoryCourseChangeLogRepositoryPort();
+        final Course course = courseRepository.save(course(adminUser()));
+        final UpdateProgressRulesUseCase useCase =
+                new UpdateProgressRulesUseCase(courseRepository, changeLogRepository);
+
+        useCase.execute(course.getId(), true, true, null);
+
+        final Course updated = courseRepository.findById(course.getId()).orElseThrow();
+        assertTrue(updated.getEnforceDeadlineBlock());
+        assertEquals(0, updated.getMinorVersion());
+        assertEquals(1, changeLogRepository.entriesFor(course.getId()).size());
+        assertEquals("Sistema", changeLogRepository.entriesFor(course.getId()).get(0).changedByName());
+    }
+
+    @Test
     void shouldThrowWhenCourseNotFound() {
         final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
         final UpdateProgressRulesUseCase useCase =

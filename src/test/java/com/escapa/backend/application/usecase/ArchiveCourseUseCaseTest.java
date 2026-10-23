@@ -27,7 +27,7 @@ class ArchiveCourseUseCaseTest {
         final Course archived = useCase.execute(course.getId());
 
         assertEquals(CourseStatus.ARCHIVED, archived.getStatus());
-        assertEquals(course.getId(), courseRepository.findById(course.getId()).orElseThrow().getId());
+        assertEquals(CourseStatus.ARCHIVED, courseRepository.findById(course.getId()).orElseThrow().getStatus());
     }
 
     @Test

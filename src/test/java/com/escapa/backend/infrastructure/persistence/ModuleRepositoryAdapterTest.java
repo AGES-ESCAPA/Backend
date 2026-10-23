@@ -5,6 +5,7 @@ import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Module;
+import com.escapa.backend.domain.module.ModuleNotFoundException;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,9 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ModuleRepositoryAdapterTest extends PostgresIntegrationTest {
@@ -66,6 +69,22 @@ class ModuleRepositoryAdapterTest extends PostgresIntegrationTest {
         assertEquals(courseId, saved.getCourseId());
         assertEquals(1, saved.getOrder());
         assertTrue(moduleRepositoryPort.findById(saved.getId()).isPresent());
+    }
+
+    @Test
+    void shouldHandleMissingModuleIdsAndRejectUpdatesOfUnknownModules() {
+        assertTrue(moduleRepositoryPort.findById(UUID.randomUUID()).isEmpty());
+        assertFalse(moduleRepositoryPort.existsById(null));
+        assertFalse(moduleRepositoryPort.existsById(UUID.randomUUID()));
+        assertTrue(moduleRepositoryPort.findByCourseId(UUID.randomUUID()).isEmpty());
+
+        final Module missingModule = new Module();
+        missingModule.setId(UUID.randomUUID());
+        missingModule.setCourseId(givenCourse());
+        missingModule.setTitle("Missing");
+        missingModule.setOrder(1);
+
+        assertThrows(ModuleNotFoundException.class, () -> moduleRepositoryPort.save(missingModule));
     }
 
     @Test

@@ -2,10 +2,13 @@ package com.escapa.backend.infrastructure.persistence;
 
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.model.LessonDetails;
+import com.escapa.backend.application.model.StudentCourseCard;
+import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.course.EnrollmentStatus;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
@@ -18,9 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StudentLessonAdaptersTest extends PostgresIntegrationTest {
@@ -134,18 +140,78 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
         assertTrue(enrollmentRepositoryPort.findByUserIdAndCourseId(givenUserId(), course.getId()).isEmpty());
     }
 
+    @Test
+    void shouldMapEnrollmentStatusAndOnlyExposeIssuedCertificateCodes() {
+        final UUID userId = givenUserId();
+        final LocalDate today = LocalDate.now();
+        final CourseEntity completedByDate = givenCourse(false);
+        final CourseEntity completedByProgress = givenCourse(false);
+        final CourseEntity expired = givenCourse(false);
+        final CourseEntity pending = givenCourse(false);
+        final CourseEntity inProgress = givenCourse(false);
+        completedByDate.setTitle("Completed by date");
+        completedByProgress.setTitle("Completed by progress");
+        expired.setTitle("Expired");
+        pending.setTitle("Pending");
+        inProgress.setTitle("In progress");
+        courseJpaRepository.saveAll(java.util.List.of(
+                completedByDate, completedByProgress, expired, pending, inProgress));
+
+        givenEnrollmentWithProgress(userId, completedByDate, today.minusDays(10), today.plusDays(10),
+                20, today.minusDays(1), true, "CERT-1");
+        givenEnrollmentWithProgress(userId, completedByProgress, today.minusDays(5), null,
+                100, null, false, "HIDDEN-1");
+        givenEnrollmentWithProgress(userId, expired, today.minusDays(20), today.minusDays(1),
+                20, null, false, "HIDDEN-2");
+        givenEnrollmentWithProgress(userId, pending, today.plusDays(1), null,
+                null, null, false, null);
+        givenEnrollmentWithProgress(userId, inProgress, null, null,
+                null, null, false, null);
+
+        final PageResult<StudentCourseCard> result =
+                enrollmentRepositoryPort.findStudentEnrollments(userId, null, null, 0, 10);
+        final Map<String, StudentCourseCard> cards = result.content().stream()
+                .collect(Collectors.toMap(StudentCourseCard::title, card -> card));
+
+        assertEquals(5, result.totalElements());
+        assertEquals(EnrollmentStatus.COMPLETED, cards.get("Completed by date").enrollmentStatus());
+        assertEquals("CERT-1", cards.get("Completed by date").certificateCode());
+        assertEquals(EnrollmentStatus.COMPLETED, cards.get("Completed by progress").enrollmentStatus());
+        assertNull(cards.get("Completed by progress").certificateCode());
+        assertEquals(EnrollmentStatus.EXPIRED, cards.get("Expired").enrollmentStatus());
+        assertEquals(EnrollmentStatus.PENDING, cards.get("Pending").enrollmentStatus());
+        assertEquals(EnrollmentStatus.IN_PROGRESS, cards.get("In progress").enrollmentStatus());
+        assertNull(cards.get("In progress").instructor());
+    }
+
     private UUID givenUserId() {
         final String email = "aluno-" + UUID.randomUUID() + "@email.com";
         return userRepositoryPort.save(new User("Aluno Teste", email, "hash", "STUDENT")).getId();
     }
 
     private void givenEnrollment(UUID userId, CourseEntity course, LocalDate start, LocalDate expiration) {
+        givenEnrollmentWithProgress(userId, course, start, expiration, null, null, false, null);
+    }
+
+    private void givenEnrollmentWithProgress(
+            UUID userId,
+            CourseEntity course,
+            LocalDate start,
+            LocalDate expiration,
+            Integer progress,
+            LocalDate conclusionDate,
+            boolean certificateIssued,
+            String certificateCode) {
         final UserCourseEntity enrollment = new UserCourseEntity();
         enrollment.setId(new UserCourseId(userId, course.getId()));
         enrollment.setUser(userJpaRepository.getReferenceById(userId));
         enrollment.setCourse(course);
         enrollment.setDtInicio(start);
         enrollment.setDtExpiracao(expiration);
+        enrollment.setProgress(progress);
+        enrollment.setConclusionDate(conclusionDate);
+        enrollment.setCertificateIssued(certificateIssued);
+        enrollment.setCertificateCode(certificateCode);
         userCourseJpaRepository.save(enrollment);
     }
 }

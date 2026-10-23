@@ -69,7 +69,7 @@ class PlaywrightCertificatePdfGeneratorTest {
         final SpringTemplateEngine templateEngine = new SpringTemplateEngine();
         templateEngine.setTemplateResolver(resolver);
 
-        renderer = new CertificatePdfRenderer(20, 60, false);
+        renderer = new CertificatePdfRenderer(20, 180, false);
         generator = new PlaywrightCertificatePdfGenerator(templateEngine, new CertificateAssets(), renderer, "v2");
         Files.createDirectories(PREVIEW_DIR);
     }

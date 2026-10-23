@@ -23,7 +23,9 @@ import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCas
 import com.escapa.backend.application.usecase.UpdateCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.domain.entity.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +38,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.UUID;
+import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -55,6 +59,7 @@ class AdminCourseControllerTest {
     private final InMemoryCourseChangeLogRepositoryPort changeLogRepository = new InMemoryCourseChangeLogRepositoryPort();
     private final InMemoryCoursePrerequisiteRepositoryPort prerequisiteRepository =
             new InMemoryCoursePrerequisiteRepositoryPort();
+    private InMemoryCourseNotificationPort notificationPort;
 
     private String adminId;
     private String studentId;
@@ -64,6 +69,7 @@ class AdminCourseControllerTest {
     void setUp() {
         adminId = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN")).getId().toString();
         studentId = userRepository.save(new User("Aluno Um", "aluno@escapa.com", "hash", "STUDENT")).getId().toString();
+        notificationPort = new InMemoryCourseNotificationPort();
 
         final AdminCourseController controller = new AdminCourseController(
                 new GetCourseRulesUseCase(courseRepository, prerequisiteRepository, changeLogRepository),
@@ -74,7 +80,7 @@ class AdminCourseControllerTest {
                 new GetCourseChangeLogUseCase(changeLogRepository),
                 new GetAdminCourseUseCase(courseRepository),
                 new CreateCourseUseCase(courseRepository, userRepository),
-                new PublishCourseUseCase(courseRepository, changeLogRepository, new InMemoryCourseNotificationPort()),
+                new PublishCourseUseCase(courseRepository, changeLogRepository, notificationPort),
                 new UpdateCourseUseCase(courseRepository, userRepository, changeLogRepository),
                 new ListAdminCoursesUseCase(courseRepository),
                 new ListCourseCategoriesUseCase(courseRepository),
@@ -226,10 +232,44 @@ class AdminCourseControllerTest {
                 .andExpect(jsonPath("$[0].title").value("Gestão de eventos"));
     }
 
+    @Test
+    void shouldPublishWithoutNotificationUnlessExplicitlyRequested() throws Exception {
+        final UUID omittedRequestCourseId = saveCompleteCourse("No publish request");
+        final UUID emptyRequestCourseId = saveCompleteCourse("Empty publish request");
+        final UUID notifyingCourseId = saveCompleteCourse("Notify students");
+
+        mockMvc.perform(post(COURSES_URL + "/{id}/publish", omittedRequestCourseId)
+                        .header(USER_HEADER, adminId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("PUBLISHED"));
+        mockMvc.perform(post(COURSES_URL + "/{id}/publish", emptyRequestCourseId)
+                        .header(USER_HEADER, adminId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isOk());
+        mockMvc.perform(post(COURSES_URL + "/{id}/publish", notifyingCourseId)
+                        .header(USER_HEADER, adminId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"notifyEnrolledStudents\":true}"))
+                .andExpect(status().isOk());
+
+        assertEquals(List.of(notifyingCourseId), notificationPort.notifiedCourseIds());
+    }
+
     private UUID saveCourse(String title, CourseStatus status) {
         final Course course = new Course();
         course.setTitle(title);
         course.setStatus(status);
+        return courseRepository.save(course).getId();
+    }
+
+    private UUID saveCompleteCourse(String title) {
+        final User admin = userRepository.findById(UUID.fromString(adminId)).orElseThrow();
+        final Course course = new Course(title, "Short", "Description", null, null,
+                admin, "Tourism", "Beginner", 10, 20, 0.0, List.of(), true, false, admin);
+        final Module module = new Module(UUID.randomUUID(), course, "Module", 1);
+        module.getContents().add(new Content());
+        course.getModules().add(module);
         return courseRepository.save(course).getId();
     }
 }

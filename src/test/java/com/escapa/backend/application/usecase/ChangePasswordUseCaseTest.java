@@ -80,6 +80,18 @@ class ChangePasswordUseCaseTest {
     }
 
     @Test
+    void shouldRejectNullCurrentAndNewPasswords() {
+        assertEquals("Current password is required", assertThrows(
+                IllegalArgumentException.class,
+                () -> useCase.execute(user.getId(), null, NEW_PASSWORD))
+                .getMessage());
+        assertEquals("Password must be at least 8 characters", assertThrows(
+                IllegalArgumentException.class,
+                () -> useCase.execute(user.getId(), CURRENT_PASSWORD, null))
+                .getMessage());
+    }
+
+    @Test
     void shouldThrowWhenUserNotFound() {
         assertThrows(UserNotFoundException.class,
                 () -> useCase.execute(UUID.randomUUID(), CURRENT_PASSWORD, NEW_PASSWORD));
