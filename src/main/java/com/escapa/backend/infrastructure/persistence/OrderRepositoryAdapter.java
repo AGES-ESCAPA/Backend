@@ -18,8 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,10 +67,10 @@ public class OrderRepositoryAdapter implements OrderRepositoryPort {
     public PageResult<OrderSummary> findOrders(OrderFilter filter, int page, int size) {
         final Pageable pageable = PageRequest.of(page, size);
         final LocalDateTime fromDateTime = filter.from() != null ? filter.from().atStartOfDay() : null;
-        final LocalDateTime toDateTime = filter.to() != null ? filter.to().atTime(LocalTime.MAX) : null;
+        final LocalDateTime toExclusive = filter.to() != null ? filter.to().plusDays(1).atStartOfDay() : null;
 
         final Page<OrderJpaRepository.OrderListingView> jpaPage = repository.findOrders(
-                filter.type(), filter.courseId(), filter.status(), fromDateTime, toDateTime, pageable);
+                filter.type(), filter.courseId(), filter.status(), fromDateTime, toExclusive, pageable);
 
         final List<OrderSummary> content = jpaPage.getContent().stream()
                 .map(this::toOrderSummary)
@@ -178,7 +178,8 @@ public class OrderRepositoryAdapter implements OrderRepositoryPort {
                 && entity.getItemType() == OrderItemType.COURSE
                 && entity.getCompanyId() != null
                 && entity.getCourseId() != null) {
-            return repository.countCollaboratorsWithAccess(entity.getCompanyId(), entity.getCourseId());
+            return repository.countCollaboratorsWithAccess(
+                    entity.getCompanyId(), entity.getCourseId(), LocalDate.now());
         }
         return null;
     }

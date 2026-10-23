@@ -217,6 +217,47 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void shouldIncludeTheWholeLastDayAndExcludeTheNextDayWhenFilteringByDate() {
+        final UUID courseId = givenCourse();
+        final LocalDate day = LocalDate.of(2026, 3, 9);
+
+        final Order lastMoment = individualCourseOrder(givenUser("STUDENT"), courseId);
+        lastMoment.setCreatedAt(day.atTime(23, 59, 59, 999_999_000));
+        final UUID lastMomentId = orderRepositoryPort.save(lastMoment).getId();
+
+        final Order nextDay = individualCourseOrder(givenUser("STUDENT"), courseId);
+        nextDay.setCreatedAt(day.plusDays(1).atStartOfDay());
+        orderRepositoryPort.save(nextDay);
+
+        final PageResult<OrderSummary> result = orderRepositoryPort.findOrders(
+                new OrderFilter(null, courseId, day, day, null), 0, 10);
+
+        assertEquals(List.of(lastMomentId), result.content().stream().map(OrderSummary::id).toList());
+    }
+
+    @Test
+    void shouldNotRepeatOrdersAcrossPagesWhenTheyHaveTheSameCreationDate() {
+        final UUID courseId = givenCourse();
+        final LocalDateTime sameMoment = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        final List<UUID> savedIds = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            final Order order = individualCourseOrder(givenUser("STUDENT"), courseId);
+            order.setCreatedAt(sameMoment);
+            savedIds.add(orderRepositoryPort.save(order).getId());
+        }
+
+        final List<UUID> pagedIds = new ArrayList<>();
+        for (int page = 0; page < 3; page++) {
+            pagedIds.addAll(orderRepositoryPort.findOrders(
+                    new OrderFilter(null, courseId, null, null, null), page, 1)
+                    .content().stream().map(OrderSummary::id).toList());
+        }
+
+        assertEquals(3, pagedIds.stream().distinct().count());
+        assertTrue(pagedIds.containsAll(savedIds));
+    }
+
+    @Test
     void shouldFindOrderDetailsForIndividualBuyer() {
         final UUID buyerId = givenUser("STUDENT");
         jdbcTemplate.update(
@@ -250,6 +291,15 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
         jdbcTemplate.update(
                 "insert into user_courses (user_id, course_id, certificate_issued) values (?, ?, false)",
                 employeeId, courseId);
+
+        // Colaborador com matricula vencida nao tem mais acesso e nao entra na conta.
+        final UUID expiredEmployeeId = givenUser("STUDENT");
+        jdbcTemplate.update(
+                "insert into users_company (user_id, company_id, role) values (?, ?, 'DEV')",
+                expiredEmployeeId, companyId);
+        jdbcTemplate.update(
+                "insert into user_courses (user_id, course_id, certificate_issued, dt_expiracao) values (?, ?, false, ?)",
+                expiredEmployeeId, courseId, LocalDate.now().minusDays(1));
 
         final Order order = new Order();
         order.setBuyerUserId(buyerId);

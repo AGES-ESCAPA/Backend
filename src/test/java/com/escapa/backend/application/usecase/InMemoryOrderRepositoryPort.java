@@ -8,7 +8,6 @@ import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.domain.entity.Order;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -60,15 +59,17 @@ public final class InMemoryOrderRepositoryPort implements OrderRepositoryPort {
     @Override
     public PageResult<OrderSummary> findOrders(OrderFilter filter, int page, int size) {
         final LocalDateTime from = filter.from() != null ? filter.from().atStartOfDay() : null;
-        final LocalDateTime to = filter.to() != null ? filter.to().atTime(LocalTime.MAX) : null;
+        final LocalDateTime toExclusive = filter.to() != null ? filter.to().plusDays(1).atStartOfDay() : null;
 
         final List<OrderSummary> filtered = summaries.stream()
                 .filter(s -> filter.type() == null || s.type() == filter.type())
                 .filter(s -> filter.courseId() == null || filter.courseId().equals(s.courseId()))
                 .filter(s -> filter.status() == null || s.status() == filter.status())
                 .filter(s -> from == null || !s.purchaseDate().isBefore(from))
-                .filter(s -> to == null || !s.purchaseDate().isAfter(to))
-                .sorted(Comparator.comparing(OrderSummary::purchaseDate).reversed())
+                .filter(s -> toExclusive == null || s.purchaseDate().isBefore(toExclusive))
+                .sorted(Comparator.comparing(OrderSummary::purchaseDate)
+                        .thenComparing(OrderSummary::id)
+                        .reversed())
                 .toList();
 
         final int fromIndex = Math.min(page * size, filtered.size());
