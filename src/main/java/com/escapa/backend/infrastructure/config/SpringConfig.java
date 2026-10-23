@@ -21,7 +21,6 @@ import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
 import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
-import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
@@ -71,8 +70,6 @@ import com.escapa.backend.infrastructure.persistence.CourseNotificationAdapter;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.NotificationJpaRepository;
-import com.escapa.backend.infrastructure.persistence.OrderJpaRepository;
-import com.escapa.backend.infrastructure.persistence.OrderRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
@@ -199,11 +196,6 @@ public class SpringConfig {
             CourseRepositoryPort courseRepositoryPort
     ) {
         return new GetCourseDetailsUseCase(courseRepositoryPort);
-    }
-
-    @Bean
-    public OrderRepositoryPort orderRepositoryPort(OrderJpaRepository repository) {
-        return new OrderRepositoryAdapter(repository);
     }
 
     @Bean

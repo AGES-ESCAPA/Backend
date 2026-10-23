@@ -1,5 +1,9 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import com.escapa.backend.application.dto.OrderFilter;
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.OrderDetails;
+import com.escapa.backend.application.model.OrderSummary;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.Order;
@@ -16,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -58,8 +63,8 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
     private UUID givenCompany() {
         final UUID companyId = givenUser("COMPANY");
         jdbcTemplate.update(
-                "insert into company (id, company_name, cnpj_id, seats_total) values (?, ?, ?, 0)",
-                companyId, "Hotel Teste LTDA", UUID.randomUUID().toString().substring(0, 14));
+                "insert into company (id, company_name, cnpj_id, company_email, phone, seats_total) values (?, ?, ?, ?, ?, 0)",
+                companyId, "Hotel Teste LTDA", UUID.randomUUID().toString().substring(0, 14), "contato@hotel.com.br", "51988887777");
         return companyId;
     }
 
@@ -178,5 +183,92 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
     @Test
     void shouldReturnEmptyWhenTheOrderDoesNotExist() {
         assertTrue(orderRepositoryPort.findById(UUID.randomUUID()).isEmpty());
+    }
+
+    @Test
+    void shouldFindOrdersFilteredAndPaginatedNewestFirst() {
+        final UUID buyerId = givenUser("STUDENT");
+        final UUID courseId = givenCourse();
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+
+        final Order order1 = individualCourseOrder(buyerId, courseId);
+        order1.setCreatedAt(now.minusDays(2));
+        final UUID order1Id = orderRepositoryPort.save(order1).getId();
+
+        final Order order2 = individualCourseOrder(buyerId, courseId);
+        order2.setCreatedAt(now.minusDays(1));
+        final UUID order2Id = orderRepositoryPort.save(order2).getId();
+
+        final PageResult<OrderSummary> result = orderRepositoryPort.findOrders(
+                new OrderFilter(OrderType.INDIVIDUAL, courseId, null, null, OrderStatus.APPROVED), 0, 10);
+
+        assertEquals(2, result.content().size());
+        assertEquals(order2Id, result.content().get(0).id());
+        assertEquals(order1Id, result.content().get(1).id());
+        assertEquals("Comprador", result.content().get(0).requester());
+        assertEquals("Marketing Digital para Hospitalidade", result.content().get(0).courseTitle());
+
+        final LocalDate purchaseDay = now.minusDays(1).toLocalDate();
+        final PageResult<OrderSummary> byDate = orderRepositoryPort.findOrders(
+                new OrderFilter(null, courseId, purchaseDay, purchaseDay, null), 0, 10);
+
+        assertEquals(1, byDate.content().size());
+        assertEquals(order2Id, byDate.content().get(0).id());
+    }
+
+    @Test
+    void shouldFindOrderDetailsForIndividualBuyer() {
+        final UUID buyerId = givenUser("STUDENT");
+        jdbcTemplate.update(
+                "insert into regular_users (user_id, cpf, phone) values (?, '12345678909', '51988889999')", buyerId);
+        final UUID courseId = givenCourse();
+
+        final Order saved = orderRepositoryPort.save(individualCourseOrder(buyerId, courseId));
+
+        final OrderDetails details = orderRepositoryPort.findDetailsById(saved.getId()).orElseThrow();
+        assertEquals(saved.getId(), details.id());
+        assertEquals(OrderType.INDIVIDUAL, details.type());
+        assertNotNull(details.buyer());
+        assertEquals("Comprador", details.buyer().name());
+        assertEquals("12345678909", details.buyer().document());
+        assertEquals("51988889999", details.buyer().phone());
+        assertEquals(courseId, details.item().courseId());
+        assertEquals("Marketing Digital para Hospitalidade", details.item().courseTitle());
+        assertNull(details.collaboratorsWithAccessCount());
+    }
+
+    @Test
+    void shouldFindCorporateOrderDetailsWithCollaboratorsCount() {
+        final UUID buyerId = givenUser("COMPANY");
+        final UUID companyId = givenCompany();
+        final UUID courseId = givenCourse();
+
+        final UUID employeeId = givenUser("STUDENT");
+        jdbcTemplate.update(
+                "insert into users_company (user_id, company_id, role) values (?, ?, 'DEV')",
+                employeeId, companyId);
+        jdbcTemplate.update(
+                "insert into user_courses (user_id, course_id, certificate_issued) values (?, ?, false)",
+                employeeId, courseId);
+
+        final Order order = new Order();
+        order.setBuyerUserId(buyerId);
+        order.setCompanyId(companyId);
+        order.setType(OrderType.CORPORATE);
+        order.setItemType(OrderItemType.COURSE);
+        order.setCourseId(courseId);
+        order.setAmount(new BigDecimal("150.00"));
+        order.setPaymentMethod(PaymentMethod.CARD);
+        order.setInstallments(1);
+        order.changeStatus(OrderStatus.APPROVED, null, null);
+
+        final Order saved = orderRepositoryPort.save(order);
+
+        final OrderDetails details = orderRepositoryPort.findDetailsById(saved.getId()).orElseThrow();
+        assertEquals(OrderType.CORPORATE, details.type());
+        assertEquals("Hotel Teste LTDA", details.buyer().name());
+        assertEquals("contato@hotel.com.br", details.buyer().email());
+        assertEquals("51988887777", details.buyer().phone());
+        assertEquals(1, details.collaboratorsWithAccessCount());
     }
 }
