@@ -20,7 +20,7 @@ public record CertificateDetails(
      * {@code avatarUrl} so existe no perfil de admin (tabela admins), entao vem
      * nulo para alunos comuns. {@code verified} indica conta ativa.
      */
-    public record Student(String name, String avatarUrl, boolean verified) {
+    public record Student(UUID id, String name, String avatarUrl, boolean verified) {
     }
 
     /** {@code rating} e nulo enquanto o curso nao tiver avaliacoes. */

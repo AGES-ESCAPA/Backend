@@ -3,7 +3,7 @@ package com.escapa.backend.adapters.controller;
 import com.escapa.backend.adapters.dto.ApiResponse;
 import com.escapa.backend.adapters.dto.PageResponse;
 import com.escapa.backend.adapters.dto.StudentCourseCardResponse;
-import com.escapa.backend.adapters.security.UserIdHeader;
+import com.escapa.backend.adapters.security.AuthenticationContext;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.StudentCourseCard;
 import com.escapa.backend.application.usecase.ListStudentEnrollmentsUseCase;
@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@Tag(name = "Student - Enrollments", description = "Enrollments of the student identified by X-User-Id")
+@Tag(name = "Student - Enrollments", description = "Enrollments of the authenticated student")
 @RequestMapping("/api/v1/student")
 public class StudentEnrollmentController {
 
@@ -33,13 +32,12 @@ public class StudentEnrollmentController {
     @GetMapping("/enrollments")
     @Operation(summary = "List the enrollments of the student")
     public ResponseEntity<ApiResponse<PageResponse<StudentCourseCardResponse>>> listEnrollments(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @RequestParam(required = false) String query,
             @RequestParam(required = false) EnrollmentStatus status,
             @RequestParam(defaultValue = PaginationDefaults.FIRST_PAGE) int page,
             @RequestParam(defaultValue = PaginationDefaults.PAGE_SIZE) int size
     ) {
-        final UUID userId = UserIdHeader.requireStudentId(xUserId);
+        final UUID userId = AuthenticationContext.requireUser().id();
         final PageResult<StudentCourseCard> result = listStudentEnrollmentsUseCase.execute(userId, query, status, page, size);
         return ResponseEntity.ok(ApiResponse.success(PageResponse.of(result, StudentCourseCardResponse::from)));
     }

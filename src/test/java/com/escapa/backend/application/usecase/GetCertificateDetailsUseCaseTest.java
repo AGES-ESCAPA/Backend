@@ -21,7 +21,7 @@ class GetCertificateDetailsUseCaseTest {
     private CertificateDetails givenCertificate(String code, LocalDate conclusionDate) {
         final CertificateDetails details = new CertificateDetails(
                 conclusionDate, 960, code,
-                new CertificateDetails.Student("Jorge Amado", null, true),
+                new CertificateDetails.Student(UUID.randomUUID(), "Jorge Amado", null, true),
                 new CertificateDetails.Course(
                         UUID.randomUUID(), "Marketing Digital para Hospitalidade", "Estrategias de marketing",
                         "Marketing", "Intermediario", "https://cdn.escapa.com.br/thumb.jpg",

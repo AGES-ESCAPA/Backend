@@ -2,6 +2,7 @@ package com.escapa.backend.adapters.controller;
 
 import com.escapa.backend.adapters.dto.ApiResponse;
 import com.escapa.backend.adapters.dto.CertificateDetailsResponse;
+import com.escapa.backend.adapters.security.AuthenticationContext;
 import com.escapa.backend.application.model.CertificateFile;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
 import com.escapa.backend.application.usecase.GetCertificateDetailsUseCase;
@@ -20,9 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Tela (US-18) e download em PDF (US-19) do certificado do aluno. Publicos
- * nesta sprint: o {@code verificationCode} e o unico controle de acesso, ja que
- * a validacao de dono do certificado depende da autenticacao ainda nao implementada.
+ * A consulta por codigo de verificacao e publica. O download do PDF exige o token
+ * do dono do certificado.
  */
 @RestController
 @Tag(name = "Certificates", description = "Certificate lookup and PDF download by verification code")
@@ -61,7 +61,8 @@ public class CertificateController {
         // Sem o parametro vale o tema padrao (certificate.default-theme); valor
         // diferente de light/dark vira 400 pelo IllegalArgumentException.
         final CertificateTheme selectedTheme = theme == null ? defaultTheme : CertificateTheme.fromParam(theme);
-        final CertificateFile file = downloadCertificateUseCase.execute(verificationCode, selectedTheme);
+        final CertificateFile file = downloadCertificateUseCase.execute(
+                AuthenticationContext.requireUser().id(), verificationCode, selectedTheme);
         final ContentDisposition disposition = ContentDisposition.attachment()
                 .filename(file.filename())
                 .build();

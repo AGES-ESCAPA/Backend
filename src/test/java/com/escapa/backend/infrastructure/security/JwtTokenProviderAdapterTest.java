@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -53,6 +54,32 @@ class JwtTokenProviderAdapterTest {
     @Test
     void shouldReturnCorrectExpirationSeconds() {
         assertEquals(3600L, tokenProvider.getExpirationSeconds());
+    }
+
+    @Test
+    void shouldReadClaimsFromGeneratedToken() {
+        final UUID userId = UUID.randomUUID();
+        final String token = tokenProvider.generateToken(userId, "user@escapa.com", "STUDENT", "STUDENT");
+
+        final var claims = tokenProvider.validateToken(token);
+
+        assertEquals(userId, claims.userId());
+        assertEquals("user@escapa.com", claims.email());
+        assertEquals("STUDENT", claims.role());
+        assertEquals("STUDENT", claims.profile());
+    }
+
+    @Test
+    void shouldRejectMalformedToken() {
+        assertThrows(IllegalArgumentException.class, () -> tokenProvider.validateToken("not-a-token"));
+    }
+
+    @Test
+    void shouldRejectExpiredToken() {
+        final JwtTokenProviderAdapter expiredTokenProvider = new JwtTokenProviderAdapter(SECRET, -1L);
+        final String token = expiredTokenProvider.generateToken(UUID.randomUUID(), "user@escapa.com", "STUDENT", "STUDENT");
+
+        assertThrows(IllegalArgumentException.class, () -> tokenProvider.validateToken(token));
     }
 }
 
