@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -77,8 +78,8 @@ public interface OrderJpaRepository extends JpaRepository<OrderEntity, UUID> {
               AND (:courseId IS NULL OR o.courseId = :courseId)
               AND (:status IS NULL OR o.status = :status)
               AND (CAST(:fromDateTime AS LocalDateTime) IS NULL OR o.createdAt >= :fromDateTime)
-              AND (CAST(:toDateTime AS LocalDateTime) IS NULL OR o.createdAt <= :toDateTime)
-            ORDER BY o.createdAt DESC
+              AND (CAST(:toExclusive AS LocalDateTime) IS NULL OR o.createdAt < :toExclusive)
+            ORDER BY o.createdAt DESC, o.id DESC
             """,
             countQuery = """
             SELECT COUNT(o)
@@ -87,14 +88,14 @@ public interface OrderJpaRepository extends JpaRepository<OrderEntity, UUID> {
               AND (:courseId IS NULL OR o.courseId = :courseId)
               AND (:status IS NULL OR o.status = :status)
               AND (CAST(:fromDateTime AS LocalDateTime) IS NULL OR o.createdAt >= :fromDateTime)
-              AND (CAST(:toDateTime AS LocalDateTime) IS NULL OR o.createdAt <= :toDateTime)
+              AND (CAST(:toExclusive AS LocalDateTime) IS NULL OR o.createdAt < :toExclusive)
             """)
     Page<OrderListingView> findOrders(
             @Param("type") OrderType type,
             @Param("courseId") UUID courseId,
             @Param("status") OrderStatus status,
             @Param("fromDateTime") LocalDateTime fromDateTime,
-            @Param("toDateTime") LocalDateTime toDateTime,
+            @Param("toExclusive") LocalDateTime toExclusive,
             Pageable pageable
     );
 
@@ -104,9 +105,11 @@ public interface OrderJpaRepository extends JpaRepository<OrderEntity, UUID> {
             WHERE uc.id.userId = comp.id.userId
               AND comp.id.companyId = :companyId
               AND uc.id.courseId = :courseId
+              AND (uc.dtExpiracao IS NULL OR uc.dtExpiracao >= :today)
             """)
     int countCollaboratorsWithAccess(
             @Param("companyId") UUID companyId,
-            @Param("courseId") UUID courseId
+            @Param("courseId") UUID courseId,
+            @Param("today") LocalDate today
     );
 }
