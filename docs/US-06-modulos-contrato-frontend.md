@@ -24,33 +24,24 @@ Regras que afetam a UI:
 - **Reorder é tudo ou nada.** A lista enviada precisa conter exatamente os IDs dos módulos do curso, sem faltar nem sobrar, sem repetição. Caso contrário o servidor responde `400` e não altera nada. Depois de um drag and drop, envie o array inteiro na ordem exibida.
 - **Remover deixa lacuna no `order`.** Remover o módulo 2 de [1, 2, 3] resulta em [1, 3]. A listagem continua ordenada e o próximo módulo criado entra como 4. Se a tela exibir o número da posição, use o índice do array, não o campo `order`.
 - **Remover cascateia.** Todos os conteúdos do módulo são apagados. Mostre na confirmação quantos conteúdos serão perdidos (`totalContents` já vem na listagem).
-- **Só ADMIN.** Todos os endpoints exigem o header `X-User-Id` com o UUID de um usuário ADMIN. Ver seção 2.
+- **Só ADMIN.** Todos os endpoints exigem token Bearer de um usuário ADMIN. Ver seção 2.
 
 ---
 
-## 2. Autenticação (estado atual)
+## 2. Autenticação
 
-O projeto ainda não tem login nem token. Enquanto isso, a identificação é feita pelo header:
+Faça login em `POST /api/v1/auth/login` e envie o `accessToken` recebido em todos os endpoints desta tela:
 
-```
-X-User-Id: <uuid do usuário admin>
+```http
+Authorization: Bearer <accessToken>
 ```
 
 | Situação | Resposta |
 |---|---|
-| Header ausente | `403 Forbidden` · "Missing X-User-Id header" |
-| Valor não é UUID | `403 Forbidden` · "Invalid X-User-Id: must be a valid UUID" |
-| Usuário não existe | `403 Forbidden` · "User not found" |
-| Usuário não é ADMIN | `403 Forbidden` · "Access denied: user is not ADMIN" |
+| Token ausente, inválido ou expirado | `401 Unauthorized` |
+| Usuário autenticado sem perfil ADMIN | `403 Forbidden` |
 
-Para desenvolvimento local com o seed (`mvn spring-boot:run`), há dois admins:
-
-| Nome | UUID |
-|---|---|
-| Beatriz Nunes | `a0000000-0000-4000-a000-000000000001` |
-| Rafael Antunes | `a0000000-0000-4000-a000-000000000002` |
-
-Quando a autenticação por token entrar (Spring Security + JWT), este header será substituído por `Authorization: Bearer <token>`. Isole o envio do header em um único lugar do cliente HTTP para a troca ser trivial.
+Para desenvolvimento local com o seed (`mvn spring-boot:run`), use uma conta ADMIN documentada no README. Centralize o envio do token no cliente HTTP para que todas as chamadas desta tela recebam o mesmo cabeçalho.
 
 ---
 
@@ -169,7 +160,7 @@ Retorna `ApiResponse<Module[]>`, ordenado por `order` crescente. Curso sem módu
 }
 ```
 
-**Erros:** `403` (não ADMIN) · `404` (curso não existe)
+**Erros:** `401` (token ausente, inválido ou expirado) · `403` (não ADMIN) · `404` (curso não existe)
 
 ---
 
@@ -205,7 +196,7 @@ Content-Type: application/json
 }
 ```
 
-**Erros:** `400` (title vazio: "title is required") · `403` · `404` (curso não existe)
+**Erros:** `400` (title vazio: "title is required") · `401` · `403` · `404` (curso não existe)
 
 Sugestão de UI: após o 201, faça append do `data` no fim da lista local, sem precisar refazer o GET.
 
@@ -226,7 +217,7 @@ Content-Type: application/json
 
 **Resposta 200** · `ApiResponse<Module>` com o módulo atualizado. `order` e `contents` permanecem iguais.
 
-**Erros:** `400` (title vazio) · `403` · `404` (módulo não existe)
+**Erros:** `400` (title vazio) · `401` · `403` · `404` (módulo não existe)
 
 ---
 
@@ -259,6 +250,7 @@ A posição no array vira o `order` (primeiro = 1). O array deve conter **todos*
 | 400 | Array vazio ou ausente | `moduleIds is required` |
 | 400 | ID repetido | `moduleIds must not contain duplicates` |
 | 400 | Falta ou sobra algum ID, ou ID de outro curso | `moduleIds must contain every module of the course exactly once` |
+| 401 | Token ausente, inválido ou expirado | |
 | 403 | Não ADMIN | ver seção 2 |
 | 404 | Curso não existe | `Course not found: <id>` |
 
@@ -276,13 +268,13 @@ DELETE /api/v1/admin/modules/{id}
 
 Remove o módulo e todos os seus conteúdos. Operação irreversível.
 
-**Erros:** `403` · `404` (módulo não existe)
+**Erros:** `401` · `403` · `404` (módulo não existe)
 
 ---
 
 ## 6. Endpoints relacionados (conteúdos, BE-05)
 
-A mesma tela provavelmente vai abrir um módulo e gerenciar seus conteúdos. Esses endpoints já existem, sob o mesmo prefixo, e hoje **não exigem** `X-User-Id` (pendência conhecida):
+A mesma tela provavelmente vai abrir um módulo e gerenciar seus conteúdos. Esses endpoints já existem sob `/api/v1/admin` e também exigem token Bearer de ADMIN:
 
 | Método | Rota |
 |---|---|
@@ -312,13 +304,13 @@ Atenção: o seed trunca e recria os dados a cada start da aplicação.
 **Exemplo com curl**
 
 ```bash
-ADMIN=a0000000-0000-4000-a000-000000000001
 COURSE=e0000000-0000-4000-e000-000000000001
 BASE=http://localhost:8080/api/v1/admin
+TOKEN=<accessToken obtido no login>
 
-curl -s -H "X-User-Id: $ADMIN" $BASE/courses/$COURSE/modules
+curl -s -H "Authorization: Bearer $TOKEN" $BASE/courses/$COURSE/modules
 
-curl -s -X POST -H "X-User-Id: $ADMIN" -H "Content-Type: application/json" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"title":"Novo módulo"}' $BASE/courses/$COURSE/modules
 ```
 
@@ -338,5 +330,3 @@ curl -s -X POST -H "X-User-Id: $ADMIN" -H "Content-Type: application/json" \
 ## 9. Pendências conhecidas no backend
 
 - Remoção é física. Quando houver progresso de aluno, deve virar soft-delete. A tela não precisa mudar, mas o comportamento pode passar a ser "arquivar".
-- Header `X-User-Id` será substituído por token.
-- Endpoints de conteúdo ainda não checam ADMIN.

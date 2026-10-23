@@ -167,6 +167,7 @@ class CertificateRepositoryAdapterTest extends PostgresIntegrationTest {
         assertEquals(960, details.workloadMinutes());
         assertEquals("ESC-2026-MKT-0100", details.verificationCode());
 
+        assertEquals(userId, details.student().id());
         assertEquals("Jorge Amado", details.student().name());
         // Aluno comum nao tem avatar no modelo (avatar_url so existe em admins).
         assertNull(details.student().avatarUrl());

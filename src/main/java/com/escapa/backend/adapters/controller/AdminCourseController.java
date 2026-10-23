@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,7 +29,7 @@ import com.escapa.backend.adapters.dto.course.CourseResponse;
 import com.escapa.backend.adapters.dto.course.CreateCourseRequest;
 import com.escapa.backend.adapters.dto.course.UpdateCourseRequest;
 import com.escapa.backend.adapters.security.AdminRequestGuard;
-import com.escapa.backend.adapters.security.UserIdHeader;
+import com.escapa.backend.adapters.security.AuthenticationContext;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ArchiveCourseUseCase;
 import com.escapa.backend.application.usecase.CreateCourseUseCase;
@@ -50,7 +49,7 @@ import com.escapa.backend.domain.entity.User;
 import jakarta.validation.Valid;
 
 @RestController
-@Tag(name = "Admin - Courses", description = "Course management for ADMIN users (requires the X-User-Id header)")
+@Tag(name = "Admin - Courses", description = "Course management for authenticated ADMIN users")
 @RequestMapping("/api/v1/admin/courses")
 public class AdminCourseController {
     private final GetCourseRulesUseCase getCourseRulesUseCase;
@@ -101,9 +100,8 @@ public class AdminCourseController {
 
     @GetMapping
     @Operation(summary = "List non-archived courses")
-    public ResponseEntity<ApiResponse<List<AdminCourseListItemResponse>>> list(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId) {
-        adminRequestGuard.requireAdmin(xUserId);
+    public ResponseEntity<ApiResponse<List<AdminCourseListItemResponse>>> list() {
+        requireAdmin();
         final List<AdminCourseListItemResponse> courses = listAdminCoursesUseCase.execute().stream()
                 .map(AdminCourseListItemResponse::from)
                 .toList();
@@ -112,28 +110,23 @@ public class AdminCourseController {
 
     @GetMapping("/categories")
     @Operation(summary = "List distinct course categories")
-    public ResponseEntity<ApiResponse<List<String>>> listCategories(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId) {
-        adminRequestGuard.requireAdmin(xUserId);
+    public ResponseEntity<ApiResponse<List<String>>> listCategories() {
+        requireAdmin();
         return ResponseEntity.ok(ApiResponse.success(listCourseCategoriesUseCase.execute()));
     }
 
     @GetMapping("/{courseId}")
     @Operation(summary = "Get a course by id")
-    public ResponseEntity<ApiResponse<CourseResponse>> getById(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
-            @PathVariable UUID courseId) {
-        adminRequestGuard.requireAdmin(xUserId);
+    public ResponseEntity<ApiResponse<CourseResponse>> getById(@PathVariable UUID courseId) {
+        requireAdmin();
         final Course course = getAdminCourseUseCase.execute(courseId);
         return ResponseEntity.ok(ApiResponse.success(CourseResponse.from(course)));
     }
 
     @PostMapping
     @Operation(summary = "Create a draft course")
-    public ResponseEntity<ApiResponse<CourseResponse>> create(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
-            @Valid @RequestBody CreateCourseRequest request) {
-        final User admin = adminRequestGuard.requireAdmin(xUserId);
+    public ResponseEntity<ApiResponse<CourseResponse>> create(@Valid @RequestBody CreateCourseRequest request) {
+        final User admin = requireAdmin();
         final Course course = createCourseUseCase.execute(
                 request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
                 request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
@@ -147,32 +140,26 @@ public class AdminCourseController {
 
     @DeleteMapping("/{courseId}")
     @Operation(summary = "Archive a course (soft delete)")
-    public ResponseEntity<ApiResponse<Void>> archive(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
-            @PathVariable UUID courseId) {
-        adminRequestGuard.requireAdmin(xUserId);
+    public ResponseEntity<ApiResponse<Void>> archive(@PathVariable UUID courseId) {
+        requireAdmin();
         archiveCourseUseCase.execute(courseId);
         return ResponseEntity.ok(ApiResponse.success(null, "Course archived successfully"));
     }
 
     @GetMapping("/{courseId}/rules")
     @Operation(summary = "Get progress rules, prerequisites and recent change log")
-    public CourseRulesResponse getRules(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
-            @PathVariable UUID courseId
-    ) {
-        adminRequestGuard.requireAdmin(xUserId);
+    public CourseRulesResponse getRules(@PathVariable UUID courseId) {
+        requireAdmin();
         return CourseRulesResponse.from(getCourseRulesUseCase.execute(courseId));
     }
 
     @PutMapping("/{courseId}/progress-rules")
     @Operation(summary = "Update the progress rules of a course")
     public CourseRulesResponse updateProgressRules(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
             @Valid @RequestBody UpdateProgressRulesRequest request
     ) {
-        final User admin = adminRequestGuard.requireAdmin(xUserId);
+        final User admin = requireAdmin();
         updateProgressRulesUseCase.execute(
                 courseId, request.requireSequentialProgress(), request.enforceDeadlineBlock(), admin);
         return CourseRulesResponse.from(getCourseRulesUseCase.execute(courseId));
@@ -181,21 +168,19 @@ public class AdminCourseController {
     @PostMapping("/{courseId}/prerequisites")
     @Operation(summary = "Add a course prerequisite")
     public void addPrerequisite(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
             @Valid @RequestBody AddCoursePrerequisiteRequest request
     ) {
-        final User admin = adminRequestGuard.requireAdmin(xUserId);
+        final User admin = requireAdmin();
         addCoursePrerequisiteUseCase.execute(courseId, request.prerequisiteCourseId(), admin);
     }
 
     @GetMapping("/{courseId}/prerequisites/search")
     @Operation(summary = "Search courses to use as prerequisite")
     public List<CourseSearchResponse> searchPrerequisites(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
             @RequestParam String query) {
-        adminRequestGuard.requireAdmin(xUserId);
+        requireAdmin();
         return searchCoursesForPrerequisiteUseCase.execute(courseId, query).stream()
                 .map(CourseSearchResponse::from)
                 .toList();
@@ -204,20 +189,18 @@ public class AdminCourseController {
     @DeleteMapping("/{courseId}/prerequisites/{prerequisiteCourseId}")
     @Operation(summary = "Remove a course prerequisite")
     public void removePrerequisite(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
             @PathVariable UUID prerequisiteCourseId) {
-        final User admin = adminRequestGuard.requireAdmin(xUserId);
+        final User admin = requireAdmin();
         removeCoursePrerequisiteUseCase.execute(courseId, prerequisiteCourseId, admin);
     }
 
     @PutMapping("/{courseId}")
     @Operation(summary = "Update a course")
     public ResponseEntity<ApiResponse<CourseResponse>> updateCourse(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
             @Valid @RequestBody UpdateCourseRequest request) {
-        final User admin = adminRequestGuard.requireAdmin(xUserId);
+        final User admin = requireAdmin();
         final Course course = updateCourseUseCase.execute(
                 courseId, request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
                 request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
@@ -231,10 +214,9 @@ public class AdminCourseController {
     @PostMapping("/{courseId}/publish")
     @Operation(summary = "Publish a course")
     public ResponseEntity<ApiResponse<CourseResponse>> publishCourse(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
             @RequestBody(required = false) PublishCourseRequest request) {
-        final User admin = adminRequestGuard.requireAdmin(xUserId);
+        final User admin = requireAdmin();
         final boolean notify = request != null && Boolean.TRUE.equals(request.notifyEnrolledStudents());
         final Course course = publishCourseUseCase.execute(courseId, notify, admin);
         return ResponseEntity.ok(ApiResponse.success(CourseResponse.from(course), "Course published successfully"));
@@ -243,11 +225,14 @@ public class AdminCourseController {
     @GetMapping("/{courseId}/change-log")
     @Operation(summary = "Page through the change log of a course")
     public ChangeLogPageResponse getChangeLog(
-            @RequestHeader(value = UserIdHeader.NAME, required = false) String xUserId,
             @PathVariable UUID courseId,
             @RequestParam(defaultValue = PaginationDefaults.FIRST_PAGE) int page,
             @RequestParam(defaultValue = PaginationDefaults.CHANGE_LOG_PAGE_SIZE) int size) {
-        adminRequestGuard.requireAdmin(xUserId);
+        requireAdmin();
         return ChangeLogPageResponse.from(getCourseChangeLogUseCase.execute(courseId, page, size));
+    }
+
+    private User requireAdmin() {
+        return adminRequestGuard.requireAdmin(AuthenticationContext.requireUser().id());
     }
 }

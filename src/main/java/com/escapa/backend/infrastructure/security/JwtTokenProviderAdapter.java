@@ -1,6 +1,8 @@
 package com.escapa.backend.infrastructure.security;
 
 import com.escapa.backend.application.port.TokenProviderPort;
+import com.escapa.backend.application.model.TokenClaims;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +50,25 @@ public class JwtTokenProviderAdapter implements TokenProviderPort {
     @Override
     public long getExpirationSeconds() {
         return expirationMinutes * SECONDS_PER_MINUTE;
+    }
+
+    @Override
+    public TokenClaims validateToken(String token) {
+        try {
+            final Claims claims = Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return new TokenClaims(
+                    UUID.fromString(claims.getSubject()),
+                    claims.get("email", String.class),
+                    claims.get("role", String.class),
+                    claims.get("profile", String.class)
+            );
+        } catch (RuntimeException ex) {
+            throw new IllegalArgumentException("Invalid or expired access token", ex);
+        }
     }
 
     public SecretKey getKey() {

@@ -24,8 +24,8 @@ public class GetCertificateDetailsUseCase {
                 .filter(certificate -> certificate.conclusionDate() != null)
                 .orElseThrow(() -> new CertificateNotFoundException(verificationCode));
 
-        // Placeholder ate a autenticacao: sem token nao ha usuario para comparar
-        // com o dono do certificado.
+        // A consulta por codigo e publica; por isso ela nao revela a identidade
+        // autenticada nem marca a visualizacao como sendo do dono.
         return new CertificateView(details, false);
     }
 }

@@ -66,6 +66,7 @@ public class CertificateRepositoryAdapter implements CertificateRepositoryPort {
 
     private CertificateDetails toDetails(CertificateDetailsView view) {
         final CertificateDetails.Student student = new CertificateDetails.Student(
+                view.getStudentId(),
                 view.getStudentName(),
                 view.getStudentAvatarUrl(),
                 view.isStudentVerified()

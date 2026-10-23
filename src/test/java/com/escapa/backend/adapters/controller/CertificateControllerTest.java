@@ -1,6 +1,7 @@
 package com.escapa.backend.adapters.controller;
 
 import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
+import com.escapa.backend.adapters.security.AuthenticatedUser;
 import com.escapa.backend.application.model.CertificateDetails;
 import com.escapa.backend.application.model.FormattedCertificate;
 import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
@@ -12,6 +13,7 @@ import com.escapa.backend.domain.certificate.CertificateGenerationUnavailableExc
 import com.escapa.backend.domain.certificate.CertificateTheme;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -19,6 +21,8 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -42,6 +46,7 @@ class CertificateControllerTest {
     private static final String ISSUED_CODE = "ESC-2026-MKT-0001";
     private static final String UNCONCLUDED_CODE = "ESC-2026-MKT-0002";
     private static final UUID COURSE_ID = UUID.fromString("b2c3d4e5-1111-2222-3333-444455556666");
+    private static final UUID STUDENT_ID = UUID.fromString("a0000000-0000-4000-a000-000000000011");
 
     private MockMvc mockMvc;
     // Erro que o generator fake lanca, quando definido. Sem erro, ele devolve
@@ -56,7 +61,7 @@ class CertificateControllerTest {
                 "https://cdn.escapa.com.br/courses/102/thumb.jpg", 960, 44, 5.0, 183,
                 "Thamiris Magalhaes", 117.0);
         final CertificateDetails.Student student = new CertificateDetails.Student(
-                "Jorge Amado", "https://cdn.escapa.com.br/users/42/avatar.jpg", true);
+                STUDENT_ID, "Jorge Amado", "https://cdn.escapa.com.br/users/42/avatar.jpg", true);
         final Map<String, CertificateDetails> detailsByCode = Map.of(
                 ISSUED_CODE, new CertificateDetails(LocalDate.of(2026, 8, 21), 960, ISSUED_CODE, student, course),
                 UNCONCLUDED_CODE, new CertificateDetails(null, 960, UNCONCLUDED_CODE, student, course));
@@ -106,10 +111,21 @@ class CertificateControllerTest {
                                 .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                                 .build()))
                 .build();
+        authenticateAs(STUDENT_ID);
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     private static byte[] pdfFor(CertificateTheme theme) {
         return ("%PDF-" + theme).getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static void authenticateAs(UUID userId) {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                new AuthenticatedUser(userId, "student@escapa.com", "STUDENT", "STUDENT"), null));
     }
 
     @Test
@@ -154,6 +170,15 @@ class CertificateControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Certificate not found: DOES-NOT-EXIST"));
+    }
+
+    @Test
+    void shouldReturn403WhenTheAuthenticatedUserDoesNotOwnTheCertificate() throws Exception {
+        authenticateAs(UUID.randomUUID());
+
+        mockMvc.perform(get(URL, ISSUED_CODE))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Access denied: user is not the certificate owner"));
     }
 
     @Test

@@ -66,10 +66,10 @@ Nunca misture DTO, entidade de domínio e entidade JPA na mesma classe ou assina
   Não peça `@Transactional` em caso de uso: ele já é transacional por esse advice.
 - **Sem Spring em `application/`** (`@Service`, `@Transactional`, `@Component`). Casos de uso são
   `@Bean` em `SpringConfig` / `CourseConfig`.
-- **Acesso admin/aluno:** rotas `/admin` usam `AdminRequestGuard`; rotas do aluno usam
-  `UserIdHeader.requireStudentId`. Sinalize parse manual do `X-User-Id`, `try/catch` de `UUID` no
-  controller ou o texto `"ADMIN"` comparado diretamente (use `User.isAdmin()`). Toda rota `/admin`
-  nova precisa do guard; endpoint admin sem ele é bloqueante.
+- **Acesso admin/aluno:** o filtro JWT valida `Authorization: Bearer <token>` e controllers usam
+  `AuthenticationContext.requireUser()`. Rotas `/admin` usam também `AdminRequestGuard`. Sinalize
+  header de identidade, parse manual de `UUID` no controller ou o texto `"ADMIN"` comparado
+  diretamente. Toda rota `/admin` nova precisa do guard; endpoint admin sem ele é bloqueante.
 - **Mapeamento fora do controller:** conversão para resposta em `XxxResponse.from(...)` /
   `PageResponse.of(...)`.
 - **Listagens:** carregar o agregado inteiro (módulos, aulas) só para exibir poucas colunas, ou

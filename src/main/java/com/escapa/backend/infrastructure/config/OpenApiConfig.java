@@ -1,7 +1,6 @@
 package com.escapa.backend.infrastructure.config;
 
 import com.escapa.backend.adapters.exception.ApiError;
-import com.escapa.backend.adapters.security.UserIdHeader;
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.core.converter.ResolvedSchema;
@@ -14,6 +13,7 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
@@ -44,7 +44,7 @@ public class OpenApiConfig implements WebMvcConfigurer {
                     .addSecuritySchemes("bearerAuth", new SecurityScheme()
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
-                        .bearerFormat("UUID")));
+                        .bearerFormat("JWT")));
     }
 
     /** Publica o schema do corpo de erro padrão ({@link ApiError}) para as respostas de erro referenciarem. */
@@ -63,10 +63,18 @@ public class OpenApiConfig implements WebMvcConfigurer {
         return (operation, handlerMethod) -> {
             final String controller = handlerMethod.getBeanType().getSimpleName();
             addError(operation, "400", "Invalid request");
-            if (controller.startsWith("Admin")) {
-                addError(operation, "403", "Missing, invalid or non-ADMIN X-User-Id header");
-            } else if (controller.startsWith("Student") || hasUserIdHeader(operation)) {
-                addError(operation, "401", "Missing or invalid X-User-Id header");
+            final String method = handlerMethod.getMethod().getName();
+            final boolean requiresToken = isProtectedController(controller)
+                    || isAuthenticatedUserEndpoint(controller, method)
+                    || isCertificateDownloadEndpoint(controller, method);
+            if (requiresToken) {
+                operation.addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+                addError(operation, "401", "Missing or invalid Bearer token");
+                if (isCertificateDownloadEndpoint(controller, method)) {
+                    addError(operation, "403", "Certificate owner required");
+                } else if (controller.startsWith("Admin") || "UserController".equals(controller)) {
+                    addError(operation, "403", "Administrator role required");
+                }
             }
             if (hasPathParameter(operation)) {
                 addError(operation, "404", "Resource not found");
@@ -81,10 +89,20 @@ public class OpenApiConfig implements WebMvcConfigurer {
                 && operation.getParameters().stream().map(Parameter::getIn).anyMatch("path"::equals);
     }
 
-    private static boolean hasUserIdHeader(Operation operation) {
-        return operation.getParameters() != null
-                && operation.getParameters().stream()
-                        .anyMatch(p -> "header".equals(p.getIn()) && UserIdHeader.NAME.equals(p.getName()));
+    private static boolean isProtectedController(String controller) {
+        return controller.startsWith("Admin")
+                || controller.startsWith("Student")
+                || controller.startsWith("Avatar")
+                || controller.startsWith("Password")
+                || "UserController".equals(controller);
+    }
+
+    private static boolean isAuthenticatedUserEndpoint(String controller, String method) {
+        return "AuthController".equals(controller) && "me".equals(method);
+    }
+
+    private static boolean isCertificateDownloadEndpoint(String controller, String method) {
+        return "CertificateController".equals(controller) && "download".equals(method);
     }
 
     private static void addError(Operation operation, String status, String description) {
