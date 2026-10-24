@@ -646,6 +646,36 @@ A imagem Docker usa `mcr.microsoft.com/playwright/java`, na mesma versão de `pl
 
 ---
 
+## 🛒 Criação de pedido e liberação de acesso (US-27)
+
+```
+POST /api/v1/orders
+```
+
+Registra a compra simulada como `APPROVED` e libera o acesso na mesma transação. Exige `Authorization: Bearer <accessToken>` de um `STUDENT` ou `COMPANY` (sem token `401`; `ADMIN` recebe `403`).
+
+```json
+{ "itemType": "COURSE", "courseId": "e0000000-0000-4000-e000-000000000000", "paymentMethod": "CARD", "installments": 3 }
+```
+
+Resposta `201 Created` com `orderId`, `status`, `itemType`, `courseId`, `seatsQuantity`, `amount`, `paymentMethod`, `installments` e `createdAt`. Compra de assentos usa `"itemType": "SEATS"` e `"seatsQuantity": 10` no lugar de `courseId`. O corpo **não tem campo de valor nem de cartão**: um `amount` enviado é ignorado.
+
+| Comprador | Item | O que é liberado |
+|---|---|---|
+| Aluno | Curso | Matrícula em `user_courses` com `progress = 0`, de hoje até hoje + `courses.deadline` dias (sem data de fim quando o prazo é nulo) |
+| Empresa | Curso | Registro em `company_courses` com `data_inicio` de hoje e sem `data_expiracao`. O prazo do curso conta a partir da matrícula de cada colaborador |
+| Empresa | Assentos | Soma a quantidade em `company.seats_total`, sem liberar curso |
+| Aluno | Assentos | `400` |
+
+- **Valor:** sempre calculado no servidor. Curso: `courses.price`. Assentos: quantidade × `APP_SEAT_PRICE` (padrão `79.00`), porque nenhuma US define o modelo comercial do pacote de licenças; quando a cliente definir, muda só a configuração.
+- **Forma de pagamento:** só `CARD`. `PIX` e `BOLETO` existem na coluna, mas o endpoint recusa com `400` (aprovar na hora um pedido assim registraria um pagamento que nunca aconteceu). Quando houver um meio de pagamento real, é essa validação que muda.
+- **Erros:** curso inexistente `404`; curso não publicado, combinação inválida de perfil e item, `paymentMethod` diferente de `CARD`, valor de enum inexistente ou corpo ilegível `400`; curso com acesso ainda ativo `409`.
+- **Matrícula vencida:** comprar de novo um curso cuja matrícula já venceu renova as datas e mantém o progresso já feito.
+- **Atomicidade:** o pedido, o histórico e a liberação de acesso rodam na mesma transação; uma falha em qualquer etapa desfaz tudo.
+- **Ainda não feito:** reativar a matrícula revogada pelo cancelamento de um pedido (limpar `revoked_at`) depende da coluna criada pela US-28 (#50) e entra quando ela for mergeada.
+
+---
+
 ## 🔎 Observações finais
 
 Este README reflete o estado inicial do projeto: a estrutura foi preparada para crescer com segurança, sem acoplamentos desnecessários, e com padrões que permitirão expandir para módulos de cursos, módulos, aulas, progresso e painel administrativo sem reestruturar a base.

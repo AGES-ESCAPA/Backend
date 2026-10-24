@@ -6,7 +6,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -28,7 +30,9 @@ import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CourseValidationException;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
+import com.escapa.backend.domain.order.CourseAlreadyActiveException;
 import com.escapa.backend.domain.order.OrderNotFoundException;
+import com.escapa.backend.domain.order.OrderValidationException;
 import com.escapa.backend.domain.user.AdminAccessDeniedException;
 import com.escapa.backend.domain.user.CompanyEmployeeCannotDeactivateException;
 import com.escapa.backend.domain.user.InactiveUserException;
@@ -141,6 +145,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateRegistrationException.class)
     public ResponseEntity<ApiError> handleDuplicateRegistrationException(DuplicateRegistrationException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    /** Corpo ilegível ou com valor de enum inexistente (ex.: paymentMethod "CASH"): erro do cliente, não do servidor. */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleUnreadableBody(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        final String field = ex.getCause() instanceof InvalidFormatException invalid && !invalid.getPath().isEmpty()
+                ? invalid.getPath().get(invalid.getPath().size() - 1).getFieldName()
+                : null;
+        final String message = field == null ? "Malformed request body" : "Invalid value for field '" + field + "'";
+        return buildResponse(HttpStatus.BAD_REQUEST, message, request);
+    }
+
+    @ExceptionHandler(OrderValidationException.class)
+    public ResponseEntity<ApiError> handleOrderValidationException(OrderValidationException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(CourseAlreadyActiveException.class)
+    public ResponseEntity<ApiError> handleCourseAlreadyActiveException(CourseAlreadyActiveException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
