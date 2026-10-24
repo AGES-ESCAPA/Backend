@@ -97,7 +97,17 @@ class ProfileControllerTest {
                 .andExpect(jsonPath("$.data.cpf").value("39011122233"))
                 .andExpect(jsonPath("$.data.phone").value("51991203344"))
                 .andExpect(jsonPath("$.data.companyName").doesNotExist())
-                .andExpect(jsonPath("$.data.cnpj").doesNotExist());
+                .andExpect(jsonPath("$.data.cnpj").doesNotExist())
+                .andExpect(jsonPath("$.data.avatarUrl").doesNotExist());
+    }
+
+    @Test
+    void shouldReturnTheSavedAvatarUrl() throws Exception {
+        userRepository.findById(studentId).orElseThrow().setAvatarUrl("http://minio/avatars/mariana.png");
+
+        mockMvc.perform(get(PROFILE_URL))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.avatarUrl").value("http://minio/avatars/mariana.png"));
     }
 
     @Test

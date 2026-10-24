@@ -8,6 +8,7 @@ public record UserProfile(
         String cpf,
         String phone,
         String companyName,
-        String cnpj
+        String cnpj,
+        String avatarUrl
 ) {
 }

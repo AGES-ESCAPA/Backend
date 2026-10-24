@@ -22,7 +22,9 @@ public record ProfileResponse(
         String phone,
         @Schema(description = "Legal name of the company, or the employer of an employee")
         String companyName,
-        String cnpj
+        String cnpj,
+        @Schema(description = "Public URL of the profile photo; omitted when the user has none")
+        String avatarUrl
 ) {
 
     public static ProfileResponse from(UserProfile profile) {
@@ -34,7 +36,8 @@ public record ProfileResponse(
                 profile.cpf(),
                 profile.phone(),
                 profile.companyName(),
-                profile.cnpj()
+                profile.cnpj(),
+                profile.avatarUrl()
         );
     }
 }

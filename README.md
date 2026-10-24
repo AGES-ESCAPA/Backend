@@ -460,7 +460,7 @@ GET /api/v1/auth/me
 Authorization: Bearer <accessToken>
 ```
 
-`GET /api/v1/auth/me` devolve o mesmo objeto `user` retornado pelo login e deve ser usado pelo frontend para restaurar a sessão após recarregar a página.
+`GET /api/v1/auth/me` devolve o mesmo objeto `user` retornado pelo login e deve ser usado pelo frontend para restaurar a sessão após recarregar a página. O `user` inclui `avatarUrl`, com a URL da foto de perfil (`null` quando não há foto).
 
 #### 🔑 Credenciais do Seed para Testes Locais:
 Todos os usuários do seed de desenvolvimento (`db/seed/R__seed_dev.sql`) utilizam a mesma senha:
@@ -503,6 +503,8 @@ O `GET` devolve, no envelope `ApiResponse`, os dados do usuário do token no for
 | `EMPLOYEE` | `false` | `name`, `email`, `cpf`, `phone`, `companyName` (empresa vinculada) |
 | `COMPANY` | `true` | `name` (responsável), `email`, `phone`, `companyName` (razão social), `cnpj` |
 | `ADMIN` | `false` | `name`, `email` |
+
+Em todos os perfis, `avatarUrl` traz a URL pública da foto enviada em `PUT /api/v1/me/avatar` e é omitido quando o usuário ainda não tem foto.
 
 O `PUT` recebe só os campos editáveis e devolve o perfil atualizado:
 

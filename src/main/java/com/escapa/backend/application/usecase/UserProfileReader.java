@@ -57,7 +57,8 @@ final class UserProfileReader {
         if (UserTypes.STUDENT.equals(profile) || EMPLOYEE.equals(profile)) {
             return studentProfile(user, profile);
         }
-        return new UserProfile(profile, false, user.getName(), user.getEmail(), null, null, null, null);
+        return new UserProfile(profile, false, user.getName(), user.getEmail(), null, null, null, null,
+                user.getAvatarUrl());
     }
 
     private UserProfile companyProfile(User user) {
@@ -70,7 +71,8 @@ final class UserProfileReader {
                 null,
                 company.map(Company::getPhone).orElse(null),
                 company.map(Company::getCompanyName).orElse(null),
-                company.map(Company::getCnpjId).orElse(null)
+                company.map(Company::getCnpjId).orElse(null),
+                user.getAvatarUrl()
         );
     }
 
@@ -85,7 +87,8 @@ final class UserProfileReader {
                 contact.map(StudentContact::cpf).orElse(null),
                 contact.map(StudentContact::phone).orElse(null),
                 companyName,
-                null
+                null,
+                user.getAvatarUrl()
         );
     }
 
