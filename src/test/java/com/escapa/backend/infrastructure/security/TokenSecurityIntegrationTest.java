@@ -202,6 +202,19 @@ class TokenSecurityIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void shouldReturnSavedAvatarUrlOfLoggedInUser() throws Exception {
+        final UserEntity student = userJpaRepository.findById(studentId).orElseThrow();
+        student.setProfileAvatarUrl("http://localhost:9000/escapa-media/avatars/student.png");
+        userJpaRepository.save(student);
+
+        mockMvc.perform(get("/api/v1/auth/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(studentToken())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.avatarUrl",
+                        is("http://localhost:9000/escapa-media/avatars/student.png")));
+    }
+
+    @Test
     void shouldProtectUserManagementWithAdminRole() throws Exception {
         mockMvc.perform(get("/api/v1/users"))
                 .andExpect(status().isUnauthorized());

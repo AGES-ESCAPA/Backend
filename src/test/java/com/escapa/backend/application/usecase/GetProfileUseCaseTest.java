@@ -50,6 +50,24 @@ class GetProfileUseCaseTest {
         assertEquals("51991203344", profile.phone());
         assertNull(profile.companyName());
         assertNull(profile.cnpj());
+        assertNull(profile.avatarUrl());
+    }
+
+    @Test
+    void shouldReturnSavedAvatarUrlForStudentCompanyAndAdmin() {
+        final User student = saveStudent();
+        student.setAvatarUrl("http://minio/avatars/mariana.png");
+        final UUID companyId = UUID.randomUUID();
+        companyRepository.save(
+                new User(companyId, "Ana Responsavel", "contato@vistamar.com.br", "hash", "COMPANY",
+                        "http://minio/avatars/vistamar.png", null),
+                new Company(companyId, "Pousada Vista Mar LTDA", "12345678000191", null, null));
+        final User admin = userRepository.save(new User("Barbara Diogo", "barbara@escapa.com.br", "hash", "ADMIN"));
+        admin.setAvatarUrl("http://minio/avatars/barbara.png");
+
+        assertEquals("http://minio/avatars/mariana.png", useCase.execute(student.getId()).avatarUrl());
+        assertEquals("http://minio/avatars/vistamar.png", useCase.execute(companyId).avatarUrl());
+        assertEquals("http://minio/avatars/barbara.png", useCase.execute(admin.getId()).avatarUrl());
     }
 
     @Test

@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -49,13 +50,16 @@ class AuthControllerTest {
                     throw new InactiveUserException("User account is inactive");
                 }
                 final String profile = "funcionario@empresa.com".equalsIgnoreCase(email) ? "EMPLOYEE" : "STUDENT";
+                final String avatarUrl = "com.foto@email.com".equalsIgnoreCase(email)
+                        ? "http://localhost:9000/escapa-media/avatars/foto.png"
+                        : null;
                 final User user = new User(
                         UUID.fromString("3f1c2b9e-0000-4000-a000-000000000000"),
                         "Nome do Usuario",
                         email,
                         "hash",
                         "STUDENT",
-                        null,
+                        avatarUrl,
                         UserStatus.ACTIVE,
                         LocalDateTime.now()
                 );
@@ -114,7 +118,18 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.data.expiresIn").value(3600))
                 .andExpect(jsonPath("$.data.user.id").value("3f1c2b9e-0000-4000-a000-000000000000"))
                 .andExpect(jsonPath("$.data.user.email").value("mariana@email.com"))
-                .andExpect(jsonPath("$.data.user.profile").value("STUDENT"));
+                .andExpect(jsonPath("$.data.user.profile").value("STUDENT"))
+                .andExpect(jsonPath("$.data.user.avatarUrl").value(nullValue()));
+    }
+
+    @Test
+    void shouldReturnSavedAvatarUrlOnLogin() throws Exception {
+        mockMvc.perform(post(LOGIN_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"com.foto@email.com\", \"password\": \"senha-correta\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.user.avatarUrl")
+                        .value("http://localhost:9000/escapa-media/avatars/foto.png"));
     }
 
     @Test
