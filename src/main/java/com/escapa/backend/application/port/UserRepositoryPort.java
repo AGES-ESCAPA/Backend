@@ -1,5 +1,6 @@
 package com.escapa.backend.application.port;
 
+import com.escapa.backend.application.model.StudentContact;
 import com.escapa.backend.domain.entity.User;
 
 import java.util.List;
@@ -14,4 +15,8 @@ public interface UserRepositoryPort {
     Optional<User> findByEmail(String email);
     boolean isUserLinkedToCompany(UUID userId);
     void updatePasswordHash(UUID id, String passwordHash);
+
+    Optional<StudentContact> findStudentContact(UUID userId);
+
+    void updateStudentPhone(UUID userId, String phone);
 }

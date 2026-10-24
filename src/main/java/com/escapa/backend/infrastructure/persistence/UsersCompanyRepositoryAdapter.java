@@ -1,5 +1,6 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
@@ -18,5 +19,10 @@ public class UsersCompanyRepositoryAdapter implements UsersCompanyRepositoryPort
     @Override
     public boolean existsByUserId(UUID userId) {
         return usersCompanyJpaRepository.existsByIdUserId(userId);
+    }
+
+    @Override
+    public Optional<UUID> findCompanyIdByUserId(UUID userId) {
+        return usersCompanyJpaRepository.findCompanyIdsByUserId(userId).stream().findFirst();
     }
 }

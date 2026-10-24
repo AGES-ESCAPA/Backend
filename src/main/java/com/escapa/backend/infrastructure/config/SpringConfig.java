@@ -42,6 +42,7 @@ import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
+import com.escapa.backend.application.usecase.GetProfileUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
 import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
@@ -58,6 +59,7 @@ import com.escapa.backend.application.usecase.ReorderModulesUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
 import com.escapa.backend.application.usecase.UpdateContentUseCase;
 import com.escapa.backend.application.usecase.UpdateModuleUseCase;
+import com.escapa.backend.application.usecase.UpdateProfileUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.application.usecase.UploadAvatarUseCase;
 import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
@@ -70,6 +72,7 @@ import com.escapa.backend.infrastructure.persistence.CourseNotificationAdapter;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.NotificationJpaRepository;
+import com.escapa.backend.infrastructure.persistence.RegularUserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
@@ -88,9 +91,10 @@ public class SpringConfig {
     @Bean
     public UserRepositoryPort userRepositoryPort(
             UserJpaRepository userJpaRepository,
-            UsersCompanyJpaRepository usersCompanyJpaRepository
+            UsersCompanyJpaRepository usersCompanyJpaRepository,
+            RegularUserJpaRepository regularUserJpaRepository
     ) {
-        return new UserRepositoryAdapter(userJpaRepository, usersCompanyJpaRepository);
+        return new UserRepositoryAdapter(userJpaRepository, usersCompanyJpaRepository, regularUserJpaRepository);
     }
 
     @Bean
@@ -119,6 +123,22 @@ public class SpringConfig {
             UsersCompanyRepositoryPort usersCompanyRepositoryPort,
             PasswordHasherPort passwordHasherPort) {
         return new DeactivateAccountUseCase(userRepositoryPort, usersCompanyRepositoryPort, passwordHasherPort);
+    }
+
+    @Bean
+    public GetProfileUseCase getProfileUseCase(
+            UserRepositoryPort userRepositoryPort,
+            CompanyRepositoryPort companyRepositoryPort,
+            UsersCompanyRepositoryPort usersCompanyRepositoryPort) {
+        return new GetProfileUseCase(userRepositoryPort, companyRepositoryPort, usersCompanyRepositoryPort);
+    }
+
+    @Bean
+    public UpdateProfileUseCase updateProfileUseCase(
+            UserRepositoryPort userRepositoryPort,
+            CompanyRepositoryPort companyRepositoryPort,
+            UsersCompanyRepositoryPort usersCompanyRepositoryPort) {
+        return new UpdateProfileUseCase(userRepositoryPort, companyRepositoryPort, usersCompanyRepositoryPort);
     }
 
     @Bean
