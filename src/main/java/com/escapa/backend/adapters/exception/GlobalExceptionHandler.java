@@ -23,6 +23,9 @@ import com.escapa.backend.domain.certificate.CertificateGenerationUnavailableExc
 import com.escapa.backend.domain.certificate.CertificateAccessDeniedException;
 import com.escapa.backend.domain.certificate.CertificateNotFoundException;
 import com.escapa.backend.domain.company.DuplicateRegistrationException;
+import com.escapa.backend.domain.order.InvalidOrderTransitionException;
+import com.escapa.backend.domain.order.OrderNotFoundException;
+import com.escapa.backend.domain.order.SeatsInUseException;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
@@ -72,7 +75,8 @@ public class GlobalExceptionHandler {
             ContentNotFoundException.class,
             ModuleNotFoundException.class,
             CourseNotFoundException.class,
-            CertificateNotFoundException.class
+            CertificateNotFoundException.class,
+            OrderNotFoundException.class
     })
     public ResponseEntity<ApiError> handleNotFoundException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
@@ -87,6 +91,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserAlreadyInactiveException.class)
     public ResponseEntity<ApiError> handleUserAlreadyInactiveException(
             UserAlreadyInactiveException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler({InvalidOrderTransitionException.class, SeatsInUseException.class})
+    public ResponseEntity<ApiError> handleOrderConflictException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 

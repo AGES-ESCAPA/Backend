@@ -2,6 +2,7 @@ package com.escapa.backend.infrastructure.persistence;
 
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.domain.entity.Order;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,6 +23,13 @@ public class OrderRepositoryAdapter implements OrderRepositoryPort {
     @Override
     public Optional<Order> findById(UUID id) {
         return repository.findById(id).map(OrderMapper::toDomain);
+    }
+
+    @Override
+    @Transactional
+    public Optional<Order> findByIdForUpdate(UUID id) {
+        // Trava a linha e depois le com o historico: a leitura reaproveita a entidade ja gerenciada.
+        return repository.lockById(id).flatMap(locked -> repository.findById(id)).map(OrderMapper::toDomain);
     }
 
     @Override

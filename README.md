@@ -22,6 +22,7 @@ O backend foi pensado para servir o frontend e manter o domínio isolado de deta
 - [Endpoints de Conteúdos/Aulas (Admin)](#-endpoints-de-conteúdosaulas-admin)
 - [Listagem administrativa de cursos](#-listagem-administrativa-de-cursos)
 - [Aula para o aluno (Sala de Aula)](#-aula-para-o-aluno-sala-de-aula)
+- [Cancelamento e reembolso de pedidos (Admin)](#-cancelamento-e-reembolso-de-pedidos-admin)
 
 ---
 
@@ -643,6 +644,27 @@ GET /api/v1/certificates/{verificationCode}/download?theme=light|dark
 | `certificate.pdf.warm-up` | `true` | Sobe o Chromium logo após o startup (a primeira subida no container leva dezenas de segundos) |
 
 A imagem Docker usa `mcr.microsoft.com/playwright/java`, na mesma versão de `playwright.version` do `pom.xml` (a CI confere). O Chromium já vem instalado nela, e a aplicação nunca baixa o navegador no startup.
+
+---
+
+## 🧾 Cancelamento e reembolso de pedidos (Admin)
+
+```http
+POST /api/v1/admin/orders/{id}/cancel
+POST /api/v1/admin/orders/{id}/refund
+```
+
+Só para ADMIN (header `X-User-Id`; ausente ou de outro tipo retorna `403`). O corpo é opcional: `{ "reason": "..." }`, com até 255 caracteres, e o motivo vai para o histórico de status. A resposta traz o `id`, o novo `status` e o `statusHistory` em ordem cronológica.
+
+- **Fluxo:** `APPROVED` → `CANCELLED` → `REFUNDED`. Só pedido `APPROVED` cancela e só pedido `CANCELLED` reembolsa; qualquer outra transição retorna `409`. Pedido inexistente retorna `404`. Cada mudança grava uma linha em `order_status_history` com o admin do header em `changed_by`.
+- **Cancelar** retira o acesso na mesma transação da mudança de status; se a revogação falhar, o status não muda:
+  - Curso de aluno: a matrícula em `user_courses` ganha `revoked_at`.
+  - Curso de empresa: `company_courses` e as matrículas dos colaboradores da empresa nesse curso ganham `revoked_at`.
+  - Assentos: a quantidade é subtraída de `company.seats_total`. Como o banco não guarda atribuição de assento, o assento em uso é o colaborador vinculado à empresa em `users_company`. Se os colaboradores passarem dos assentos que restariam, retorna `409` com os números ("N seat(s) in use but only M would remain; release K seat(s) first").
+- **Reembolsar** só muda o status e o histórico; acesso e assentos já saíram no cancelamento.
+- **Nada é apagado:** matrícula, progresso e certificado ficam no banco. `revoked_at` nulo significa acesso ativo; preenchido, o `EnrollmentAccessValidator`, "Meus Cursos" e a notificação de curso ignoram a matrícula. A verificação pública do certificado continua valendo.
+- **Recompra do mesmo curso:** a linha revogada continua com a chave (aluno, curso). O checkout deve limpar `revoked_at` (e renovar as datas) em vez de inserir outra matrícula.
+- **Concorrência:** o pedido é lido com `SELECT ... FOR UPDATE`, então dois cancelamentos simultâneos não passam juntos pela validação.
 
 ---
 

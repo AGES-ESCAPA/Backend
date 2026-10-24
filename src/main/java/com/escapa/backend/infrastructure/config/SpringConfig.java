@@ -5,11 +5,13 @@ import java.time.Clock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.simple.JdbcClient;
 
 import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
 import com.escapa.backend.application.port.CompanyRepositoryPort;
 import com.escapa.backend.application.port.ContentRepositoryPort;
+import com.escapa.backend.application.port.CompanySeatsPort;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CourseNotificationPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
@@ -21,6 +23,7 @@ import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
 import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
+import com.escapa.backend.application.port.OrderAccessRevocationPort;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.TokenProviderPort;
@@ -29,6 +32,7 @@ import com.escapa.backend.application.port.UsersCompanyRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.AuthorizeActiveUserUseCase;
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
+import com.escapa.backend.application.usecase.CancelOrderUseCase;
 import com.escapa.backend.application.usecase.ChangePasswordUseCase;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
@@ -52,6 +56,7 @@ import com.escapa.backend.application.usecase.ListPublishedCourseFiltersUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
 import com.escapa.backend.application.usecase.ListStudentEnrollmentsUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
+import com.escapa.backend.application.usecase.RefundOrderUseCase;
 import com.escapa.backend.application.usecase.RegisterCompanyUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ReorderContentsUseCase;
@@ -61,8 +66,10 @@ import com.escapa.backend.application.usecase.UpdateContentUseCase;
 import com.escapa.backend.application.usecase.UpdateModuleUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.application.usecase.UploadAvatarUseCase;
+import com.escapa.backend.infrastructure.persistence.CompanyCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CompanyRepositoryAdapter;
+import com.escapa.backend.infrastructure.persistence.CompanySeatsAdapter;
 import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseChangeLogJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseChangeLogRepositoryAdapter;
@@ -71,6 +78,7 @@ import com.escapa.backend.infrastructure.persistence.CourseNotificationAdapter;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.NotificationJpaRepository;
+import com.escapa.backend.infrastructure.persistence.OrderAccessRevocationAdapter;
 import com.escapa.backend.infrastructure.persistence.OrderJpaRepository;
 import com.escapa.backend.infrastructure.persistence.OrderRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
@@ -204,6 +212,32 @@ public class SpringConfig {
     @Bean
     public OrderRepositoryPort orderRepositoryPort(OrderJpaRepository repository) {
         return new OrderRepositoryAdapter(repository);
+    }
+
+    @Bean
+    public OrderAccessRevocationPort orderAccessRevocationPort(
+            UserCourseJpaRepository userCourseJpaRepository,
+            CompanyCourseJpaRepository companyCourseJpaRepository) {
+        return new OrderAccessRevocationAdapter(userCourseJpaRepository, companyCourseJpaRepository);
+    }
+
+    @Bean
+    public CompanySeatsPort companySeatsPort(JdbcClient jdbcClient) {
+        return new CompanySeatsAdapter(jdbcClient);
+    }
+
+    @Bean
+    public CancelOrderUseCase cancelOrderUseCase(
+            OrderRepositoryPort orderRepositoryPort,
+            OrderAccessRevocationPort orderAccessRevocationPort,
+            CompanySeatsPort companySeatsPort) {
+        return new CancelOrderUseCase(
+                orderRepositoryPort, orderAccessRevocationPort, companySeatsPort, Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public RefundOrderUseCase refundOrderUseCase(OrderRepositoryPort orderRepositoryPort) {
+        return new RefundOrderUseCase(orderRepositoryPort);
     }
 
     @Bean
