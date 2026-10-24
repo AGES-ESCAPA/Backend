@@ -2,6 +2,7 @@ package com.escapa.backend.adapters.controller;
 
 import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
 import com.escapa.backend.adapters.security.AdminRequestGuard;
+import com.escapa.backend.adapters.security.AuthenticatedUser;
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.application.usecase.CancelOrderUseCase;
 import com.escapa.backend.application.usecase.FakeCompanySeatsPort;
@@ -14,9 +15,13 @@ import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.order.OrderItemType;
 import com.escapa.backend.domain.order.OrderStatus;
 import com.escapa.backend.domain.order.OrderType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -32,7 +37,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /** Mapeamento HTTP e controle de acesso ADMIN do cancelamento e reembolso de pedidos (US-28). */
 class AdminOrderStatusControllerTest {
 
-    private static final String USER_HEADER = "X-User-Id";
     private static final String CANCEL_URL = "/api/v1/admin/orders/{id}/cancel";
     private static final String REFUND_URL = "/api/v1/admin/orders/{id}/refund";
 
@@ -57,6 +61,18 @@ class AdminOrderStatusControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
+        authenticate(adminId, "ADMIN");
+    }
+
+    @AfterEach
+    void clearAuthentication() {
+        SecurityContextHolder.clearContext();
+    }
+
+    private static void authenticate(String userId, String role) {
+        final var user = new AuthenticatedUser(UUID.fromString(userId), "test@escapa.com", role, role);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                user, null, AuthorityUtils.createAuthorityList("ROLE_" + role)));
     }
 
     private UUID givenOrder(OrderStatus status) {
@@ -70,24 +86,26 @@ class AdminOrderStatusControllerTest {
     }
 
     private ResultActions cancel(UUID orderId, String body) throws Exception {
-        return mockMvc.perform(post(CANCEL_URL, orderId).header(USER_HEADER, adminId)
+        return mockMvc.perform(post(CANCEL_URL, orderId)
                 .contentType(MediaType.APPLICATION_JSON).content(body));
     }
 
     @Test
-    void shouldRejectRequestsWithoutTheUserHeader() throws Exception {
+    void shouldRejectRequestsWithoutAuthentication() throws Exception {
+        SecurityContextHolder.clearContext();
         mockMvc.perform(post(CANCEL_URL, givenOrder(OrderStatus.APPROVED)))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message").value("Missing X-User-Id header"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Missing or invalid access token"));
     }
 
     @Test
     void shouldRejectNonAdminUsersWith403() throws Exception {
         final UUID orderId = givenOrder(OrderStatus.APPROVED);
+        authenticate(studentId, "STUDENT");
 
-        mockMvc.perform(post(CANCEL_URL, orderId).header(USER_HEADER, studentId))
+        mockMvc.perform(post(CANCEL_URL, orderId))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(post(REFUND_URL, orderId).header(USER_HEADER, studentId))
+        mockMvc.perform(post(REFUND_URL, orderId))
                 .andExpect(status().isForbidden());
     }
 
@@ -110,7 +128,7 @@ class AdminOrderStatusControllerTest {
     void shouldCancelWithoutABody() throws Exception {
         final UUID orderId = givenOrder(OrderStatus.APPROVED);
 
-        mockMvc.perform(post(CANCEL_URL, orderId).header(USER_HEADER, adminId))
+        mockMvc.perform(post(CANCEL_URL, orderId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("CANCELLED"))
                 .andExpect(jsonPath("$.data.statusHistory[0].reason").doesNotExist());
@@ -120,7 +138,7 @@ class AdminOrderStatusControllerTest {
     void shouldRefundACancelledOrder() throws Exception {
         final UUID orderId = givenOrder(OrderStatus.CANCELLED);
 
-        mockMvc.perform(post(REFUND_URL, orderId).header(USER_HEADER, adminId)
+        mockMvc.perform(post(REFUND_URL, orderId)
                         .contentType(MediaType.APPLICATION_JSON).content("{\"reason\": \"Estorno confirmado\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Order refunded successfully"))
@@ -133,10 +151,10 @@ class AdminOrderStatusControllerTest {
         final UUID approved = givenOrder(OrderStatus.APPROVED);
         final UUID cancelled = givenOrder(OrderStatus.CANCELLED);
 
-        mockMvc.perform(post(REFUND_URL, approved).header(USER_HEADER, adminId))
+        mockMvc.perform(post(REFUND_URL, approved))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message", containsString("cannot become REFUNDED")));
-        mockMvc.perform(post(CANCEL_URL, cancelled).header(USER_HEADER, adminId))
+        mockMvc.perform(post(CANCEL_URL, cancelled))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message", containsString("cannot become CANCELLED")));
     }
@@ -162,9 +180,9 @@ class AdminOrderStatusControllerTest {
 
     @Test
     void shouldReturn404ForAnUnknownOrder() throws Exception {
-        mockMvc.perform(post(CANCEL_URL, UUID.randomUUID()).header(USER_HEADER, adminId))
+        mockMvc.perform(post(CANCEL_URL, UUID.randomUUID()))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(post(REFUND_URL, UUID.randomUUID()).header(USER_HEADER, adminId))
+        mockMvc.perform(post(REFUND_URL, UUID.randomUUID()))
                 .andExpect(status().isNotFound());
     }
 
