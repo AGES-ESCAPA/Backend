@@ -1,6 +1,7 @@
 package com.escapa.backend.infrastructure.persistence;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,6 +9,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -16,7 +18,7 @@ import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
 public interface UserCourseJpaRepository
         extends JpaRepository<UserCourseEntity, com.escapa.backend.infrastructure.persistence.entity.UserCourseId> {
             @Query("select enrollment from UserCourseEntity enrollment "
-                + "where enrollment.id.courseId = :courseId "
+                + "where enrollment.id.courseId = :courseId and enrollment.revokedAt is null "
                 + "and (enrollment.dtExpiracao is null or enrollment.dtExpiracao >= :today)")
             List<UserCourseEntity> findActiveByCourseId(
                 @Param("courseId") UUID courseId, @Param("today") LocalDate today);
@@ -30,7 +32,8 @@ public interface UserCourseJpaRepository
 
             @Query("select enrollment.dtInicio as dtInicio, enrollment.dtExpiracao as dtExpiracao "
                 + "from UserCourseEntity enrollment "
-                + "where enrollment.id.userId = :userId and enrollment.id.courseId = :courseId")
+                + "where enrollment.id.userId = :userId and enrollment.id.courseId = :courseId "
+                + "and enrollment.revokedAt is null")
             Optional<EnrollmentPeriod> findPeriodByUserIdAndCourseId(
                 @Param("userId") UUID userId, @Param("courseId") UUID courseId);
 
@@ -38,7 +41,7 @@ public interface UserCourseJpaRepository
                 SELECT uc FROM UserCourseEntity uc
                 JOIN FETCH uc.course c
                 LEFT JOIN FETCH c.instructor
-                WHERE uc.user.id = :userId
+                WHERE uc.user.id = :userId AND uc.revokedAt IS NULL
                 AND (:titlePattern = '%%' OR LOWER(c.title) LIKE :titlePattern)
                 AND (
                     :status IS NULL
@@ -52,7 +55,7 @@ public interface UserCourseJpaRepository
                 countQuery = """
                 SELECT COUNT(uc) FROM UserCourseEntity uc
                 JOIN uc.course c
-                WHERE uc.user.id = :userId
+                WHERE uc.user.id = :userId AND uc.revokedAt IS NULL
                 AND (:titlePattern = '%%' OR LOWER(c.title) LIKE :titlePattern)
                 AND (
                     :status IS NULL
@@ -68,6 +71,26 @@ public interface UserCourseJpaRepository
                 @Param("status") String status,
                 Pageable pageable
             );
+
+            /** Revoga a matricula do aluno no curso, sem apagar progresso nem certificado. */
+            @Modifying
+            @Query("update UserCourseEntity uc set uc.revokedAt = :revokedAt "
+                + "where uc.id.userId = :userId and uc.id.courseId = :courseId and uc.revokedAt is null")
+            int revokeByUserIdAndCourseId(
+                @Param("userId") UUID userId,
+                @Param("courseId") UUID courseId,
+                @Param("revokedAt") LocalDateTime revokedAt);
+
+            /** Revoga as matriculas dos colaboradores da empresa no curso. */
+            @Modifying
+            @Query("update UserCourseEntity uc set uc.revokedAt = :revokedAt "
+                + "where uc.id.courseId = :courseId and uc.revokedAt is null "
+                + "and uc.id.userId in (select member.id.userId from UsersCompanyEntity member "
+                + "where member.id.companyId = :companyId)")
+            int revokeByCompanyIdAndCourseId(
+                @Param("companyId") UUID companyId,
+                @Param("courseId") UUID courseId,
+                @Param("revokedAt") LocalDateTime revokedAt);
 
             /** Projecao plana da tela de certificado (US-18); o adapter monta o modelo. */
             interface CertificateDetailsView {

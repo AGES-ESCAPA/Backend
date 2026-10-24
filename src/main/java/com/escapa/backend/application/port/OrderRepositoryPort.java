@@ -17,6 +17,12 @@ public interface OrderRepositoryPort {
 
     Optional<Order> findById(UUID id);
 
+    /**
+     * Lê o pedido travando-o até o fim da transação, para que duas mudanças de status
+     * simultâneas (ex.: cancelar duas vezes) não passem juntas pela mesma validação.
+     */
+    Optional<Order> findByIdForUpdate(UUID id);
+
     /** Pedidos do comprador, do mais recente para o mais antigo. */
     List<Order> findByBuyerUserId(UUID buyerUserId);
 }
