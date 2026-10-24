@@ -488,6 +488,34 @@ Authorization: Bearer <accessToken>
 
 Disponível para todos os perfis autenticados. Retorna `200` ao trocar a senha; o usuário continua logado. Senha atual incorreta ou nova senha com menos de 8 caracteres retornam `400` (e não `401`, para o frontend não tratar como sessão expirada). Sem token válido retorna `401`.
 
+### Dados do Perfil
+```http
+GET /api/v1/me/profile
+PUT /api/v1/me/profile
+Authorization: Bearer <accessToken>
+```
+
+O `GET` devolve, no envelope `ApiResponse`, os dados do usuário do token no formato do seu perfil. Campos que não se aplicam ao perfil não aparecem na resposta:
+
+| `profile` | `editable` | Campos |
+| :--- | :--- | :--- |
+| `STUDENT` | `true` | `name`, `email`, `cpf`, `phone` |
+| `EMPLOYEE` | `false` | `name`, `email`, `cpf`, `phone`, `companyName` (empresa vinculada) |
+| `COMPANY` | `true` | `name` (responsável), `email`, `phone`, `companyName` (razão social), `cnpj` |
+| `ADMIN` | `false` | `name`, `email` |
+
+O `PUT` recebe só os campos editáveis e devolve o perfil atualizado:
+
+```json
+{ "name": "Nome do Responsável", "phone": "(54) 99999-8888", "companyName": "Empresa Exemplo LTDA" }
+```
+
+* O aluno altera `name` e `phone`; a empresa altera `name`, `phone` e `companyName` (obrigatório para ela, ignorado para o aluno).
+* E-mail, CPF e CNPJ identificam a conta e não mudam; se vierem no corpo, são ignorados.
+* `phone` é opcional, aceita máscara e é gravado só com os dígitos (10 ou 11). Como é um `PUT`, omitir o telefone o apaga.
+* Campo inválido retorna `400` com a mensagem do campo (ex.: `name is required`, `phone is invalid`).
+* Funcionário de empresa (`EMPLOYEE`) e administrador recebem `403`.
+
 ---
 
 ## 🎬 Endpoints de Conteúdos/Aulas (Admin)
