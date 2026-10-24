@@ -1,7 +1,11 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.dto.OrderFilter;
+import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CreateOrderCommand;
 import com.escapa.backend.application.model.Enrollment;
+import com.escapa.backend.application.model.OrderDetails;
+import com.escapa.backend.application.model.OrderSummary;
 import com.escapa.backend.application.port.OrderAccessPort;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
@@ -379,6 +383,17 @@ class CreateOrderUseCaseTest {
         @Override
         public List<Order> findByBuyerUserId(UUID buyerUserId) {
             return saved.stream().filter(order -> order.getBuyerUserId().equals(buyerUserId)).toList();
+        }
+
+        // A listagem do admin (US-28) não faz parte da criação de pedidos.
+        @Override
+        public PageResult<OrderSummary> findOrders(OrderFilter filter, int page, int size) {
+            throw new UnsupportedOperationException("not used by CreateOrderUseCase");
+        }
+
+        @Override
+        public Optional<OrderDetails> findDetailsById(UUID id) {
+            throw new UnsupportedOperationException("not used by CreateOrderUseCase");
         }
     }
 
