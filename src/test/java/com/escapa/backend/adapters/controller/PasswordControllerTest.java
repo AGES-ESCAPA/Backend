@@ -1,10 +1,17 @@
 package com.escapa.backend.adapters.controller;
 
+import com.escapa.backend.application.port.CompanyRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.TokenProviderPort;
+import com.escapa.backend.domain.entity.Company;
+import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
 import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
 import com.escapa.backend.infrastructure.persistence.UserEntity;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
+import com.escapa.backend.infrastructure.persistence.UsersCompanyJpaRepository;
+import com.escapa.backend.infrastructure.persistence.entity.UsersCompanyEntity;
+import com.escapa.backend.infrastructure.persistence.entity.UsersCompanyId;
 import com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,18 +55,33 @@ class PasswordControllerTest extends PostgresIntegrationTest {
     @Autowired
     private TokenProviderPort tokenProviderPort;
 
+    @Autowired
+    private CompanyRepositoryPort companyRepositoryPort;
+
+    @Autowired
+    private CompanyJpaRepository companyJpaRepository;
+
+    @Autowired
+    private UsersCompanyJpaRepository usersCompanyJpaRepository;
+
     private UUID userId;
+    private UUID companyId;
 
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
+        companyId = UUID.randomUUID();
         userJpaRepository.save(new UserEntity(userId, "Senha Test", email(),
                 passwordHasherPort.hash("senha-atual"), "STUDENT", LocalDateTime.now()));
     }
 
     @AfterEach
     void tearDown() {
+        usersCompanyJpaRepository.deleteAll(usersCompanyJpaRepository.findAll().stream()
+                .filter(link -> userId.equals(link.getId().getUserId()))
+                .toList());
         userJpaRepository.deleteById(userId);
+        userJpaRepository.findById(companyId).ifPresent(userJpaRepository::delete);
     }
 
     @Test
@@ -128,11 +150,38 @@ class PasswordControllerTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void shouldLetCompanyEmployeeChangePassword() throws Exception {
+        linkUserToCompany();
+
+        mockMvc.perform(put(URL)
+                        .header("Authorization", "Bearer "
+                                + tokenProviderPort.generateToken(userId, email(), "STUDENT", "EMPLOYEE"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("senha-atual", "nova-senha-segura")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)));
+
+        final String storedHash = userJpaRepository.findById(userId).orElseThrow().getPasswordHash();
+        assertTrue(passwordHasherPort.matches("nova-senha-segura", storedHash));
+    }
+
+    @Test
     void shouldReturnUnauthorizedWhenMissingHeader() throws Exception {
         mockMvc.perform(put(URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body("senha-atual", "nova-senha-segura")))
                 .andExpect(status().isUnauthorized());
+    }
+
+    private void linkUserToCompany() {
+        companyRepositoryPort.save(
+                new User(companyId, "Empresa Senha", companyId + "@empresa.com.br", "hash", "COMPANY", null,
+                        LocalDateTime.now()),
+                new Company(companyId, "Empresa Senha LTDA", "1" + System.nanoTime(), null, "51999990001"));
+        usersCompanyJpaRepository.save(new UsersCompanyEntity(new UsersCompanyId(userId, companyId),
+                userJpaRepository.findById(userId).orElseThrow(),
+                companyJpaRepository.findById(companyId).orElseThrow(),
+                "RECEPCAO"));
     }
 
     private static String body(String currentPassword, String newPassword) {
