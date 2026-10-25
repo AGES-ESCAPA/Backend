@@ -84,8 +84,6 @@ import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteJpaReposi
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.NotificationJpaRepository;
 import com.escapa.backend.infrastructure.persistence.OrderAccessRevocationAdapter;
-import com.escapa.backend.infrastructure.persistence.OrderJpaRepository;
-import com.escapa.backend.infrastructure.persistence.OrderRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.RegularUserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.RegularUserRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
@@ -253,11 +251,6 @@ public class SpringConfig {
             CourseRepositoryPort courseRepositoryPort
     ) {
         return new GetCourseDetailsUseCase(courseRepositoryPort);
-    }
-
-    @Bean
-    public OrderRepositoryPort orderRepositoryPort(OrderJpaRepository repository) {
-        return new OrderRepositoryAdapter(repository);
     }
 
     @Bean
@@ -510,4 +503,3 @@ public class SpringConfig {
         return new UploadAvatarUseCase(userRepositoryPort, fileStoragePort);
     }
 }
-

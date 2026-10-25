@@ -1,20 +1,14 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.OrderRepositoryPort;
-import com.escapa.backend.domain.entity.Order;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import com.escapa.backend.application.dto.OrderFilter;
-import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.OrderDetails;
 import com.escapa.backend.application.model.OrderSummary;
+import com.escapa.backend.application.dto.OrderFilter;
+import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.domain.entity.Order;
 
-import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +21,8 @@ import java.util.UUID;
 public final class InMemoryOrderRepositoryPort implements OrderRepositoryPort {
 
     private final Map<UUID, Order> orders = new LinkedHashMap<>();
+    private final List<OrderSummary> summaries = new ArrayList<>();
+    private final Map<UUID, OrderDetails> details = new LinkedHashMap<>();
     private int saveCount;
 
     @Override
@@ -55,6 +51,36 @@ public final class InMemoryOrderRepositoryPort implements OrderRepositoryPort {
                 .filter(order -> buyerUserId.equals(order.getBuyerUserId()))
                 .map(InMemoryOrderRepositoryPort::copyOf)
                 .toList();
+    }
+
+    @Override
+    public PageResult<OrderSummary> findOrders(OrderFilter filter, int page, int size) {
+        final List<OrderSummary> filtered = summaries.stream()
+                .filter(summary -> filter.type() == null || filter.type() == summary.type())
+                .filter(summary -> filter.courseId() == null || filter.courseId().equals(summary.courseId()))
+                .filter(summary -> filter.status() == null || filter.status() == summary.status())
+                .filter(summary -> filter.from() == null
+                        || !summary.purchaseDate().toLocalDate().isBefore(filter.from()))
+                .filter(summary -> filter.to() == null
+                        || !summary.purchaseDate().toLocalDate().isAfter(filter.to()))
+                .toList();
+        final int start = Math.min(page * size, filtered.size());
+        final int end = Math.min(start + size, filtered.size());
+        final int totalPages = size == 0 ? 0 : (int) Math.ceil((double) filtered.size() / size);
+        return new PageResult<>(filtered.subList(start, end), page, size, filtered.size(), totalPages);
+    }
+
+    @Override
+    public Optional<OrderDetails> findDetailsById(UUID id) {
+        return Optional.ofNullable(details.get(id));
+    }
+
+    public void addSummary(OrderSummary summary) {
+        summaries.add(summary);
+    }
+
+    public void addDetails(OrderDetails orderDetails) {
+        details.put(orderDetails.id(), orderDetails);
     }
 
     public int saveCount() {
