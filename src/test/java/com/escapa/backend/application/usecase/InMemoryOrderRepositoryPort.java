@@ -5,6 +5,16 @@ import com.escapa.backend.domain.entity.Order;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import com.escapa.backend.application.dto.OrderFilter;
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.OrderDetails;
+import com.escapa.backend.application.model.OrderSummary;
+import com.escapa.backend.application.port.OrderRepositoryPort;
+import com.escapa.backend.domain.entity.Order;
+
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

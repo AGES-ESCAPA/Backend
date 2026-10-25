@@ -2,6 +2,7 @@ package com.escapa.backend.adapters.dto;
 
 import com.escapa.backend.application.usecase.CreateUserUseCase;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -16,6 +17,7 @@ public record RegisterCompanyRequest(
         @Size(max = FieldLimits.VARCHAR_MAX, message = "companyName " + FieldLimits.VARCHAR_MESSAGE)
         String companyName,
         @NotBlank(message = "email is required")
+        @Email(message = "Invalid email")
         @Size(max = FieldLimits.VARCHAR_MAX, message = "email " + FieldLimits.VARCHAR_MESSAGE)
         String email,
         @Size(max = FieldLimits.VARCHAR_MAX, message = "phone " + FieldLimits.VARCHAR_MESSAGE)

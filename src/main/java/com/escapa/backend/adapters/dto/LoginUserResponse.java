@@ -8,11 +8,12 @@ public record LoginUserResponse(
         UUID id,
         String name,
         String email,
-        String profile
+        String profile,
+        String avatarUrl
 ) {
 
     public static LoginUserResponse from(User user, String profile) {
-        return new LoginUserResponse(user.getId(), user.getName(), user.getEmail(), profile);
+        return new LoginUserResponse(user.getId(), user.getName(), user.getEmail(), profile, user.getAvatarUrl());
     }
 }
 
