@@ -1,6 +1,8 @@
 package com.escapa.backend.adapters.exception;
 
 import java.time.Instant;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -52,6 +54,8 @@ import jakarta.servlet.http.HttpServletRequest;
 public class GlobalExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Pattern CERTIFICATE_CODE_IN_PATH = Pattern.compile("(/api/v1/certificates/)([^/]+)");
+    private static final int VISIBLE_CODE_CHARS = 4;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidationException(MethodArgumentNotValidException ex, HttpServletRequest request) {
@@ -144,7 +148,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleCertificateGenerationException(
             CertificateGenerationException ex, HttpServletRequest request) {
         // A causa (Chromium, template) fica so no log; o cliente recebe uma mensagem generica.
-        LOGGER.error("Certificate PDF generation failed for {}", request.getRequestURI(), ex);
+        LOGGER.error("Certificate PDF generation failed for {}", loggablePath(request), ex);
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Could not generate the certificate PDF", request);
     }
 
@@ -215,13 +219,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGenericException(Exception ex, HttpServletRequest request) {
-        LOGGER.error("Unexpected error handling {} {}", request.getMethod(), request.getRequestURI(), ex);
+        LOGGER.error("Unexpected error handling {} {}", request.getMethod(), loggablePath(request), ex);
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error occurred", request);
     }
 
     private ResponseEntity<ApiError> buildResponse(HttpStatus status, String message, HttpServletRequest request) {
         if (status.is4xxClientError()) {
-            LOGGER.warn("{} {} -> {}: {}", request.getMethod(), request.getRequestURI(), status.value(), message);
+            LOGGER.warn("{} {} -> {}: {}", request.getMethod(), loggablePath(request), status.value(), message);
         }
         final ApiError apiError = new ApiError(
                 status.value(),
@@ -231,5 +235,16 @@ public class GlobalExceptionHandler {
                 Instant.now()
         );
         return ResponseEntity.status(status).body(apiError);
+    }
+
+    /** O codigo de verificacao da acesso a tela do certificado, entao nao vai inteiro para o log. */
+    static String loggablePath(HttpServletRequest request) {
+        final Matcher matcher = CERTIFICATE_CODE_IN_PATH.matcher(request.getRequestURI());
+        if (!matcher.find()) {
+            return request.getRequestURI();
+        }
+        final String code = matcher.group(2);
+        final String visible = code.substring(0, Math.min(VISIBLE_CODE_CHARS, code.length() / 2));
+        return matcher.replaceFirst(Matcher.quoteReplacement(matcher.group(1) + visible + "***"));
     }
 }

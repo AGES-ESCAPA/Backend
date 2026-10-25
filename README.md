@@ -478,7 +478,7 @@ Depois do login, envie o valor de `accessToken` em todas as rotas privadas:
 Authorization: Bearer <accessToken>
 ```
 
-As rotas em `/api/v1/auth/**` (exceto `GET /api/v1/auth/me`), `/api/v1/public/**`, `GET /api/v1/health`, OpenAPI e `GET /api/v1/certificates/{verificationCode}` são públicas. As demais exigem token; `/api/v1/admin/**` e `/api/v1/users/**` exigem também o perfil `ADMIN`. Sem token válido a API responde `401` no formato `ApiError`; token de um perfil sem permissão recebe `403`.
+As rotas em `/api/v1/auth/**` (exceto `GET /api/v1/auth/me`), `/api/v1/public/**`, `GET /api/v1/health`, OpenAPI e `GET /api/v1/certificates/{verificationCode}` são públicas. `GET /api/v1/certificates/{verificationCode}/download` não é: exige o token do dono do certificado. As demais exigem token; `/api/v1/admin/**` e `/api/v1/users/**` exigem também o perfil `ADMIN`. Sem token válido a API responde `401` no formato `ApiError`; token de um perfil sem permissão recebe `403`.
 
 ```http
 GET /api/v1/auth/me
@@ -683,8 +683,22 @@ GET /api/v1/certificates/{verificationCode}
 GET /api/v1/certificates/{verificationCode}/download?theme=light|dark
 ```
 
-- **Tela (US-18):** `GET /api/v1/certificates/{verificationCode}` é público. Além dos campos crus (`conclusionDate`, `workload` em minutos), `certificate` traz os textos já formatados — `formattedConclusionDate` ("21 de agosto de 2025"), `formattedWorkload` ("16 horas") e `validationUrl`. São os mesmos textos do PDF, formatados num único lugar (`FormattedCertificate`).
-- **PDF (US-19):** `GET /api/v1/certificates/{verificationCode}/download` exige `Authorization: Bearer <accessToken>` do dono do certificado. Sem token retorna `401`; token de outro usuário retorna `403`. O PDF é A4 horizontal, gerado a partir de `templates/certificate/certificate.html` pelo Chromium do Playwright. `theme` aceita `light` ou `dark` (sem diferenciar maiúsculas); sem o parâmetro vale `certificate.default-theme`; outro valor retorna `400`. Código inexistente ou curso não concluído retornam `404`.
+- **Tela (US-18):** `GET /api/v1/certificates/{verificationCode}` é público. Além dos campos crus (`conclusionDate`, `workload` em minutos), `certificate` traz os textos já formatados — `formattedConclusionDate` ("21 de agosto de 2025"), `formattedWorkload` ("16 horas") e `validationUrl`. São os mesmos textos do PDF, formatados num único lugar (`FormattedCertificate`). `isOwner` é `true` só quando a requisição traz o token válido do aluno dono; sem token (ou com token inválido) a tela continua acessível e `isOwner` vem `false`.
+- **PDF (US-19):** `GET /api/v1/certificates/{verificationCode}/download` exige `Authorization: Bearer <accessToken>` do dono do certificado. O PDF é A4 horizontal, gerado a partir de `templates/certificate/certificate.html` pelo Chromium do Playwright. `theme` aceita `light` ou `dark` (sem diferenciar maiúsculas); sem o parâmetro vale `certificate.default-theme`.
+- **Dono do certificado:** é o `users.id` do aluno da matrícula (`user_courses`) com aquele `certificate_code`, lido sempre do token, nunca da requisição. A mesma regra (`CertificateDetails.isOwnedBy`) define o `isOwner` da tela e libera o download, então o botão "Baixar" aparece se e somente se o download for permitido. A checagem acontece antes do cache: um PDF já salvo também não é entregue a outro usuário.
+- **Status do download, nesta ordem de precedência:**
+
+  | Situação | Status |
+  |---|---|
+  | Sem token, token malformado ou expirado | `401` |
+  | `theme` inválido | `400` |
+  | Código inexistente ou curso não concluído | `404` |
+  | Autenticado, mas não é o dono | `403` |
+  | Dono, curso concluído | `200` com o PDF |
+
+  Quem não está logado recebe `401` antes de saber se o código existe. O `403` para quem não é dono não revela nada novo, já que a tela pública mostra o certificado a partir do código.
+- **CORS:** o preflight (`OPTIONS`) responde sem token, `Authorization` é aceito e `Content-Disposition` é exposto, para o front ler o nome do arquivo.
+- **Logs:** o código de verificação aparece mascarado (`ESC-***`) nos logs de erro; o `403` registra só os ids do usuário, do dono e do curso.
 - **Cache:** cada PDF gerado fica em `certificate_pdfs`, por código, tema e `certificate.template.version`. **Ao mudar o template (HTML, CSS, tokens, fontes ou imagens em `src/main/resources/certificate/`), incremente `certificate.template.version`**, senão o cache continua servindo o PDF antigo.
 - **Erros da geração:** fila cheia ou prazo esgotado retornam `503`; falha do navegador retorna `500` com mensagem genérica (a causa fica no log). Nada é salvo no cache quando a geração falha.
 - **Tokens visuais:** `certificate/certificate-tokens.css` copia os valores do frontend (`src/index.css` e `CertificateCard.module.css`). Ao mudarem lá, atualize aqui e incremente a versão do template.

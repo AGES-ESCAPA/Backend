@@ -1,5 +1,7 @@
 package com.escapa.backend.adapters.security;
 
+import java.util.Optional;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,10 +14,16 @@ public final class AuthenticationContext {
     }
 
     public static AuthenticatedUser requireUser() {
+        return currentUser()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing or invalid access token"));
+    }
+
+    /** Para rotas publicas: vazio quando a requisicao nao trouxe um token valido. */
+    public static Optional<AuthenticatedUser> currentUser() {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof AuthenticatedUser user) {
-            return user;
+            return Optional.of(user);
         }
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing or invalid access token");
+        return Optional.empty();
     }
 }

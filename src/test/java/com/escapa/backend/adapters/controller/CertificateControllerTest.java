@@ -169,7 +169,7 @@ class CertificateControllerTest {
         mockMvc.perform(get(URL, "DOES-NOT-EXIST"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message").value("Certificate not found: DOES-NOT-EXIST"));
+                .andExpect(jsonPath("$.message").value("Certificate not found"));
     }
 
     @Test
@@ -207,7 +207,21 @@ class CertificateControllerTest {
     }
 
     @Test
+    void shouldMarkTheScreenAsOwnedOnlyForTheAuthenticatedOwner() throws Exception {
+        mockMvc.perform(get(DETAILS_URL, ISSUED_CODE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.isOwner").value(true));
+
+        authenticateAs(UUID.randomUUID());
+        mockMvc.perform(get(DETAILS_URL, ISSUED_CODE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.isOwner").value(false));
+    }
+
+    @Test
     void shouldReturn200WithTheCertificateScreenData() throws Exception {
+        SecurityContextHolder.clearContext();
+
         mockMvc.perform(get(DETAILS_URL, ISSUED_CODE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -242,7 +256,7 @@ class CertificateControllerTest {
         mockMvc.perform(get(DETAILS_URL, "DOES-NOT-EXIST"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message").value("Certificate not found: DOES-NOT-EXIST"));
+                .andExpect(jsonPath("$.message").value("Certificate not found"));
     }
 
     @Test
