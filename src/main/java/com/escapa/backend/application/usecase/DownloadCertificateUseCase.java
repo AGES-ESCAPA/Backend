@@ -2,6 +2,7 @@ package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.application.model.CertificateDetails;
 import com.escapa.backend.application.model.CertificateFile;
+import com.escapa.backend.application.model.CertificateView;
 import com.escapa.backend.application.model.FormattedCertificate;
 import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
@@ -18,6 +19,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Devolve o PDF do certificado para um codigo de verificacao e um tema (US-19).
  * Os dados vem do mesmo caso de uso da tela (US-18), e o arquivo e gerado na
@@ -25,6 +29,7 @@ import java.util.regex.Pattern;
  */
 public class DownloadCertificateUseCase {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DownloadCertificateUseCase.class);
     private static final Pattern DIACRITICS = Pattern.compile("\\p{M}");
     private static final Pattern NON_ALPHANUMERIC = Pattern.compile("[^a-z0-9]+");
     private static final Pattern EDGE_HYPHENS = Pattern.compile("(^-|-$)");
@@ -52,8 +57,12 @@ public class DownloadCertificateUseCase {
     public CertificateFile execute(UUID userId, String verificationCode, CertificateTheme theme) {
         // Antes do cache: o 404 e a verificacao de dono valem mesmo que ja exista
         // um PDF salvo para o codigo.
-        final CertificateDetails details = getCertificateDetailsUseCase.execute(verificationCode).details();
-        if (!userId.equals(details.student().id())) {
+        final CertificateView view = getCertificateDetailsUseCase.execute(verificationCode, userId);
+        final CertificateDetails details = view.details();
+        if (!view.owner()) {
+            // Certificado e identificado pela matricula (aluno + curso), nunca pelo codigo.
+            LOGGER.warn("Certificate download denied: userId={} ownerId={} courseId={}",
+                    userId, details.student().id(), details.course().id());
             throw new CertificateAccessDeniedException();
         }
         final String templateVersion = certificatePdfGeneratorPort.templateVersion();

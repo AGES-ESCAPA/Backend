@@ -64,15 +64,13 @@ public class OpenApiConfig implements WebMvcConfigurer {
             final String controller = handlerMethod.getBeanType().getSimpleName();
             addError(operation, "400", "Invalid request");
             final String method = handlerMethod.getMethod().getName();
+            // O download de certificado declara seguranca e respostas na propria anotacao.
             final boolean requiresToken = isProtectedController(controller)
-                    || isAuthenticatedUserEndpoint(controller, method)
-                    || isCertificateDownloadEndpoint(controller, method);
+                    || isAuthenticatedUserEndpoint(controller, method);
             if (requiresToken) {
                 operation.addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
                 addError(operation, "401", "Missing or invalid Bearer token");
-                if (isCertificateDownloadEndpoint(controller, method)) {
-                    addError(operation, "403", "Certificate owner required");
-                } else if (controller.startsWith("Admin") || "UserController".equals(controller)) {
+                if (controller.startsWith("Admin") || "UserController".equals(controller)) {
                     addError(operation, "403", "Administrator role required");
                 }
             }
@@ -100,10 +98,6 @@ public class OpenApiConfig implements WebMvcConfigurer {
 
     private static boolean isAuthenticatedUserEndpoint(String controller, String method) {
         return "AuthController".equals(controller) && "me".equals(method);
-    }
-
-    private static boolean isCertificateDownloadEndpoint(String controller, String method) {
-        return "CertificateController".equals(controller) && "download".equals(method);
     }
 
     private static void addError(Operation operation, String status, String description) {
