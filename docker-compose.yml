@@ -130,6 +130,8 @@ services:
       APP_JWT_SECRET: ${APP_JWT_SECRET:-escapa-jwt-secret-key-development-minimum-256-bits-length}
       APP_JWT_EXPIRATION_MINUTES: ${APP_JWT_EXPIRATION_MINUTES:-60}
 
+      APP_SEAT_PRICE: ${APP_SEAT_PRICE:-79.00}
+
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ROOT_USER: escapa
       MINIO_ROOT_PASSWORD: escapa12345
