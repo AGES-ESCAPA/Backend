@@ -16,6 +16,7 @@ import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserCourseId;
+import com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -140,6 +141,19 @@ class TokenSecurityIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void shouldReturn401WhenTokenBelongsToDeactivatedAccount() throws Exception {
+        final String token = studentToken();
+        final UserEntity student = userJpaRepository.findById(studentId).orElseThrow();
+        student.setStatus(UserStatus.INACTIVE);
+        userJpaRepository.save(student);
+
+        mockMvc.perform(get("/api/v1/student/enrollments")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status", is(401)));
+    }
+
+    @Test
     void shouldBlockStudentFromAdminRoutes() throws Exception {
         mockMvc.perform(get("/api/v1/admin/courses")
                         .header(HttpHeaders.AUTHORIZATION, bearer(studentToken())))
@@ -185,6 +199,19 @@ class TokenSecurityIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.data.name", is("Student Security")))
                 .andExpect(jsonPath("$.data.email", is(STUDENT_EMAIL)))
                 .andExpect(jsonPath("$.data.profile", is("STUDENT")));
+    }
+
+    @Test
+    void shouldReturnSavedAvatarUrlOfLoggedInUser() throws Exception {
+        final UserEntity student = userJpaRepository.findById(studentId).orElseThrow();
+        student.setProfileAvatarUrl("http://localhost:9000/escapa-media/avatars/student.png");
+        userJpaRepository.save(student);
+
+        mockMvc.perform(get("/api/v1/auth/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(studentToken())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.avatarUrl",
+                        is("http://localhost:9000/escapa-media/avatars/student.png")));
     }
 
     @Test

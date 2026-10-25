@@ -14,9 +14,9 @@ public record LoginResponse(
                 output.user().getId(),
                 output.user().getName(),
                 output.user().getEmail(),
-                output.profile()
+                output.profile(),
+                output.user().getAvatarUrl()
         );
         return new LoginResponse(output.accessToken(), output.tokenType(), output.expiresIn(), user);
     }
 }
-

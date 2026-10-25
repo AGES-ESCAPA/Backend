@@ -94,6 +94,7 @@ public class OpenApiConfig implements WebMvcConfigurer {
                 || controller.startsWith("Student")
                 || controller.startsWith("Avatar")
                 || controller.startsWith("Password")
+                || controller.startsWith("Profile")
                 || "UserController".equals(controller);
     }
 

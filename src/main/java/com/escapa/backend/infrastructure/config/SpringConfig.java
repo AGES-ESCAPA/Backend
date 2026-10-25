@@ -22,12 +22,13 @@ import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
 import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
-import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.RegularUserRepositoryPort;
 import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
+import com.escapa.backend.application.port.UsersCompanyRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
+import com.escapa.backend.application.usecase.AuthorizeActiveUserUseCase;
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.application.usecase.ChangePasswordUseCase;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
@@ -35,6 +36,7 @@ import com.escapa.backend.application.usecase.CreateModuleUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.LoginUseCase;
 import com.escapa.backend.application.usecase.RegisterStudentUseCase;
+import com.escapa.backend.application.usecase.DeactivateAccountUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
@@ -43,6 +45,7 @@ import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
+import com.escapa.backend.application.usecase.GetProfileUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
 import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
@@ -59,6 +62,7 @@ import com.escapa.backend.application.usecase.ReorderModulesUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
 import com.escapa.backend.application.usecase.UpdateContentUseCase;
 import com.escapa.backend.application.usecase.UpdateModuleUseCase;
+import com.escapa.backend.application.usecase.UpdateProfileUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.application.usecase.UploadAvatarUseCase;
 import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
@@ -79,6 +83,7 @@ import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.UsersCompanyJpaRepository;
+import com.escapa.backend.infrastructure.persistence.UsersCompanyRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.course.CourseRepositoryAdapter;
 import com.escapa.backend.infrastructure.storage.MinioFileStorageAdapter;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -92,9 +97,10 @@ public class SpringConfig {
     @Bean
     public UserRepositoryPort userRepositoryPort(
             UserJpaRepository userJpaRepository,
-            UsersCompanyJpaRepository usersCompanyJpaRepository
+            UsersCompanyJpaRepository usersCompanyJpaRepository,
+            RegularUserJpaRepository regularUserJpaRepository
     ) {
-        return new UserRepositoryAdapter(userJpaRepository, usersCompanyJpaRepository);
+        return new UserRepositoryAdapter(userJpaRepository, usersCompanyJpaRepository, regularUserJpaRepository);
     }
 
     @Bean
@@ -109,6 +115,41 @@ public class SpringConfig {
             TokenProviderPort tokenProviderPort
     ) {
         return new LoginUseCase(userRepositoryPort, passwordHasherPort, tokenProviderPort);
+    }
+
+        @Bean
+    public UsersCompanyRepositoryPort usersCompanyRepositoryPort(
+            UsersCompanyJpaRepository usersCompanyJpaRepository) {
+        return new UsersCompanyRepositoryAdapter(usersCompanyJpaRepository);
+    }
+
+    @Bean
+    public DeactivateAccountUseCase deactivateAccountUseCase(
+            UserRepositoryPort userRepositoryPort,
+            UsersCompanyRepositoryPort usersCompanyRepositoryPort,
+            PasswordHasherPort passwordHasherPort) {
+        return new DeactivateAccountUseCase(userRepositoryPort, usersCompanyRepositoryPort, passwordHasherPort);
+    }
+
+    @Bean
+    public GetProfileUseCase getProfileUseCase(
+            UserRepositoryPort userRepositoryPort,
+            CompanyRepositoryPort companyRepositoryPort,
+            UsersCompanyRepositoryPort usersCompanyRepositoryPort) {
+        return new GetProfileUseCase(userRepositoryPort, companyRepositoryPort, usersCompanyRepositoryPort);
+    }
+
+    @Bean
+    public UpdateProfileUseCase updateProfileUseCase(
+            UserRepositoryPort userRepositoryPort,
+            CompanyRepositoryPort companyRepositoryPort,
+            UsersCompanyRepositoryPort usersCompanyRepositoryPort) {
+        return new UpdateProfileUseCase(userRepositoryPort, companyRepositoryPort, usersCompanyRepositoryPort);
+    }
+
+    @Bean
+    public AuthorizeActiveUserUseCase authorizeActiveUserUseCase(UserRepositoryPort userRepositoryPort) {
+        return new AuthorizeActiveUserUseCase(userRepositoryPort);
     }
 
     @Bean
@@ -203,11 +244,6 @@ public class SpringConfig {
             CourseRepositoryPort courseRepositoryPort
     ) {
         return new GetCourseDetailsUseCase(courseRepositoryPort);
-    }
-
-    @Bean
-    public OrderRepositoryPort orderRepositoryPort(OrderJpaRepository repository) {
-        return new OrderRepositoryAdapter(repository);
     }
 
     @Bean
