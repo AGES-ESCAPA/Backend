@@ -9,6 +9,7 @@ import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.domain.entity.Order;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -63,6 +64,8 @@ public final class InMemoryOrderRepositoryPort implements OrderRepositoryPort {
                         || !summary.purchaseDate().toLocalDate().isBefore(filter.from()))
                 .filter(summary -> filter.to() == null
                         || !summary.purchaseDate().toLocalDate().isAfter(filter.to()))
+                .sorted(Comparator.comparing(OrderSummary::purchaseDate).reversed()
+                        .thenComparing(OrderSummary::id, Comparator.reverseOrder()))
                 .toList();
         final int start = Math.min(page * size, filtered.size());
         final int end = Math.min(start + size, filtered.size());
