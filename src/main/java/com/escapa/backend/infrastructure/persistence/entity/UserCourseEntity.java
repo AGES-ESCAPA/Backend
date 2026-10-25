@@ -62,6 +62,10 @@ public class UserCourseEntity {
     @Column(name = "certificate_issued_at")
     private LocalDateTime certificateIssuedAt;
 
+    /** Quando o acesso foi revogado (cancelamento do pedido); nulo significa acesso ativo. */
+    @Column(name = "revoked_at")
+    private LocalDateTime revokedAt;
+
     // O PDF do certificado nao fica nesta tabela: o cache por tema e versao do
     // template esta em certificate_pdfs (ver CertificateRepositoryAdapter).
 }
