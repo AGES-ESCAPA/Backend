@@ -22,6 +22,7 @@ O backend foi pensado para servir o frontend e manter o domínio isolado de deta
 - [Endpoints de Conteúdos/Aulas (Admin)](#-endpoints-de-conteúdosaulas-admin)
 - [Listagem administrativa de cursos](#-listagem-administrativa-de-cursos)
 - [Aula para o aluno (Sala de Aula)](#-aula-para-o-aluno-sala-de-aula)
+- [Cancelamento e reembolso de pedidos (Admin)](#-cancelamento-e-reembolso-de-pedidos-admin)
 
 ---
 
@@ -442,6 +443,30 @@ Endpoint público para autenticação por e-mail e senha. Retorna um token JWT a
 * `403 Forbidden`: usuário com status `INACTIVE` (`"User account is inactive"`).
 * `400 Bad Request`: dados incompletos ou e-mail inválido.
 
+### Cadastro público de aluno
+```http
+POST /api/v1/auth/register/student
+```
+
+Cria o usuário com papel e perfil `STUDENT`, grava o CPF apenas com dígitos e retorna um JWT no mesmo formato do login.
+
+#### Payload da requisição:
+```json
+{
+  "name": "Maria da Silva",
+  "cpf": "529.982.247-25",
+  "email": "maria@email.com",
+  "phone": "(51) 99999-0000",
+  "password": "senha-segura"
+}
+```
+
+Em caso de sucesso, retorna `201 Created`. CPF ou e-mail inválido e senha com menos de 8 caracteres retornam `400 Bad Request`. E-mail ou CPF já cadastrado retorna `409 Conflict`, indicando o campo conflitante na mensagem.
+
+O telefone é opcional. Os cadastros de aluno e empresa aceitam máscara brasileira e persistem somente os 10 ou 11 dígitos. Entrada vazia vira `null`; telefone inválido retorna `400`.
+
+Veja o [README da US-21](docs/US-21-cadastro-aluno/README.md) para as decisões de validação e máscara, contrato, cobertura de testes e limites de escopo.
+
 #### Variáveis de Ambiente do JWT:
 * `APP_JWT_SECRET`: Segredo de assinatura HMAC-SHA256 (mínimo de 256 bits / 32 caracteres).
 * `APP_JWT_EXPIRATION_MINUTES`: Tempo de expiração do token em minutos (padrão: `60`).
@@ -460,7 +485,7 @@ GET /api/v1/auth/me
 Authorization: Bearer <accessToken>
 ```
 
-`GET /api/v1/auth/me` devolve o mesmo objeto `user` retornado pelo login e deve ser usado pelo frontend para restaurar a sessão após recarregar a página.
+`GET /api/v1/auth/me` devolve o mesmo objeto `user` retornado pelo login e deve ser usado pelo frontend para restaurar a sessão após recarregar a página. O `user` inclui `avatarUrl`, com a URL da foto de perfil (`null` quando não há foto).
 
 #### 🔑 Credenciais do Seed para Testes Locais:
 Todos os usuários do seed de desenvolvimento (`db/seed/R__seed_dev.sql`) utilizam a mesma senha:
@@ -487,6 +512,36 @@ Authorization: Bearer <accessToken>
 ```
 
 Disponível para todos os perfis autenticados. Retorna `200` ao trocar a senha; o usuário continua logado. Senha atual incorreta ou nova senha com menos de 8 caracteres retornam `400` (e não `401`, para o frontend não tratar como sessão expirada). Sem token válido retorna `401`.
+
+### Dados do Perfil
+```http
+GET /api/v1/me/profile
+PUT /api/v1/me/profile
+Authorization: Bearer <accessToken>
+```
+
+O `GET` devolve, no envelope `ApiResponse`, os dados do usuário do token no formato do seu perfil. Campos que não se aplicam ao perfil não aparecem na resposta:
+
+| `profile` | `editable` | Campos |
+| :--- | :--- | :--- |
+| `STUDENT` | `true` | `name`, `email`, `cpf`, `phone` |
+| `EMPLOYEE` | `false` | `name`, `email`, `cpf`, `phone`, `companyName` (empresa vinculada) |
+| `COMPANY` | `true` | `name` (responsável), `email`, `phone`, `companyName` (razão social), `cnpj` |
+| `ADMIN` | `false` | `name`, `email` |
+
+Em todos os perfis, `avatarUrl` traz a URL pública da foto enviada em `PUT /api/v1/me/avatar` e é omitido quando o usuário ainda não tem foto.
+
+O `PUT` recebe só os campos editáveis e devolve o perfil atualizado:
+
+```json
+{ "name": "Nome do Responsável", "phone": "(54) 99999-8888", "companyName": "Empresa Exemplo LTDA" }
+```
+
+* O aluno altera `name` e `phone`; a empresa altera `name`, `phone` e `companyName` (obrigatório para ela, ignorado para o aluno).
+* E-mail, CPF e CNPJ identificam a conta e não mudam; se vierem no corpo, são ignorados.
+* `phone` é opcional, aceita máscara e é gravado só com os dígitos (10 ou 11). Como é um `PUT`, omitir o telefone o apaga.
+* Campo inválido retorna `400` com a mensagem do campo (ex.: `name is required`, `phone is invalid`).
+* Funcionário de empresa (`EMPLOYEE`) e administrador recebem `403`.
 
 ---
 
@@ -673,6 +728,25 @@ Resposta `201 Created` com `orderId`, `status`, `itemType`, `courseId`, `seatsQu
 - **Matrícula vencida:** comprar de novo um curso cuja matrícula já venceu renova as datas e mantém o progresso já feito.
 - **Atomicidade:** o pedido, o histórico e a liberação de acesso rodam na mesma transação; uma falha em qualquer etapa desfaz tudo.
 - **Ainda não feito:** reativar a matrícula revogada pelo cancelamento de um pedido (limpar `revoked_at`) depende da coluna criada pela US-28 (#50) e entra quando ela for mergeada.
+
+## 🧾 Cancelamento e reembolso de pedidos (Admin)
+
+```http
+POST /api/v1/admin/orders/{id}/cancel
+POST /api/v1/admin/orders/{id}/refund
+```
+
+Só para ADMIN (header `X-User-Id`; ausente ou de outro tipo retorna `403`). O corpo é opcional: `{ "reason": "..." }`, com até 255 caracteres, e o motivo vai para o histórico de status. A resposta traz o `id`, o novo `status` e o `statusHistory` em ordem cronológica.
+
+- **Fluxo:** `APPROVED` → `CANCELLED` → `REFUNDED`. Só pedido `APPROVED` cancela e só pedido `CANCELLED` reembolsa; qualquer outra transição retorna `409`. Pedido inexistente retorna `404`. Cada mudança grava uma linha em `order_status_history` com o admin do header em `changed_by`.
+- **Cancelar** retira o acesso na mesma transação da mudança de status; se a revogação falhar, o status não muda:
+  - Curso de aluno: a matrícula em `user_courses` ganha `revoked_at`.
+  - Curso de empresa: `company_courses` e as matrículas dos colaboradores da empresa nesse curso ganham `revoked_at`.
+  - Assentos: a quantidade é subtraída de `company.seats_total`. Como o banco não guarda atribuição de assento, o assento em uso é o colaborador vinculado à empresa em `users_company`. Se os colaboradores passarem dos assentos que restariam, retorna `409` com os números ("N seat(s) in use but only M would remain; release K seat(s) first").
+- **Reembolsar** só muda o status e o histórico; acesso e assentos já saíram no cancelamento.
+- **Nada é apagado:** matrícula, progresso e certificado ficam no banco. `revoked_at` nulo significa acesso ativo; preenchido, o `EnrollmentAccessValidator`, "Meus Cursos" e a notificação de curso ignoram a matrícula. A verificação pública do certificado continua valendo.
+- **Recompra do mesmo curso:** a linha revogada continua com a chave (aluno, curso). O checkout deve limpar `revoked_at` (e renovar as datas) em vez de inserir outra matrícula.
+- **Concorrência:** o pedido é lido com `SELECT ... FOR UPDATE`, então dois cancelamentos simultâneos não passam juntos pela validação.
 
 ---
 

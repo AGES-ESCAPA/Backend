@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
 
+import com.escapa.backend.application.model.StudentContact;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
 
@@ -13,13 +14,16 @@ import com.escapa.backend.domain.entity.User;
 public class UserRepositoryAdapter implements UserRepositoryPort {
     private final UserJpaRepository userJpaRepository;
     private final UsersCompanyJpaRepository usersCompanyJpaRepository;
+    private final RegularUserJpaRepository regularUserJpaRepository;
 
     public UserRepositoryAdapter(
             UserJpaRepository userJpaRepository,
-            UsersCompanyJpaRepository usersCompanyJpaRepository
+            UsersCompanyJpaRepository usersCompanyJpaRepository,
+            RegularUserJpaRepository regularUserJpaRepository
     ) {
         this.userJpaRepository = userJpaRepository;
         this.usersCompanyJpaRepository = usersCompanyJpaRepository;
+        this.regularUserJpaRepository = regularUserJpaRepository;
     }
 
         @Override
@@ -69,5 +73,15 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public void updatePasswordHash(UUID id, String passwordHash) {
         userJpaRepository.updatePasswordHash(id, passwordHash);
+    }
+
+    @Override
+    public Optional<StudentContact> findStudentContact(UUID userId) {
+        return regularUserJpaRepository.findContactByUserId(userId);
+    }
+
+    @Override
+    public void updateStudentPhone(UUID userId, String phone) {
+        regularUserJpaRepository.upsertPhone(userId, phone);
     }
 }

@@ -1,11 +1,14 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.model.StudentContact;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -13,6 +16,7 @@ import java.util.UUID;
 public final class InMemoryUserRepositoryPort implements UserRepositoryPort {
     private final List<User> users = new ArrayList<>();
     private final Set<UUID> companyLinkedUserIds = new HashSet<>();
+    private final Map<UUID, StudentContact> studentContacts = new HashMap<>();
 
     @Override
     public User save(User user) {
@@ -67,5 +71,20 @@ public final class InMemoryUserRepositoryPort implements UserRepositoryPort {
     @Override
     public void updatePasswordHash(UUID id, String passwordHash) {
         findById(id).ifPresent(user -> user.setPasswordHash(passwordHash));
+    }
+
+    @Override
+    public Optional<StudentContact> findStudentContact(UUID userId) {
+        return Optional.ofNullable(studentContacts.get(userId));
+    }
+
+    @Override
+    public void updateStudentPhone(UUID userId, String phone) {
+        final StudentContact current = studentContacts.get(userId);
+        studentContacts.put(userId, new StudentContact(current != null ? current.cpf() : null, phone));
+    }
+
+    public void saveStudentContact(UUID userId, String cpf, String phone) {
+        studentContacts.put(userId, new StudentContact(cpf, phone));
     }
 }

@@ -381,6 +381,11 @@ class CreateOrderUseCaseTest {
         }
 
         @Override
+        public Optional<Order> findByIdForUpdate(UUID id) {
+            return findById(id);
+        }
+
+        @Override
         public List<Order> findByBuyerUserId(UUID buyerUserId) {
             return saved.stream().filter(order -> order.getBuyerUserId().equals(buyerUserId)).toList();
         }

@@ -6,8 +6,9 @@ import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.usecase.FakePasswordHasher;
 import com.escapa.backend.application.usecase.LoginOutput;
 import com.escapa.backend.application.usecase.LoginUseCase;
+import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import com.escapa.backend.application.usecase.RegisterCompanyUseCase;
-import com.escapa.backend.domain.company.DuplicateRegistrationException;
+import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.InactiveUserException;
 import com.escapa.backend.domain.user.InvalidCredentialsException;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -49,13 +51,16 @@ class AuthControllerTest {
                     throw new InactiveUserException("User account is inactive");
                 }
                 final String profile = "funcionario@empresa.com".equalsIgnoreCase(email) ? "EMPLOYEE" : "STUDENT";
+                final String avatarUrl = "com.foto@email.com".equalsIgnoreCase(email)
+                        ? "http://localhost:9000/escapa-media/avatars/foto.png"
+                        : null;
                 final User user = new User(
                         UUID.fromString("3f1c2b9e-0000-4000-a000-000000000000"),
                         "Nome do Usuario",
                         email,
                         "hash",
                         "STUDENT",
-                        null,
+                        avatarUrl,
                         UserStatus.ACTIVE,
                         LocalDateTime.now()
                 );
@@ -63,7 +68,7 @@ class AuthControllerTest {
             }
         };
 
-        registerCompanyUseCase = new RegisterCompanyUseCase(null, null, null, null) {
+        registerCompanyUseCase = new RegisterCompanyUseCase(null, null, null, null, null) {
             @Override
             public LoginOutput execute(
                     String responsibleName, String cnpj, String companyName,
@@ -88,7 +93,9 @@ class AuthControllerTest {
             }
         };
 
-        final AuthController controller = new AuthController(loginUseCase, registerCompanyUseCase, null);
+        final RegisterStudentUseCase registerStudentUseCase = new RegisterStudentUseCase(null, null, null, null, null);
+        final AuthController controller = new AuthController(
+                loginUseCase, registerCompanyUseCase, registerStudentUseCase, null);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
@@ -114,7 +121,18 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.data.expiresIn").value(3600))
                 .andExpect(jsonPath("$.data.user.id").value("3f1c2b9e-0000-4000-a000-000000000000"))
                 .andExpect(jsonPath("$.data.user.email").value("mariana@email.com"))
-                .andExpect(jsonPath("$.data.user.profile").value("STUDENT"));
+                .andExpect(jsonPath("$.data.user.profile").value("STUDENT"))
+                .andExpect(jsonPath("$.data.user.avatarUrl").value(nullValue()));
+    }
+
+    @Test
+    void shouldReturnSavedAvatarUrlOnLogin() throws Exception {
+        mockMvc.perform(post(LOGIN_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"com.foto@email.com\", \"password\": \"senha-correta\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.user.avatarUrl")
+                        .value("http://localhost:9000/escapa-media/avatars/foto.png"));
     }
 
     @Test

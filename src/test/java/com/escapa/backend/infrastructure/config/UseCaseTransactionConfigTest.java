@@ -4,6 +4,7 @@ import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
 import com.escapa.backend.application.usecase.PublishCourseUseCase;
+import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.aop.Advisor;
@@ -27,10 +28,14 @@ class UseCaseTransactionConfigTest extends PostgresIntegrationTest {
     @Autowired
     private CreateUserUseCase createUserUseCase;
 
+    @Autowired
+    private RegisterStudentUseCase registerStudentUseCase;
+
     @Test
     void shouldWrapUseCasesInTransactionalProxies() {
         assertTrue(AopUtils.isAopProxy(listUsersUseCase));
         assertTrue(AopUtils.isAopProxy(createUserUseCase));
+        assertTrue(AopUtils.isAopProxy(registerStudentUseCase));
     }
 
     @Test
@@ -41,6 +46,7 @@ class UseCaseTransactionConfigTest extends PostgresIntegrationTest {
     @Test
     void shouldRunCommandUseCasesInWritableTransactions() throws NoSuchMethodException {
         assertFalse(attributeOf(CreateUserUseCase.class).isReadOnly());
+        assertFalse(attributeOf(RegisterStudentUseCase.class).isReadOnly());
         assertFalse(attributeOf(PublishCourseUseCase.class).isReadOnly());
         // Download looks like a query but stores the generated PDF in the cache column.
         assertFalse(attributeOf(DownloadCertificateUseCase.class).isReadOnly());

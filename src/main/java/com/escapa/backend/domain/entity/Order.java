@@ -1,5 +1,6 @@
 package com.escapa.backend.domain.entity;
 
+import com.escapa.backend.domain.order.InvalidOrderTransitionException;
 import com.escapa.backend.domain.order.OrderItemType;
 import com.escapa.backend.domain.order.OrderStatus;
 import com.escapa.backend.domain.order.OrderStatusChange;
@@ -43,6 +44,24 @@ public class Order {
     private OrderStatus status;
     private LocalDateTime createdAt;
     private List<OrderStatusChange> statusHistory = new ArrayList<>();
+
+    /** Cancela um pedido aprovado; qualquer outro status não pode ser cancelado. */
+    public void cancel(UUID changedBy, String reason) {
+        requireStatus(OrderStatus.APPROVED, OrderStatus.CANCELLED);
+        changeStatus(OrderStatus.CANCELLED, changedBy, reason);
+    }
+
+    /** Reembolsa um pedido já cancelado; qualquer outro status não pode ser reembolsado. */
+    public void refund(UUID changedBy, String reason) {
+        requireStatus(OrderStatus.CANCELLED, OrderStatus.REFUNDED);
+        changeStatus(OrderStatus.REFUNDED, changedBy, reason);
+    }
+
+    private void requireStatus(OrderStatus required, OrderStatus target) {
+        if (status != required) {
+            throw new InvalidOrderTransitionException(id, status, target);
+        }
+    }
 
     /** Muda o status e registra a mudança no histórico do pedido. */
     public void changeStatus(OrderStatus newStatus, UUID changedBy, String reason) {

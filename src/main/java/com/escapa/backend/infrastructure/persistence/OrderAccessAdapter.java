@@ -66,7 +66,8 @@ public class OrderAccessAdapter implements OrderAccessPort {
                 entityManager.getReference(CompanyEntity.class, companyId),
                 entityManager.getReference(CourseEntity.class, courseId),
                 startDate,
-                expirationDate));
+                expirationDate,
+                null));
     }
 
     @Override
