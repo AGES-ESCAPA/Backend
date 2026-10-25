@@ -7,11 +7,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.escapa.backend.domain.company.DuplicateRegistrationException;
 import com.escapa.backend.domain.entity.Company;
+import com.escapa.backend.domain.registration.DuplicateRegistrationException;
+import com.escapa.backend.infrastructure.validation.RegistrationContactValidator;
+
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
 
 class RegisterCompanyUseCaseTest {
 
@@ -27,14 +32,22 @@ class RegisterCompanyUseCaseTest {
     private InMemoryCompanyRepositoryPort companyRepository;
     private FakePasswordHasher passwordHasher;
     private RegisterCompanyUseCase useCase;
+    private ValidatorFactory validatorFactory;
 
     @BeforeEach
     void setUp() {
         userRepository = new InMemoryUserRepositoryPort();
         companyRepository = new InMemoryCompanyRepositoryPort(userRepository);
         passwordHasher = new FakePasswordHasher();
+        validatorFactory = Validation.buildDefaultValidatorFactory();
         useCase = new RegisterCompanyUseCase(
-                userRepository, companyRepository, passwordHasher, new FakeTokenProviderPort());
+                userRepository, companyRepository, passwordHasher, new FakeTokenProviderPort(),
+                new RegistrationContactValidator(validatorFactory.getValidator()));
+    }
+
+    @AfterEach
+    void closeValidator() {
+        validatorFactory.close();
     }
 
     private LoginOutput register(String cnpj, String email) {
@@ -144,14 +157,21 @@ class RegisterCompanyUseCaseTest {
 
     @Test
     void shouldRejectInvalidEmail() {
-        final String[] invalidEmails = {"sem-arroba.com", "a@b", "@dominio.com", "", null};
+        final String[] invalidEmails = {"sem-arroba.com", "@dominio.com", "", null};
 
         for (final String invalid : invalidEmails) {
             final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                     () -> register(CNPJ, invalid));
-            assertEquals("email is invalid", exception.getMessage());
+            assertEquals("Invalid email", exception.getMessage());
         }
         assertEquals(0, companyRepository.count());
+    }
+
+    @Test
+    void shouldUseTheSameEmailValidationRuleAsStudentRegistration() {
+        final LoginOutput output = register(CNPJ, "aluno@example");
+
+        assertEquals("aluno@example", output.user().getEmail());
     }
 
     @Test
@@ -169,7 +189,7 @@ class RegisterCompanyUseCaseTest {
         final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> useCase.execute(RESPONSIBLE, CNPJ, COMPANY_NAME, EMAIL, "12345", PASSWORD));
 
-        assertEquals("phone is invalid", exception.getMessage());
+        assertEquals("Invalid phone", exception.getMessage());
     }
 
     @Test

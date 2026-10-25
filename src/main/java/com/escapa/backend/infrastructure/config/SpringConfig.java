@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
+import com.escapa.backend.application.port.ContactValidatorPort;
 import com.escapa.backend.application.port.CompanyRepositoryPort;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
@@ -22,6 +23,7 @@ import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
 import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
+import com.escapa.backend.application.port.RegularUserRepositoryPort;
 import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.port.UsersCompanyRepositoryPort;
@@ -33,6 +35,7 @@ import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.LoginUseCase;
+import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import com.escapa.backend.application.usecase.DeactivateAccountUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
@@ -72,7 +75,10 @@ import com.escapa.backend.infrastructure.persistence.CourseNotificationAdapter;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.NotificationJpaRepository;
+import com.escapa.backend.infrastructure.persistence.OrderJpaRepository;
+import com.escapa.backend.infrastructure.persistence.OrderRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.RegularUserJpaRepository;
+import com.escapa.backend.infrastructure.persistence.RegularUserRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
@@ -147,6 +153,26 @@ public class SpringConfig {
     }
 
     @Bean
+    public RegularUserRepositoryPort regularUserRepositoryPort(
+            RegularUserJpaRepository regularUserJpaRepository
+    ) {
+        return new RegularUserRepositoryAdapter(regularUserJpaRepository);
+    }
+
+    @Bean
+    public RegisterStudentUseCase registerStudentUseCase(
+            UserRepositoryPort userRepositoryPort,
+            RegularUserRepositoryPort regularUserRepositoryPort,
+            PasswordHasherPort passwordHasherPort,
+            TokenProviderPort tokenProviderPort,
+            ContactValidatorPort contactValidatorPort
+    ) {
+        return new RegisterStudentUseCase(
+                userRepositoryPort, regularUserRepositoryPort, passwordHasherPort, tokenProviderPort,
+                contactValidatorPort);
+    }
+
+    @Bean
     public CreateUserUseCase createUserUseCase(
             UserRepositoryPort userRepositoryPort,
             PasswordHasherPort passwordHasherPort
@@ -167,10 +193,12 @@ public class SpringConfig {
             UserRepositoryPort userRepositoryPort,
             CompanyRepositoryPort companyRepositoryPort,
             PasswordHasherPort passwordHasherPort,
-            TokenProviderPort tokenProviderPort
+            TokenProviderPort tokenProviderPort,
+            ContactValidatorPort contactValidatorPort
     ) {
         return new RegisterCompanyUseCase(
-                userRepositoryPort, companyRepositoryPort, passwordHasherPort, tokenProviderPort);
+                userRepositoryPort, companyRepositoryPort, passwordHasherPort, tokenProviderPort,
+                contactValidatorPort);
     }
 
     @Bean

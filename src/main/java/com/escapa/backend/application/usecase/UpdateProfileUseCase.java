@@ -14,6 +14,9 @@ import com.escapa.backend.domain.user.UserTypes;
 
 public class UpdateProfileUseCase {
 
+    private static final int PHONE_MIN_DIGITS = 10;
+    private static final int PHONE_MAX_DIGITS = 11;
+
     // Porta que permite acessar os usuários sem acoplar o serviço ao JPA.
     private final UserRepositoryPort userRepositoryPort;
     private final CompanyRepositoryPort companyRepositoryPort;
@@ -78,8 +81,7 @@ public class UpdateProfileUseCase {
             return null;
         }
         final String digits = phone.replaceAll("\\D", "");
-        if (digits.length() < RegisterCompanyUseCase.PHONE_MIN_DIGITS
-                || digits.length() > RegisterCompanyUseCase.PHONE_MAX_DIGITS) {
+        if (digits.length() < PHONE_MIN_DIGITS || digits.length() > PHONE_MAX_DIGITS) {
             throw new IllegalArgumentException("phone is invalid");
         }
         return digits;

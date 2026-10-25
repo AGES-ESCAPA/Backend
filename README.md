@@ -442,6 +442,30 @@ Endpoint público para autenticação por e-mail e senha. Retorna um token JWT a
 * `403 Forbidden`: usuário com status `INACTIVE` (`"User account is inactive"`).
 * `400 Bad Request`: dados incompletos ou e-mail inválido.
 
+### Cadastro público de aluno
+```http
+POST /api/v1/auth/register/student
+```
+
+Cria o usuário com papel e perfil `STUDENT`, grava o CPF apenas com dígitos e retorna um JWT no mesmo formato do login.
+
+#### Payload da requisição:
+```json
+{
+  "name": "Maria da Silva",
+  "cpf": "529.982.247-25",
+  "email": "maria@email.com",
+  "phone": "(51) 99999-0000",
+  "password": "senha-segura"
+}
+```
+
+Em caso de sucesso, retorna `201 Created`. CPF ou e-mail inválido e senha com menos de 8 caracteres retornam `400 Bad Request`. E-mail ou CPF já cadastrado retorna `409 Conflict`, indicando o campo conflitante na mensagem.
+
+O telefone é opcional. Os cadastros de aluno e empresa aceitam máscara brasileira e persistem somente os 10 ou 11 dígitos. Entrada vazia vira `null`; telefone inválido retorna `400`.
+
+Veja o [README da US-21](docs/US-21-cadastro-aluno/README.md) para as decisões de validação e máscara, contrato, cobertura de testes e limites de escopo.
+
 #### Variáveis de Ambiente do JWT:
 * `APP_JWT_SECRET`: Segredo de assinatura HMAC-SHA256 (mínimo de 256 bits / 32 caracteres).
 * `APP_JWT_EXPIRATION_MINUTES`: Tempo de expiração do token em minutos (padrão: `60`).

@@ -1,18 +1,21 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.model.StudentContact;
-import com.escapa.backend.infrastructure.persistence.entity.RegularUserEntity;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-import java.util.UUID;
+import com.escapa.backend.application.model.StudentContact;
+import com.escapa.backend.infrastructure.persistence.entity.RegularUserEntity;
 
 @Repository
 public interface RegularUserJpaRepository extends JpaRepository<RegularUserEntity, UUID> {
+
+    boolean existsByCpf(String cpf);
 
     @Query("SELECT new com.escapa.backend.application.model.StudentContact(r.cpf, r.phone) "
             + "FROM RegularUserEntity r WHERE r.id = :userId")
