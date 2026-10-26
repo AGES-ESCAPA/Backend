@@ -1,0 +1,202 @@
+package com.escapa.backend.adapters.controller;
+
+import com.escapa.backend.application.port.CompanyRepositoryPort;
+import com.escapa.backend.application.port.PasswordHasherPort;
+import com.escapa.backend.application.port.TokenProviderPort;
+import com.escapa.backend.domain.entity.Company;
+import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
+import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
+import com.escapa.backend.infrastructure.persistence.UserEntity;
+import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
+import com.escapa.backend.infrastructure.persistence.UsersCompanyJpaRepository;
+import com.escapa.backend.infrastructure.persistence.entity.UsersCompanyEntity;
+import com.escapa.backend.infrastructure.persistence.entity.UsersCompanyId;
+import com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+class PasswordControllerTest extends PostgresIntegrationTest {
+
+    private static final String URL = "/api/v1/me/password";
+    private static final String LOGIN_URL = "/api/v1/auth/login";
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private UserJpaRepository userJpaRepository;
+
+    @Autowired
+    private PasswordHasherPort passwordHasherPort;
+
+    @Autowired
+    private TokenProviderPort tokenProviderPort;
+
+    @Autowired
+    private CompanyRepositoryPort companyRepositoryPort;
+
+    @Autowired
+    private CompanyJpaRepository companyJpaRepository;
+
+    @Autowired
+    private UsersCompanyJpaRepository usersCompanyJpaRepository;
+
+    private UUID userId;
+    private UUID companyId;
+
+    @BeforeEach
+    void setUp() {
+        userId = UUID.randomUUID();
+        companyId = UUID.randomUUID();
+        userJpaRepository.save(new UserEntity(userId, "Senha Test", email(),
+                passwordHasherPort.hash("senha-atual"), "STUDENT", LocalDateTime.now()));
+    }
+
+    @AfterEach
+    void tearDown() {
+        usersCompanyJpaRepository.deleteAll(usersCompanyJpaRepository.findAll().stream()
+                .filter(link -> userId.equals(link.getId().getUserId()))
+                .toList());
+        userJpaRepository.deleteById(userId);
+        userJpaRepository.findById(companyId).ifPresent(userJpaRepository::delete);
+    }
+
+    @Test
+    void shouldChangePasswordAndKeepOtherColumns() throws Exception {
+        final UserEntity withAvatar = userJpaRepository.findById(userId).orElseThrow();
+        withAvatar.setProfileAvatarUrl("avatars/senha-test.png");
+        userJpaRepository.save(withAvatar);
+
+        mockMvc.perform(put(URL)
+                        .header("Authorization", authorization())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("senha-atual", "nova-senha-segura")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.message", is("Password changed successfully")));
+
+        final UserEntity updated = userJpaRepository.findById(userId).orElseThrow();
+        assertTrue(passwordHasherPort.matches("nova-senha-segura", updated.getPasswordHash()));
+        assertFalse(passwordHasherPort.matches("senha-atual", updated.getPasswordHash()));
+        assertEquals("avatars/senha-test.png", updated.getProfileAvatarUrl());
+        assertEquals(UserStatus.ACTIVE, updated.getStatus());
+        assertEquals("Senha Test", updated.getName());
+    }
+
+    @Test
+    void shouldLoginWithNewPasswordAndRejectOldOneAfterChange() throws Exception {
+        mockMvc.perform(put(URL)
+                        .header("Authorization", authorization())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("senha-atual", "nova-senha-segura")))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post(LOGIN_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginBody("nova-senha-segura")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.user.id", is(userId.toString())));
+
+        mockMvc.perform(post(LOGIN_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginBody("senha-atual")))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenCurrentPasswordIsWrong() throws Exception {
+        mockMvc.perform(put(URL)
+                        .header("Authorization", authorization())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("senha-errada", "nova-senha-segura")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", is("Current password is incorrect")));
+
+        final String storedHash = userJpaRepository.findById(userId).orElseThrow().getPasswordHash();
+        assertTrue(passwordHasherPort.matches("senha-atual", storedHash));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenNewPasswordIsTooShort() throws Exception {
+        mockMvc.perform(put(URL)
+                        .header("Authorization", authorization())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("senha-atual", "curta")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", is("Password must be at least 8 characters")));
+    }
+
+    @Test
+    void shouldLetCompanyEmployeeChangePassword() throws Exception {
+        linkUserToCompany();
+
+        mockMvc.perform(put(URL)
+                        .header("Authorization", "Bearer "
+                                + tokenProviderPort.generateToken(userId, email(), "STUDENT", "EMPLOYEE"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("senha-atual", "nova-senha-segura")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)));
+
+        final String storedHash = userJpaRepository.findById(userId).orElseThrow().getPasswordHash();
+        assertTrue(passwordHasherPort.matches("nova-senha-segura", storedHash));
+    }
+
+    @Test
+    void shouldReturnUnauthorizedWhenMissingHeader() throws Exception {
+        mockMvc.perform(put(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("senha-atual", "nova-senha-segura")))
+                .andExpect(status().isUnauthorized());
+    }
+
+    private void linkUserToCompany() {
+        companyRepositoryPort.save(
+                new User(companyId, "Empresa Senha", companyId + "@empresa.com.br", "hash", "COMPANY", null,
+                        LocalDateTime.now()),
+                new Company(companyId, "Empresa Senha LTDA", "1" + System.nanoTime(), null, "51999990001"));
+        usersCompanyJpaRepository.save(new UsersCompanyEntity(new UsersCompanyId(userId, companyId),
+                userJpaRepository.findById(userId).orElseThrow(),
+                companyJpaRepository.findById(companyId).orElseThrow(),
+                "RECEPCAO"));
+    }
+
+    private static String body(String currentPassword, String newPassword) {
+        return "{\"currentPassword\":\"" + currentPassword + "\",\"newPassword\":\"" + newPassword + "\"}";
+    }
+
+    private String loginBody(String password) {
+        return "{\"email\":\"" + email() + "\",\"password\":\"" + password + "\"}";
+    }
+
+    private String email() {
+        return "senha." + userId + "@test.com";
+    }
+
+    private String authorization() {
+        return "Bearer " + tokenProviderPort.generateToken(userId, email(), "STUDENT", "STUDENT");
+    }
+}

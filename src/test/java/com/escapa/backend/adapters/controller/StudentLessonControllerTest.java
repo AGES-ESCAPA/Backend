@@ -1,8 +1,10 @@
 package com.escapa.backend.adapters.controller;
 
 import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
+import com.escapa.backend.adapters.security.AuthenticatedUser;
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.dto.PublishedCourseFilters;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.model.LessonDetails;
@@ -15,17 +17,20 @@ import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.Module;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
-import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -92,7 +97,7 @@ class StudentLessonControllerTest {
             }
 
             @Override
-            public List<Course> findAll() {
+            public List<Course> findAllExcludingStatus(com.escapa.backend.domain.course.CourseStatus excludedStatus) {
                 throw new UnsupportedOperationException();
             }
 
@@ -104,6 +109,16 @@ class StudentLessonControllerTest {
             @Override
             public PageResult<CourseSummary> findPublished(
                     String title, String category, String level, int page, int size) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public PublishedCourseFilters findPublishedFilters() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public List<String> findDistinctCategories() {
                 throw new UnsupportedOperationException();
             }
 
@@ -172,6 +187,18 @@ class StudentLessonControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(new StudentLessonController(useCase, curriculumUseCase))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
+        authenticate();
+    }
+
+    @AfterEach
+    void clearAuthentication() {
+        SecurityContextHolder.clearContext();
+    }
+
+    private void authenticate() {
+        final var user = new AuthenticatedUser(userId, "student@escapa.com", "STUDENT", "STUDENT");
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                user, null, AuthorityUtils.createAuthorityList("ROLE_STUDENT")));
     }
 
     private LessonDetails lesson(UUID id, boolean isFree) {
@@ -204,7 +231,7 @@ class StudentLessonControllerTest {
     void shouldReturn200WithLessonAndModuleHeaderData() throws Exception {
         enrollment = Optional.of(new Enrollment(TODAY.minusDays(5), TODAY.plusDays(60)));
 
-        mockMvc.perform(get(URL, courseId, paidLessonId).header("X-User-Id", userId.toString()))
+        mockMvc.perform(get(URL, courseId, paidLessonId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(paidLessonId.toString()))
@@ -220,44 +247,47 @@ class StudentLessonControllerTest {
 
     @Test
     void shouldReturn200ForFreeLessonWithoutEnrollment() throws Exception {
-        mockMvc.perform(get(URL, courseId, freeLessonId).header("X-User-Id", userId.toString()))
+        mockMvc.perform(get(URL, courseId, freeLessonId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.isFree").value(true));
     }
 
     @Test
-    void shouldReturn401WhenHeaderIsMissing() throws Exception {
+    void shouldReturn401WhenAuthenticationIsMissing() throws Exception {
+        SecurityContextHolder.clearContext();
         mockMvc.perform(get(URL, courseId, freeLessonId))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void shouldReturn401WhenHeaderIsBlank() throws Exception {
-        mockMvc.perform(get(URL, courseId, freeLessonId).header("X-User-Id", " "))
+    void shouldReturn401WhenAuthenticationIsBlank() throws Exception {
+        SecurityContextHolder.clearContext();
+        mockMvc.perform(get(URL, courseId, freeLessonId))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void shouldReturn401WhenHeaderIsNotAUuid() throws Exception {
-        mockMvc.perform(get(URL, courseId, freeLessonId).header("X-User-Id", "not-a-uuid"))
+    void shouldReturn401WhenAuthenticationIsInvalid() throws Exception {
+        SecurityContextHolder.clearContext();
+        mockMvc.perform(get(URL, courseId, freeLessonId))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void shouldReturn404WhenLessonDoesNotExist() throws Exception {
-        mockMvc.perform(get(URL, courseId, UUID.randomUUID()).header("X-User-Id", userId.toString()))
+        mockMvc.perform(get(URL, courseId, UUID.randomUUID()))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void shouldReturn404WhenLessonBelongsToAnotherCourse() throws Exception {
-        mockMvc.perform(get(URL, UUID.randomUUID(), freeLessonId).header("X-User-Id", userId.toString()))
+        mockMvc.perform(get(URL, UUID.randomUUID(), freeLessonId))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void shouldReturn403WhenPaidLessonAndNotEnrolled() throws Exception {
-        mockMvc.perform(get(URL, courseId, paidLessonId).header("X-User-Id", userId.toString()))
+        mockMvc.perform(get(URL, courseId, paidLessonId))
                 .andExpect(status().isForbidden());
     }
 
@@ -265,7 +295,7 @@ class StudentLessonControllerTest {
     void shouldReturn403WhenEnrollmentHasNotStarted() throws Exception {
         enrollment = Optional.of(new Enrollment(TODAY.plusDays(1), TODAY.plusDays(60)));
 
-        mockMvc.perform(get(URL, courseId, paidLessonId).header("X-User-Id", userId.toString()))
+        mockMvc.perform(get(URL, courseId, paidLessonId))
                 .andExpect(status().isForbidden());
     }
 
@@ -273,13 +303,13 @@ class StudentLessonControllerTest {
     void shouldReturn403WhenDeadlineExpiredOnCourseWithDeadlineBlock() throws Exception {
         enrollment = Optional.of(new Enrollment(TODAY.minusDays(90), TODAY.minusDays(1)));
 
-        mockMvc.perform(get(URL, courseId, paidLessonId).header("X-User-Id", userId.toString()))
+        mockMvc.perform(get(URL, courseId, paidLessonId))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void shouldReturn400WhenLessonIdIsNotAUuid() throws Exception {
-        mockMvc.perform(get(URL, courseId, "abc").header("X-User-Id", userId.toString()))
+        mockMvc.perform(get(URL, courseId, "abc"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -289,7 +319,7 @@ class StudentLessonControllerTest {
         curriculumEnrollment = Optional.of(new Enrollment(TODAY.minusDays(10), TODAY.plusDays(90)));
         curriculumModules = List.of(givenModuleWithLesson());
 
-        mockMvc.perform(get(CURRICULUM_URL, courseId).header("X-User-Id", userId.toString()))
+        mockMvc.perform(get(CURRICULUM_URL, courseId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.courseId").value(courseId.toString()))
@@ -300,7 +330,8 @@ class StudentLessonControllerTest {
     }
 
     @Test
-    void shouldReturn401WhenHeaderIsMissingForCurriculum() throws Exception {
+    void shouldReturn401WhenAuthenticationIsMissingForCurriculum() throws Exception {
+        SecurityContextHolder.clearContext();
         mockMvc.perform(get(CURRICULUM_URL, courseId))
                 .andExpect(status().isUnauthorized());
     }
@@ -309,13 +340,13 @@ class StudentLessonControllerTest {
     void shouldReturn403WhenNotEnrolledInCurriculum() throws Exception {
         curriculumCourse = Optional.of(givenCourse());
 
-        mockMvc.perform(get(CURRICULUM_URL, courseId).header("X-User-Id", userId.toString()))
+        mockMvc.perform(get(CURRICULUM_URL, courseId))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void shouldReturn404WhenCourseDoesNotExistForCurriculum() throws Exception {
-        mockMvc.perform(get(CURRICULUM_URL, courseId).header("X-User-Id", userId.toString()))
+        mockMvc.perform(get(CURRICULUM_URL, courseId))
                 .andExpect(status().isNotFound());
     }
 }

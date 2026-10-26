@@ -1,6 +1,7 @@
 package com.escapa.backend.application.model;
 
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -17,10 +18,18 @@ public record CertificateDetails(
 ) {
 
     /**
+     * Regra unica de dono: decide o {@code isOwner} da tela (US-18) e libera o
+     * download do PDF (US-19). {@code userId} nulo e visitante anonimo.
+     */
+    public boolean isOwnedBy(UUID userId) {
+        return userId != null && Objects.equals(student.id(), userId);
+    }
+
+    /**
      * {@code avatarUrl} so existe no perfil de admin (tabela admins), entao vem
      * nulo para alunos comuns. {@code verified} indica conta ativa.
      */
-    public record Student(String name, String avatarUrl, boolean verified) {
+    public record Student(UUID id, String name, String avatarUrl, boolean verified) {
     }
 
     /** {@code rating} e nulo enquanto o curso nao tiver avaliacoes. */

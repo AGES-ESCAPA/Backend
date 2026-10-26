@@ -22,11 +22,20 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <testcontainers.version>1.21.4</testcontainers.version>
         <!-- `mvn spring-boot:run` sobe com o perfil dev (aplica o seed de
         desenvolvimento). Definido como propriedade, e nao na configuracao do
         plugin, para que -Dspring-boot.run.profiles=... na linha de comando
         ainda consiga sobrescrever. Nao afeta o jar, os testes nem o Docker. -->
         <spring-boot.run.profiles>dev</spring-boot.run.profiles>
+        <!-- Reaproveitada no Dockerfile (imagem mcr.microsoft.com/playwright/java):
+        a versao da biblioteca e a do navegador instalado precisam ser a mesma,
+        senao o Chromium nao e encontrado. -->
+        <playwright.version>1.63.0</playwright.version>
+        <!-- Testes que sobem o Chromium de verdade (@Tag("pdf")) ficam fora do
+        `mvn verify` padrao; o CI roda esses testes num passo proprio, com
+        -Dsurefire.excludedGroups= -Dgroups=pdf. -->
+        <surefire.excludedGroups>pdf</surefire.excludedGroups>
     </properties>
 
     <dependencies>
@@ -60,6 +69,27 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.12.6</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.8.6</version>
@@ -69,16 +99,45 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-        <!-- Geracao do PDF do certificado (US-19). Fork open-source do iText 4,
-        sem restricao de licenca (LGPL/MPL), API simples para um template fixo. -->
+        <!-- Geracao do PDF do certificado (US-19): o template HTML/CSS e montado
+        com Thymeleaf e impresso pelo Chromium do Playwright, para o PDF ficar
+        igual a tela de certificado (US-18). -->
         <dependency>
-            <groupId>com.github.librepdf</groupId>
-            <artifactId>openpdf</artifactId>
-            <version>2.2.2</version>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+            <version>${playwright.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <!-- Leitura do PDF gerado nos testes (paginas, dimensoes e texto). -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.8</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Cliente para o MinIO (upload/delete de arquivos no bucket escapa-media, US-24). -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>9.0.3</version>
+        </dependency>
+        <!-- Fixa o OkHttp numa versão estável, pois a versão transitiva do minio (5.x) é publicada em um formato (Kotlin Multiplatform) que o Maven não consegue resolver corretamente. -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -130,6 +189,18 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>${surefire.excludedGroups}</excludedGroups>
+                    <!-- Os testes que sobem o contexto do Spring nao lancam o Chromium:
+                    so os @Tag("pdf") usam o navegador, e criam o proprio renderer. -->
+                    <systemPropertyVariables>
+                        <certificate.pdf.warm-up>false</certificate.pdf.warm-up>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.13</version>
@@ -157,6 +228,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

@@ -31,7 +31,6 @@ public class Course {
     private String level;
     private Integer durationTime;
     private Integer deadline;
-    private Integer accessDurationDays;
     private Double price;
     private List<String> learningObjectives = new ArrayList<>();
     private Boolean requireSequentialProgress = true;
@@ -42,12 +41,10 @@ public class Course {
     private Integer minorVersion = 0;
 
     private List<Module> modules = new ArrayList<>();
-    private List<UserCourse> userCourses = new ArrayList<>();
-    private List<CompanyCourse> companyCourses = new ArrayList<>();
 
     public Course(String title, String shortDescription, String description, String thumbnailUrl,
                   String teaserVideoUrl, User instructor, String category, String level,
-                  Integer durationTime, Integer deadline, Integer accessDurationDays, Double price,
+                  Integer durationTime, Integer deadline, Double price,
                   List<String> learningObjectives, Boolean requireSequentialProgress,
                   Boolean enforceDeadlineBlock, User createdBy) {
         this.title = title;
@@ -60,7 +57,6 @@ public class Course {
         this.level = level;
         this.durationTime = durationTime;
         this.deadline = deadline;
-        this.accessDurationDays = accessDurationDays;
         this.price = price;
         this.learningObjectives = learningObjectives != null ? learningObjectives : new ArrayList<>();
         this.requireSequentialProgress = requireSequentialProgress != null ? requireSequentialProgress : true;

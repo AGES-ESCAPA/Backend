@@ -1,7 +1,7 @@
 package com.escapa.backend.infrastructure.persistence.entity;
 
 import com.escapa.backend.infrastructure.persistence.UserEntity;
-import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
+import com.escapa.backend.domain.course.CourseStatus;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -78,12 +78,9 @@ public class CourseEntity implements Persistable<UUID> {
     @Column(name = "duration_time")
     private Integer durationTime;
 
+    /** Dias de acesso concedidos ao aluno a partir da matricula; alimenta user_courses.dt_expiracao. */
     @Column(name = "deadline")
     private Integer deadline;
-
-    /** Dias de acesso concedidos ao aluno a partir da compra; alimenta user_courses.dt_expiracao. */
-    @Column(name = "access_duration_days")
-    private Integer accessDurationDays;
 
     @Column(name = "price")
     private Double price;

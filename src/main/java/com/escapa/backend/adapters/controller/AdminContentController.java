@@ -2,9 +2,10 @@ package com.escapa.backend.adapters.controller;
 
 import com.escapa.backend.adapters.dto.ApiResponse;
 import com.escapa.backend.adapters.dto.ContentResponse;
-import com.escapa.backend.adapters.dto.CreateContentRequest;
+import com.escapa.backend.adapters.dto.ContentRequest;
 import com.escapa.backend.adapters.dto.ReorderContentsRequest;
-import com.escapa.backend.adapters.dto.UpdateContentRequest;
+import com.escapa.backend.adapters.security.AdminRequestGuard;
+import com.escapa.backend.adapters.security.AuthenticationContext;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.GetContentUseCase;
@@ -12,6 +13,8 @@ import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
 import com.escapa.backend.application.usecase.ReorderContentsUseCase;
 import com.escapa.backend.application.usecase.UpdateContentUseCase;
 import com.escapa.backend.domain.entity.Content;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +31,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
+@Tag(name = "Admin - Contents", description = "Lesson management for authenticated ADMIN users")
 @RequestMapping("/api/v1/admin")
 public class AdminContentController {
 
@@ -37,6 +41,7 @@ public class AdminContentController {
     private final ListModuleContentsUseCase listModuleContentsUseCase;
     private final DeleteContentUseCase deleteContentUseCase;
     private final ReorderContentsUseCase reorderContentsUseCase;
+    private final AdminRequestGuard adminRequestGuard;
 
     public AdminContentController(
             CreateContentUseCase createContentUseCase,
@@ -44,7 +49,8 @@ public class AdminContentController {
             GetContentUseCase getContentUseCase,
             ListModuleContentsUseCase listModuleContentsUseCase,
             DeleteContentUseCase deleteContentUseCase,
-            ReorderContentsUseCase reorderContentsUseCase
+            ReorderContentsUseCase reorderContentsUseCase,
+            AdminRequestGuard adminRequestGuard
     ) {
         this.createContentUseCase = createContentUseCase;
         this.updateContentUseCase = updateContentUseCase;
@@ -52,13 +58,16 @@ public class AdminContentController {
         this.listModuleContentsUseCase = listModuleContentsUseCase;
         this.deleteContentUseCase = deleteContentUseCase;
         this.reorderContentsUseCase = reorderContentsUseCase;
+        this.adminRequestGuard = adminRequestGuard;
     }
 
     @PostMapping("/modules/{moduleId}/contents")
+    @Operation(summary = "Create a lesson in a module")
     public ResponseEntity<ApiResponse<ContentResponse>> create(
             @PathVariable UUID moduleId,
-            @Valid @RequestBody CreateContentRequest request
+            @Valid @RequestBody ContentRequest request
     ) {
+        requireAdmin();
         final Content content = createContentUseCase.execute(
                 moduleId,
                 request.title(),
@@ -73,7 +82,11 @@ public class AdminContentController {
     }
 
     @GetMapping("/modules/{moduleId}/contents")
-    public ResponseEntity<ApiResponse<List<ContentResponse>>> listByModule(@PathVariable UUID moduleId) {
+    @Operation(summary = "List the lessons of a module")
+    public ResponseEntity<ApiResponse<List<ContentResponse>>> listByModule(
+            @PathVariable UUID moduleId
+    ) {
+        requireAdmin();
         final List<ContentResponse> contents = listModuleContentsUseCase.execute(moduleId).stream()
                 .map(ContentResponse::from)
                 .toList();
@@ -81,19 +94,23 @@ public class AdminContentController {
     }
 
     @GetMapping("/modules/{moduleId}/contents/{id}")
+    @Operation(summary = "Get a lesson of a module")
     public ResponseEntity<ApiResponse<ContentResponse>> getById(
             @PathVariable UUID moduleId,
             @PathVariable UUID id
     ) {
+        requireAdmin();
         final Content content = getContentUseCase.execute(moduleId, id);
         return ResponseEntity.ok(ApiResponse.success(ContentResponse.from(content)));
     }
 
     @PutMapping("/contents/{id}")
+    @Operation(summary = "Update a lesson")
     public ResponseEntity<ApiResponse<ContentResponse>> update(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateContentRequest request
+            @Valid @RequestBody ContentRequest request
     ) {
+        requireAdmin();
         final Content content = updateContentUseCase.execute(
                 id,
                 request.title(),
@@ -107,10 +124,12 @@ public class AdminContentController {
     }
 
     @PutMapping("/modules/{moduleId}/contents/reorder")
+    @Operation(summary = "Reorder the lessons of a module")
     public ResponseEntity<ApiResponse<List<ContentResponse>>> reorder(
             @PathVariable UUID moduleId,
             @Valid @RequestBody ReorderContentsRequest request
     ) {
+        requireAdmin();
         final List<ContentResponse> contents = reorderContentsUseCase
                 .execute(moduleId, request.contentIds())
                 .stream()
@@ -120,8 +139,16 @@ public class AdminContentController {
     }
 
     @DeleteMapping("/contents/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    @Operation(summary = "Delete a lesson")
+    public ResponseEntity<Void> delete(
+            @PathVariable UUID id
+    ) {
+        requireAdmin();
         deleteContentUseCase.execute(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private void requireAdmin() {
+        adminRequestGuard.requireAdmin(AuthenticationContext.requireUser().id());
     }
 }

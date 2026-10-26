@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "company_courses")
@@ -40,4 +41,8 @@ public class CompanyCourseEntity {
 
     @Column(name = "data_expiracao")
     private LocalDate dataExpiracao;
+
+    /** Quando o acesso da empresa foi revogado (cancelamento do pedido); nulo significa acesso ativo. */
+    @Column(name = "revoked_at")
+    private LocalDateTime revokedAt;
 }

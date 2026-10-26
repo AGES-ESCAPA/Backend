@@ -1,8 +1,7 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.application.model.Enrollment;
-import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
-import com.escapa.backend.domain.course.EnrollmentStatus;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
@@ -49,6 +48,9 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
     @Autowired
     private UserJpaRepository userJpaRepository;
 
+    @Autowired
+    private TokenProviderPort tokenProviderPort;
+
     private UserEntity student;
     private AdminEntity instructor;
 
@@ -88,13 +90,13 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
         CourseEntity course4 = createCourse("Course 4");
         createUserCourse(student, course4, LocalDate.now().minusDays(1), null, 10, null);
         mockMvc.perform(get("/api/v1/student/enrollments")
-                        .header("X-User-Id", student.getId().toString()))
+                        .header("Authorization", authorization()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements", is(4)))
                 .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'COMPLETED')]", hasSize(1)))
                 .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'PENDING')]", hasSize(1)))
-                // Course 2 with expired date will now be IN_PROGRESS
-                .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'IN_PROGRESS')]", hasSize(2)));
+                .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'EXPIRED')]", hasSize(1)))
+                .andExpect(jsonPath("$.data.content[?(@.enrollmentStatus == 'IN_PROGRESS')]", hasSize(1)));
     }
 
     @Test
@@ -103,14 +105,33 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
         createUserCourse(student, course1, LocalDate.now().plusDays(10), null, 100, LocalDate.now());
         
         mockMvc.perform(get("/api/v1/student/enrollments?status=PENDING")
-                        .header("X-User-Id", student.getId().toString()))
+                        .header("Authorization", authorization()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements", is(0)));
                 
         mockMvc.perform(get("/api/v1/student/enrollments?status=COMPLETED")
-                        .header("X-User-Id", student.getId().toString()))
+                        .header("Authorization", authorization()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements", is(1)));
+    }
+
+    @Test
+    void shouldFilterExpiredEnrollmentsWithoutIncludingCompletedOnes() throws Exception {
+        CourseEntity expired = createCourse("Expired Course");
+        createUserCourse(student, expired, LocalDate.now().minusDays(30), LocalDate.now().minusDays(1), 20, null);
+
+        CourseEntity stillValidToday = createCourse("Valid Today");
+        createUserCourse(student, stillValidToday, LocalDate.now().minusDays(5), LocalDate.now(), 20, null);
+
+        CourseEntity completedAfterDeadline = createCourse("Completed Course");
+        createUserCourse(student, completedAfterDeadline, LocalDate.now().minusDays(40), LocalDate.now().minusDays(1), 100, LocalDate.now().minusDays(2));
+
+        mockMvc.perform(get("/api/v1/student/enrollments?status=EXPIRED")
+                        .header("Authorization", authorization()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements", is(1)))
+                .andExpect(jsonPath("$.data.content[0].title", is("Expired Course")))
+                .andExpect(jsonPath("$.data.content[0].enrollmentStatus", is("EXPIRED")));
     }
 
     @Test
@@ -123,7 +144,7 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
         createUserCourse(student, course3, LocalDate.now().minusDays(5), null, 10, null);
 
         mockMvc.perform(get("/api/v1/student/enrollments")
-                        .header("X-User-Id", student.getId().toString()))
+                        .header("Authorization", authorization()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements", is(3)))
                 .andExpect(jsonPath("$.data.content[0].title", is("Course 2")))
@@ -139,11 +160,11 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
         CourseEntity courseB = createCourse("Advanced Java");
         createUserCourse(student, courseB, LocalDate.now().minusDays(10), null, 100, LocalDate.now());
         mockMvc.perform(get("/api/v1/student/enrollments?query=java")
-                        .header("X-User-Id", student.getId().toString()))
+                        .header("Authorization", authorization()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements", is(2)));
         mockMvc.perform(get("/api/v1/student/enrollments?query=java&status=COMPLETED")
-                        .header("X-User-Id", student.getId().toString()))
+                        .header("Authorization", authorization()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements", is(1)))
                 .andExpect(jsonPath("$.data.content[0].title", is("Advanced Java")));
@@ -168,6 +189,11 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
         uc.setConclusionDate(conclusionDate);
         uc.setCertificateIssued(false);
         return userCourseJpaRepository.save(uc);
+    }
+
+    private String authorization() {
+        return "Bearer " + tokenProviderPort.generateToken(
+                student.getId(), student.getEmail(), "STUDENT", "STUDENT");
     }
 }
 

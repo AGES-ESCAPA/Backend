@@ -1,32 +1,32 @@
 package com.escapa.backend.domain.entity;
 
+import java.util.UUID;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * Dados próprios da empresa. O id é o mesmo do {@link User} correspondente
+ * (a empresa é um usuário com role COMPANY).
+ */
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true, of = {"companyName", "cnpjId"})
-public class Company extends User {
+@EqualsAndHashCode(of = "id")
+public class Company {
+    private UUID id;
     private String companyName;
     private String cnpjId;
     private String companyEmail;
-    private Integer matricula;
-    private List<CompanyCourse> companyCourses = new ArrayList<>();
+    private String phone;
 
-    public Company(UUID id, String name, String email, String passwordHash, String userType, LocalDateTime createdAt,
-                   String companyName, String cnpjId, String companyEmail, Integer matricula) {
-        super(id, name, email, passwordHash, userType, createdAt, new ArrayList<>());
+    public Company(UUID id, String companyName, String cnpjId, String companyEmail, String phone) {
+        this.id = id;
         this.companyName = companyName;
         this.cnpjId = cnpjId;
         this.companyEmail = companyEmail;
-        this.matricula = matricula;
+        this.phone = phone;
     }
 }

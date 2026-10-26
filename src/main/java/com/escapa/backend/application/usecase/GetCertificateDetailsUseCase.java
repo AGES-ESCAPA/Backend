@@ -5,9 +5,12 @@ import com.escapa.backend.application.model.CertificateView;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
 import com.escapa.backend.domain.certificate.CertificateNotFoundException;
 
+import java.util.UUID;
+
 /**
  * Dados da tela de certificado digital pelo codigo de verificacao (US-18).
- * Publico nesta sprint, como o download da US-19.
+ * A consulta e publica; o download do PDF (US-19) reaproveita este caso de uso
+ * para ter o mesmo 404 e a mesma regra de dono.
  */
 public class GetCertificateDetailsUseCase {
 
@@ -18,14 +21,17 @@ public class GetCertificateDetailsUseCase {
     }
 
     public CertificateView execute(String verificationCode) {
+        return execute(verificationCode, null);
+    }
+
+    /** {@code viewerId} e o usuario autenticado, ou nulo para visitante anonimo. */
+    public CertificateView execute(String verificationCode, UUID viewerId) {
         // Mesma regra do download: "nao existe" e "curso nao concluido" viram o
         // mesmo 404, sem revelar qual das duas condicoes falhou.
         final CertificateDetails details = certificateRepositoryPort.findDetailsByVerificationCode(verificationCode)
                 .filter(certificate -> certificate.conclusionDate() != null)
-                .orElseThrow(() -> new CertificateNotFoundException(verificationCode));
+                .orElseThrow(CertificateNotFoundException::new);
 
-        // Placeholder ate a autenticacao: sem token nao ha usuario para comparar
-        // com o dono do certificado.
-        return new CertificateView(details, false);
+        return new CertificateView(details, details.isOwnedBy(viewerId));
     }
 }

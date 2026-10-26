@@ -9,12 +9,16 @@ import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserNotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 public class UpdateCourseUseCase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UpdateCourseUseCase.class);
+
     private final CourseRepositoryPort courseRepositoryPort;
     private final UserRepositoryPort userRepositoryPort;
     private final CourseChangeLogRepositoryPort changeLogRepositoryPort;
@@ -30,7 +34,7 @@ public class UpdateCourseUseCase {
 
     public Course execute(UUID id, String title, String shortDescription, String description, String thumbnailUrl,
                           String teaserVideoUrl, UUID instructorId, String category, String level,
-                          Integer durationTime, Integer deadline, Integer accessDurationDays, Double price,
+                          Integer durationTime, Integer deadline, Double price,
                           List<String> learningObjectives, Boolean requireSequentialProgress,
                           Boolean enforceDeadlineBlock, User changedBy) {
 
@@ -40,7 +44,7 @@ public class UpdateCourseUseCase {
 
         updateBasicFields(course, title, shortDescription, description, thumbnailUrl, teaserVideoUrl);
         updateInstructor(course, instructorId);
-        updateDetails(course, category, level, durationTime, deadline, accessDurationDays, price);
+        updateDetails(course, category, level, durationTime, deadline, price);
         updateSettings(course, learningObjectives, requireSequentialProgress, enforceDeadlineBlock);
 
         final boolean changed = wasPublished && before.differsFrom(course);
@@ -54,6 +58,8 @@ public class UpdateCourseUseCase {
         if (changed) {
             changeLogRepositoryPort.save(id, changedBy != null ? changedBy.getId() : null,
                     "Curso atualizado.", saved.getMajorVersion(), saved.getMinorVersion());
+            LOGGER.info("Published course {} updated to version {}.{}",
+                    id, saved.getMajorVersion(), saved.getMinorVersion());
         }
 
         return saved;
@@ -82,7 +88,7 @@ public class UpdateCourseUseCase {
         if (instructorId != null) {
             final User instructor = userRepositoryPort.findById(instructorId)
                     .orElseThrow(() -> new UserNotFoundException(instructorId));
-            if (!"ADMIN".equalsIgnoreCase(instructor.getUserType())) {
+            if (!instructor.isAdmin()) {
                 throw new IllegalArgumentException("instructorId must reference a user with userType ADMIN");
             }
             course.setInstructor(instructor);
@@ -90,7 +96,7 @@ public class UpdateCourseUseCase {
     }
 
     private void updateDetails(Course course, String category, String level, Integer durationTime,
-                               Integer deadline, Integer accessDurationDays, Double price) {
+                               Integer deadline, Double price) {
         if (category != null) {
             course.setCategory(category);
         }
@@ -102,9 +108,6 @@ public class UpdateCourseUseCase {
         }
         if (deadline != null) {
             course.setDeadline(deadline);
-        }
-        if (accessDurationDays != null) {
-            course.setAccessDurationDays(accessDurationDays);
         }
         if (price != null) {
             course.setPrice(price);
@@ -131,7 +134,7 @@ public class UpdateCourseUseCase {
     private record Snapshot(
             String title, String shortDescription, String description, String thumbnailUrl, String teaserVideoUrl,
             UUID instructorId, String category, String level, Integer durationTime, Integer deadline,
-            Integer accessDurationDays, Double price, List<String> learningObjectives,
+            Double price, List<String> learningObjectives,
             Boolean requireSequentialProgress, Boolean enforceDeadlineBlock) {
 
         static Snapshot of(Course course) {
@@ -140,7 +143,7 @@ public class UpdateCourseUseCase {
                     course.getThumbnailUrl(), course.getTeaserVideoUrl(),
                     course.getInstructor() != null ? course.getInstructor().getId() : null,
                     course.getCategory(), course.getLevel(), course.getDurationTime(), course.getDeadline(),
-                    course.getAccessDurationDays(), course.getPrice(), List.copyOf(course.getLearningObjectives()),
+                    course.getPrice(), List.copyOf(course.getLearningObjectives()),
                     course.getRequireSequentialProgress(), course.getEnforceDeadlineBlock());
         }
 
@@ -156,7 +159,6 @@ public class UpdateCourseUseCase {
                     || !Objects.equals(level, course.getLevel())
                     || !Objects.equals(durationTime, course.getDurationTime())
                     || !Objects.equals(deadline, course.getDeadline())
-                    || !Objects.equals(accessDurationDays, course.getAccessDurationDays())
                     || !Objects.equals(price, course.getPrice())
                     || !Objects.equals(learningObjectives, course.getLearningObjectives())
                     || !Objects.equals(requireSequentialProgress, course.getRequireSequentialProgress())

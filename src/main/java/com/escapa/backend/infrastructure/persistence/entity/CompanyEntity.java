@@ -32,8 +32,15 @@ public class CompanyEntity extends UserEntity {
     @Column(name = "company_email")
     private String companyEmail;
 
+    @Column(name = "phone")
+    private String phone;
+
     @Column(name = "matricula")
     private Integer matricula;
+
+    /** Total de assentos corporativos comprados pela empresa. */
+    @Column(name = "seats_total", nullable = false)
+    private Integer seatsTotal = 0;
 
     @OneToMany(mappedBy = "company")
     private List<CompanyCourseEntity> companyCourses = new ArrayList<>();

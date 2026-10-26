@@ -1,15 +1,22 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.model.StudentContact;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
-final class InMemoryUserRepositoryPort implements UserRepositoryPort {
+public final class InMemoryUserRepositoryPort implements UserRepositoryPort {
     private final List<User> users = new ArrayList<>();
+    private final Set<UUID> companyLinkedUserIds = new HashSet<>();
+    private final Map<UUID, StudentContact> studentContacts = new HashMap<>();
 
     @Override
     public User save(User user) {
@@ -35,5 +42,49 @@ final class InMemoryUserRepositoryPort implements UserRepositoryPort {
     @Override
     public Optional<User> findById(UUID id) {
         return users.stream().filter(user -> id.equals(user.getId())).findFirst();
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        if (email == null) {
+            return Optional.empty();
+        }
+        return users.stream()
+                .filter(user -> email.equalsIgnoreCase(user.getEmail()))
+                .findFirst();
+    }
+
+    @Override
+    public boolean isUserLinkedToCompany(UUID userId) {
+        if (userId == null) {
+            return false;
+        }
+        return companyLinkedUserIds.contains(userId);
+    }
+
+    void linkUserToCompany(UUID userId) {
+        if (userId != null) {
+            companyLinkedUserIds.add(userId);
+        }
+    }
+
+    @Override
+    public void updatePasswordHash(UUID id, String passwordHash) {
+        findById(id).ifPresent(user -> user.setPasswordHash(passwordHash));
+    }
+
+    @Override
+    public Optional<StudentContact> findStudentContact(UUID userId) {
+        return Optional.ofNullable(studentContacts.get(userId));
+    }
+
+    @Override
+    public void updateStudentPhone(UUID userId, String phone) {
+        final StudentContact current = studentContacts.get(userId);
+        studentContacts.put(userId, new StudentContact(current != null ? current.cpf() : null, phone));
+    }
+
+    public void saveStudentContact(UUID userId, String cpf, String phone) {
+        studentContacts.put(userId, new StudentContact(cpf, phone));
     }
 }

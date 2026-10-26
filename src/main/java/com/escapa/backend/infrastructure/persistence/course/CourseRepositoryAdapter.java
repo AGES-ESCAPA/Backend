@@ -2,6 +2,7 @@ package com.escapa.backend.infrastructure.persistence.course;
 
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.dto.PublishedCourseFilters;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.domain.entity.Course;
@@ -13,7 +14,7 @@ import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseMaterialEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
+import com.escapa.backend.domain.course.CourseStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -92,10 +93,10 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
     }
 
     @Override
-    public List<Course> findAll() {
-        return courseJpaRepository.findAll().stream()
-                .map(CourseMapper::toDomain)
-                .collect(Collectors.toList());
+    public List<Course> findAllExcludingStatus(CourseStatus excludedStatus) {
+        return courseJpaRepository.findListingRowsExcludingStatus(excludedStatus).stream()
+                .map(CourseMapper::toListingDomain)
+                .toList();
     }
 
     @Override
@@ -121,6 +122,19 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
         return new PageResult<>(
                 content, jpaPage.getNumber(), jpaPage.getSize(),
                 jpaPage.getTotalElements(), jpaPage.getTotalPages());
+    }
+
+    @Override
+    public PublishedCourseFilters findPublishedFilters() {
+        return new PublishedCourseFilters(
+                courseJpaRepository.findDistinctPublishedCategories(CourseStatus.PUBLISHED),
+                courseJpaRepository.findDistinctPublishedLevels(CourseStatus.PUBLISHED)
+        );
+    }
+
+    @Override
+    public List<String> findDistinctCategories() {
+        return courseJpaRepository.findDistinctCategories();
     }
 
     @Override

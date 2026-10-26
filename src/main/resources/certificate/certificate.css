@@ -1,0 +1,341 @@
+/*
+ * Layout do certificado em A4 horizontal (297 x 210 mm), reproduzindo o
+ * CertificateCard da tela (US-18). Na tela as medidas sao proporcionais a
+ * largura (unidade cqi); aqui --u vale 1% da largura da pagina, entao os
+ * numeros sao os mesmos do front. O A4 e mais baixo que o prototipo
+ * (939 x 725), dai os espacamentos verticais um pouco menores.
+ */
+@page {
+  size: A4 landscape;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+html,
+body {
+  width: 297mm;
+  height: 210mm;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  --u: 2.97mm;
+
+  font-family: var(--font-family-base);
+}
+
+.certificate {
+  position: relative;
+  width: 297mm;
+  height: 210mm;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--cert-bg-start) 0%, var(--cert-bg-end) 100%);
+}
+
+/* Borda fina recuada para dentro, como a moldura da tela. */
+.certificate::before {
+  position: absolute;
+  inset: calc(var(--u) * 1.4);
+  z-index: 0;
+  border: 1px solid var(--cert-frame);
+  border-radius: var(--radius-md);
+  content: '';
+}
+
+/* ── Fita e selo (lado direito) ─────────────────────────────────────── */
+.ribbon {
+  position: absolute;
+  top: calc(var(--u) * 1.4);
+  left: calc(var(--u) * 71.5);
+  z-index: 0;
+  width: calc(var(--u) * 23.1);
+}
+
+.ribbon-band {
+  fill: var(--cert-ribbon-fill);
+  stroke: var(--cert-ribbon-stroke);
+  stroke-width: 1.5;
+}
+
+.ribbon-tails rect {
+  fill: none;
+  stroke: var(--cert-ribbon-tail);
+  stroke-width: 1.5;
+}
+
+.seal {
+  position: absolute;
+  top: calc(var(--u) * 14.2);
+  left: calc(var(--u) * 78.3);
+  z-index: 1;
+  width: calc(var(--u) * 15.1);
+}
+
+.seal-outer {
+  fill: var(--cert-seal-fill);
+  stroke: var(--cert-accent);
+  stroke-width: 6;
+}
+
+.seal-inner {
+  fill: none;
+  stroke: var(--cert-accent);
+  stroke-width: 3.5;
+}
+
+.seal-dot {
+  fill: var(--cert-accent);
+}
+
+.seal-text {
+  fill: var(--cert-seal-text);
+  font-family: var(--font-family-base);
+  font-size: 19px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 4px;
+}
+
+.seal-check {
+  fill: none;
+  stroke: var(--cert-accent);
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── Conteudo ────────────────────────────────────────────────────────── */
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  padding: calc(var(--u) * 5.6) calc(var(--u) * 7.7);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 2);
+}
+
+.logo {
+  height: calc(var(--u) * 4.06);
+}
+
+.divider {
+  width: 1px;
+  height: calc(var(--u) * 2.8);
+  background-color: var(--cert-divider);
+}
+
+.context {
+  color: var(--cert-text-soft);
+  font-size: calc(var(--u) * 1.68);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: calc(var(--tracking-wide) * 9);
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  margin: calc(var(--u) * 5) 0 0;
+  color: var(--cert-accent-text);
+  font-size: calc(var(--u) * 1.19);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: calc(var(--tracking-wide) * 5);
+  text-transform: uppercase;
+}
+
+/* Largura limitada para o texto nunca passar por baixo do selo. */
+.intro {
+  display: flex;
+  max-width: calc(var(--u) * 62);
+  flex-direction: column;
+  margin-top: calc(var(--u) * 2);
+}
+
+.intro-line {
+  margin: 0;
+  color: var(--cert-text-soft);
+  font-size: calc(var(--u) * 1.54);
+  line-height: var(--leading-normal);
+}
+
+/* Nome e curso quebram linha em vez de estourar a pagina; nos muito longos a
+   fonte diminui (classes is-long / is-very-long, decididas no gerador). */
+.student-name {
+  margin: calc(var(--u) * 1) 0 calc(var(--u) * 1.8);
+  color: var(--cert-text-primary);
+  font-size: calc(var(--u) * 4.27);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-tight);
+  overflow-wrap: anywhere;
+}
+
+.student-name.is-long {
+  font-size: calc(var(--u) * 3.3);
+}
+
+.student-name.is-very-long {
+  font-size: calc(var(--u) * 2.6);
+}
+
+.course-name {
+  margin: calc(var(--u) * 1.2) 0 0;
+  color: var(--cert-accent-text);
+  font-size: calc(var(--u) * 2.9);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-tight);
+  overflow-wrap: anywhere;
+}
+
+.course-name.is-long {
+  font-size: calc(var(--u) * 2.4);
+}
+
+.course-name.is-very-long {
+  font-size: calc(var(--u) * 1.9);
+}
+
+.offered-by {
+  margin: calc(var(--u) * 1.6) 0 0;
+  color: var(--cert-text-body);
+  font-size: calc(var(--u) * 1.4);
+  line-height: var(--leading-normal);
+}
+
+/* ── Data, carga horaria e codigo ───────────────────────────────────── */
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 1.9);
+  margin: calc(var(--u) * 3.6) 0 0;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 2.3);
+}
+
+.detail-icon {
+  flex-shrink: 0;
+  width: calc(var(--u) * 2.9);
+  height: calc(var(--u) * 2.9);
+  fill: none;
+  stroke: var(--cert-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.detail-item dt {
+  color: var(--cert-text-soft);
+  font-size: calc(var(--u) * 1.26);
+  line-height: var(--leading-normal);
+}
+
+.detail-item dd {
+  margin: 0;
+  color: var(--cert-text-primary);
+  font-size: calc(var(--u) * 1.37);
+  line-height: var(--leading-normal);
+}
+
+/* Nome ou curso longos ocupam mais linhas: os espacos verticais encolhem
+   para o rodape continuar dentro da moldura (classe decidida no gerador). */
+.content.is-compact .eyebrow {
+  margin-top: calc(var(--u) * 3.4);
+}
+
+.content.is-compact .intro {
+  margin-top: calc(var(--u) * 1.4);
+}
+
+.content.is-compact .student-name {
+  margin-bottom: calc(var(--u) * 1.2);
+}
+
+.content.is-compact .details {
+  gap: calc(var(--u) * 1.1);
+  margin-top: calc(var(--u) * 2.2);
+}
+
+.content.is-compact .footer {
+  padding-top: calc(var(--u) * 1.4);
+}
+
+/* ── Verificacao e assinatura ───────────────────────────────────────── */
+/* O link fica no rodape; a assinatura sobe no canto, alinhada pela base. */
+.footer {
+  margin-top: auto;
+  padding-top: calc(var(--u) * 2);
+  padding-right: calc(var(--u) * 32);
+}
+
+.verify {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 0.8);
+}
+
+.verify p {
+  margin: 0;
+  color: var(--cert-text-body);
+  font-size: calc(var(--u) * 1.3);
+  line-height: var(--leading-normal);
+}
+
+.verify-link {
+  color: var(--cert-accent-text);
+  font-size: calc(var(--u) * 1.37);
+  line-height: var(--leading-normal);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.signature {
+  position: absolute;
+  right: calc(var(--u) * 9.7);
+  bottom: calc(var(--u) * 5.6);
+  display: flex;
+  width: calc(var(--u) * 27.3);
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.signature-stroke {
+  width: calc(var(--u) * 16.5);
+  margin-bottom: calc(var(--u) * -1.2);
+  fill: none;
+  stroke: var(--cert-text-primary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.signature-line {
+  width: 100%;
+  height: 1px;
+  background-color: var(--cert-line);
+}
+
+.signature-name {
+  margin-top: calc(var(--u) * 1.4);
+  color: var(--cert-accent-text);
+  font-size: calc(var(--u) * 1.4);
+  line-height: var(--leading-normal);
+}
+
+.signature-caption {
+  color: var(--cert-text-soft);
+  font-size: calc(var(--u) * 1.33);
+  line-height: var(--leading-normal);
+}

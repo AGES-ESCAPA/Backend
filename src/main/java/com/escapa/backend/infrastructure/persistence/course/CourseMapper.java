@@ -2,12 +2,13 @@ package com.escapa.backend.infrastructure.persistence.course;
 
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.infrastructure.persistence.ContentMapper;
 import com.escapa.backend.infrastructure.persistence.UserMapper;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import com.escapa.backend.infrastructure.persistence.entity.enums.CourseStatus;
+import com.escapa.backend.domain.course.CourseStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,7 +76,7 @@ public final class CourseMapper {
         entity.setTeaserVideoUrl(course.getTeaserVideoUrl());
 
         if (course.getStatus() != null) {
-            entity.setStatus(CourseStatus.valueOf(course.getStatus().name()));
+            entity.setStatus(course.getStatus());
         }
 
         entity.setMajorVersion(course.getMajorVersion());
@@ -89,7 +90,6 @@ public final class CourseMapper {
         entity.setLevel(course.getLevel());
         entity.setDurationTime(course.getDurationTime());
         entity.setDeadline(course.getDeadline());
-        entity.setAccessDurationDays(course.getAccessDurationDays());
         entity.setPrice(course.getPrice());
 
         if (course.getLearningObjectives() != null) {
@@ -120,7 +120,7 @@ public final class CourseMapper {
         course.setTeaserVideoUrl(entity.getTeaserVideoUrl());
 
         if (entity.getStatus() != null) {
-            course.setStatus(com.escapa.backend.domain.course.CourseStatus.valueOf(entity.getStatus().name()));
+            course.setStatus(entity.getStatus());
         }
 
         course.setCreatedBy(UserMapper.toDomain(entity.getCreatedBy()));
@@ -139,6 +139,19 @@ public final class CourseMapper {
         return course;
     }
 
+    /** Curso apenas com os campos da listagem administrativa; sem instrutor, módulos ou aulas. */
+    public static Course toListingDomain(CourseJpaRepository.ListingRow row) {
+        final Course course = new Course();
+        course.setId(row.getId());
+        course.setTitle(row.getTitle());
+        course.setCategory(row.getCategory());
+        course.setPrice(row.getPrice());
+        course.setStatus(row.getStatus());
+        course.setMajorVersion(row.getMajorVersion());
+        course.setMinorVersion(row.getMinorVersion());
+        return course;
+    }
+
     private static Module toModule(ModuleEntity entity, Course course) {
         final Module module = new Module(entity.getId(), course, entity.getTitle(), entity.getOrder());
         if (entity.getContents() != null) {
@@ -154,7 +167,6 @@ public final class CourseMapper {
         course.setLevel(entity.getLevel());
         course.setDurationTime(entity.getDurationTime());
         course.setDeadline(entity.getDeadline());
-        course.setAccessDurationDays(entity.getAccessDurationDays());
         course.setPrice(entity.getPrice());
 
         if (entity.getLearningObjectives() != null && !entity.getLearningObjectives().isBlank()) {

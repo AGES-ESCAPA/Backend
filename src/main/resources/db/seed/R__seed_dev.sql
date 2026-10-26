@@ -17,6 +17,8 @@
 -- Os UUIDs sao fixos para facilitar testar endpoints com ids conhecidos.
 
 TRUNCATE TABLE
+    order_status_history,
+    orders,
     notifications,
     course_reviews,
     company_courses,
@@ -123,14 +125,15 @@ INSERT INTO regular_users (user_id, cpf, phone) VALUES
     ('c0000000-0000-4000-c000-000000000005', '40555566677', '+55 51 99333-9900'),
     ('c0000000-0000-4000-c000-000000000006', '40666677788', '+55 54 99444-0011');
 
-INSERT INTO company (id, company_name, cnpj_id, company_email, matricula) VALUES
-    ('d0000000-0000-4000-d000-000000000001', 'Pousada Vista Mar LTDA', '12345678000191', 'rh@vistamar.com.br', 2048),
-    ('d0000000-0000-4000-d000-000000000002', 'Hotel Atlântico Palace LTDA', '22333444000102', 'rh@atlanticopalace.com.br', 3102),
-    ('d0000000-0000-4000-d000-000000000003', 'Resort Costa Dourada S.A.', '33444555000113', 'pessoas@costadourada.com.br', 4410),
-    ('d0000000-0000-4000-d000-000000000004', 'Hostel Centro Histórico ME', '44555666000124', 'admin@hostelcentro.com.br', 1507),
-    ('d0000000-0000-4000-d000-000000000005', 'Destinos do Sul Operadora de Turismo LTDA', '55666777000135', 'comercial@destinosdosul.com.br', 8821),
-    ('d0000000-0000-4000-d000-000000000006', 'Spa & Wellness Gramado LTDA', '66777888000146', 'rh@spagramado.com.br', 6734);
-
+-- seats_total = soma dos pedidos de assentos APPROVED da empresa (ver "orders" abaixo).
+INSERT INTO company (id, company_name, cnpj_id, company_email, matricula, seats_total, phone) VALUES
+    ('d0000000-0000-4000-d000-000000000001', 'Pousada Vista Mar LTDA', '12345678000191', 'rh@vistamar.com.br', 2048, 10, '51999990001'),
+    ('d0000000-0000-4000-d000-000000000002', 'Hotel Atlântico Palace LTDA', '22333444000102', 'rh@atlanticopalace.com.br', 3102, 20, '51999990002'),
+    ('d0000000-0000-4000-d000-000000000003', 'Resort Costa Dourada S.A.', '33444555000113', 'pessoas@costadourada.com.br', 4410, 0, '51999990003'),
+    ('d0000000-0000-4000-d000-000000000004', 'Hostel Centro Histórico ME', '44555666000124', 'admin@hostelcentro.com.br', 1507, 0, '51999990004'),
+    ('d0000000-0000-4000-d000-000000000005', 'Destinos do Sul Operadora de Turismo LTDA', '55666777000135', 'comercial@destinosdosul.com.br', 8821, 15, '51999990005'),
+    ('d0000000-0000-4000-d000-000000000006', 'Spa & Wellness Gramado LTDA', '66777888000146', 'rh@spagramado.com.br', 6734, 0, '51999990006');
+    
 INSERT INTO users_company (user_id, company_id, role) VALUES
     ('c0000000-0000-4000-c000-000000000001', 'd0000000-0000-4000-d000-000000000001', 'RECEPCAO'),
     ('c0000000-0000-4000-c000-000000000002', 'd0000000-0000-4000-d000-000000000002', 'GERENCIA'),
@@ -144,7 +147,7 @@ INSERT INTO users_company (user_id, company_id, role) VALUES
 -- -----------------------------------------------------------------------------
 INSERT INTO courses (
     id, title, description, short_description, thumbnail_url, teaser_video_url, status,
-    created_by, instructor_id, category, level, duration_time, deadline, access_duration_days,
+    created_by, instructor_id, category, level, duration_time, deadline,
     price, learning_objectives, require_sequential_progress, enforce_deadline_block,
     major_version, minor_version, lessons_count, materials_count, students_count,
     reviews_count, rating_average, created_at, updated_at
@@ -157,7 +160,7 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000002',
-     'Inovação', 'AVANCADO', 840, NULL, NULL, 127,
+     'Inovação', 'AVANCADO', 840, 365, 127,
      '["Diagnosticar a competitividade de um destino","Desenhar produtos turísticos inovadores","Articular governança público-privada","Aplicar inteligência de mercado em destinos","Estruturar indicadores de inovação territorial","Construir um roadmap de destino competitivo"]',
      TRUE, FALSE, 1, 0, 38, 3, 620,
      94, 4.7,
@@ -170,7 +173,7 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000002',
-     'Marketing', 'AVANCADO', 1200, NULL, NULL, 147,
+     'Marketing', 'AVANCADO', 1200, 365, 147,
      '["Calcular RevPAR, ADR e occupancy com segurança","Montar uma grade tarifária por segmento","Prever demanda e ajustar preços no dia a dia","Equilibrar OTAs, site oficial e contratos","Definir limites de overbooking com dados de no-show","Implantar um ritual semanal de revenue na operação"]',
      TRUE, FALSE, 1, 0, 52, 3, 1420,
      201, 4.8,
@@ -183,7 +186,7 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000002',
-     'Marketing', 'INTERMEDIARIO', 1080, NULL, NULL, 117,
+     'Marketing', 'INTERMEDIARIO', 1080, 365, 117,
      '["Construir a presença digital do meio de hospedagem","Produzir conteúdo que gera intenção de reserva","Operar mídia paga e presença em OTAs com critério","Montar um CRM simples para recompra","Medir CAC, ROAS e taxa de conversão do site","Integrar marketing e receita em um calendário único"]',
      TRUE, FALSE, 1, 0, 44, 3, 1280,
      183, 5,
@@ -196,7 +199,7 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000001',
-     'Hospitalidade', 'AVANCADO', 1080, NULL, NULL, 167,
+     'Hospitalidade', 'AVANCADO', 1080, 365, 167,
      '["Traduzir a cultura do luxo em rotina de equipe","Liderar com presença de palco e escuta ativa","Construir padrões de serviço observáveis","Dar feedback em operações de alta pressão","Gerir crises sem perder a experiência do hóspede","Formar sucessores na linha de frente e na gerência"]',
      TRUE, FALSE, 1, 0, 46, 3, 910,
      128, 4.9,
@@ -209,7 +212,7 @@ INSERT INTO courses (
      'https://vimeo.com/1226382615?share=copy&fl=sv&fe=ci',
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000001',
-     'Inteligência Artificial', 'INICIANTE', 720, NULL, NULL, 97,
+     'Inteligência Artificial', 'INICIANTE', 720, 365, 97,
      '["Usar o ChatGPT para criar roteiros e atender clientes","Analisar dados de demanda e tendências de viagens","Implementar chatbots para atendimento 24/7","Automatizar processos repetitivos com IA generativa","Criar conteúdo de marketing com ferramentas de IA","Personalizar experiências com machine learning"]',
      TRUE, FALSE, 1, 0, 15, 3, 1840,
      247, 4.9,
@@ -222,7 +225,7 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000001',
-     'Hospitalidade', 'INTERMEDIARIO', 600, NULL, NULL, 87,
+     'Hospitalidade', 'INTERMEDIARIO', 600, 365, 87,
      '["Mapear a jornada completa do hóspede","Desenhar momentos memoráveis em cada etapa","Personalizar o serviço com dados e escuta","Treinar a linha de frente para antecipação","Medir satisfação além do NPS","Corrigir falhas sem quebrar a experiência"]',
      TRUE, FALSE, 1, 0, 28, 3, 1050,
      156, 4.9,
@@ -1316,6 +1319,63 @@ INSERT INTO company_courses (company_id, course_id, data_inicio, data_expiracao)
     ('d0000000-0000-4000-d000-000000000004', 'e0000000-0000-4000-e000-000000000006', '2026-03-08', '2027-03-08'),
     ('d0000000-0000-4000-d000-000000000005', 'e0000000-0000-4000-e000-000000000001', '2026-03-09', '2027-03-09'),
     ('d0000000-0000-4000-d000-000000000006', 'e0000000-0000-4000-e000-000000000004', '2026-03-11', '2027-03-11');
+
+-- -----------------------------------------------------------------------------
+-- orders (US-26): todos pagos em cartão, a única forma de pagamento em uso.
+-- Os pedidos individuais e os de curso corporativo batem com user_courses e
+-- company_courses acima (mesmo curso, mesmo dia de início). Os pedidos
+-- CANCELLED e REFUNDED não têm matrícula, porque o acesso foi retirado.
+-- Valores dos cursos: 1=127, 2=147, 3=117, 4=167, 5=97, 6=87. Assento: R$ 79,00.
+-- -----------------------------------------------------------------------------
+INSERT INTO orders (
+    id, buyer_user_id, company_id, type, item_type, course_id, seats_quantity,
+    amount, payment_method, installments, status, created_at
+) VALUES
+    -- Individuais de curso, APPROVED
+    ('05000000-0000-4000-9000-000000000001', 'b0000000-0000-4000-b000-000000000001', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000005', NULL, 97.00, 'CARD', 1, 'APPROVED', '2026-02-20 10:30:00'),
+    ('05000000-0000-4000-9000-000000000002', 'b0000000-0000-4000-b000-000000000002', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000005', NULL, 97.00, 'CARD', 2, 'APPROVED', '2026-02-22 14:10:00'),
+    ('05000000-0000-4000-9000-000000000003', 'b0000000-0000-4000-b000-000000000004', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000005', NULL, 97.00, 'CARD', 1, 'APPROVED', '2026-03-01 09:00:00'),
+    ('05000000-0000-4000-9000-000000000004', 'b0000000-0000-4000-b000-000000000005', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000001', NULL, 127.00, 'CARD', 3, 'APPROVED', '2026-03-02 20:15:00'),
+    ('05000000-0000-4000-9000-000000000005', 'b0000000-0000-4000-b000-000000000006', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000002', NULL, 147.00, 'CARD', 3, 'APPROVED', '2026-03-05 18:40:00'),
+    ('05000000-0000-4000-9000-000000000006', 'b0000000-0000-4000-b000-000000000007', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000003', NULL, 117.00, 'CARD', 1, 'APPROVED', '2026-03-08 11:25:00'),
+    ('05000000-0000-4000-9000-000000000007', 'b0000000-0000-4000-b000-000000000008', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000004', NULL, 167.00, 'CARD', 2, 'APPROVED', '2026-03-10 16:50:00'),
+    ('05000000-0000-4000-9000-000000000008', 'b0000000-0000-4000-b000-000000000009', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000006', NULL, 87.00, 'CARD', 1, 'APPROVED', '2026-03-12 21:05:00'),
+    ('05000000-0000-4000-9000-000000000009', 'b0000000-0000-4000-b000-000000000010', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000006', NULL, 87.00, 'CARD', 1, 'APPROVED', '2026-03-14 08:45:00'),
+    ('05000000-0000-4000-9000-000000000010', 'b0000000-0000-4000-b000-000000000011', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000002', NULL, 147.00, 'CARD', 1, 'APPROVED', '2026-03-16 13:30:00'),
+    ('05000000-0000-4000-9000-000000000011', 'b0000000-0000-4000-b000-000000000012', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000003', NULL, 117.00, 'CARD', 2, 'APPROVED', '2026-03-18 19:00:00'),
+    -- Individuais de curso, CANCELLED e REFUNDED (sem matrícula correspondente)
+    ('05000000-0000-4000-9000-000000000012', 'b0000000-0000-4000-b000-000000000003', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000004', NULL, 167.00, 'CARD', 1, 'CANCELLED', '2026-03-20 15:20:00'),
+    ('05000000-0000-4000-9000-000000000013', 'b0000000-0000-4000-b000-000000000011', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000003', NULL, 117.00, 'CARD', 1, 'REFUNDED', '2026-03-22 10:10:00'),
+    -- Corporativos de curso, APPROVED (um por linha de company_courses)
+    ('05000000-0000-4000-9000-000000000014', 'c0000000-0000-4000-c000-000000000001', 'd0000000-0000-4000-d000-000000000001', 'CORPORATE', 'COURSE', 'e0000000-0000-4000-e000-000000000005', NULL, 97.00, 'CARD', 1, 'APPROVED', '2026-02-25 09:30:00'),
+    ('05000000-0000-4000-9000-000000000015', 'c0000000-0000-4000-c000-000000000001', 'd0000000-0000-4000-d000-000000000001', 'CORPORATE', 'COURSE', 'e0000000-0000-4000-e000-000000000006', NULL, 87.00, 'CARD', 1, 'APPROVED', '2026-03-01 10:00:00'),
+    ('05000000-0000-4000-9000-000000000016', 'c0000000-0000-4000-c000-000000000002', 'd0000000-0000-4000-d000-000000000002', 'CORPORATE', 'COURSE', 'e0000000-0000-4000-e000-000000000002', NULL, 147.00, 'CARD', 2, 'APPROVED', '2026-03-04 11:15:00'),
+    ('05000000-0000-4000-9000-000000000017', 'c0000000-0000-4000-c000-000000000003', 'd0000000-0000-4000-d000-000000000003', 'CORPORATE', 'COURSE', 'e0000000-0000-4000-e000-000000000004', NULL, 167.00, 'CARD', 3, 'APPROVED', '2026-03-06 14:00:00'),
+    ('05000000-0000-4000-9000-000000000018', 'c0000000-0000-4000-c000-000000000004', 'd0000000-0000-4000-d000-000000000004', 'CORPORATE', 'COURSE', 'e0000000-0000-4000-e000-000000000006', NULL, 87.00, 'CARD', 1, 'APPROVED', '2026-03-08 09:20:00'),
+    ('05000000-0000-4000-9000-000000000019', 'c0000000-0000-4000-c000-000000000005', 'd0000000-0000-4000-d000-000000000005', 'CORPORATE', 'COURSE', 'e0000000-0000-4000-e000-000000000001', NULL, 127.00, 'CARD', 1, 'APPROVED', '2026-03-09 17:35:00'),
+    ('05000000-0000-4000-9000-000000000020', 'c0000000-0000-4000-c000-000000000006', 'd0000000-0000-4000-d000-000000000006', 'CORPORATE', 'COURSE', 'e0000000-0000-4000-e000-000000000004', NULL, 167.00, 'CARD', 1, 'APPROVED', '2026-03-11 12:45:00'),
+    -- Corporativos de assentos: APPROVED (soma em company.seats_total), REFUNDED e CANCELLED
+    ('05000000-0000-4000-9000-000000000021', 'c0000000-0000-4000-c000-000000000001', 'd0000000-0000-4000-d000-000000000001', 'CORPORATE', 'SEATS', NULL, 10, 790.00, 'CARD', 1, 'APPROVED', '2026-02-24 15:00:00'),
+    ('05000000-0000-4000-9000-000000000022', 'c0000000-0000-4000-c000-000000000002', 'd0000000-0000-4000-d000-000000000002', 'CORPORATE', 'SEATS', NULL, 20, 1580.00, 'CARD', 2, 'APPROVED', '2026-03-03 10:30:00'),
+    ('05000000-0000-4000-9000-000000000023', 'c0000000-0000-4000-c000-000000000005', 'd0000000-0000-4000-d000-000000000005', 'CORPORATE', 'SEATS', NULL, 15, 1185.00, 'CARD', 3, 'APPROVED', '2026-03-09 09:10:00'),
+    ('05000000-0000-4000-9000-000000000024', 'c0000000-0000-4000-c000-000000000003', 'd0000000-0000-4000-d000-000000000003', 'CORPORATE', 'SEATS', NULL, 5, 395.00, 'CARD', 1, 'REFUNDED', '2026-03-05 16:20:00'),
+    ('05000000-0000-4000-9000-000000000025', 'c0000000-0000-4000-c000-000000000004', 'd0000000-0000-4000-d000-000000000004', 'CORPORATE', 'SEATS', NULL, 3, 237.00, 'CARD', 1, 'CANCELLED', '2026-03-07 13:50:00');
+
+-- Todo pedido nasce APPROVED (pagamento no cartão aprovado na hora, sem autor).
+INSERT INTO order_status_history (id, order_id, status, changed_by, reason, created_at)
+SELECT md5(id::text || 'approved')::uuid, id, 'APPROVED', NULL, NULL, created_at
+FROM orders;
+
+-- Mudanças feitas por admins nos pedidos CANCELLED e REFUNDED.
+INSERT INTO order_status_history (id, order_id, status, changed_by, reason, created_at) VALUES
+    ('06000000-0000-4000-9000-000000000001', '05000000-0000-4000-9000-000000000012', 'CANCELLED',
+     'a0000000-0000-4000-a000-000000000001', 'Cancelado a pedido do cliente antes do início do curso', '2026-03-21 09:00:00'),
+    ('06000000-0000-4000-9000-000000000002', '05000000-0000-4000-9000-000000000013', 'REFUNDED',
+     'a0000000-0000-4000-a000-000000000002', 'Reembolso solicitado dentro do prazo de 7 dias', '2026-03-25 10:00:00'),
+    ('06000000-0000-4000-9000-000000000003', '05000000-0000-4000-9000-000000000024', 'REFUNDED',
+     'a0000000-0000-4000-a000-000000000001', 'Reembolso total dos assentos, sem nenhum assento utilizado', '2026-03-10 11:30:00'),
+    ('06000000-0000-4000-9000-000000000004', '05000000-0000-4000-9000-000000000025', 'CANCELLED',
+     'a0000000-0000-4000-a000-000000000002', 'Cancelado a pedido da empresa', '2026-03-07 17:00:00');
 
 INSERT INTO course_reviews (id, course_id, user_id, rating, comment, created_at, updated_at) VALUES
     ('03000000-0000-4000-9000-000000000001', 'e0000000-0000-4000-e000-000000000005',

@@ -1,17 +1,32 @@
 package com.escapa.backend.infrastructure.config;
 
+import com.escapa.backend.adapters.exception.ApiError;
+import io.swagger.v3.core.converter.AnnotatedType;
+import io.swagger.v3.core.converter.ModelConverters;
+import io.swagger.v3.core.converter.ResolvedSchema;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.Content;
+import io.swagger.v3.oas.models.media.MediaType;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springdoc.core.customizers.OpenApiCustomizer;
+import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import io.swagger.v3.oas.models.Components;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.security.SecurityScheme;
-
 @Configuration
 public class OpenApiConfig implements WebMvcConfigurer {
+
+    private static final String API_ERROR_SCHEMA = "ApiError";
+    private static final String JSON = "application/json";
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
@@ -29,7 +44,69 @@ public class OpenApiConfig implements WebMvcConfigurer {
                     .addSecuritySchemes("bearerAuth", new SecurityScheme()
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
-                        .bearerFormat("UUID")));
+                        .bearerFormat("JWT")));
+    }
+
+    /** Publica o schema do corpo de erro padrão ({@link ApiError}) para as respostas de erro referenciarem. */
+    @Bean
+    public OpenApiCustomizer apiErrorSchemaCustomizer() {
+        return openApi -> {
+            final ResolvedSchema resolved = ModelConverters.getInstance()
+                    .resolveAsResolvedSchema(new AnnotatedType(ApiError.class));
+            openApi.getComponents().addSchemas(API_ERROR_SCHEMA, resolved.schema);
+        };
+    }
+
+    /** Documenta em todo endpoint as respostas de erro que o GlobalExceptionHandler pode devolver. */
+    @Bean
+    public OperationCustomizer standardErrorResponsesCustomizer() {
+        return (operation, handlerMethod) -> {
+            final String controller = handlerMethod.getBeanType().getSimpleName();
+            addError(operation, "400", "Invalid request");
+            final String method = handlerMethod.getMethod().getName();
+            // O download de certificado declara seguranca e respostas na propria anotacao.
+            final boolean requiresToken = isProtectedController(controller)
+                    || isAuthenticatedUserEndpoint(controller, method);
+            if (requiresToken) {
+                operation.addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+                addError(operation, "401", "Missing or invalid Bearer token");
+                if (controller.startsWith("Admin") || "UserController".equals(controller)) {
+                    addError(operation, "403", "Administrator role required");
+                }
+            }
+            if (hasPathParameter(operation)) {
+                addError(operation, "404", "Resource not found");
+            }
+            addError(operation, "500", "Unexpected error");
+            return operation;
+        };
+    }
+
+    private static boolean hasPathParameter(Operation operation) {
+        return operation.getParameters() != null
+                && operation.getParameters().stream().map(Parameter::getIn).anyMatch("path"::equals);
+    }
+
+    private static boolean isProtectedController(String controller) {
+        return controller.startsWith("Admin")
+                || controller.startsWith("Student")
+                || controller.startsWith("Avatar")
+                || controller.startsWith("Password")
+                || controller.startsWith("Profile")
+                || "UserController".equals(controller);
+    }
+
+    private static boolean isAuthenticatedUserEndpoint(String controller, String method) {
+        return "AuthController".equals(controller) && "me".equals(method);
+    }
+
+    private static void addError(Operation operation, String status, String description) {
+        if (operation.getResponses().containsKey(status)) {
+            return;
+        }
+        final Schema<?> errorRef = new Schema<>().$ref("#/components/schemas/" + API_ERROR_SCHEMA);
+        operation.getResponses().addApiResponse(status, new ApiResponse()
+                .description(description)
+                .content(new Content().addMediaType(JSON, new MediaType().schema(errorRef))));
     }
 }
-
