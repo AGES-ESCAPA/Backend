@@ -3,10 +3,12 @@ package com.escapa.backend.adapters.controller;
 import com.escapa.backend.adapters.dto.ApiResponse;
 import com.escapa.backend.adapters.dto.CreateOrderRequest;
 import com.escapa.backend.adapters.dto.OrderResponse;
+import com.escapa.backend.adapters.dto.SeatPriceResponse;
 import com.escapa.backend.adapters.security.AuthenticatedUser;
 import com.escapa.backend.adapters.security.AuthenticationContext;
 import com.escapa.backend.application.model.CreateOrderCommand;
 import com.escapa.backend.application.usecase.CreateOrderUseCase;
+import com.escapa.backend.application.usecase.GetSeatPriceUseCase;
 import com.escapa.backend.domain.entity.Order;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -14,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,9 +28,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController {
 
     private final CreateOrderUseCase createOrderUseCase;
+    private final GetSeatPriceUseCase getSeatPriceUseCase;
 
-    public OrderController(CreateOrderUseCase createOrderUseCase) {
+    public OrderController(CreateOrderUseCase createOrderUseCase, GetSeatPriceUseCase getSeatPriceUseCase) {
         this.createOrderUseCase = createOrderUseCase;
+        this.getSeatPriceUseCase = getSeatPriceUseCase;
+    }
+
+    @GetMapping("/seat-price")
+    @Operation(
+            summary = "Get the price of one corporate seat",
+            description = "Lets the checkout show the total of a seats package before the purchase. The order "
+                    + "itself is still calculated by the server with this same value.")
+    public ResponseEntity<ApiResponse<SeatPriceResponse>> getSeatPrice() {
+        return ResponseEntity.ok(ApiResponse.success(SeatPriceResponse.from(getSeatPriceUseCase.execute())));
     }
 
     @PostMapping

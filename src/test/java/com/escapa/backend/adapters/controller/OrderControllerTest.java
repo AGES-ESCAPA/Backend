@@ -361,4 +361,20 @@ class OrderControllerTest extends PostgresIntegrationTest {
         mockMvc.perform(get("/api/v1/student/enrollments").header("Authorization", bearer(student, "STUDENT")))
                 .andExpect(jsonPath("$.data.content", hasSize(1)));
     }
+
+    @Test
+    void shouldGiveACompanyTheConfiguredSeatPriceUsedByTheSeatsOrder() throws Exception {
+        final UUID company = givenCompany();
+
+        mockMvc.perform(get(ORDERS + "/seat-price").header("Authorization", bearer(company, "COMPANY")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.seatPrice", is(79.0)));
+        placeOrder(company, "COMPANY", seatsBody(2))
+                .andExpect(jsonPath("$.data.amount", is(158.0)));
+    }
+
+    @Test
+    void shouldRequireAuthenticationToReadTheSeatPrice() throws Exception {
+        mockMvc.perform(get(ORDERS + "/seat-price")).andExpect(status().isUnauthorized());
+    }
 }
