@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
 import com.escapa.backend.application.port.ContactValidatorPort;
+import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
 import com.escapa.backend.application.port.CompanyRepositoryPort;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.CompanySeatsPort;
@@ -36,6 +37,7 @@ import com.escapa.backend.application.usecase.AuthorizeActiveUserUseCase;
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.application.usecase.CancelOrderUseCase;
 import com.escapa.backend.application.usecase.ChangePasswordUseCase;
+import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
@@ -54,6 +56,7 @@ import com.escapa.backend.application.usecase.GetProfileUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
 import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
+import com.escapa.backend.application.usecase.ListCompanyCourseIdsUseCase;
 import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
 import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCourseFiltersUseCase;
@@ -72,6 +75,7 @@ import com.escapa.backend.application.usecase.UpdateProfileUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.application.usecase.UploadAvatarUseCase;
 import com.escapa.backend.infrastructure.persistence.CompanyCourseJpaRepository;
+import com.escapa.backend.infrastructure.persistence.CompanyCourseRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CompanyRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanySeatsAdapter;
@@ -261,6 +265,18 @@ public class SpringConfig {
     }
 
     @Bean
+    public CompanyCourseRepositoryPort companyCourseRepositoryPort(
+            CompanyCourseJpaRepository companyCourseJpaRepository) {
+        return new CompanyCourseRepositoryAdapter(companyCourseJpaRepository);
+    }
+
+    @Bean
+    public ListCompanyCourseIdsUseCase listCompanyCourseIdsUseCase(
+            CompanyCourseRepositoryPort companyCourseRepositoryPort) {
+        return new ListCompanyCourseIdsUseCase(companyCourseRepositoryPort);
+    }
+
+    @Bean
     public CompanySeatsPort companySeatsPort(JdbcClient jdbcClient) {
         return new CompanySeatsAdapter(jdbcClient);
     }
@@ -447,6 +463,19 @@ public class SpringConfig {
                 moduleRepositoryPort,
                 lessonProgressRepositoryPort,
                 modulePrerequisiteRepositoryPort,
+                enrollmentRepositoryPort,
+                Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public CompleteStudentLessonUseCase completeStudentLessonUseCase(
+            LessonRepositoryPort lessonRepositoryPort,
+            LessonProgressRepositoryPort lessonProgressRepositoryPort,
+            EnrollmentRepositoryPort enrollmentRepositoryPort
+    ) {
+        return new CompleteStudentLessonUseCase(
+                lessonRepositoryPort,
+                lessonProgressRepositoryPort,
                 enrollmentRepositoryPort,
                 Clock.systemDefaultZone());
     }
