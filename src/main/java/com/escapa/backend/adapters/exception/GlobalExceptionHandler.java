@@ -40,6 +40,7 @@ import com.escapa.backend.domain.order.OrderValidationException;
 import com.escapa.backend.domain.user.AdminAccessDeniedException;
 import com.escapa.backend.domain.user.CompanyEmployeeCannotDeactivateException;
 import com.escapa.backend.domain.user.InactiveUserException;
+import com.escapa.backend.domain.content.InvalidContentFileException;
 import com.escapa.backend.domain.user.InvalidAvatarFileException;
 import com.escapa.backend.domain.user.InvalidCredentialsException;
 import com.escapa.backend.domain.user.InvalidCurrentPasswordException;
@@ -123,9 +124,9 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(InvalidAvatarFileException.class)
-    public ResponseEntity<ApiError> handleInvalidAvatarFileException(
-            InvalidAvatarFileException ex, HttpServletRequest request) {
+    @ExceptionHandler({InvalidAvatarFileException.class, InvalidContentFileException.class})
+    public ResponseEntity<ApiError> handleInvalidUploadedFileException(
+            RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 

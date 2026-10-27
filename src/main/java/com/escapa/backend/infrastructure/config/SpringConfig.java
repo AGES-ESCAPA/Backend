@@ -75,6 +75,7 @@ import com.escapa.backend.application.usecase.UpdateModuleUseCase;
 import com.escapa.backend.application.usecase.UpdateProfileUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.application.usecase.UploadAvatarUseCase;
+import com.escapa.backend.application.usecase.UploadContentFileUseCase;
 import com.escapa.backend.infrastructure.persistence.CompanyCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CompanyCourseRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
@@ -535,5 +536,10 @@ public class SpringConfig {
             FileStoragePort fileStoragePort
     ) {
         return new UploadAvatarUseCase(userRepositoryPort, fileStoragePort);
+    }
+
+    @Bean
+    public UploadContentFileUseCase uploadContentFileUseCase(FileStoragePort fileStoragePort) {
+        return new UploadContentFileUseCase(fileStoragePort);
     }
 }
