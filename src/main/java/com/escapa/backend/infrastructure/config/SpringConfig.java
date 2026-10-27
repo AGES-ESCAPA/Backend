@@ -21,11 +21,13 @@ import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.application.port.FileStoragePort;
+import com.escapa.backend.application.port.LessonNotificationPort;
 import com.escapa.backend.application.port.LessonProgressRepositoryPort;
 import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
 import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
+import com.escapa.backend.application.port.NotificationRepositoryPort;
 import com.escapa.backend.application.port.OrderAccessRevocationPort;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
@@ -63,7 +65,10 @@ import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCourseFiltersUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
 import com.escapa.backend.application.usecase.ListStudentEnrollmentsUseCase;
+import com.escapa.backend.application.usecase.ListUserNotificationsUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
+import com.escapa.backend.application.usecase.MarkAllNotificationsAsReadUseCase;
+import com.escapa.backend.application.usecase.MarkNotificationAsReadUseCase;
 import com.escapa.backend.application.usecase.RefundOrderUseCase;
 import com.escapa.backend.application.usecase.RegisterCompanyUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
@@ -88,10 +93,13 @@ import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseNotificationAdapter;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteRepositoryAdapter;
+import com.escapa.backend.infrastructure.persistence.LessonNotificationAdapter;
 import com.escapa.backend.infrastructure.persistence.NotificationJpaRepository;
+import com.escapa.backend.infrastructure.persistence.NotificationRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.OrderAccessRevocationAdapter;
 import com.escapa.backend.infrastructure.persistence.RegularUserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.RegularUserRepositoryAdapter;
+import com.escapa.backend.infrastructure.persistence.UserContentProgressJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
@@ -376,8 +384,44 @@ public class SpringConfig {
     }
 
     @Bean
-    public UpdateContentUseCase updateContentUseCase(ContentRepositoryPort contentRepositoryPort) {
-        return new UpdateContentUseCase(contentRepositoryPort);
+    public LessonNotificationPort lessonNotificationPort(
+            UserContentProgressJpaRepository progressJpaRepository,
+            NotificationJpaRepository notificationRepository,
+            ContentJpaRepository contentJpaRepository,
+            UserJpaRepository userJpaRepository) {
+        return new LessonNotificationAdapter(
+                progressJpaRepository, notificationRepository, contentJpaRepository, userJpaRepository);
+    }
+
+    @Bean
+    public UpdateContentUseCase updateContentUseCase(
+            ContentRepositoryPort contentRepositoryPort,
+            LessonNotificationPort lessonNotificationPort
+    ) {
+        return new UpdateContentUseCase(contentRepositoryPort, lessonNotificationPort);
+    }
+
+    @Bean
+    public NotificationRepositoryPort notificationRepositoryPort(NotificationJpaRepository notificationJpaRepository) {
+        return new NotificationRepositoryAdapter(notificationJpaRepository);
+    }
+
+    @Bean
+    public ListUserNotificationsUseCase listUserNotificationsUseCase(
+            NotificationRepositoryPort notificationRepositoryPort) {
+        return new ListUserNotificationsUseCase(notificationRepositoryPort);
+    }
+
+    @Bean
+    public MarkNotificationAsReadUseCase markNotificationAsReadUseCase(
+            NotificationRepositoryPort notificationRepositoryPort) {
+        return new MarkNotificationAsReadUseCase(notificationRepositoryPort, Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public MarkAllNotificationsAsReadUseCase markAllNotificationsAsReadUseCase(
+            NotificationRepositoryPort notificationRepositoryPort) {
+        return new MarkAllNotificationsAsReadUseCase(notificationRepositoryPort, Clock.systemDefaultZone());
     }
 
     @Bean

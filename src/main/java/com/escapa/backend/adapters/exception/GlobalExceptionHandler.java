@@ -34,6 +34,7 @@ import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CourseValidationException;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
+import com.escapa.backend.domain.notification.NotificationNotFoundException;
 import com.escapa.backend.domain.order.CourseAlreadyActiveException;
 import com.escapa.backend.domain.order.OrderNotFoundException;
 import com.escapa.backend.domain.order.OrderValidationException;
@@ -87,7 +88,8 @@ public class GlobalExceptionHandler {
             ModuleNotFoundException.class,
             CourseNotFoundException.class,
             CertificateNotFoundException.class,
-            OrderNotFoundException.class
+            OrderNotFoundException.class,
+            NotificationNotFoundException.class
     })
     public ResponseEntity<ApiError> handleNotFoundException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
