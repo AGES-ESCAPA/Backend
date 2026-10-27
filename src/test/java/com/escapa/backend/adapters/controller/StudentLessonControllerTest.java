@@ -16,6 +16,7 @@ import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
 import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
+import com.escapa.backend.application.usecase.InMemoryEnrollmentProgressRepositoryPort;
 import com.escapa.backend.application.usecase.InMemoryLessonProgressRepositoryPort;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
@@ -93,9 +94,6 @@ class StudentLessonControllerTest {
                 lessonId -> new LessonSupplement(List.of(), List.of()),
                 clock
         );
-        final CompleteStudentLessonUseCase completeUseCase = new CompleteStudentLessonUseCase(
-                lessonRepositoryPort, progressRepository, lessonEnrollmentPort, clock);
-
         final CourseRepositoryPort courseRepositoryPort = new CourseRepositoryPort() {
             @Override
             public Course save(Course course) {
@@ -199,6 +197,10 @@ class StudentLessonControllerTest {
                 },
                 Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
         );
+
+        final CompleteStudentLessonUseCase completeUseCase = new CompleteStudentLessonUseCase(
+                lessonRepositoryPort, progressRepository, moduleRepositoryPort,
+                new InMemoryEnrollmentProgressRepositoryPort(), lessonEnrollmentPort, clock);
 
         mockMvc = MockMvcBuilders.standaloneSetup(new StudentLessonController(useCase, curriculumUseCase, completeUseCase))
                 .setControllerAdvice(new GlobalExceptionHandler())
