@@ -11,6 +11,8 @@ import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.infrastructure.persistence.entity.RegularUserEntity;
 
+import jakarta.persistence.EntityManager;
+
 public class RegularUserRepositoryAdapter implements RegularUserRepositoryPort {
 
     private static final String UNIQUE_VIOLATION_SQL_STATE = "23505";
@@ -18,9 +20,17 @@ public class RegularUserRepositoryAdapter implements RegularUserRepositoryPort {
     private static final String CPF_CONSTRAINT = "regular_users_cpf_key";
 
     private final RegularUserJpaRepository regularUserJpaRepository;
+    private final UserJpaRepository userJpaRepository;
+    private final EntityManager entityManager;
 
-    public RegularUserRepositoryAdapter(RegularUserJpaRepository regularUserJpaRepository) {
+    public RegularUserRepositoryAdapter(
+            RegularUserJpaRepository regularUserJpaRepository,
+            UserJpaRepository userJpaRepository,
+            EntityManager entityManager
+    ) {
         this.regularUserJpaRepository = regularUserJpaRepository;
+        this.userJpaRepository = userJpaRepository;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -39,10 +49,33 @@ public class RegularUserRepositoryAdapter implements RegularUserRepositoryPort {
                 cpf,
                 phone
         );
+        lockRegistration(user.getEmail(), cpf);
+        rejectIfDuplicate(user.getEmail(), cpf);
         try {
             return UserMapper.toDomain(regularUserJpaRepository.saveAndFlush(entity));
         } catch (RuntimeException exception) {
             throw translateConflict(exception);
+        }
+    }
+
+    private void lockRegistration(String email, String cpf) {
+        advisoryLock("email", email);
+        advisoryLock("cpf", cpf);
+    }
+
+    private void advisoryLock(String namespace, String value) {
+        entityManager.createNativeQuery("SELECT pg_advisory_xact_lock(hashtext(:namespace), hashtext(:value))")
+                .setParameter("namespace", namespace)
+                .setParameter("value", value)
+                .getResultList();
+    }
+
+    private void rejectIfDuplicate(String email, String cpf) {
+        if (userJpaRepository.existsByEmail(email)) {
+            throw new DuplicateRegistrationException("email");
+        }
+        if (regularUserJpaRepository.existsByCpf(cpf)) {
+            throw new DuplicateRegistrationException("cpf");
         }
     }
 

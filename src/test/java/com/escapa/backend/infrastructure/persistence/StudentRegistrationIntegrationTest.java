@@ -26,8 +26,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -47,6 +52,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @Import(StudentRegistrationTestConfig.class)
 class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
@@ -57,6 +63,7 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
     private static final String PASSWORD = "  senha-segura  ";
 
     @Autowired private MockMvc mockMvc;
+    @Autowired private TestRestTemplate restTemplate;
     @Autowired private ObjectMapper objectMapper;
     @Autowired @Qualifier("userRepositoryPort") private UserRepositoryPort users;
     @Autowired private UserJpaRepository userJpaRepository;
@@ -135,17 +142,18 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
                 sameEmail ? email : "other-" + suffix + "@example.com", sameEmail ? OTHER_CPF : CPF);
         repositoryControl.synchronizeSaves();
 
-        final List<MvcResult> results;
+        final List<ResponseEntity<String>> results;
         try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
-            final Future<MvcResult> firstRequest = executor.submit(() -> register(first));
-            final Future<MvcResult> secondRequest = executor.submit(() -> register(second));
+            final Future<ResponseEntity<String>> firstRequest = executor.submit(() -> registerHttp(first));
+            final Future<ResponseEntity<String>> secondRequest = executor.submit(() -> registerHttp(second));
             results = List.of(firstRequest.get(30, TimeUnit.SECONDS), secondRequest.get(30, TimeUnit.SECONDS));
         }
 
-        assertEquals(List.of(201, 409), results.stream().map(result -> result.getResponse().getStatus()).sorted().toList());
-        final MvcResult conflict = results.stream().filter(result -> result.getResponse().getStatus() == 409)
-                .findFirst().orElseThrow();
-        assertEquals((sameEmail ? "email" : "cpf") + " already registered", response(conflict).path("message").asText());
+        assertEquals(List.of(201, 409), httpStatuses(results), () -> httpBodies(results));
+        final ResponseEntity<String> conflict = results.stream()
+                .filter(result -> result.getStatusCode().value() == 409).findFirst().orElseThrow();
+        assertEquals((sameEmail ? "email" : "cpf") + " already registered",
+                objectMapper.readTree(conflict.getBody()).path("message").asText());
         assertEquals(1, countUsers());
         assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM regular_users r JOIN users u ON u.id = r.user_id "
                 + "WHERE u.email LIKE ?", Integer.class, "%" + suffix + "@example.com"));
@@ -179,6 +187,23 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
     private MvcResult register(RegisterStudentCommand command) throws Exception {
         return mockMvc.perform(post(REGISTER_URL).contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(command))).andReturn();
+    }
+
+    private ResponseEntity<String> registerHttp(RegisterStudentCommand command) {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return restTemplate.postForEntity(REGISTER_URL, new HttpEntity<>(command, headers), String.class);
+    }
+
+    private static List<Integer> httpStatuses(List<ResponseEntity<String>> results) {
+        return results.stream().map(result -> result.getStatusCode().value()).sorted().toList();
+    }
+
+    private static String httpBodies(List<ResponseEntity<String>> results) {
+        return results.stream()
+                .map(result -> result.getStatusCode().value() + " " + result.getBody())
+                .toList()
+                .toString();
     }
 
     private JsonNode response(MvcResult result) throws Exception {

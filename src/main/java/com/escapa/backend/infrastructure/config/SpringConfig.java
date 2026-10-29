@@ -175,9 +175,11 @@ public class SpringConfig {
 
     @Bean
     public RegularUserRepositoryPort regularUserRepositoryPort(
-            RegularUserJpaRepository regularUserJpaRepository
+            RegularUserJpaRepository regularUserJpaRepository,
+            UserJpaRepository userJpaRepository,
+            EntityManager entityManager
     ) {
-        return new RegularUserRepositoryAdapter(regularUserJpaRepository);
+        return new RegularUserRepositoryAdapter(regularUserJpaRepository, userJpaRepository, entityManager);
     }
 
     @Bean
