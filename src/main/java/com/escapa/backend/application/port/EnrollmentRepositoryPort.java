@@ -16,6 +16,8 @@ public interface EnrollmentRepositoryPort {
 
     PageResult<StudentCourseCard> findStudentEnrollments(UUID userId, String title, EnrollmentStatus status, int page, int size);
 
-    List<CourseEnrollmentCount> countEligibleEnrollmentsByCourse();
+    default List<CourseEnrollmentCount> countEligibleEnrollmentsByCourse() {
+        return List.of();
+    }
 }
 
