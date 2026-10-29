@@ -75,7 +75,8 @@ public class AdminContentController {
                 request.url(),
                 request.durationMinutes(),
                 request.description(),
-                request.isFree()
+                request.isFree(),
+                request.resourcesToDomain()
         );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(ContentResponse.from(content), "Content created successfully"));
@@ -118,7 +119,8 @@ public class AdminContentController {
                 request.url(),
                 request.durationMinutes(),
                 request.description(),
-                request.isFree()
+                request.isFree(),
+                request.resourcesToDomain()
         );
         return ResponseEntity.ok(ApiResponse.success(ContentResponse.from(content), "Content updated successfully"));
     }

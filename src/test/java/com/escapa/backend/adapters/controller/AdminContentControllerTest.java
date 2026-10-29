@@ -8,6 +8,7 @@ import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.InMemoryContentRepositoryPort;
+import com.escapa.backend.application.usecase.InMemoryLessonNotificationPort;
 import com.escapa.backend.application.usecase.InMemoryModuleRepositoryPort;
 import com.escapa.backend.application.usecase.InMemoryUserRepositoryPort;
 import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
@@ -62,7 +63,7 @@ class AdminContentControllerTest {
 
         final AdminContentController controller = new AdminContentController(
                 new CreateContentUseCase(contentRepository, moduleRepository),
-                new UpdateContentUseCase(contentRepository),
+                new UpdateContentUseCase(contentRepository, new InMemoryLessonNotificationPort()),
                 new GetContentUseCase(contentRepository, moduleRepository),
                 new ListModuleContentsUseCase(contentRepository, moduleRepository),
                 new DeleteContentUseCase(contentRepository),
@@ -123,6 +124,25 @@ class AdminContentControllerTest {
         final var user = new AuthenticatedUser(UUID.fromString(userId), "test@escapa.com", role, role);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 user, null, AuthorityUtils.createAuthorityList("ROLE_" + role)));
+    }
+
+    @Test
+    void shouldCreateContentWithSupplementaryResources() throws Exception {
+        final String body = """
+                {"title": "Aula 1", "type": "TEXT", "description": "Texto", "isFree": false,
+                 "resources": [
+                   {"id": "r1", "type": "link", "title": "Artigo MDN", "url": "https://developer.mozilla.org"},
+                   {"id": "r2", "type": "file", "title": "Planilha", "url": "http://localhost:9000/escapa-media/contents/a.xlsx"}
+                 ]}
+                """;
+
+        mockMvc.perform(post(CONTENTS_URL, moduleId).header(USER_HEADER, adminId)
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.resources.length()").value(2))
+                .andExpect(jsonPath("$.data.resources[0].type").value("link"))
+                .andExpect(jsonPath("$.data.resources[1].url")
+                        .value("http://localhost:9000/escapa-media/contents/a.xlsx"));
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.escapa.backend.adapters.dto.StudentLessonResponse;
 import com.escapa.backend.adapters.security.AuthenticationContext;
 import com.escapa.backend.application.model.LessonDetails;
 import com.escapa.backend.application.model.StudentCourseCurriculum;
+import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
 import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,13 +30,16 @@ public class StudentLessonController {
 
     private final GetStudentLessonUseCase getStudentLessonUseCase;
     private final GetStudentCourseCurriculumUseCase getStudentCourseCurriculumUseCase;
+    private final CompleteStudentLessonUseCase completeStudentLessonUseCase;
 
     public StudentLessonController(
             GetStudentLessonUseCase getStudentLessonUseCase,
-            GetStudentCourseCurriculumUseCase getStudentCourseCurriculumUseCase
+            GetStudentCourseCurriculumUseCase getStudentCourseCurriculumUseCase,
+            CompleteStudentLessonUseCase completeStudentLessonUseCase
     ) {
         this.getStudentLessonUseCase = getStudentLessonUseCase;
         this.getStudentCourseCurriculumUseCase = getStudentCourseCurriculumUseCase;
+        this.completeStudentLessonUseCase = completeStudentLessonUseCase;
     }
 
     @GetMapping("/courses/{courseId}/lessons/{lessonId}")
@@ -46,6 +51,17 @@ public class StudentLessonController {
         final UUID userId = AuthenticationContext.requireUser().id();
         final LessonDetails lesson = getStudentLessonUseCase.execute(userId, courseId, lessonId);
         return ResponseEntity.ok(ApiResponse.success(StudentLessonResponse.from(lesson)));
+    }
+
+    @PostMapping("/courses/{courseId}/lessons/{lessonId}/complete")
+    @Operation(summary = "Mark a lesson as completed by the student")
+    public ResponseEntity<Void> completeLesson(
+            @PathVariable UUID courseId,
+            @PathVariable UUID lessonId
+    ) {
+        final UUID userId = AuthenticationContext.requireUser().id();
+        completeStudentLessonUseCase.execute(userId, courseId, lessonId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/courses/{courseId}/curriculum")

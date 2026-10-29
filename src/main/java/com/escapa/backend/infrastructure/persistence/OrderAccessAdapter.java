@@ -30,25 +30,29 @@ public class OrderAccessAdapter implements OrderAccessPort {
         this.entityManager = entityManager;
     }
 
+    // Uma matrícula revogada pelo cancelamento do pedido (US-28) não é acesso: a nova compra a reativa.
     @Override
     public Optional<Enrollment> findStudentEnrollment(UUID userId, UUID courseId) {
         return userCourseRepository.findById(new UserCourseId(userId, courseId))
+                .filter(enrollment -> enrollment.getRevokedAt() == null)
                 .map(enrollment -> new Enrollment(enrollment.getDtInicio(), enrollment.getDtExpiracao()));
     }
 
     @Override
     public void saveStudentEnrollment(UUID userId, UUID courseId, LocalDate startDate, LocalDate expirationDate) {
         final UserCourseId id = new UserCourseId(userId, courseId);
-        // Uma matrícula que já existe (vencida) só tem as datas renovadas: o progresso é mantido.
+        // Uma matrícula que já existe (vencida ou revogada) só tem as datas renovadas: o progresso é mantido.
         final UserCourseEntity enrollment = userCourseRepository.findById(id).orElseGet(() -> newEnrollment(id));
         enrollment.setDtInicio(startDate);
         enrollment.setDtExpiracao(expirationDate);
+        enrollment.setRevokedAt(null);
         userCourseRepository.save(enrollment);
     }
 
     @Override
     public Optional<Enrollment> findCompanyCourse(UUID companyId, UUID courseId) {
         return Optional.ofNullable(entityManager.find(CompanyCourseEntity.class, new CompanyCourseId(companyId, courseId)))
+                .filter(course -> course.getRevokedAt() == null)
                 .map(course -> new Enrollment(course.getDataInicio(), course.getDataExpiracao()));
     }
 
@@ -59,6 +63,7 @@ public class OrderAccessAdapter implements OrderAccessPort {
         if (existing != null) {
             existing.setDataInicio(startDate);
             existing.setDataExpiracao(expirationDate);
+            existing.setRevokedAt(null);
             return;
         }
         entityManager.persist(new CompanyCourseEntity(

@@ -1,9 +1,11 @@
 package com.escapa.backend.adapters.dto;
 
+import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record ContentResponse(
@@ -16,7 +18,7 @@ public record ContentResponse(
         String description,
         Boolean isFree,
         Integer order,
-        String resources,
+        List<ContentResource> resources,
         LocalDateTime createdAt
 ) {
     public static ContentResponse from(Content content) {
