@@ -1,10 +1,14 @@
 package com.escapa.backend.adapters.dto;
 
+import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import java.util.List;
 
 /**
  * Corpo de criação e edição de aula. Campos condicionais por tipo (url, durationMinutes,
@@ -21,6 +25,12 @@ public record ContentRequest(
         String url,
         Integer durationMinutes,
         String description,
-        Boolean isFree
+        Boolean isFree,
+        @Valid List<ContentResourceRequest> resources
 ) {
+    public List<ContentResource> resourcesToDomain() {
+        return resources == null
+                ? List.of()
+                : resources.stream().map(ContentResourceRequest::toDomain).toList();
+    }
 }

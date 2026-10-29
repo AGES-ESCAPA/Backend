@@ -4,7 +4,8 @@ import com.escapa.backend.domain.entity.Content;
 
 /**
  * Campos obrigatorios variam conforme o tipo da aula: VIDEO precisa de player e
- * duracao, FILE precisa do arquivo e TEXT precisa do proprio texto.
+ * duracao, FILE precisa do arquivo e TEXT precisa do proprio texto. Materiais
+ * complementares valem para qualquer tipo.
  */
 public final class ContentTypeRules {
 
@@ -20,6 +21,28 @@ public final class ContentTypeRules {
             case FILE -> requireUrl(content);
             case TEXT -> requireDescription(content);
             default -> throw new IllegalArgumentException("Unsupported content type: " + content.getType());
+        }
+        if (content.getResources() != null) {
+            content.getResources().forEach(ContentTypeRules::validateResource);
+        }
+    }
+
+    private static void validateResource(ContentResource resource) {
+        if (resource == null) {
+            throw new IllegalArgumentException("resources must not contain null items");
+        }
+        if (!ContentResource.TYPE_LINK.equals(resource.type()) && !ContentResource.TYPE_FILE.equals(resource.type())) {
+            throw new IllegalArgumentException("resources.type must be 'link' or 'file'");
+        }
+        if (isBlank(resource.title())) {
+            throw new IllegalArgumentException("resources.title is required");
+        }
+        if (isBlank(resource.url())) {
+            throw new IllegalArgumentException("resources.url is required");
+        }
+        final String url = resource.url().trim();
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            throw new IllegalArgumentException("resources.url must start with http:// or https://");
         }
     }
 

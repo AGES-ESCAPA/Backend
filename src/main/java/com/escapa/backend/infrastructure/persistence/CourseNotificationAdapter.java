@@ -34,6 +34,6 @@ public class CourseNotificationAdapter implements CourseNotificationPort {
                 .forEach(enrollment -> notificationRepository.save(new NotificationEntity(
                         null, enrollment.getUser(), NotificationType.COURSE_PUBLISHED,
                         PUBLISHED_TITLE, PUBLISHED_MESSAGE,
-                        course, false, null, LocalDateTime.now())));
+                        course, null, false, null, LocalDateTime.now())));
     }
 }
