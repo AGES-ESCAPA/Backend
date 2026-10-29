@@ -12,6 +12,8 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.jpa.JpaSystemException;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -49,7 +51,9 @@ import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.user.ProfileNotEditableException;
 import com.escapa.backend.domain.user.UserAlreadyInactiveException;
 import com.escapa.backend.domain.user.UserNotFoundException;
+import com.escapa.backend.infrastructure.persistence.RegularUserRepositoryAdapter;
 
+import jakarta.persistence.PersistenceException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
@@ -166,6 +170,19 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
+    /**
+     * Violação de unicidade no commit (JOINED {@code users}/{@code regular_users}) chega como
+     * falha de transação, não como {@link DataIntegrityViolationException}.
+     */
+    @ExceptionHandler({TransactionSystemException.class, PersistenceException.class, JpaSystemException.class})
+    public ResponseEntity<ApiError> handlePersistenceFailure(RuntimeException ex, HttpServletRequest request) {
+        final RuntimeException translated = RegularUserRepositoryAdapter.translateConflict(ex);
+        if (translated instanceof DuplicateRegistrationException duplicate) {
+            return handleDuplicateRegistrationException(duplicate, request);
+        }
+        return handleGenericException(ex, request);
+    }
+
     /** Corpo ilegível ou com valor de enum inexistente (ex.: paymentMethod "CASH"): erro do cliente, não do servidor. */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleUnreadableBody(HttpMessageNotReadableException ex, HttpServletRequest request) {
@@ -188,7 +205,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrityViolationException(DataIntegrityViolationException ex, HttpServletRequest request) {
-        // Generico: users nao e mais a unica origem possivel de violacao de constraint.
+        final RuntimeException translated = RegularUserRepositoryAdapter.translateConflict(ex);
+        if (translated instanceof DuplicateRegistrationException duplicate) {
+            return handleDuplicateRegistrationException(duplicate, request);
+        }
         return buildResponse(HttpStatus.CONFLICT, "Resource already exists", request);
     }
 

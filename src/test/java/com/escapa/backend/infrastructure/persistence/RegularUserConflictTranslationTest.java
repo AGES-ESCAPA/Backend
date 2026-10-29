@@ -11,9 +11,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.postgresql.util.PSQLException;
+import org.postgresql.util.ServerErrorMessage;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.TransactionSystemException;
 
 import com.escapa.backend.domain.registration.DuplicateRegistrationException;
+
+import jakarta.persistence.PersistenceException;
 
 class RegularUserConflictTranslationTest {
 
@@ -79,10 +84,36 @@ class RegularUserConflictTranslationTest {
         assertSame(exception, RegularUserRepositoryAdapter.translateConflict(exception));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"users_email_key", "\"users_email_key\"", "public.users_email_key"})
+    void shouldIdentifyEmailConflictFromPostgresConstraintName(String constraintName) {
+        final RuntimeException translated = RegularUserRepositoryAdapter.translateConflict(
+                new PersistenceException("Flush failed", postgresUnique(constraintName)));
+
+        assertInstanceOf(DuplicateRegistrationException.class, translated);
+        assertEquals("email already registered", translated.getMessage());
+    }
+
+    @Test
+    void shouldIdentifyEmailConflictWhenTheUniqueViolationIsChainedAfterAnAbortedTransaction() {
+        final SQLException aborted = new SQLException("current transaction is aborted", "25P02");
+        aborted.setNextException(postgresUnique("users_email_key"));
+
+        final RuntimeException translated = RegularUserRepositoryAdapter.translateConflict(
+                new TransactionSystemException("Could not commit JPA transaction", aborted));
+
+        assertInstanceOf(DuplicateRegistrationException.class, translated);
+        assertEquals("email already registered", translated.getMessage());
+    }
+
     private static DataIntegrityViolationException violation(String sqlState, String constraintName, String message) {
         final SQLException sqlException = new SQLException(message, sqlState);
         final ConstraintViolationException violation = new ConstraintViolationException(
                 message, sqlException, constraintName);
         return new DataIntegrityViolationException("Save failed", violation);
+    }
+
+    private static PSQLException postgresUnique(String constraintName) {
+        return new PSQLException(new ServerErrorMessage("C23505\0n" + constraintName + "\0Mduplicate key\0"));
     }
 }
