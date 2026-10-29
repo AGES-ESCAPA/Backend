@@ -22,4 +22,7 @@ public interface UserContentProgressJpaRepository
             @Param("userId") UUID userId,
             @Param("courseId") UUID courseId
     );
+
+    @Query("SELECT p.id.userId FROM UserContentProgressEntity p WHERE p.id.contentId = :contentId")
+    List<UUID> findUserIdsByContentId(@Param("contentId") UUID contentId);
 }

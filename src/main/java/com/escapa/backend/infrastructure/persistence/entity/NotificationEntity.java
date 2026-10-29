@@ -51,6 +51,11 @@ public class NotificationEntity {
     @JoinColumn(name = "course_id")
     private CourseEntity course;
 
+    /** Aula relacionada, quando a notificacao aponta para uma aula especifica. */
+    @ManyToOne
+    @JoinColumn(name = "content_id")
+    private ContentEntity content;
+
     @Column(name = "is_read", nullable = false)
     private Boolean read = false;
 

@@ -10,9 +10,14 @@ import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.model.LessonDetails;
 import com.escapa.backend.application.model.LessonSupplement;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.application.port.EnrollmentRepositoryPort;
+import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
+import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
 import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
+import com.escapa.backend.application.usecase.InMemoryEnrollmentProgressRepositoryPort;
+import com.escapa.backend.application.usecase.InMemoryLessonProgressRepositoryPort;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Course;
@@ -33,7 +38,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -43,12 +51,15 @@ class StudentLessonControllerTest {
     private static final LocalDate TODAY = LocalDate.of(2026, 6, 15);
     private static final String URL = "/api/v1/student/courses/{courseId}/lessons/{lessonId}";
     private static final String CURRICULUM_URL = "/api/v1/student/courses/{courseId}/curriculum";
+    private static final String COMPLETE_URL = "/api/v1/student/courses/{courseId}/lessons/{lessonId}/complete";
 
     private final UUID userId = UUID.randomUUID();
     private final UUID courseId = UUID.randomUUID();
     private final UUID moduleId = UUID.randomUUID();
     private final UUID paidLessonId = UUID.randomUUID();
     private final UUID freeLessonId = UUID.randomUUID();
+
+    private final InMemoryLessonProgressRepositoryPort progressRepository = new InMemoryLessonProgressRepositoryPort();
 
     private MockMvc mockMvc;
     private Optional<Enrollment> enrollment = Optional.empty();
@@ -61,25 +72,28 @@ class StudentLessonControllerTest {
     void setUp() {
         final LessonDetails paid = lesson(paidLessonId, false);
         final LessonDetails free = lesson(freeLessonId, true);
-        final GetStudentLessonUseCase useCase = new GetStudentLessonUseCase(
+        final LessonRepositoryPort lessonRepositoryPort =
                 (course, lessonId) -> Optional.of(paid).filter(l -> l.content().getId().equals(lessonId))
                         .or(() -> Optional.of(free).filter(l -> l.content().getId().equals(lessonId)))
-                        .filter(l -> l.courseId().equals(course)),
-                new com.escapa.backend.application.port.EnrollmentRepositoryPort() {
-                    @Override
-                    public Optional<Enrollment> findByUserIdAndCourseId(UUID user, UUID course) {
-                        return user.equals(userId) ? enrollment : Optional.empty();
-                    }
+                        .filter(l -> l.courseId().equals(course));
+        final EnrollmentRepositoryPort lessonEnrollmentPort = new EnrollmentRepositoryPort() {
+            @Override
+            public Optional<Enrollment> findByUserIdAndCourseId(UUID user, UUID course) {
+                return user.equals(userId) ? enrollment : Optional.empty();
+            }
 
-                    @Override
-                    public com.escapa.backend.application.dto.PageResult<com.escapa.backend.application.model.StudentCourseCard> findStudentEnrollments(UUID userId, String title, com.escapa.backend.domain.course.EnrollmentStatus status, int page, int size) {
-                        return null;
-                    }
-                },
+            @Override
+            public com.escapa.backend.application.dto.PageResult<com.escapa.backend.application.model.StudentCourseCard> findStudentEnrollments(UUID userId, String title, com.escapa.backend.domain.course.EnrollmentStatus status, int page, int size) {
+                return null;
+            }
+        };
+        final Clock clock = Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
+        final GetStudentLessonUseCase useCase = new GetStudentLessonUseCase(
+                lessonRepositoryPort,
+                lessonEnrollmentPort,
                 lessonId -> new LessonSupplement(List.of(), List.of()),
-                Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+                clock
         );
-
         final CourseRepositoryPort courseRepositoryPort = new CourseRepositoryPort() {
             @Override
             public Course save(Course course) {
@@ -168,7 +182,7 @@ class StudentLessonControllerTest {
         final GetStudentCourseCurriculumUseCase curriculumUseCase = new GetStudentCourseCurriculumUseCase(
                 courseRepositoryPort,
                 moduleRepositoryPort,
-                (user, course) -> List.of(),
+                progressRepository,
                 moduleId -> List.of(),
                 new com.escapa.backend.application.port.EnrollmentRepositoryPort() {
                     @Override
@@ -184,7 +198,11 @@ class StudentLessonControllerTest {
                 Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
         );
 
-        mockMvc = MockMvcBuilders.standaloneSetup(new StudentLessonController(useCase, curriculumUseCase))
+        final CompleteStudentLessonUseCase completeUseCase = new CompleteStudentLessonUseCase(
+                lessonRepositoryPort, progressRepository, moduleRepositoryPort,
+                new InMemoryEnrollmentProgressRepositoryPort(), lessonEnrollmentPort, clock);
+
+        mockMvc = MockMvcBuilders.standaloneSetup(new StudentLessonController(useCase, curriculumUseCase, completeUseCase))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
         authenticate();
@@ -348,5 +366,36 @@ class StudentLessonControllerTest {
     void shouldReturn404WhenCourseDoesNotExistForCurriculum() throws Exception {
         mockMvc.perform(get(CURRICULUM_URL, courseId))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturn204AndPersistProgressWhenCompletingLesson() throws Exception {
+        enrollment = Optional.of(new Enrollment(TODAY.minusDays(5), TODAY.plusDays(60)));
+
+        mockMvc.perform(post(COMPLETE_URL, courseId, paidLessonId))
+                .andExpect(status().isNoContent());
+
+        assertNotNull(progressRepository.completedAt(userId, paidLessonId));
+    }
+
+    @Test
+    void shouldReturn403WhenCompletingPaidLessonWithoutEnrollment() throws Exception {
+        mockMvc.perform(post(COMPLETE_URL, courseId, paidLessonId))
+                .andExpect(status().isForbidden());
+
+        assertNull(progressRepository.completedAt(userId, paidLessonId));
+    }
+
+    @Test
+    void shouldReturn404WhenCompletingUnknownLesson() throws Exception {
+        mockMvc.perform(post(COMPLETE_URL, courseId, UUID.randomUUID()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturn401WhenCompletingWithoutAuthentication() throws Exception {
+        SecurityContextHolder.clearContext();
+        mockMvc.perform(post(COMPLETE_URL, courseId, freeLessonId))
+                .andExpect(status().isUnauthorized());
     }
 }

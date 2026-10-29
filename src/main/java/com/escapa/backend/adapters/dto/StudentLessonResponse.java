@@ -2,6 +2,7 @@ package com.escapa.backend.adapters.dto;
 
 import com.escapa.backend.application.model.LessonConcept;
 import com.escapa.backend.application.model.LessonDetails;
+import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
 
@@ -23,7 +24,7 @@ public record StudentLessonResponse(
         Integer durationMinutes,
         Boolean isFree,
         Integer order,
-        String resources,
+        List<ContentResource> resources,
         List<String> concepts,
         List<ReferenceResponse> references,
         ModuleInfo module

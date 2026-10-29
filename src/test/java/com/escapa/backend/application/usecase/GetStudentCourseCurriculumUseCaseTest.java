@@ -43,7 +43,7 @@ class GetStudentCourseCurriculumUseCaseTest {
     return new GetStudentCourseCurriculumUseCase(
             stubCourseRepositoryPort(),
             stubModuleRepositoryPort(),
-            (user, courseArg) -> List.of(),
+            new InMemoryLessonProgressRepositoryPort(),
             moduleId -> List.of(),
             new com.escapa.backend.application.port.EnrollmentRepositoryPort() {
                 @Override
