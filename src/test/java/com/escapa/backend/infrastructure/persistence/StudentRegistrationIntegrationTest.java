@@ -42,6 +42,7 @@ import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.RegisterStudentCommand;
 import com.escapa.backend.application.usecase.UploadAvatarUseCase;
 import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.domain.user.CpfValidator;
 import com.escapa.backend.infrastructure.persistence.StudentRegistrationTestConfig.RegistrationRepositoryControl;
 import com.escapa.backend.infrastructure.persistence.StudentRegistrationTestConfig.RegistrationTokenControl;
 import com.escapa.backend.infrastructure.persistence.entity.RegularUserEntity;
@@ -58,9 +59,12 @@ import io.jsonwebtoken.Jwts;
 class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
 
     private static final String REGISTER_URL = "/api/v1/auth/register/student";
-    private static final String CPF = "52998224725";
-    private static final String OTHER_CPF = "12345678909";
     private static final String PASSWORD = "  senha-segura  ";
+    private static final int CPF_BODY_LENGTH = 9;
+    private static final int CPF_FIRST_CHECK_INDEX = 9;
+    private static final int CPF_SECOND_CHECK_INDEX = 10;
+    private static final int CPF_CHECK_BASE = 11;
+    private static final long CPF_BODY_RANGE = 1_000_000_000L;
 
     @Autowired private MockMvc mockMvc;
     @Autowired private TestRestTemplate restTemplate;
@@ -76,10 +80,17 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
     @Autowired private JdbcTemplate jdbc;
 
     private String suffix;
+    private String cpf;
+    private String otherCpf;
 
     @BeforeEach
     void setUp() {
         suffix = UUID.randomUUID().toString();
+        cpf = uniqueCpf();
+        otherCpf = uniqueCpf();
+        while (otherCpf.equals(cpf)) {
+            otherCpf = uniqueCpf();
+        }
         repositoryControl.reset();
         tokenControl.reset();
     }
@@ -88,13 +99,15 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
     void cleanUp() {
         repositoryControl.reset();
         tokenControl.reset();
+        jdbc.update("DELETE FROM users WHERE id IN (SELECT user_id FROM regular_users WHERE cpf IN (?, ?))",
+                cpf, otherCpf);
         jdbc.update("DELETE FROM users WHERE email LIKE ?", "%" + suffix + "@example.com");
     }
 
     @Test
     void shouldRegisterPersistBothTablesAndAuthenticateWithTheSamePassword() throws Exception {
         final String email = "student-" + suffix + "@example.com";
-        final RegisterStudentCommand command = command("  " + email.toUpperCase(java.util.Locale.ROOT) + "  ", CPF);
+        final RegisterStudentCommand command = command("  " + email.toUpperCase(java.util.Locale.ROOT) + "  ", cpf);
         final MvcResult result = register(command);
         assertEquals(201, result.getResponse().getStatus());
         final JsonNode data = response(result).path("data");
@@ -103,7 +116,7 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
 
         assertEquals("Student Test", saved.getName());
         assertEquals("STUDENT", saved.getUserType());
-        assertEquals(CPF, profile.getCpf());
+        assertEquals(cpf, profile.getCpf());
         assertEquals("51999990000", profile.getPhone());
         assertTrue(passwords.matches(PASSWORD, saved.getPasswordHash()));
         assertEquals(saved.getId().toString(), data.path("user").path("id").asText());
@@ -123,7 +136,7 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
         final String email = "rollback-" + suffix + "@example.com";
         tokenControl.failGeneration();
 
-        final MvcResult result = register(command(email, CPF));
+        final MvcResult result = register(command(email, cpf));
 
         assertEquals(500, result.getResponse().getStatus());
         assertNotNull(tokenControl.attemptedUserId());
@@ -137,9 +150,9 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
     @ValueSource(booleans = {true, false})
     void shouldResolveConcurrentRegistrationsWithoutOrphanUsers(boolean sameEmail) throws Exception {
         final String email = "cpf-" + suffix + "@example.com";
-        final RegisterStudentCommand first = command(email, CPF);
+        final RegisterStudentCommand first = command(email, cpf);
         final RegisterStudentCommand second = command(
-                sameEmail ? email : "other-" + suffix + "@example.com", sameEmail ? OTHER_CPF : CPF);
+                sameEmail ? email : "other-" + suffix + "@example.com", sameEmail ? otherCpf : cpf);
         repositoryControl.synchronizeSaves();
 
         final List<ResponseEntity<String>> results;
@@ -162,13 +175,13 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
     @Test
     void shouldPreserveRegisteredCpfAndPhoneWhenUpdatingAvatar() throws Exception {
         final String email = "avatar-" + suffix + "@example.com";
-        assertEquals(201, register(command(email, CPF)).getResponse().getStatus());
+        assertEquals(201, register(command(email, cpf)).getResponse().getStatus());
         final UUID id = users.findByEmail(email).orElseThrow().getId();
 
         final User updated = uploadAvatar.execute(id, new ByteArrayInputStream(new byte[] {1, 2, 3}), 3L, "image/png");
 
         final RegularUserEntity profile = regularUsers.findById(id).orElseThrow();
-        assertEquals(CPF, profile.getCpf());
+        assertEquals(cpf, profile.getCpf());
         assertEquals("51999990000", profile.getPhone());
         assertEquals(updated.getAvatarUrl(), profile.getProfileAvatarUrl());
         assertTrue(updated.getAvatarUrl().startsWith("https://storage.test/avatars/"));
@@ -212,6 +225,23 @@ class StudentRegistrationIntegrationTest extends PostgresIntegrationTest {
 
     private static RegisterStudentCommand command(String email, String cpf) {
         return new RegisterStudentCommand("  Student Test  ", cpf, email, "(51) 99999-0000", PASSWORD);
+    }
+
+    private static String uniqueCpf() {
+        final String body = String.format("%0" + CPF_BODY_LENGTH + "d",
+                Math.floorMod(UUID.randomUUID().getLeastSignificantBits(), CPF_BODY_RANGE));
+        final int firstCheck = checkDigit(body, CPF_FIRST_CHECK_INDEX);
+        final String generated = body + firstCheck + checkDigit(body + firstCheck, CPF_SECOND_CHECK_INDEX);
+        return CpfValidator.isValid(generated) ? generated : uniqueCpf();
+    }
+
+    private static int checkDigit(String digits, int digitIndex) {
+        int sum = 0;
+        for (int index = 0; index < digitIndex; index++) {
+            sum += Character.digit(digits.charAt(index), 10) * (digitIndex + 1 - index);
+        }
+        final int result = CPF_CHECK_BASE - sum % CPF_CHECK_BASE;
+        return result >= 10 ? 0 : result;
     }
 
     private int countUsers() {
