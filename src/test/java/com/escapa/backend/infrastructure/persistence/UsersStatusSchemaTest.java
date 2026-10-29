@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-/** Garante, direto no banco, a restrição ck_users_status da migration V16. */
+/** Garante, direto no banco, a restrição ck_users_status da migration V18. */
 class UsersStatusSchemaTest extends PostgresIntegrationTest {
 
     @Autowired
