@@ -739,9 +739,14 @@ Resposta `201 Created` com `orderId`, `status`, `itemType`, `courseId`, `seatsQu
 - **Valor:** sempre calculado no servidor. Curso: `courses.price`. Assentos: quantidade × `APP_SEAT_PRICE` (padrão `79.00`), porque nenhuma US define o modelo comercial do pacote de licenças; quando a cliente definir, muda só a configuração.
 - **Forma de pagamento:** só `CARD`. `PIX` e `BOLETO` existem na coluna, mas o endpoint recusa com `400` (aprovar na hora um pedido assim registraria um pagamento que nunca aconteceu). Quando houver um meio de pagamento real, é essa validação que muda.
 - **Erros:** curso inexistente `404`; curso não publicado, combinação inválida de perfil e item, `paymentMethod` diferente de `CARD`, valor de enum inexistente ou corpo ilegível `400`; curso com acesso ainda ativo `409`.
-- **Matrícula vencida:** comprar de novo um curso cuja matrícula já venceu renova as datas e mantém o progresso já feito.
+- **Matrícula vencida ou revogada:** comprar de novo um curso cuja matrícula já venceu, ou foi revogada pelo cancelamento do pedido (US-28), reativa a mesma matrícula: limpa `revoked_at`, grava as datas novas e mantém o progresso já feito. O mesmo vale para o registro da empresa em `company_courses`.
 - **Atomicidade:** o pedido, o histórico e a liberação de acesso rodam na mesma transação; uma falha em qualquer etapa desfaz tudo.
-- **Ainda não feito:** reativar a matrícula revogada pelo cancelamento de um pedido (limpar `revoked_at`) depende da coluna criada pela US-28 (#50) e entra quando ela for mergeada.
+
+```
+GET /api/v1/orders/seat-price
+```
+
+Devolve `{ "seatPrice": 79.00 }`, o valor de um assento (`APP_SEAT_PRICE`), para o checkout mostrar o total do pacote antes da compra. Mesma autenticação do `POST`. O pedido continua sendo calculado no servidor com esse valor.
 
 ## 🧾 Cancelamento e reembolso de pedidos (Admin)
 

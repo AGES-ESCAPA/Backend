@@ -5,5 +5,6 @@ public enum NotificationType {
     COURSE_UPDATED,
     COURSE_EXPIRING,
     CERTIFICATE_ISSUED,
-    GENERAL
+    GENERAL,
+    LESSON_UPDATED
 }

@@ -13,17 +13,19 @@ import java.util.UUID;
  */
 public interface OrderAccessPort {
 
+    /** Matrícula ativa ou vencida; uma matrícula revogada pelo cancelamento do pedido não conta como acesso. */
     Optional<Enrollment> findStudentEnrollment(UUID userId, UUID courseId);
 
     /**
-     * Cria a matrícula com progresso zero. Se o aluno já tinha uma matrícula (por exemplo, vencida),
-     * renova só as datas e mantém o progresso já feito.
+     * Cria a matrícula com progresso zero. Se o aluno já tinha uma matrícula (vencida ou revogada),
+     * renova só as datas, reativa o acesso e mantém o progresso já feito.
      */
     void saveStudentEnrollment(UUID userId, UUID courseId, LocalDate startDate, LocalDate expirationDate);
 
+    /** Curso da empresa ativo ou vencido; um curso revogado pelo cancelamento do pedido não conta como acesso. */
     Optional<Enrollment> findCompanyCourse(UUID companyId, UUID courseId);
 
-    /** Cria o curso da empresa ou, se já existia, renova as datas. */
+    /** Cria o curso da empresa ou, se já existia (vencido ou revogado), renova as datas e reativa o acesso. */
     void saveCompanyCourse(UUID companyId, UUID courseId, LocalDate startDate, LocalDate expirationDate);
 
     /** Soma assentos em {@code company.seats_total}, sem liberar nenhum curso. */

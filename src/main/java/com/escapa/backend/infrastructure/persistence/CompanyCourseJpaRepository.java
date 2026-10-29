@@ -8,9 +8,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public interface CompanyCourseJpaRepository extends JpaRepository<CompanyCourseEntity, CompanyCourseId> {
+
+    @Query("select cc.id.courseId from CompanyCourseEntity cc "
+            + "where cc.id.companyId = :companyId and cc.revokedAt is null")
+    List<UUID> findAcquiredCourseIds(@Param("companyId") UUID companyId);
 
     /** Revoga o curso da empresa, sem apagar o registro. */
     @Modifying

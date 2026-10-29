@@ -102,4 +102,20 @@ class LessonProgressRepositoryAdapterTest extends PostgresIntegrationTest {
         assertTrue(completed.contains(lessonInCourseA));
         assertTrue(!completed.contains(lessonInCourseB));
     }
+
+    @Test
+    void shouldPersistCompletionAndKeepOriginalDateWhenMarkedAgain() {
+        final UUID userId = givenUser();
+        final UUID moduleId = givenModule("Curso C");
+        final UUID lessonId = givenContent(moduleId, "Aula do curso C");
+        final UUID courseId = moduleJpaRepository.findById(moduleId).orElseThrow().getCourse().getId();
+        final LocalDateTime firstCompletion = LocalDateTime.of(2026, 6, 1, 10, 0);
+
+        lessonProgressRepositoryPort.markCompleted(userId, lessonId, firstCompletion);
+        lessonProgressRepositoryPort.markCompleted(userId, lessonId, firstCompletion.plusDays(5));
+
+        assertEquals(List.of(lessonId), lessonProgressRepositoryPort.findCompletedLessonIds(userId, courseId));
+        assertEquals(firstCompletion, progressJpaRepository
+                .findById(new UserContentProgressId(userId, lessonId)).orElseThrow().getCompletedAt());
+    }
 }

@@ -1,6 +1,7 @@
 package com.escapa.backend.infrastructure.persistence;
 
 import com.escapa.backend.application.port.ContentRepositoryPort;
+import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
@@ -58,6 +59,26 @@ class ContentRepositoryAdapterTest extends PostgresIntegrationTest {
         assertNotNull(saved.getId());
         assertEquals(moduleId, saved.getModuleId());
         assertTrue(contentRepositoryPort.findById(saved.getId()).isPresent());
+    }
+
+    @Test
+    void shouldPersistSupplementaryResourcesAsJson() {
+        final UUID moduleId = givenModule();
+        final Content content = new Content();
+        content.setModuleId(moduleId);
+        content.setTitle("Aula com materiais");
+        content.setType(ContentType.TEXT);
+        content.setDescription("Texto");
+        content.setIsFree(false);
+        content.setOrder(contentRepositoryPort.nextOrder(moduleId));
+        content.setResources(List.of(
+                new ContentResource("r1", "link", "Artigo MDN", "https://developer.mozilla.org"),
+                new ContentResource("r2", "file", "Planilha", "http://localhost:9000/escapa-media/contents/a.xlsx")));
+
+        final Content saved = contentRepositoryPort.save(content);
+
+        assertEquals(content.getResources(),
+                contentRepositoryPort.findById(saved.getId()).orElseThrow().getResources());
     }
 
     @Test

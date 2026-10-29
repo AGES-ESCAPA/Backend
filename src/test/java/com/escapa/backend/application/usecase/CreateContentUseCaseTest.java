@@ -1,10 +1,12 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,6 +34,31 @@ class CreateContentUseCaseTest {
         assertEquals(1, content.getOrder());
         assertNotNull(content.getCreatedAt());
         assertFalse(content.getIsFree());
+    }
+
+    @Test
+    void shouldKeepTheSupplementaryResources() {
+        final List<ContentResource> resources = List.of(
+                new ContentResource("r1", "link", "Artigo MDN", "https://developer.mozilla.org"),
+                new ContentResource("r2", "file", "Planilha", "http://localhost:9000/escapa-media/contents/a.xlsx"));
+
+        final Content content = useCase.execute(
+                moduleId, "Aula", ContentType.TEXT, null, null, "Texto", false, resources);
+
+        assertEquals(resources, content.getResources());
+    }
+
+    @Test
+    void shouldRejectResourceWithoutUrlOrWithUnknownType() {
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(
+                moduleId, "Aula", ContentType.TEXT, null, null, "Texto", false,
+                List.of(new ContentResource("r1", "file", "Planilha", " "))));
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(
+                moduleId, "Aula", ContentType.TEXT, null, null, "Texto", false,
+                List.of(new ContentResource("r1", "video", "Planilha", "https://x.com/a.pdf"))));
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(
+                moduleId, "Aula", ContentType.TEXT, null, null, "Texto", false,
+                List.of(new ContentResource("r1", "link", "Artigo", "javascript:alert(1)"))));
     }
 
     @Test
