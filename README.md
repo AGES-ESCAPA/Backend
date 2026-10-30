@@ -767,6 +767,26 @@ Só para ADMIN (header `X-User-Id`; ausente ou de outro tipo retorna `403`). O c
 - **Recompra do mesmo curso:** a linha revogada continua com a chave (aluno, curso). O checkout deve limpar `revoked_at` (e renovar as datas) em vez de inserir outra matrícula.
 - **Concorrência:** o pedido é lido com `SELECT ... FOR UPDATE`, então dois cancelamentos simultâneos não passam juntos pela validação.
 
+## 👥 Vagas e colaboradores da empresa (US-30)
+
+```http
+GET /api/v1/company/seats
+GET /api/v1/company/employees?search=ana&page=0&size=10
+```
+
+Para a Gestão de Colaboradores. Exigem `Authorization: Bearer <accessToken>` de uma **empresa** (`COMPANY`): sem token `401`, outro perfil `403` (a regra de `/api/v1/company/**` está no `SecurityConfig`). A empresa é sempre a do token (`company.id` é o mesmo id do usuário): **nenhuma rota recebe o id da empresa**, e um `companyId` enviado na query é ignorado.
+
+**Resumo (`/seats`):** `seatsTotal` (`company.seats_total`), `seatsUsed`, `seatsAvailable`, `employeesTotal` e `employeesActive`.
+
+- **Regra de vaga:** todo colaborador vinculado em `users_company` ocupa uma vaga, esteja `ACTIVE`, `PENDING` ou `INACTIVE`. Só a desvinculação (US-33) libera a vaga.
+- `seatsAvailable` nunca é negativo: com mais colaboradores que vagas (dado antigo ou vagas reduzidas) vale `0`.
+
+**Listagem (`/employees`):** no envelope `PageResponse` (`content`, `pageNumber`, `pageSize`, `totalElements`, `totalPages`), ordenada por nome sem diferenciar maiúsculas. `page` começa em `0` e `size` vai de `1` a `100` (padrão `10`); fora disso retorna `400`.
+
+- **`search`** (opcional) procura um trecho do nome ou do e-mail, sem diferenciar maiúsculas; vazio ou só espaços não filtra, e `%` e `_` valem como texto comum.
+- **Cada item:** `id`, `name`, `email`, `jobTitle` (cargo, de `users_company.role`), `status`, `assignedCourses` e `avatarUrl` (nulo sem foto).
+- **`assignedCourses`:** matrículas do colaborador que não foram revogadas, nos cursos que a empresa comprou e ainda tem. Um curso da empresa revogado pelo cancelamento do pedido não conta.
+
 ---
 
 ## 🔎 Observações finais
