@@ -344,8 +344,9 @@ public class SpringConfig {
     @Bean
     public UpdateProgressRulesUseCase updateProgressRulesUseCase(
             CourseRepositoryPort courseRepository,
-            CourseChangeLogRepositoryPort changeLogRepository) {
-        return new UpdateProgressRulesUseCase(courseRepository, changeLogRepository);
+            CourseChangeLogRepositoryPort changeLogRepository,
+            CoursePrerequisiteRepositoryPort coursePrerequisiteRepository) {
+        return new UpdateProgressRulesUseCase(courseRepository, changeLogRepository, coursePrerequisiteRepository);
     }
 
     @Bean
