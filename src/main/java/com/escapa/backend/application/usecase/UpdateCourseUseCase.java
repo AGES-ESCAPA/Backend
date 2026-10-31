@@ -76,12 +76,18 @@ public class UpdateCourseUseCase {
         if (description != null) {
             course.setDescription(description);
         }
+        // null mantém a capa atual; string vazia remove. A URL nova substitui.
         if (thumbnailUrl != null) {
-            course.setThumbnailUrl(thumbnailUrl);
+            course.setThumbnailUrl(blankToNull(thumbnailUrl));
         }
         if (teaserVideoUrl != null) {
             course.setTeaserVideoUrl(teaserVideoUrl);
         }
+    }
+
+    private static String blankToNull(String value) {
+        final String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private void updateInstructor(Course course, UUID instructorId) {

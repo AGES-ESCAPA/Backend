@@ -41,7 +41,7 @@ public class CreateCourseUseCase {
                 title.trim(),
                 shortDescription,
                 description,
-                thumbnailUrl,
+                blankToNull(thumbnailUrl),
                 teaserVideoUrl,
                 instructor,
                 category,
@@ -58,6 +58,14 @@ public class CreateCourseUseCase {
         final Course saved = courseRepositoryPort.save(course);
         LOGGER.info("Course {} created by user {}", saved.getId(), createdById);
         return saved;
+    }
+
+    private static String blankToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        final String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private User resolveInstructor(UUID instructorId) {
