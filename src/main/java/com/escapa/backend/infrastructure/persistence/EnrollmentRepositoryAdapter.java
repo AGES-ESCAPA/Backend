@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -54,6 +55,12 @@ public class EnrollmentRepositoryAdapter implements EnrollmentRepositoryPort {
                 entityPage.getTotalElements(),
                 entityPage.getTotalPages()
         );
+    }
+
+    @Override
+    @Transactional
+    public void recordLastAccess(UUID userId, UUID courseId, LocalDateTime accessedAt) {
+        userCourseJpaRepository.updateLastAccessDate(userId, courseId, accessedAt);
     }
 
     private StudentCourseCard toDomain(UserCourseEntity entity) {

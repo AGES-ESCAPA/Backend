@@ -6,6 +6,7 @@ import com.escapa.backend.application.model.StudentCourseCard;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.domain.course.EnrollmentStatus;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,11 +21,24 @@ public final class InMemoryEnrollmentRepositoryPort implements EnrollmentReposit
 
     private final Map<Key, Enrollment> enrollments = new HashMap<>();
     private final List<StudentCourseCard> courseCards = new ArrayList<>();
+    private final Map<Key, LocalDateTime> lastAccess = new HashMap<>();
 
     public void enroll(UUID userId, UUID courseId, Enrollment enrollment) {
         enrollments.put(new Key(userId, courseId), enrollment);
     }
     
+    @Override
+    public void recordLastAccess(UUID userId, UUID courseId, LocalDateTime accessedAt) {
+        final Key key = new Key(userId, courseId);
+        if (enrollments.containsKey(key)) {
+            lastAccess.put(key, accessedAt);
+        }
+    }
+
+    public Optional<LocalDateTime> lastAccessOf(UUID userId, UUID courseId) {
+        return Optional.ofNullable(lastAccess.get(new Key(userId, courseId)));
+    }
+
     public void addCourseCard(StudentCourseCard card) {
         courseCards.add(card);
     }

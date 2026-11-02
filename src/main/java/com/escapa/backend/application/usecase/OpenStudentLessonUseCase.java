@@ -8,21 +8,29 @@ import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 
 import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Carrega uma aula para o aluno (US-11), validando o acesso: aula gratuita e
- * liberada a qualquer aluno identificado; as demais exigem matricula iniciada e,
- * se o curso bloqueia por prazo, ainda dentro da validade.
+ * Abre uma aula para o aluno (US-11), validando o acesso: aula gratuita e
+ * liberada a qualquer aluno identificado; as demais exigem matricula iniciada
+ * e, se o curso bloqueia por prazo, ainda dentro da validade.
  * O bloqueio por ordem obrigatoria depende do progresso por aula (US-13).
+ *
+ * <p>Quando o acesso e permitido, registra o ultimo acesso do aluno ao curso
+ * (US-35). Por gravar dados, o nome nao usa o prefixo {@code Get}: o caso de uso
+ * precisa rodar em transacao de escrita (ver {@code UseCaseTransactionConfig}).
+ * Aula gratuita de quem nao e matriculado nao registra nada.
  */
-public class GetStudentLessonUseCase {
+public class OpenStudentLessonUseCase {
 
     private final LessonRepositoryPort lessonRepositoryPort;
     private final LessonSupplementRepositoryPort lessonSupplementRepositoryPort;
+    private final EnrollmentRepositoryPort enrollmentRepositoryPort;
     private final EnrollmentAccessValidator enrollmentAccessValidator;
+    private final Clock clock;
 
-    public GetStudentLessonUseCase(
+    public OpenStudentLessonUseCase(
             LessonRepositoryPort lessonRepositoryPort,
             EnrollmentRepositoryPort enrollmentRepositoryPort,
             LessonSupplementRepositoryPort lessonSupplementRepositoryPort,
@@ -30,7 +38,9 @@ public class GetStudentLessonUseCase {
     ) {
         this.lessonRepositoryPort = lessonRepositoryPort;
         this.lessonSupplementRepositoryPort = lessonSupplementRepositoryPort;
+        this.enrollmentRepositoryPort = enrollmentRepositoryPort;
         this.enrollmentAccessValidator = new EnrollmentAccessValidator(enrollmentRepositoryPort, clock);
+        this.clock = clock;
     }
 
     public LessonDetails execute(UUID userId, UUID courseId, UUID lessonId) {
@@ -42,6 +52,9 @@ public class GetStudentLessonUseCase {
             enrollmentAccessValidator.requireActiveEnrollment(
                     userId, lesson.courseId(), lesson.courseEnforcesDeadlineBlock(), lesson.content().getId());
         }
+
+        // Acesso liberado: registra o ultimo acesso. A porta ignora quem nao tem matricula ativa.
+        enrollmentRepositoryPort.recordLastAccess(userId, lesson.courseId(), LocalDateTime.now(clock));
 
         final LessonSupplement supplement = lessonSupplementRepositoryPort.getSupplementsByLessonId(lessonId);
 

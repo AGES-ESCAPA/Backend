@@ -8,7 +8,7 @@ import com.escapa.backend.application.model.LessonDetails;
 import com.escapa.backend.application.model.StudentCourseCurriculum;
 import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
-import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
+import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -28,16 +28,16 @@ import java.util.UUID;
 @RequestMapping("/api/v1/student")
 public class StudentLessonController {
 
-    private final GetStudentLessonUseCase getStudentLessonUseCase;
+    private final OpenStudentLessonUseCase openStudentLessonUseCase;
     private final GetStudentCourseCurriculumUseCase getStudentCourseCurriculumUseCase;
     private final CompleteStudentLessonUseCase completeStudentLessonUseCase;
 
     public StudentLessonController(
-            GetStudentLessonUseCase getStudentLessonUseCase,
+            OpenStudentLessonUseCase openStudentLessonUseCase,
             GetStudentCourseCurriculumUseCase getStudentCourseCurriculumUseCase,
             CompleteStudentLessonUseCase completeStudentLessonUseCase
     ) {
-        this.getStudentLessonUseCase = getStudentLessonUseCase;
+        this.openStudentLessonUseCase = openStudentLessonUseCase;
         this.getStudentCourseCurriculumUseCase = getStudentCourseCurriculumUseCase;
         this.completeStudentLessonUseCase = completeStudentLessonUseCase;
     }
@@ -49,7 +49,7 @@ public class StudentLessonController {
             @PathVariable UUID lessonId
     ) {
         final UUID userId = AuthenticationContext.requireUser().id();
-        final LessonDetails lesson = getStudentLessonUseCase.execute(userId, courseId, lessonId);
+        final LessonDetails lesson = openStudentLessonUseCase.execute(userId, courseId, lessonId);
         return ResponseEntity.ok(ApiResponse.success(StudentLessonResponse.from(lesson)));
     }
 

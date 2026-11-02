@@ -81,6 +81,16 @@ public interface UserCourseJpaRepository
                 @Param("courseId") UUID courseId,
                 @Param("revokedAt") LocalDateTime revokedAt);
 
+            /** Registra o ultimo acesso (US-35); sem matricula ativa nao altera nenhuma linha. */
+            @Modifying
+            @Query("update UserCourseEntity uc set uc.lastAccessDate = :accessedAt "
+                + "where uc.id.userId = :userId and uc.id.courseId = :courseId "
+                + "and uc.revokedAt is null")
+            int updateLastAccessDate(
+                @Param("userId") UUID userId,
+                @Param("courseId") UUID courseId,
+                @Param("accessedAt") LocalDateTime accessedAt);
+
             /** Revoga as matriculas dos colaboradores da empresa no curso. */
             @Modifying
             @Query("update UserCourseEntity uc set uc.revokedAt = :revokedAt "
