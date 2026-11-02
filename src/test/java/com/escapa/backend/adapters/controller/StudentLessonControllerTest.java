@@ -15,7 +15,7 @@ import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
-import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
+import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
 import com.escapa.backend.application.usecase.InMemoryEnrollmentProgressRepositoryPort;
 import com.escapa.backend.application.usecase.InMemoryLessonProgressRepositoryPort;
 import com.escapa.backend.domain.content.ContentType;
@@ -83,12 +83,17 @@ class StudentLessonControllerTest {
             }
 
             @Override
+            public void recordLastAccess(UUID user, UUID course, java.time.LocalDateTime accessedAt) {
+                // O registro de ultimo acesso nao e verificado neste teste de controller.
+            }
+
+            @Override
             public com.escapa.backend.application.dto.PageResult<com.escapa.backend.application.model.StudentCourseCard> findStudentEnrollments(UUID userId, String title, com.escapa.backend.domain.course.EnrollmentStatus status, int page, int size) {
                 return null;
             }
         };
         final Clock clock = Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
-        final GetStudentLessonUseCase useCase = new GetStudentLessonUseCase(
+        final OpenStudentLessonUseCase useCase = new OpenStudentLessonUseCase(
                 lessonRepositoryPort,
                 lessonEnrollmentPort,
                 lessonId -> new LessonSupplement(List.of(), List.of()),
@@ -188,6 +193,11 @@ class StudentLessonControllerTest {
                     @Override
                     public Optional<Enrollment> findByUserIdAndCourseId(UUID user, UUID course) {
                         return user.equals(userId) ? curriculumEnrollment : Optional.empty();
+                    }
+
+                    @Override
+                    public void recordLastAccess(UUID user, UUID course, java.time.LocalDateTime accessedAt) {
+                        // Nao verificado neste teste.
                     }
 
                     @Override

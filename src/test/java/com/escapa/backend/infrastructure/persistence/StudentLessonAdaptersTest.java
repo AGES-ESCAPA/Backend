@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StudentLessonAdaptersTest extends PostgresIntegrationTest {
@@ -132,6 +133,52 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
         givenEnrollment(givenUserId(), course, LocalDate.of(2026, 1, 10), null);
 
         assertTrue(enrollmentRepositoryPort.findByUserIdAndCourseId(givenUserId(), course.getId()).isEmpty());
+    }
+
+    @Test
+    void shouldRecordAndOverwriteLastAccessOfActiveEnrollment() {
+        final CourseEntity course = givenCourse(false);
+        final UUID userId = givenUserId();
+        givenEnrollment(userId, course, LocalDate.of(2026, 1, 10), null);
+        final LocalDateTime first = LocalDateTime.of(2026, 6, 15, 10, 30, 15);
+        final LocalDateTime second = LocalDateTime.of(2026, 6, 16, 8, 0, 0);
+
+        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), first);
+        assertEquals(first, lastAccessOf(userId, course));
+
+        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), second);
+        assertEquals(second, lastAccessOf(userId, course));
+    }
+
+    @Test
+    void shouldNotCreateEnrollmentWhenRecordingLastAccessWithoutEnrollment() {
+        final CourseEntity course = givenCourse(false);
+        final UUID userId = givenUserId();
+
+        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), LocalDateTime.of(2026, 6, 15, 10, 30, 15));
+
+        assertTrue(userCourseJpaRepository.findById(new UserCourseId(userId, course.getId())).isEmpty());
+    }
+
+    @Test
+    void shouldNotRecordLastAccessOfRevokedEnrollment() {
+        final CourseEntity course = givenCourse(false);
+        final UUID userId = givenUserId();
+        givenEnrollment(userId, course, LocalDate.of(2026, 1, 10), null);
+        final UserCourseEntity enrollment =
+                userCourseJpaRepository.findById(new UserCourseId(userId, course.getId())).orElseThrow();
+        enrollment.setRevokedAt(LocalDateTime.of(2026, 6, 1, 12, 0, 0));
+        userCourseJpaRepository.save(enrollment);
+
+        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), LocalDateTime.of(2026, 6, 15, 10, 30, 15));
+
+        assertNull(lastAccessOf(userId, course));
+    }
+
+    private LocalDateTime lastAccessOf(UUID userId, CourseEntity course) {
+        return userCourseJpaRepository.findById(new UserCourseId(userId, course.getId()))
+                .orElseThrow()
+                .getLastAccessDate();
     }
 
     private UUID givenUserId() {
