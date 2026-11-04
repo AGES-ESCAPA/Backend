@@ -5,6 +5,7 @@ import com.escapa.backend.application.model.CourseMetrics;
 import com.escapa.backend.application.model.CourseMetrics.CategoryShare;
 import com.escapa.backend.application.model.CourseMetrics.CourseRanking;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
+import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.GetAdminCourseMetricsUseCase;
 import com.escapa.backend.domain.course.CourseStatus;
@@ -16,7 +17,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -29,8 +33,18 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@AutoConfigureMockMvc
 class CourseMetricsIntegrationTest extends PostgresIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private TokenProviderPort tokenProviderPort;
 
     @Autowired
     private EnrollmentRepositoryPort enrollmentRepositoryPort;
@@ -117,6 +131,32 @@ class CourseMetricsIntegrationTest extends PostgresIntegrationTest {
         assertTrue(metrics.topCourses().isEmpty());
         assertEquals(0, metrics.categoriesCount());
         assertTrue(metrics.enrollmentsByCategory().isEmpty());
+    }
+
+    @Test
+    void shouldExposeEndpointInOpenApiAndEnforceJwtSecurityFilterEndToEnd() throws Exception {
+        final UUID adminId = givenUser("ADMIN");
+        final UUID studentId = givenUser("STUDENT");
+        final String adminToken = tokenProviderPort.generateToken(adminId, "admin@escapa.com", "ADMIN", "ADMIN");
+        final String studentToken = tokenProviderPort.generateToken(studentId, "student@escapa.com", "STUDENT", "STUDENT");
+
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paths['/api/v1/admin/metrics/courses'].get.summary")
+                        .value("Get historical course enrollment ranking and category distribution"));
+
+        mockMvc.perform(get("/api/v1/admin/metrics/courses"))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(get("/api/v1/admin/metrics/courses")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentToken))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/api/v1/admin/metrics/courses")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.categoriesCount").value(0));
     }
 
     private CourseEntity givenCourse(String title, String category, CourseStatus status) {
