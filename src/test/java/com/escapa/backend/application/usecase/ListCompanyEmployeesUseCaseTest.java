@@ -4,6 +4,7 @@ import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CompanyEmployee;
 import com.escapa.backend.application.model.CompanyEmployeeCounts;
 import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
+import com.escapa.backend.domain.company.CompanyNotFoundException;
 import com.escapa.backend.domain.user.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,9 +14,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -66,7 +69,10 @@ class ListCompanyEmployeesUseCaseTest {
 
     @Test
     void shouldReturnAnEmptyPageForACompanyWithoutEmployees() {
-        final PageResult<CompanyEmployee> page = useCase.execute(UUID.randomUUID(), null, 0, 10);
+        final UUID companyWithoutEmployees = UUID.randomUUID();
+        fake.knownCompanies.add(companyWithoutEmployees);
+
+        final PageResult<CompanyEmployee> page = useCase.execute(companyWithoutEmployees, null, 0, 10);
 
         assertTrue(page.content().isEmpty());
         assertEquals(0, page.totalElements());
@@ -97,6 +103,32 @@ class ListCompanyEmployeesUseCaseTest {
         useCase.execute(companyA, "  bruno  ", 0, 10);
 
         assertEquals("bruno", fake.lastSearch);
+    }
+
+    @Test
+    void shouldStripUnicodeSpacesAroundTheSearchTerm() {
+        // U+3000 (espaço ideográfico) é espaço para strip(), mas trim() o deixaria no termo.
+        useCase.execute(companyA, "ana　", 0, 10);
+
+        assertEquals("ana", fake.lastSearch);
+    }
+
+    @Test
+    void shouldNotFilterWhenTheSearchIsOnlyUnicodeSpaces() {
+        useCase.execute(companyA, "　  ", 0, 10);
+
+        assertNull(fake.lastSearch);
+    }
+
+    @Test
+    void shouldRefuseASearchWithTheNulCharacter() {
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(companyA, "a\u0000b", 0, 10));
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(companyA, "\u0000", 0, 10));
+    }
+
+    @Test
+    void shouldFailWhenTheCompanyHasNoRecord() {
+        assertThrows(CompanyNotFoundException.class, () -> useCase.execute(UUID.randomUUID(), null, 0, 10));
     }
 
     @ParameterizedTest
@@ -176,11 +208,18 @@ class ListCompanyEmployeesUseCaseTest {
     private static final class FakeEmployees implements CompanyEmployeeRepositoryPort {
 
         private final Map<UUID, List<CompanyEmployee>> employeesOf = new HashMap<>();
+        private final Set<UUID> knownCompanies = new HashSet<>();
         private String lastSearch;
 
         private void add(UUID company, String name, String email) {
+            knownCompanies.add(company);
             employeesOf.computeIfAbsent(company, ignored -> new ArrayList<>()).add(
                     new CompanyEmployee(UUID.randomUUID(), name, email, "Recepção", UserStatus.ACTIVE, 0, null));
+        }
+
+        @Override
+        public boolean existsCompany(UUID companyId) {
+            return knownCompanies.contains(companyId);
         }
 
         @Override

@@ -8,6 +8,7 @@ import com.escapa.backend.domain.user.UserStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -17,13 +18,18 @@ import java.util.UUID;
 public class CompanyEmployeeAdapter implements CompanyEmployeeRepositoryPort {
 
     /**
-     * A busca e a ordem usam a ordenação Unicode (ICU) do Postgres, "und-x-icu". Sem ela, a ordem
-     * depende da configuração do banco e nomes com acento ("Ágata", "Érica") vão parar depois do "Z".
+     * Ordenação Unicode (ICU) da busca e da ordem por nome, criada pela migration V19. Sem ela, a
+     * ordem depende da configuração do banco e nomes com acento ("Ágata", "Érica") vão parar depois
+     * do "Z". É definida num lugar só: a migration, que falha ao subir num Postgres sem ICU em vez de
+     * deixar esta listagem falhar a cada chamada.
      */
-    private static final String SEARCH_FILTER = """
-             and (lower(u.name collate "und-x-icu") like :pattern escape '\\'
-                  or lower(u.email collate "und-x-icu") like :pattern escape '\\')
-            """;
+    private static final String COLLATION = "escapa_unicode";
+
+    private static final String NAME_KEY = "lower(u.name collate " + COLLATION + ")";
+    private static final String EMAIL_KEY = "lower(u.email collate " + COLLATION + ")";
+
+    private static final String SEARCH_FILTER =
+            " and (" + NAME_KEY + " like :pattern escape '\\' or " + EMAIL_KEY + " like :pattern escape '\\')\n";
 
     /**
      * Matrículas do colaborador que não foram revogadas, nos cursos que a empresa comprou e ainda
@@ -46,6 +52,14 @@ public class CompanyEmployeeAdapter implements CompanyEmployeeRepositoryPort {
     }
 
     @Override
+    public boolean existsCompany(UUID companyId) {
+        return jdbcClient.sql("select exists (select 1 from company where id = :companyId)")
+                .param("companyId", companyId)
+                .query(Boolean.class)
+                .single();
+    }
+
+    @Override
     public CompanyEmployeeCounts countEmployees(UUID companyId) {
         return jdbcClient.sql("""
                         select count(*) as total,
@@ -62,7 +76,9 @@ public class CompanyEmployeeAdapter implements CompanyEmployeeRepositoryPort {
     @Override
     public PageResult<CompanyEmployee> findEmployees(UUID companyId, String search, int page, int size) {
         final boolean filtered = search != null;
-        final String pattern = filtered ? "%" + escapeLike(search.toLowerCase()) + "%" : null;
+        // Locale.ROOT: o locale padrão da JVM mudaria o resultado (em turco, "I" vira "ı" e "IVO" não
+        // encontraria "Ivo"). O Postgres já converte a coluna pela mesma ordenação Unicode.
+        final String pattern = filtered ? "%" + escapeLike(search.toLowerCase(Locale.ROOT)) + "%" : null;
         final String filter = filtered ? SEARCH_FILTER : "";
 
         final long total = bind(jdbcClient.sql("""
@@ -81,10 +97,8 @@ public class CompanyEmployeeAdapter implements CompanyEmployeeRepositoryPort {
                           from users_company link
                           join users u on u.id = link.user_id
                          where link.company_id = :companyId
-                        """ + filter + """
-                         order by lower(u.name collate "und-x-icu"), u.id
-                         limit :limit offset :offset
-                        """), companyId, pattern)
+                        """ + filter + " order by " + NAME_KEY + ", u.id limit :limit offset :offset"),
+                companyId, pattern)
                 .param("limit", size)
                 .param("offset", (long) page * size)
                 .query((rs, rowNum) -> new CompanyEmployee(

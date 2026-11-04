@@ -780,10 +780,13 @@ Para a Gestão de Colaboradores. Exigem `Authorization: Bearer <accessToken>` de
 
 - **Regra de vaga:** todo colaborador vinculado em `users_company` ocupa uma vaga, esteja `ACTIVE`, `PENDING` ou `INACTIVE`. Só a desvinculação (US-33) libera a vaga.
 - `seatsAvailable` nunca é negativo: com mais colaboradores que vagas (dado antigo ou vagas reduzidas) vale `0`.
+- `seatsUsed` e `employeesTotal` saem da mesma contagem de colaboradores, então nunca divergem.
+- Um usuário `COMPANY` que não tem registro em `company` (criado só em `users`, por exemplo por `POST /api/v1/users`, e que consegue entrar) recebe `404` nas duas rotas.
 
 **Listagem (`/employees`):** no envelope `PageResponse` (`content`, `pageNumber`, `pageSize`, `totalElements`, `totalPages`), ordenada por nome sem diferenciar maiúsculas. `page` começa em `0` e `size` vai de `1` a `100` (padrão `10`); fora disso retorna `400`.
 
-- **`search`** (opcional) procura um trecho do nome ou do e-mail, sem diferenciar maiúsculas; vazio ou só espaços não filtra, e `%` e `_` valem como texto comum.
+- **`search`** (opcional) procura um trecho do nome ou do e-mail, sem diferenciar maiúsculas; vazio ou só espaços (inclusive espaços Unicode, como o ideográfico) não filtra, e `%` e `_` valem como texto comum. Um termo com o caractere NUL (`%00`) retorna `400`, porque o Postgres não o aceita em texto.
+- **Ordem e acentos:** a busca e a ordem por nome usam a ordenação Unicode `escapa_unicode`, criada pela migration `V19` (ICU, locale `und`), para "Ágata" e "Érica" ficarem entre as letras sem acento. Ela exige um Postgres com ICU, como a imagem `postgres:16-alpine` do projeto; sem ICU, a migration falha ao subir a aplicação.
 - **Cada item:** `id`, `name`, `email`, `jobTitle` (cargo, de `users_company.role`), `status`, `assignedCourses` e `avatarUrl` (nulo sem foto).
 - **`assignedCourses`:** matrículas do colaborador que não foram revogadas, nos cursos que a empresa comprou e ainda tem. Um curso da empresa revogado pelo cancelamento do pedido não conta.
 

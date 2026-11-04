@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.contains;
@@ -435,6 +436,61 @@ class CompanyEmployeeControllerTest extends PostgresIntegrationTest {
         getAs(companyA, "COMPANY", EMPLOYEES + "?size=0").andExpect(status().isBadRequest());
         getAs(companyA, "COMPANY", EMPLOYEES + "?size=101").andExpect(status().isBadRequest());
         getAs(companyA, "COMPANY", EMPLOYEES + "?size=abc").andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnNotFoundForACompanyUserThatHasNoCompanyRecord() throws Exception {
+        // Um usuário COMPANY criado só em users consegue entrar, mas não tem registro em company.
+        final UUID onlyInUsers = givenUser(
+                "Sem Registro", "sem-registro-" + UUID.randomUUID() + "@empresa.com.br", "COMPANY", "ACTIVE", null);
+
+        getAs(onlyInUsers, "COMPANY", SEATS)
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", is("Company not found: " + onlyInUsers)));
+        getAs(onlyInUsers, "COMPANY", EMPLOYEES).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldRefuseASearchWithTheNulCharacter() throws Exception {
+        givenEmployee(companyA, "Ana", "ana@vistamar.com.br", "Recepção", "ACTIVE");
+
+        searchAs(companyA, "a\u0000b")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", is("Invalid search")));
+        searchAs(companyA, "\u0000").andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldIgnoreUnicodeSpacesAroundTheSearch() throws Exception {
+        givenEmployee(companyA, "Ana Paula", "ana@vistamar.com.br", "Recepção", "ACTIVE");
+        givenEmployee(companyA, "Bruno", "bruno@vistamar.com.br", "Recepção", "ACTIVE");
+
+        // U+3000 (espaço ideográfico) vindo de um termo colado.
+        searchAs(companyA, "ana　").andExpect(jsonPath("$.data.content[*].name", contains("Ana Paula")));
+        searchAs(companyA, "　 ").andExpect(jsonPath("$.data.content", hasSize(2)));
+    }
+
+    @Test
+    void shouldSearchTheSameWayWhateverTheDefaultLocaleOfTheJvm() throws Exception {
+        givenEmployee(companyA, "Ivo Souza", "ivo@vistamar.com.br", "Recepção", "ACTIVE");
+        final Locale original = Locale.getDefault();
+        try {
+            // Em turco, "I".toLowerCase() vira "ı" e "IVO" não encontraria "Ivo".
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+
+            searchAs(companyA, "IVO").andExpect(jsonPath("$.data.content[*].name", contains("Ivo Souza")));
+        } finally {
+            Locale.setDefault(original);
+        }
+    }
+
+    @Test
+    void shouldHaveTheUnicodeCollationCreatedByTheMigration() {
+        final Integer collations = jdbcTemplate.queryForObject(
+                "select count(*) from pg_collation where collname = 'escapa_unicode' and collprovider = 'i'",
+                Integer.class);
+
+        org.junit.jupiter.api.Assertions.assertEquals(1, collations);
     }
 
     @Test
