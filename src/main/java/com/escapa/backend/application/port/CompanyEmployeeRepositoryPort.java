@@ -12,6 +12,9 @@ import java.util.UUID;
  */
 public interface CompanyEmployeeRepositoryPort {
 
+    /** A empresa tem registro em {@code company}? Um usuário COMPANY pode existir só em {@code users}. */
+    boolean existsCompany(UUID companyId);
+
     /** Colaboradores vinculados, de qualquer status, e quantos estão ativos. */
     CompanyEmployeeCounts countEmployees(UUID companyId);
 

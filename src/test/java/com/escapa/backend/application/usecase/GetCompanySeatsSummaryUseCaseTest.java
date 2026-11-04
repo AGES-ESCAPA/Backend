@@ -6,6 +6,7 @@ import com.escapa.backend.application.model.CompanyEmployeeCounts;
 import com.escapa.backend.application.model.CompanySeatsSummary;
 import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
 import com.escapa.backend.application.port.CompanySeatsPort;
+import com.escapa.backend.domain.company.CompanyNotFoundException;
 import com.escapa.backend.domain.user.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -115,6 +116,28 @@ class GetCompanySeatsSummaryUseCaseTest {
     }
 
     @Test
+    void shouldTakeTheSeatsInUseFromTheSameCountOfEmployees() {
+        fake.seatsTotal.put(companyA, 10);
+        givenEmployees(companyA, 6, 2, 1);
+        fake.seatsInUseCount = 999;
+
+        final CompanySeatsSummary summary = useCase.execute(companyA);
+
+        // Uma contagem só alimenta as duas coisas: elas não podem divergir.
+        assertEquals(summary.employeesTotal(), summary.seatsUsed());
+        assertEquals(9, summary.seatsUsed());
+        assertEquals(1, summary.seatsAvailable());
+        assertEquals(0, fake.seatsInUseCalls);
+    }
+
+    @Test
+    void shouldFailWhenTheCompanyHasNoRecord() {
+        final UUID userWithoutCompanyRecord = UUID.randomUUID();
+
+        assertThrows(CompanyNotFoundException.class, () -> useCase.execute(userWithoutCompanyRecord));
+    }
+
+    @Test
     void shouldRefuseAMissingCompanyId() {
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(null));
     }
@@ -124,6 +147,8 @@ class GetCompanySeatsSummaryUseCaseTest {
 
         private final Map<UUID, Integer> seatsTotal = new HashMap<>();
         private final Map<UUID, List<UserStatus>> employeesOf = new HashMap<>();
+        private Integer seatsInUseCount;
+        private int seatsInUseCalls;
 
         private void link(UUID company, UserStatus status) {
             employeesOf.computeIfAbsent(company, ignored -> new ArrayList<>()).add(status);
@@ -136,12 +161,18 @@ class GetCompanySeatsSummaryUseCaseTest {
 
         @Override
         public int countSeatsInUse(UUID companyId) {
-            return employeesOf.getOrDefault(companyId, List.of()).size();
+            seatsInUseCalls++;
+            return seatsInUseCount != null ? seatsInUseCount : employeesOf.getOrDefault(companyId, List.of()).size();
         }
 
         @Override
         public void updateSeatsTotal(UUID companyId, int total) {
             seatsTotal.put(companyId, total);
+        }
+
+        @Override
+        public boolean existsCompany(UUID companyId) {
+            return seatsTotal.containsKey(companyId);
         }
 
         @Override
