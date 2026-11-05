@@ -155,4 +155,24 @@ public interface UserCourseJpaRepository
                 + "left join AdminEntity studentAdmin on studentAdmin.id = student.id "
                 + "where uc.certificateCode = :code and uc.certificateIssued = true")
             Optional<CertificateDetailsView> findIssuedDetailsByCertificateCode(@Param("code") String code);
+
+            /** Projecao agregada de matriculas elegiveis por curso para metricas historicas (US-37). */
+            interface CourseEnrollmentCountView {
+                UUID getCourseId();
+
+                String getTitle();
+
+                String getCategory();
+
+                long getEnrollments();
+            }
+
+            @Query("select course.id as courseId, course.title as title, course.category as category, "
+                + "count(uc) as enrollments "
+                + "from UserCourseEntity uc "
+                + "join uc.course course "
+                + "where uc.revokedAt is null "
+                + "and course.status <> com.escapa.backend.domain.course.CourseStatus.DRAFT "
+                + "group by course.id, course.title, course.category")
+            List<CourseEnrollmentCountView> countEligibleEnrollmentsByCourse();
 }

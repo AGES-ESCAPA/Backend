@@ -1,6 +1,7 @@
 package com.escapa.backend.infrastructure.persistence;
 
 import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CourseEnrollmentCount;
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.model.StudentCourseCard;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
@@ -54,6 +55,18 @@ public class EnrollmentRepositoryAdapter implements EnrollmentRepositoryPort {
                 entityPage.getTotalElements(),
                 entityPage.getTotalPages()
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CourseEnrollmentCount> countEligibleEnrollmentsByCourse() {
+        return userCourseJpaRepository.countEligibleEnrollmentsByCourse().stream()
+                .map(view -> new CourseEnrollmentCount(
+                        view.getCourseId(),
+                        view.getTitle(),
+                        view.getCategory(),
+                        view.getEnrollments()))
+                .toList();
     }
 
     private StudentCourseCard toDomain(UserCourseEntity entity) {
