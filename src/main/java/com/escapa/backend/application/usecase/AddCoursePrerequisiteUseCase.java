@@ -1,9 +1,11 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.PublishedCourseDrafts;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.course.CoursePendingDraft;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
 
@@ -35,11 +37,22 @@ public class AddCoursePrerequisiteUseCase {
         if (courseId.equals(prerequisiteCourseId)) {
             throw new IllegalArgumentException("Um curso não pode ser pré-requisito dele mesmo.");
         }
-        if (prerequisiteRepository.existsByCourseIdAndPrerequisiteCourseId(courseId, prerequisiteCourseId)) {
-            throw new IllegalArgumentException("Pré-requisito já cadastrado.");
-        }
         if (createsCycle(courseId, prerequisiteCourseId, new HashSet<>())) {
             throw new IllegalArgumentException("O pré-requisito formaria um ciclo.");
+        }
+
+        if (PublishedCourseDrafts.isPublished(course)) {
+            final CoursePendingDraft draft = PublishedCourseDrafts.ensure(course, prerequisiteRepository);
+            if (draft.containsPrerequisite(prerequisiteCourseId)) {
+                throw new IllegalArgumentException("Pré-requisito já cadastrado.");
+            }
+            course.setPendingDraft(draft.withPrerequisite(prerequisiteCourseId));
+            courseRepository.save(course);
+            return;
+        }
+
+        if (prerequisiteRepository.existsByCourseIdAndPrerequisiteCourseId(courseId, prerequisiteCourseId)) {
+            throw new IllegalArgumentException("Pré-requisito já cadastrado.");
         }
 
         prerequisiteRepository.save(courseId, prerequisiteCourseId);

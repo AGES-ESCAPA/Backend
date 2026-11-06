@@ -1,5 +1,6 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.PublishedCourseDrafts;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.entity.Course;
@@ -18,6 +19,7 @@ public class GetAdminCourseUseCase {
     }
 
     public Course execute(UUID id) {
-        return courseRepositoryPort.findById(id).orElseThrow(() -> new CourseNotFoundException(id));
+        final Course course = courseRepositoryPort.findById(id).orElseThrow(() -> new CourseNotFoundException(id));
+        return PublishedCourseDrafts.editorView(course);
     }
 }

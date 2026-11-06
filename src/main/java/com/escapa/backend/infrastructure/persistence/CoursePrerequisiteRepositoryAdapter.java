@@ -5,6 +5,7 @@ import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteId;
 import jakarta.persistence.EntityManager;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -44,5 +45,20 @@ public class CoursePrerequisiteRepositoryAdapter implements CoursePrerequisiteRe
     @Override
     public void deleteByCourseIdAndPrerequisiteCourseId(UUID courseId, UUID prerequisiteCourseId) {
         coursePrerequisiteJpaRepository.deleteById(new CoursePrerequisiteId(courseId, prerequisiteCourseId));
+    }
+
+    @Override
+    @Transactional
+    public void replaceAll(UUID courseId, List<UUID> prerequisiteCourseIds) {
+        coursePrerequisiteJpaRepository.deleteAll(coursePrerequisiteJpaRepository.findByCourseId(courseId));
+        entityManager.flush();
+        if (prerequisiteCourseIds == null) {
+            return;
+        }
+        for (final UUID prerequisiteCourseId : prerequisiteCourseIds) {
+            if (prerequisiteCourseId != null && !prerequisiteCourseId.equals(courseId)) {
+                save(courseId, prerequisiteCourseId);
+            }
+        }
     }
 }
