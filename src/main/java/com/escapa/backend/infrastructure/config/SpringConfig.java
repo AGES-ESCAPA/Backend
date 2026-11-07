@@ -40,6 +40,7 @@ import com.escapa.backend.application.usecase.AuthorizeActiveUserUseCase;
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.application.usecase.CancelOrderUseCase;
 import com.escapa.backend.application.usecase.ChangePasswordUseCase;
+import com.escapa.backend.application.usecase.ListCompanyCoursesUseCase;
 import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
@@ -288,6 +289,11 @@ public class SpringConfig {
         return new ListCompanyCourseIdsUseCase(companyCourseRepositoryPort);
     }
 
+    @Bean
+    public ListCompanyCoursesUseCase listCompanyCoursesUseCase(
+            CompanyCourseRepositoryPort companyCourseRepositoryPort) {
+        return new ListCompanyCoursesUseCase(companyCourseRepositoryPort);
+    }
     @Bean
     public CompanySeatsPort companySeatsPort(JdbcClient jdbcClient) {
         return new CompanySeatsAdapter(jdbcClient);
