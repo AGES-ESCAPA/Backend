@@ -8,6 +8,7 @@ import java.util.UUID;
  */
 public interface CompanySeatsPort {
 
+    /** @throws com.escapa.backend.domain.company.CompanyNotFoundException se a empresa não tem registro em {@code company} */
     int findSeatsTotal(UUID companyId);
 
     int countSeatsInUse(UUID companyId);
