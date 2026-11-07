@@ -9,9 +9,11 @@ import com.escapa.backend.domain.course.EnrollmentStatus;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -22,6 +24,7 @@ public final class InMemoryEnrollmentRepositoryPort implements EnrollmentReposit
     private final Map<Key, Enrollment> enrollments = new HashMap<>();
     private final List<StudentCourseCard> courseCards = new ArrayList<>();
     private final Map<Key, LocalDateTime> lastAccess = new HashMap<>();
+    private final Set<Key> revoked = new HashSet<>();
 
     public void enroll(UUID userId, UUID courseId, Enrollment enrollment) {
         enrollments.put(new Key(userId, courseId), enrollment);
@@ -30,7 +33,7 @@ public final class InMemoryEnrollmentRepositoryPort implements EnrollmentReposit
     @Override
     public void recordLastAccess(UUID userId, UUID courseId, LocalDateTime accessedAt) {
         final Key key = new Key(userId, courseId);
-        if (enrollments.containsKey(key)) {
+        if (enrollments.containsKey(key) && !revoked.contains(key)) {
             lastAccess.put(key, accessedAt);
         }
     }
@@ -39,13 +42,19 @@ public final class InMemoryEnrollmentRepositoryPort implements EnrollmentReposit
         return Optional.ofNullable(lastAccess.get(new Key(userId, courseId)));
     }
 
+    /** Marca a matricula como revogada: some da busca e deixa de receber o ultimo acesso. */
+    public void revoke(UUID userId, UUID courseId) {
+        revoked.add(new Key(userId, courseId));
+    }
+
     public void addCourseCard(StudentCourseCard card) {
         courseCards.add(card);
     }
 
     @Override
     public Optional<Enrollment> findByUserIdAndCourseId(UUID userId, UUID courseId) {
-        return Optional.ofNullable(enrollments.get(new Key(userId, courseId)));
+        final Key key = new Key(userId, courseId);
+        return revoked.contains(key) ? Optional.empty() : Optional.ofNullable(enrollments.get(key));
     }
 
     @Override

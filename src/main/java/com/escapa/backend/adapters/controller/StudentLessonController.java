@@ -43,7 +43,11 @@ public class StudentLessonController {
     }
 
     @GetMapping("/courses/{courseId}/lessons/{lessonId}")
-    @Operation(summary = "Get a lesson the student can access")
+    @Operation(
+            summary = "Get a lesson the student can access",
+            description = "Returns the lesson and records the student's last access to the course (US-35). "
+                    + "Free lessons only record access for students enrolled in the course."
+    )
     public ResponseEntity<ApiResponse<StudentLessonResponse>> getLesson(
             @PathVariable UUID courseId,
             @PathVariable UUID lessonId

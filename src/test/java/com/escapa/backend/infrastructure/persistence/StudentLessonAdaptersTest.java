@@ -14,6 +14,8 @@ import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserCourseId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -49,6 +51,9 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
 
     @Autowired
     private UserJpaRepository userJpaRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     private CourseEntity givenCourse(boolean enforceDeadlineBlock) {
         final CourseEntity course = new CourseEntity();
@@ -173,6 +178,25 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
         enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), LocalDateTime.of(2026, 6, 15, 10, 30, 15));
 
         assertNull(lastAccessOf(userId, course));
+    }
+
+    @Test
+    void shouldKeepLastAccessWhenEnrollmentLoadedEarlierIsSavedLater() {
+        final CourseEntity course = givenCourse(false);
+        final UUID userId = givenUserId();
+        givenEnrollment(userId, course, LocalDate.of(2026, 1, 10), null);
+        final UserCourseId id = new UserCourseId(userId, course.getId());
+        final LocalDateTime accessedAt = LocalDateTime.of(2026, 6, 15, 10, 30, 0);
+
+        // Simula o updateProgress: carrega a matricula, uma aula e aberta no meio e so depois o progresso e salvo.
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            final UserCourseEntity loaded = userCourseJpaRepository.findById(id).orElseThrow();
+            enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), accessedAt);
+            loaded.setProgress(50);
+        });
+
+        assertEquals(accessedAt, lastAccessOf(userId, course));
+        assertEquals(50, userCourseJpaRepository.findById(id).orElseThrow().getProgress());
     }
 
     private LocalDateTime lastAccessOf(UUID userId, CourseEntity course) {
