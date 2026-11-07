@@ -53,10 +53,11 @@ public class OpenStudentLessonUseCase {
                     userId, lesson.courseId(), lesson.courseEnforcesDeadlineBlock(), lesson.content().getId());
         }
 
-        // Acesso liberado: registra o ultimo acesso. A porta ignora quem nao tem matricula ativa.
-        enrollmentRepositoryPort.recordLastAccess(userId, lesson.courseId(), LocalDateTime.now(clock));
-
         final LessonSupplement supplement = lessonSupplementRepositoryPort.getSupplementsByLessonId(lessonId);
+
+        // Acesso liberado: registra o ultimo acesso por ultimo, para a gravacao nao reter o lock da linha
+        // durante as consultas acima. A porta ignora quem nao tem matricula ativa.
+        enrollmentRepositoryPort.recordLastAccess(userId, lesson.courseId(), LocalDateTime.now(clock));
 
         return new LessonDetails(
                 lesson.content(),

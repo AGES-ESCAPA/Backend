@@ -211,6 +211,17 @@ class OpenStudentLessonUseCaseTest {
     }
 
     @Test
+    void shouldNotRecordLastAccessOnFreeLessonWhenEnrollmentIsRevoked() {
+        final Content lesson = givenLesson(true, false);
+        givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
+        enrollmentRepository.revoke(userId, courseId);
+
+        assertEquals(lesson.getId(), useCase.execute(userId, courseId, lesson.getId()).content().getId());
+
+        assertEquals(Optional.empty(), enrollmentRepository.lastAccessOf(userId, courseId));
+    }
+
+    @Test
     void shouldRejectUnknownLesson() {
         givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
 
