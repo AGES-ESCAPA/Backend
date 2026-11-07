@@ -6,6 +6,7 @@ import com.escapa.backend.application.model.StudentCourseCard;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.domain.course.EnrollmentStatus;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,9 +32,11 @@ public final class InMemoryEnrollmentRepositoryPort implements EnrollmentReposit
     }
     
     @Override
-    public void recordLastAccess(UUID userId, UUID courseId, LocalDateTime accessedAt) {
+    public void recordLastAccess(UUID userId, UUID courseId, LocalDateTime accessedAt, Duration minInterval) {
         final Key key = new Key(userId, courseId);
-        if (enrollments.containsKey(key) && !revoked.contains(key)) {
+        final LocalDateTime previous = lastAccess.get(key);
+        final boolean due = previous == null || !previous.isAfter(accessedAt.minus(minInterval));
+        if (enrollments.containsKey(key) && !revoked.contains(key) && due) {
             lastAccess.put(key, accessedAt);
         }
     }

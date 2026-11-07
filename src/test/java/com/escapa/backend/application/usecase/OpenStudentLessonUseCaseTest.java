@@ -14,7 +14,9 @@ import com.escapa.backend.domain.entity.Content;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
@@ -219,6 +221,30 @@ class OpenStudentLessonUseCaseTest {
         assertEquals(lesson.getId(), useCase.execute(userId, courseId, lesson.getId()).content().getId());
 
         assertEquals(Optional.empty(), enrollmentRepository.lastAccessOf(userId, courseId));
+    }
+
+    @Test
+    void shouldNotOverwriteLastAccessRecordedWithinTheMinimumInterval() {
+        final Content lesson = givenLesson(false, false);
+        givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
+        final LocalDateTime recent = TODAY.atStartOfDay().minusSeconds(30);
+        enrollmentRepository.recordLastAccess(userId, courseId, recent, Duration.ZERO);
+
+        useCase.execute(userId, courseId, lesson.getId());
+
+        assertEquals(Optional.of(recent), enrollmentRepository.lastAccessOf(userId, courseId));
+    }
+
+    @Test
+    void shouldRefreshLastAccessOlderThanTheMinimumInterval() {
+        final Content lesson = givenLesson(false, false);
+        givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
+        enrollmentRepository.recordLastAccess(
+                userId, courseId, TODAY.atStartOfDay().minusMinutes(2), Duration.ZERO);
+
+        useCase.execute(userId, courseId, lesson.getId());
+
+        assertEquals(Optional.of(TODAY.atStartOfDay()), enrollmentRepository.lastAccessOf(userId, courseId));
     }
 
     @Test
