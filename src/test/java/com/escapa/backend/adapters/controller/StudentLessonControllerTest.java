@@ -83,7 +83,7 @@ class StudentLessonControllerTest {
             }
 
             @Override
-            public void recordLastAccess(UUID user, UUID course, java.time.LocalDateTime accessedAt) {
+            public void recordLastAccess(UUID user, UUID course, java.time.LocalDateTime accessedAt, java.time.Duration minInterval) {
                 // O registro de ultimo acesso nao e verificado neste teste de controller.
             }
 
@@ -196,7 +196,7 @@ class StudentLessonControllerTest {
                     }
 
                     @Override
-                    public void recordLastAccess(UUID user, UUID course, java.time.LocalDateTime accessedAt) {
+                    public void recordLastAccess(UUID user, UUID course, java.time.LocalDateTime accessedAt, java.time.Duration minInterval) {
                         // Nao verificado neste teste.
                     }
 

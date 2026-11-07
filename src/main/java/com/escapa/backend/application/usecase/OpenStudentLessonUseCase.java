@@ -8,6 +8,7 @@ import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -23,6 +24,9 @@ import java.util.UUID;
  * Aula gratuita de quem nao e matriculado nao registra nada.
  */
 public class OpenStudentLessonUseCase {
+
+    // Recargas e "tentar novamente" nao viram uma escrita cada: so grava se o ultimo acesso for mais antigo.
+    private static final Duration LAST_ACCESS_MIN_INTERVAL = Duration.ofMinutes(1);
 
     private final LessonRepositoryPort lessonRepositoryPort;
     private final LessonSupplementRepositoryPort lessonSupplementRepositoryPort;
@@ -56,8 +60,9 @@ public class OpenStudentLessonUseCase {
         final LessonSupplement supplement = lessonSupplementRepositoryPort.getSupplementsByLessonId(lessonId);
 
         // Acesso liberado: registra o ultimo acesso por ultimo, para a gravacao nao reter o lock da linha
-        // durante as consultas acima. A porta ignora quem nao tem matricula ativa.
-        enrollmentRepositoryPort.recordLastAccess(userId, lesson.courseId(), LocalDateTime.now(clock));
+        // durante as consultas acima. A porta ignora quem nao tem matricula nao revogada.
+        enrollmentRepositoryPort.recordLastAccess(
+                userId, lesson.courseId(), LocalDateTime.now(clock), LAST_ACCESS_MIN_INTERVAL);
 
         return new LessonDetails(
                 lesson.content(),

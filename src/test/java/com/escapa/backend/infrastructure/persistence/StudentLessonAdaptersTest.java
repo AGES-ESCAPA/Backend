@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -148,10 +149,10 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
         final LocalDateTime first = LocalDateTime.of(2026, 6, 15, 10, 30, 15);
         final LocalDateTime second = LocalDateTime.of(2026, 6, 16, 8, 0, 0);
 
-        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), first);
+        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), first, Duration.ZERO);
         assertEquals(first, lastAccessOf(userId, course));
 
-        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), second);
+        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), second, Duration.ZERO);
         assertEquals(second, lastAccessOf(userId, course));
     }
 
@@ -160,7 +161,7 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
         final CourseEntity course = givenCourse(false);
         final UUID userId = givenUserId();
 
-        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), LocalDateTime.of(2026, 6, 15, 10, 30, 15));
+        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), LocalDateTime.of(2026, 6, 15, 10, 30, 15), Duration.ZERO);
 
         assertTrue(userCourseJpaRepository.findById(new UserCourseId(userId, course.getId())).isEmpty());
     }
@@ -175,7 +176,7 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
         enrollment.setRevokedAt(LocalDateTime.of(2026, 6, 1, 12, 0, 0));
         userCourseJpaRepository.save(enrollment);
 
-        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), LocalDateTime.of(2026, 6, 15, 10, 30, 15));
+        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), LocalDateTime.of(2026, 6, 15, 10, 30, 15), Duration.ZERO);
 
         assertNull(lastAccessOf(userId, course));
     }
@@ -191,12 +192,28 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
         // Simula o updateProgress: carrega a matricula, uma aula e aberta no meio e so depois o progresso e salvo.
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
             final UserCourseEntity loaded = userCourseJpaRepository.findById(id).orElseThrow();
-            enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), accessedAt);
+            enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), accessedAt, Duration.ZERO);
             loaded.setProgress(50);
         });
 
         assertEquals(accessedAt, lastAccessOf(userId, course));
         assertEquals(50, userCourseJpaRepository.findById(id).orElseThrow().getProgress());
+    }
+
+    @Test
+    void shouldOnlyRecordLastAccessOlderThanTheMinimumInterval() {
+        final CourseEntity course = givenCourse(false);
+        final UUID userId = givenUserId();
+        givenEnrollment(userId, course, LocalDate.of(2026, 1, 10), null);
+        final LocalDateTime first = LocalDateTime.of(2026, 6, 15, 10, 30, 0);
+        final Duration minInterval = Duration.ofMinutes(1);
+
+        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), first, minInterval);
+        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), first.plusSeconds(30), minInterval);
+        assertEquals(first, lastAccessOf(userId, course));
+
+        enrollmentRepositoryPort.recordLastAccess(userId, course.getId(), first.plusMinutes(1), minInterval);
+        assertEquals(first.plusMinutes(1), lastAccessOf(userId, course));
     }
 
     private LocalDateTime lastAccessOf(UUID userId, CourseEntity course) {
