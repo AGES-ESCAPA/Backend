@@ -60,7 +60,6 @@ import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
 import com.escapa.backend.application.usecase.GetProfileUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
-import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeesUseCase;
 import com.escapa.backend.application.usecase.ListCompanyCourseIdsUseCase;
@@ -73,6 +72,7 @@ import com.escapa.backend.application.usecase.ListUserNotificationsUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
 import com.escapa.backend.application.usecase.MarkAllNotificationsAsReadUseCase;
 import com.escapa.backend.application.usecase.MarkNotificationAsReadUseCase;
+import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
 import com.escapa.backend.application.usecase.RefundOrderUseCase;
 import com.escapa.backend.application.usecase.RegisterCompanyUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
@@ -518,12 +518,12 @@ public class SpringConfig {
     }
 
     @Bean
-    public GetStudentLessonUseCase getStudentLessonUseCase(
+    public OpenStudentLessonUseCase openStudentLessonUseCase(
             LessonSupplementRepositoryPort lessonSupplementRepositoryPort,
             LessonRepositoryPort lessonRepositoryPort,
             EnrollmentRepositoryPort enrollmentRepositoryPort
     ) {
-        return new GetStudentLessonUseCase(lessonRepositoryPort, enrollmentRepositoryPort, lessonSupplementRepositoryPort, Clock.systemDefaultZone());
+        return new OpenStudentLessonUseCase(lessonRepositoryPort, enrollmentRepositoryPort, lessonSupplementRepositoryPort, Clock.systemDefaultZone());
     }
 
     @Bean

@@ -14,17 +14,20 @@ import com.escapa.backend.domain.entity.Content;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class GetStudentLessonUseCaseTest {
+class OpenStudentLessonUseCaseTest {
 
     private static final LocalDate TODAY = LocalDate.of(2026, 6, 15);
 
@@ -37,8 +40,8 @@ class GetStudentLessonUseCaseTest {
 
     private final Clock clock = Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
     
-    private final GetStudentLessonUseCase useCase =
-            new GetStudentLessonUseCase(lessonRepository, enrollmentRepository, lessonSupplementRepository, clock);
+    private final OpenStudentLessonUseCase useCase =
+            new OpenStudentLessonUseCase(lessonRepository, enrollmentRepository, lessonSupplementRepository, clock);
 
     private final UUID userId = UUID.randomUUID();
     private final UUID courseId = UUID.randomUUID();
@@ -157,6 +160,91 @@ class GetStudentLessonUseCaseTest {
         givenEnrollment(TODAY.minusDays(10), null);
 
         assertEquals(lesson.getId(), useCase.execute(userId, courseId, lesson.getId()).content().getId());
+    }
+
+    @Test
+    void shouldRecordLastAccessOnPaidLesson() {
+        final Content lesson = givenLesson(false, false);
+        givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
+
+        useCase.execute(userId, courseId, lesson.getId());
+
+        assertEquals(Optional.of(TODAY.atStartOfDay()), enrollmentRepository.lastAccessOf(userId, courseId));
+    }
+
+    @Test
+    void shouldRecordLastAccessOnFreeLessonWhenEnrolled() {
+        final Content lesson = givenLesson(true, false);
+        givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
+
+        useCase.execute(userId, courseId, lesson.getId());
+
+        assertEquals(Optional.of(TODAY.atStartOfDay()), enrollmentRepository.lastAccessOf(userId, courseId));
+    }
+
+    @Test
+    void shouldNotRecordNorCreateEnrollmentOnFreeLessonWithoutEnrollment() {
+        final Content lesson = givenLesson(true, false);
+
+        useCase.execute(userId, courseId, lesson.getId());
+
+        assertEquals(Optional.empty(), enrollmentRepository.lastAccessOf(userId, courseId));
+        assertEquals(Optional.empty(), enrollmentRepository.findByUserIdAndCourseId(userId, courseId));
+    }
+
+    @Test
+    void shouldNotRecordLastAccessWhenAccessIsDenied() {
+        final Content lesson = givenLesson(false, false);
+        givenEnrollment(TODAY.plusDays(1), TODAY.plusDays(90));
+
+        assertDenied(lesson.getId());
+
+        assertEquals(Optional.empty(), enrollmentRepository.lastAccessOf(userId, courseId));
+    }
+
+    @Test
+    void shouldNotRecordLastAccessWhenEnrollmentExpiredAndCourseBlocksByDeadline() {
+        final Content lesson = givenLesson(false, true);
+        givenEnrollment(TODAY.minusDays(90), TODAY.minusDays(1));
+
+        assertDenied(lesson.getId());
+
+        assertEquals(Optional.empty(), enrollmentRepository.lastAccessOf(userId, courseId));
+    }
+
+    @Test
+    void shouldNotRecordLastAccessOnFreeLessonWhenEnrollmentIsRevoked() {
+        final Content lesson = givenLesson(true, false);
+        givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
+        enrollmentRepository.revoke(userId, courseId);
+
+        assertEquals(lesson.getId(), useCase.execute(userId, courseId, lesson.getId()).content().getId());
+
+        assertEquals(Optional.empty(), enrollmentRepository.lastAccessOf(userId, courseId));
+    }
+
+    @Test
+    void shouldNotOverwriteLastAccessRecordedWithinTheMinimumInterval() {
+        final Content lesson = givenLesson(false, false);
+        givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
+        final LocalDateTime recent = TODAY.atStartOfDay().minusSeconds(30);
+        enrollmentRepository.recordLastAccess(userId, courseId, recent, Duration.ZERO);
+
+        useCase.execute(userId, courseId, lesson.getId());
+
+        assertEquals(Optional.of(recent), enrollmentRepository.lastAccessOf(userId, courseId));
+    }
+
+    @Test
+    void shouldRefreshLastAccessOlderThanTheMinimumInterval() {
+        final Content lesson = givenLesson(false, false);
+        givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
+        enrollmentRepository.recordLastAccess(
+                userId, courseId, TODAY.atStartOfDay().minusMinutes(2), Duration.ZERO);
+
+        useCase.execute(userId, courseId, lesson.getId());
+
+        assertEquals(Optional.of(TODAY.atStartOfDay()), enrollmentRepository.lastAccessOf(userId, courseId));
     }
 
     @Test
