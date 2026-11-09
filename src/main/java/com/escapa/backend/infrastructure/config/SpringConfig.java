@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
+import com.escapa.backend.application.port.AdminMetricsRepositoryPort;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
 import com.escapa.backend.application.port.ContactValidatorPort;
 import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
@@ -53,6 +54,7 @@ import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
 import com.escapa.backend.application.usecase.GetCertificateDetailsUseCase;
+import com.escapa.backend.application.usecase.GetAdminMetricsOverviewUseCase;
 import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCompanySeatsSummaryUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
@@ -90,6 +92,7 @@ import com.escapa.backend.infrastructure.persistence.CompanyCourseRepositoryAdap
 import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CompanyRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanyEmployeeAdapter;
+import com.escapa.backend.infrastructure.persistence.AdminMetricsRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanySeatsAdapter;
 import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseChangeLogJpaRepository;
@@ -306,6 +309,16 @@ public class SpringConfig {
     @Bean
     public CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort(JdbcClient jdbcClient) {
         return new CompanyEmployeeAdapter(jdbcClient);
+    }
+
+    @Bean
+    public AdminMetricsRepositoryPort adminMetricsRepositoryPort(JdbcClient jdbcClient) {
+        return new AdminMetricsRepositoryAdapter(jdbcClient);
+    }
+
+    @Bean
+    public GetAdminMetricsOverviewUseCase getAdminMetricsOverviewUseCase(AdminMetricsRepositoryPort repository) {
+        return new GetAdminMetricsOverviewUseCase(repository, Clock.systemDefaultZone());
     }
 
     @Bean
