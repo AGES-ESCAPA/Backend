@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,6 +53,17 @@ class GetAdminMetricsOverviewUseCaseTest {
         assertEquals("0.00", result.averageCompletionRate().toPlainString());
         assertEquals(6, result.activeStudentsByMonth().size());
         result.activeStudentsByMonth().forEach(month -> assertEquals(0, month.activeStudents()));
+    }
+
+    @Test
+    void shouldKeepOctoberAtUtcNovemberBoundaryInSaoPaulo() {
+        final Clock saoPauloClock = Clock.fixed(
+                Instant.parse("2026-11-01T00:30:00Z"), ZoneId.of("America/Sao_Paulo"));
+        final AdminMetricsOverview result = new GetAdminMetricsOverviewUseCase(repository, saoPauloClock).execute();
+
+        assertEquals(LocalDate.of(2026, 10, 31), repository.requestedToday);
+        assertEquals("2026-05", result.activeStudentsByMonth().get(0).month().toString());
+        assertEquals("2026-10", result.activeStudentsByMonth().get(5).month().toString());
     }
 
     private static final class FakeRepository implements AdminMetricsRepositoryPort {

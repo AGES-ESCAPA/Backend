@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Tag(name = "Admin - Metrics", description = "Platform metrics for authenticated ADMIN users")
+@Tag(name = "Admin - Metrics", description = "Catalog intelligence and historical metrics for authenticated ADMIN users")
 @RequestMapping("/api/v1/admin/metrics")
 public class AdminMetricsController {
     private final GetAdminMetricsOverviewUseCase useCase;
