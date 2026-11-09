@@ -37,6 +37,8 @@ class CompanyCourseControllerTest extends PostgresIntegrationTest {
 
     @AfterEach
     void cleanUp() {
+        jdbcTemplate.update("delete from user_courses");
+        jdbcTemplate.update("delete from users_company");
         jdbcTemplate.update("delete from company_courses");
         jdbcTemplate.update("delete from courses");
         jdbcTemplate.update("delete from users");
@@ -84,11 +86,56 @@ class CompanyCourseControllerTest extends PostgresIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void shouldListActiveCompanyCourses() throws Exception {
+        final UUID companyId = givenCompany();
+        final UUID acquired = givenCourse();
+        final UUID revoked = givenCourse();
+
+        final UUID employeeWithAccess = givenEmployee(companyId);
+        final UUID employeeWithRevokedAccess = givenEmployee(companyId);
+        final UUID outsider = givenUser("STUDENT");
+
+        givenCompanyCourse(companyId, acquired, false);
+        givenCompanyCourse(companyId, revoked, true);
+
+        givenEnrollment(employeeWithAccess, acquired, false);
+        givenEnrollment(employeeWithRevokedAccess, acquired, true);
+        givenEnrollment(outsider, acquired, false);
+
+        mockMvc.perform(get("/api/v1/company/courses")
+                    .header("Authorization", authorization(companyId, "COMPANY")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data[*].id", contains(acquired.toString())))
+            .andExpect(jsonPath("$.data[0].employeesWithAccess").value(1));
+}
+
     private UUID givenUser(String role) {
         return userRepositoryPort.save(
                 new User("Usuario", "u-" + UUID.randomUUID() + "@email.com", "hash", role)).getId();
     }
 
+    private UUID givenEmployee(UUID companyId) {
+        final UUID employeeId = givenUser("STUDENT");
+
+        jdbcTemplate.update(
+            "insert into users_company (user_id, company_id, role) values (?,?,?)",
+            employeeId,
+            companyId,
+            "EMPLOYEE"
+        );
+
+        return employeeId;
+    }
+
+    private void givenEnrollment(UUID userId, UUID courseId, boolean revoked) {
+        jdbcTemplate.update(
+            "insert into user_courses (user_id, course_id, dt_inicio, revoked_at) "
+                    + "values (?,?, current_date, "
+                    + (revoked ? "now()" : "null") + ")",
+            userId,
+            courseId);
+    }
     private UUID givenCompany() {
         final UUID companyId = givenUser("COMPANY");
         jdbcTemplate.update(
