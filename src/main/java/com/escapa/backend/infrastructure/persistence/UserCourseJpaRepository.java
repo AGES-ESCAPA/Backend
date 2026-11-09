@@ -81,6 +81,22 @@ public interface UserCourseJpaRepository
                 @Param("courseId") UUID courseId,
                 @Param("revokedAt") LocalDateTime revokedAt);
 
+            /**
+             * Registra o ultimo acesso (US-35) da matricula nao revogada (vencida ou nao iniciada tambem conta).
+             * So altera se o ultimo acesso for nulo ou anterior a {@code notAfter}; nos demais casos nao
+             * altera nenhuma linha.
+             */
+            @Modifying
+            @Query("update UserCourseEntity uc set uc.lastAccessDate = :accessedAt "
+                + "where uc.id.userId = :userId and uc.id.courseId = :courseId "
+                + "and uc.revokedAt is null "
+                + "and (uc.lastAccessDate is null or uc.lastAccessDate <= :notAfter)")
+            int updateLastAccessDate(
+                @Param("userId") UUID userId,
+                @Param("courseId") UUID courseId,
+                @Param("accessedAt") LocalDateTime accessedAt,
+                @Param("notAfter") LocalDateTime notAfter);
+
             /** Revoga as matriculas dos colaboradores da empresa no curso. */
             @Modifying
             @Query("update UserCourseEntity uc set uc.revokedAt = :revokedAt "
@@ -155,4 +171,24 @@ public interface UserCourseJpaRepository
                 + "left join AdminEntity studentAdmin on studentAdmin.id = student.id "
                 + "where uc.certificateCode = :code and uc.certificateIssued = true")
             Optional<CertificateDetailsView> findIssuedDetailsByCertificateCode(@Param("code") String code);
+
+            /** Projecao agregada de matriculas elegiveis por curso para metricas historicas (US-37). */
+            interface CourseEnrollmentCountView {
+                UUID getCourseId();
+
+                String getTitle();
+
+                String getCategory();
+
+                long getEnrollments();
+            }
+
+            @Query("select course.id as courseId, course.title as title, course.category as category, "
+                + "count(uc) as enrollments "
+                + "from UserCourseEntity uc "
+                + "join uc.course course "
+                + "where uc.revokedAt is null "
+                + "and course.status <> com.escapa.backend.domain.course.CourseStatus.DRAFT "
+                + "group by course.id, course.title, course.category")
+            List<CourseEnrollmentCountView> countEligibleEnrollmentsByCourse();
 }

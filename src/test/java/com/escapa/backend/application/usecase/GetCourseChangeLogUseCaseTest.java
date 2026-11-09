@@ -40,7 +40,7 @@ class GetCourseChangeLogUseCaseTest {
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(courseId, 0, 0));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> useCase.execute(courseId, 0, GetCourseChangeLogUseCase.MAX_PAGE_SIZE + 1)
+                () -> useCase.execute(courseId, 0, PaginationRules.MAX_PAGE_SIZE + 1)
         );
     }
 }
