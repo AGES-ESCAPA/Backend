@@ -43,9 +43,7 @@ public class GetAdminCourseMetricsUseCase {
 
     public CourseMetrics execute() {
         final List<CourseEnrollmentCount> eligibleCourses = enrollmentRepositoryPort
-                .countEligibleEnrollmentsByCourse().stream()
-                .filter(course -> course.enrollments() > 0)
-                .toList();
+                .countEligibleEnrollmentsByCourse();
 
         if (eligibleCourses.isEmpty()) {
             return new CourseMetrics(null, List.of(), 0, List.of());

@@ -26,7 +26,5 @@ public interface EnrollmentRepositoryPort {
      */
     void recordLastAccess(UUID userId, UUID courseId, LocalDateTime accessedAt, Duration minInterval);
 
-    default List<CourseEnrollmentCount> countEligibleEnrollmentsByCourse() {
-        return List.of();
-    }
+    List<CourseEnrollmentCount> countEligibleEnrollmentsByCourse();
 }
