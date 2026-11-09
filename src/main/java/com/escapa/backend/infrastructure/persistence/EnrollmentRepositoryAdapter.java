@@ -13,7 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -55,6 +57,12 @@ public class EnrollmentRepositoryAdapter implements EnrollmentRepositoryPort {
                 entityPage.getTotalElements(),
                 entityPage.getTotalPages()
         );
+    }
+
+    @Override
+    @Transactional
+    public void recordLastAccess(UUID userId, UUID courseId, LocalDateTime accessedAt, Duration minInterval) {
+        userCourseJpaRepository.updateLastAccessDate(userId, courseId, accessedAt, accessedAt.minus(minInterval));
     }
 
     @Override

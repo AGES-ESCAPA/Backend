@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
+import com.escapa.backend.application.port.AdminMetricsRepositoryPort;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
 import com.escapa.backend.application.port.ContactValidatorPort;
 import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
@@ -41,6 +42,7 @@ import com.escapa.backend.application.usecase.AuthorizeActiveUserUseCase;
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.application.usecase.CancelOrderUseCase;
 import com.escapa.backend.application.usecase.ChangePasswordUseCase;
+import com.escapa.backend.application.usecase.ListCompanyCoursesUseCase;
 import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
@@ -52,6 +54,7 @@ import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
 import com.escapa.backend.application.usecase.GetCertificateDetailsUseCase;
+import com.escapa.backend.application.usecase.GetAdminMetricsOverviewUseCase;
 import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCompanySeatsSummaryUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
@@ -59,7 +62,6 @@ import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
 import com.escapa.backend.application.usecase.GetProfileUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
-import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeesUseCase;
 import com.escapa.backend.application.usecase.ListCompanyCourseIdsUseCase;
@@ -72,6 +74,7 @@ import com.escapa.backend.application.usecase.ListUserNotificationsUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
 import com.escapa.backend.application.usecase.MarkAllNotificationsAsReadUseCase;
 import com.escapa.backend.application.usecase.MarkNotificationAsReadUseCase;
+import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
 import com.escapa.backend.application.usecase.RefundOrderUseCase;
 import com.escapa.backend.application.usecase.RegisterCompanyUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
@@ -89,6 +92,7 @@ import com.escapa.backend.infrastructure.persistence.CompanyCourseRepositoryAdap
 import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CompanyRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanyEmployeeAdapter;
+import com.escapa.backend.infrastructure.persistence.AdminMetricsRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanySeatsAdapter;
 import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseChangeLogJpaRepository;
@@ -293,6 +297,11 @@ public class SpringConfig {
     }
 
     @Bean
+    public ListCompanyCoursesUseCase listCompanyCoursesUseCase(
+            CompanyCourseRepositoryPort companyCourseRepositoryPort) {
+        return new ListCompanyCoursesUseCase(companyCourseRepositoryPort);
+    }
+    @Bean
     public CompanySeatsPort companySeatsPort(JdbcClient jdbcClient) {
         return new CompanySeatsAdapter(jdbcClient);
     }
@@ -300,6 +309,16 @@ public class SpringConfig {
     @Bean
     public CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort(JdbcClient jdbcClient) {
         return new CompanyEmployeeAdapter(jdbcClient);
+    }
+
+    @Bean
+    public AdminMetricsRepositoryPort adminMetricsRepositoryPort(JdbcClient jdbcClient) {
+        return new AdminMetricsRepositoryAdapter(jdbcClient);
+    }
+
+    @Bean
+    public GetAdminMetricsOverviewUseCase getAdminMetricsOverviewUseCase(AdminMetricsRepositoryPort repository) {
+        return new GetAdminMetricsOverviewUseCase(repository, Clock.systemDefaultZone());
     }
 
     @Bean
@@ -512,12 +531,12 @@ public class SpringConfig {
     }
 
     @Bean
-    public GetStudentLessonUseCase getStudentLessonUseCase(
+    public OpenStudentLessonUseCase openStudentLessonUseCase(
             LessonSupplementRepositoryPort lessonSupplementRepositoryPort,
             LessonRepositoryPort lessonRepositoryPort,
             EnrollmentRepositoryPort enrollmentRepositoryPort
     ) {
-        return new GetStudentLessonUseCase(lessonRepositoryPort, enrollmentRepositoryPort, lessonSupplementRepositoryPort, Clock.systemDefaultZone());
+        return new OpenStudentLessonUseCase(lessonRepositoryPort, enrollmentRepositoryPort, lessonSupplementRepositoryPort, Clock.systemDefaultZone());
     }
 
     @Bean

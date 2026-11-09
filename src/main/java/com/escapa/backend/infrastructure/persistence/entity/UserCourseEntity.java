@@ -12,12 +12,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_courses")
+// Atualiza so as colunas alteradas: gravacoes pontuais (ex.: last_access_date, via UPDATE direto)
+// nao podem ser sobrescritas por quem carregou a matricula antes.
+@DynamicUpdate
 @Getter
 @Setter
 @NoArgsConstructor
