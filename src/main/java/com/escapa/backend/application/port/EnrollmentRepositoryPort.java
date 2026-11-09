@@ -1,12 +1,14 @@
 package com.escapa.backend.application.port;
 
 import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CourseEnrollmentCount;
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.model.StudentCourseCard;
 import com.escapa.backend.domain.course.EnrollmentStatus;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,4 +25,6 @@ public interface EnrollmentRepositoryPort {
      * revogada) nao faz nada e nunca cria matricula; vencida ou ainda nao iniciada registra normalmente.
      */
     void recordLastAccess(UUID userId, UUID courseId, LocalDateTime accessedAt, Duration minInterval);
+
+    List<CourseEnrollmentCount> countEligibleEnrollmentsByCourse();
 }
