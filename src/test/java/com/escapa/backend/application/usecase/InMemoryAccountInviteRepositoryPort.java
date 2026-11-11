@@ -1,5 +1,6 @@
 package com.escapa.backend.application.usecase;
 
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -12,6 +13,7 @@ import com.escapa.backend.domain.user.AccountInvite;
 public final class InMemoryAccountInviteRepositoryPort implements AccountInviteRepositoryPort {
 
     private final Map<UUID, AccountInvite> invites = new LinkedHashMap<>();
+    private LocalDateTime concurrentUseAt;
 
     @Override
     public AccountInvite save(AccountInvite invite) {
@@ -23,10 +25,33 @@ public final class InMemoryAccountInviteRepositoryPort implements AccountInviteR
 
     @Override
     public Optional<AccountInvite> findByTokenHash(String tokenHash) {
-        return invites.values().stream()
+        final Optional<AccountInvite> found = invites.values().stream()
                 .filter(invite -> invite.getTokenHash().equals(tokenHash))
-                .findFirst()
-                .map(invite -> copy(invite, invite.getId()));
+                .findFirst();
+        final Optional<AccountInvite> result = found.map(invite -> copy(invite, invite.getId()));
+        if (concurrentUseAt != null) {
+            found.ifPresent(invite -> invite.markAsUsed(concurrentUseAt));
+            concurrentUseAt = null;
+        }
+        return result;
+    }
+
+    @Override
+    public boolean markAsUsed(UUID inviteId, LocalDateTime usedAt) {
+        final AccountInvite stored = invites.get(inviteId);
+        if (stored == null || stored.isUsed()) {
+            return false;
+        }
+        stored.markAsUsed(usedAt);
+        return true;
+    }
+
+    /**
+     * Simula outra requisição com o mesmo token: a próxima busca devolve o convite ainda em
+     * aberto, mas o gravado passa a constar como usado logo em seguida.
+     */
+    public void simulateConcurrentUseAfterNextLookup(LocalDateTime usedAt) {
+        this.concurrentUseAt = usedAt;
     }
 
     @Override

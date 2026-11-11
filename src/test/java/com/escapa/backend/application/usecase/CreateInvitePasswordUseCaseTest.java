@@ -92,6 +92,17 @@ class CreateInvitePasswordUseCaseTest {
     }
 
     @Test
+    void shouldRejectTheTokenWhenAConcurrentRequestUsedItFirst() {
+        givenInvite(NOW.plusHours(72), null);
+        invites.simulateConcurrentUseAfterNextLookup(NOW.minusSeconds(1));
+
+        assertThrows(InviteNotFoundException.class, () -> useCase.execute(TOKEN, PASSWORD));
+
+        assertEquals(NOW.minusSeconds(1), storedInvite().getUsedAt());
+        assertNothingChanged();
+    }
+
+    @Test
     void shouldRejectAnExpiredToken() {
         givenInvite(NOW.minusMinutes(1), null);
 

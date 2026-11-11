@@ -9,6 +9,7 @@ import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.AccountInvite;
+import com.escapa.backend.domain.user.InviteNotFoundException;
 import com.escapa.backend.domain.user.UserNotFoundException;
 import com.escapa.backend.domain.user.UserStatus;
 import com.escapa.backend.domain.user.UserTypes;
@@ -45,14 +46,18 @@ public class CreateInvitePasswordUseCase {
                     "Password must be at least " + CreateUserUseCase.MIN_PASSWORD_LENGTH + " characters");
         }
         final AccountInvite invite = accountInviteValidator.requireOpenInvite(token);
+        // Reserva o convite antes de gravar a senha. O update condicional trava a linha: numa
+        // requisição concorrente com o mesmo token ele não altera nada, e ela cai no 404 sem
+        // sobrescrever a senha. Uma falha depois daqui reverte a reserva junto (transação do caso de uso).
+        if (!accountInviteRepositoryPort.markAsUsed(invite.getId(), LocalDateTime.now(clock))) {
+            throw new InviteNotFoundException();
+        }
         final User user = userRepositoryPort.findById(invite.getUserId())
                 .orElseThrow(() -> new UserNotFoundException(invite.getUserId()));
 
         user.setPasswordHash(passwordHasherPort.hash(password));
         user.setStatus(UserStatus.ACTIVE);
         final User activated = userRepositoryPort.save(user);
-        invite.markAsUsed(LocalDateTime.now(clock));
-        accountInviteRepositoryPort.save(invite);
 
         final String role = activated.getUserType() != null
                 ? activated.getUserType().trim().toUpperCase()
