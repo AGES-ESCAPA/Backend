@@ -103,6 +103,11 @@ public class CourseEntity implements Persistable<UUID> {
     @Column(name = "minor_version", nullable = false)
     private Integer minorVersion = 0;
 
+    /** Rascunho ainda não publicado de um curso que já está no ar. Null quando não há alteração pendente. */
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "pending_draft", columnDefinition = "JSON")
+    private String pendingDraft;
+
     /** Contadores desnormalizados: mantidos na escrita para evitar agregacoes em cada listagem. */
     @Column(name = "lessons_count", nullable = false)
     private Integer lessonsCount = 0;
