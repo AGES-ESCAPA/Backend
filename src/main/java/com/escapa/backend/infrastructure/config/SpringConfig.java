@@ -15,6 +15,7 @@ import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
 import com.escapa.backend.application.port.CompanyRepositoryPort;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
+import com.escapa.backend.application.port.CompanyReportRepositoryPort;
 import com.escapa.backend.application.port.CompanySeatsPort;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CourseNotificationPort;
@@ -56,6 +57,7 @@ import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
 import com.escapa.backend.application.usecase.GetCertificateDetailsUseCase;
 import com.escapa.backend.application.usecase.GetAdminMetricsOverviewUseCase;
 import com.escapa.backend.application.usecase.GetContentUseCase;
+import com.escapa.backend.application.usecase.GetCompanyReportOverviewUseCase;
 import com.escapa.backend.application.usecase.GetCompanySeatsSummaryUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
@@ -63,6 +65,7 @@ import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
 import com.escapa.backend.application.usecase.GetProfileUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
+import com.escapa.backend.application.usecase.ListCompanyEmployeeProgressUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeesUseCase;
 import com.escapa.backend.application.usecase.ListCompanyCourseIdsUseCase;
 import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
@@ -92,6 +95,7 @@ import com.escapa.backend.infrastructure.persistence.CompanyCourseRepositoryAdap
 import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CompanyRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanyEmployeeAdapter;
+import com.escapa.backend.infrastructure.persistence.CompanyReportAdapter;
 import com.escapa.backend.infrastructure.persistence.AdminMetricsRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanySeatsAdapter;
 import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
@@ -332,6 +336,23 @@ public class SpringConfig {
     public ListCompanyEmployeesUseCase listCompanyEmployeesUseCase(
             CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort) {
         return new ListCompanyEmployeesUseCase(companyEmployeeRepositoryPort);
+    }
+
+    @Bean
+    public CompanyReportRepositoryPort companyReportRepositoryPort(JdbcClient jdbcClient) {
+        return new CompanyReportAdapter(jdbcClient);
+    }
+
+    @Bean
+    public GetCompanyReportOverviewUseCase getCompanyReportOverviewUseCase(
+            CompanyReportRepositoryPort companyReportRepositoryPort) {
+        return new GetCompanyReportOverviewUseCase(companyReportRepositoryPort, Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public ListCompanyEmployeeProgressUseCase listCompanyEmployeeProgressUseCase(
+            CompanyReportRepositoryPort companyReportRepositoryPort) {
+        return new ListCompanyEmployeeProgressUseCase(companyReportRepositoryPort);
     }
 
     @Bean
