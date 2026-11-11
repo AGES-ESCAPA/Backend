@@ -1,8 +1,10 @@
 package com.escapa.backend.adapters.controller;
 
 import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.CompanyCourseResponse;
 import com.escapa.backend.adapters.security.AuthenticationContext;
 import com.escapa.backend.application.usecase.ListCompanyCourseIdsUseCase;
+import com.escapa.backend.application.usecase.ListCompanyCoursesUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +21,22 @@ import java.util.UUID;
 public class CompanyCourseController {
 
     private final ListCompanyCourseIdsUseCase listCompanyCourseIdsUseCase;
+    private final ListCompanyCoursesUseCase listCompanyCoursesUseCase;
 
-    public CompanyCourseController(ListCompanyCourseIdsUseCase listCompanyCourseIdsUseCase) {
+    public CompanyCourseController(ListCompanyCourseIdsUseCase listCompanyCourseIdsUseCase,
+                                    ListCompanyCoursesUseCase listCompanyCoursesUseCase
+    ) {
         this.listCompanyCourseIdsUseCase = listCompanyCourseIdsUseCase;
+        this.listCompanyCoursesUseCase = listCompanyCoursesUseCase;
+    }
+
+    @GetMapping("/courses")
+    @Operation(summary = "List the active courses purchased by the company")
+    public ResponseEntity<ApiResponse<List<CompanyCourseResponse>>> listCourses() {
+        final UUID companyId = AuthenticationContext.requireUser().id();
+        final List<CompanyCourseResponse> courses = listCompanyCoursesUseCase.execute(companyId).stream().map(CompanyCourseResponse::from).toList();
+
+        return ResponseEntity.ok(ApiResponse.success(courses));
     }
 
     @GetMapping("/courses/acquired")

@@ -23,6 +23,7 @@ O backend foi pensado para servir o frontend e manter o domínio isolado de deta
 - [Listagem administrativa de cursos](#-listagem-administrativa-de-cursos)
 - [Aula para o aluno (Sala de Aula)](#-aula-para-o-aluno-sala-de-aula)
 - [Cancelamento e reembolso de pedidos (Admin)](#-cancelamento-e-reembolso-de-pedidos-admin)
+- [Envio de e-mail (US-31)](#-envio-de-e-mail-us-31)
 
 ---
 
@@ -155,7 +156,7 @@ src/
 ### Opção B — banco e MinIO em container, aplicação pelo Maven
    Útil para desenvolver com hot reload sem reconstruir a imagem a cada mudança:
    ```bash
-   docker compose up -d postgres minio minio-init   # sobe banco, MinIO e o seed das imagens
+   docker compose up -d postgres minio minio-init mailpit   # sobe banco, MinIO, o seed das imagens e o Mailpit
    mvn spring-boot:run
    ```
 
@@ -324,6 +325,7 @@ docker compose up --build
 - PostgreSQL em container
 - MinIO (armazenamento S3-compatible) com seed das capas dos cursos
 - Job `minio-init`, que só termina depois de enviar as imagens
+- Mailpit, servidor de e-mail falso que guarda os e-mails enviados pelo backend sem entregá-los
 - Backend Spring Boot em container (o seed SQL roda depois do `minio-init`)
 
 ### Endpoints úteis
@@ -333,6 +335,7 @@ docker compose up --build
 - `http://localhost:8080/v3/api-docs` → especificação OpenAPI em JSON
 - `http://localhost:9000` → API do MinIO (capas em `/escapa-media/courses/`)
 - `http://localhost:9001` → console do MinIO (`escapa` / `escapa12345`)
+- `http://localhost:8025` → caixa de entrada do Mailpit (e-mails enviados pelo backend)
 
 ---
 
@@ -806,6 +809,95 @@ Tudo acontece na mesma transação; uma falha em qualquer passo desfaz a desvinc
 - **404:** colaborador de outra empresa, inexistente ou já desvinculado.
 
 Cadastrar de novo o mesmo e-mail reativa a conta e recupera o progresso (regra do cadastro de colaborador, US-31).
+
+---
+
+## 📊 Relatório de progresso da equipe (US-35)
+
+```http
+GET /api/v1/company/reports/overview
+GET /api/v1/company/reports/employees?search=ana&status=IN_PROGRESS&page=0&size=10
+```
+
+Para o Dashboard de Engajamento. Mesma autenticação da US-30: `Authorization: Bearer <accessToken>` de uma **empresa** (`COMPANY`), sem token `401`, outro perfil `403`. A empresa é sempre a do token e um `companyId` enviado na query é ignorado; uma empresa sem registro em `company` retorna `404`.
+
+**Escopo dos números:** só entram matrículas **não revogadas** dos colaboradores vinculados à empresa (`users_company`), em cursos que a empresa comprou e ainda tem. Uma matrícula é **concluída** com `conclusion_date` preenchida ou `progress = 100` (a mesma regra do restante do sistema).
+
+**Panorama (`/overview`):**
+
+- `completionRate`: % das matrículas concluídas, com uma casa decimal.
+- `completionRateChange`: variação da taxa em pontos percentuais desde o fim do mês anterior, com a mesma regra de concluída: conta as matrículas iniciadas até aquele dia (`dt_inicio`) e, delas, as com `conclusion_date` até aquele dia ou em 100% sem data de conclusão; `0` quando a empresa ainda não tinha matrículas naquela data.
+- `averageHoursPerEmployee`: horas das aulas concluídas (`content.duration_minutes`; aula sem duração conta `0`) divididas pelos colaboradores `ACTIVE`.
+- `certificatesThisQuarter`: certificados emitidos desde o início do trimestre atual.
+- `weeklyEngagement`: % dos colaboradores `ACTIVE` com acesso a um curso nos últimos 7 dias (`last_access_date`, gravado na US-35 #91).
+- `completionByJobTitle`: taxa de conclusão por cargo (`users_company.role`), em ordem alfabética.
+- `monthlyHours`: **sempre 6 meses** (o atual e os 5 anteriores, do mais antigo ao mais recente, cada item com `month` como `yyyy-MM` e `averageHours`), com `0` nos meses sem aulas concluídas; é a média de horas por colaborador `ACTIVE`, pela data de conclusão da aula.
+- Empresa sem colaboradores devolve tudo zerado, sem erro de divisão. Meses e trimestre seguem o fuso de São Paulo.
+- **Sem variação de engajamento:** o sistema guarda só o último acesso de cada matrícula, sem histórico, então não há como saber o engajamento do mês anterior. Por isso não existe `weeklyEngagementChange`.
+
+**Listagem (`/employees`):** uma linha por colaborador e curso, no envelope `PageResponse`, do acesso mais recente para o mais antigo (quem nunca acessou vai por último, desempate por nome). `page` começa em `0` e `size` vai de `1` a `100` (padrão `10`); fora disso, `400`.
+
+- **`search`** (opcional): trecho do nome, sem diferenciar maiúsculas; vazio ou só espaços não filtra, e `%` e `_` valem como texto comum.
+- **`status`** (opcional): `IN_PROGRESS` ou `COMPLETED`; outro valor retorna `400`.
+- **Cada item:** `userId`, `name`, `avatarUrl` (nulo sem foto), `courseId`, `course`, `progress` (0 a 100; `100` quando há data de conclusão), `lastAccessAt` (nulo se nunca acessou) e `certificateIssued`.
+- **Seed de desenvolvimento:** a Pousada Vista Mar LTDA tem aulas concluídas, acessos e certificados espalhados pelos últimos 6 meses (datas relativas ao dia em que o seed roda), para os gráficos terem dados.
+
+---
+
+## 📧 Envio de e-mail (US-31)
+
+O backend envia e-mails por SMTP (usado pelo convite do colaborador). Os casos de uso usam só a `EmailSenderPort`, que recebe destinatário, assunto, corpo em HTML e corpo em texto puro; quem envia é o `SmtpEmailSenderAdapter`. O conteúdo dos e-mails fica em `src/main/resources/email/` (ex.: `convite-colaborador.html` e `.txt`), com marcadores `{{nome}}`, `{{empresa}}` e `{{link}}` trocados pela `EmailTemplatePort`.
+
+### Caixa de entrada do Mailpit (padrão em desenvolvimento)
+
+Com o `docker compose up --build`, o backend envia para o Mailpit, um servidor de e-mail falso: nada sai para a internet. Para ver as mensagens, abra **http://localhost:8025**.
+
+Rodando pelo `mvn spring-boot:run`, suba só o Mailpit com `docker compose up -d mailpit`: o padrão do `application.properties` já aponta para `localhost:1025`.
+
+### Envio real em desenvolvimento
+
+Para validar com um SMTP de verdade (Gmail, SendGrid etc.), sobrescreva no seu `.env` local (fora do git) e suba de novo com `docker compose up --build`:
+
+```env
+SPRING_MAIL_HOST=smtp.seu-provedor.com
+SPRING_MAIL_PORT=587
+SPRING_MAIL_USERNAME=seu-usuario
+SPRING_MAIL_PASSWORD=sua-senha-ou-app-password
+APP_MAIL_AUTH=true
+APP_MAIL_STARTTLS=true
+APP_MAIL_FROM=seu-remetente@seu-dominio.com
+APP_MAIL_TEST_MODE=true
+APP_MAIL_TEST_REDIRECT_TO=seu-email@exemplo.com
+```
+
+- Mantenha `APP_MAIL_TEST_MODE=true`: o e-mail chega identificado como teste.
+- Preencha `APP_MAIL_TEST_REDIRECT_TO` com o seu e-mail para receber todas as mensagens no lugar dos destinatários. O seed tem e-mails que podem existir de verdade; sem o redirecionamento, eles receberiam o e-mail.
+- O `.env` é lido pelo `docker compose`, não pelo `mvn spring-boot:run`. Pelo Maven, defina essas variáveis no terminal ou na configuração de execução da IDE.
+- **Nunca commite credenciais reais.** O `.env` está no `.gitignore` e o `.env.example` só tem placeholders.
+
+### `APP_MAIL_TEST_MODE`
+
+Quando `true`, o `SmtpEmailSenderAdapter` marca a mensagem como teste antes de enviar:
+
+- adiciona `[TESTE]` no início do assunto;
+- insere no topo do HTML, e na primeira linha do texto puro, o aviso "⚠️ Este é um e-mail de TESTE enviado pelo ambiente de desenvolvimento. Não é uma mensagem real.";
+- se `APP_MAIL_TEST_REDIRECT_TO` estiver preenchido, envia para esse endereço no lugar do destinatário.
+
+Quando `false` (padrão do `application.properties`), a mensagem sai exatamente como o caso de uso montou. **Em produção deve ser `false`**, senão os usuários reais recebem e-mails marcados como teste, e o redirecionamento, se configurado, desviaria os e-mails deles. O aviso fica só no adaptador, nunca nos templates, para não poder vazar para produção.
+
+| Variável | Padrão (`application.properties`) | Para que serve |
+|---|---|---|
+| `SPRING_MAIL_HOST` | `localhost` (`mailpit` no compose) | Servidor SMTP |
+| `SPRING_MAIL_PORT` | `1025` | Porta do SMTP |
+| `SPRING_MAIL_USERNAME` / `SPRING_MAIL_PASSWORD` | vazio | Credenciais do SMTP real |
+| `APP_MAIL_AUTH` | `false` | Liga a autenticação SMTP (`true` em SMTP real) |
+| `APP_MAIL_STARTTLS` | `false` | Liga o STARTTLS (`true` em SMTP real) |
+| `APP_MAIL_FROM` | `nao-responda@escapa.com.br` | Remetente |
+| `APP_MAIL_TEST_MODE` | `false` (`true` no compose) | Marca os e-mails como teste |
+| `APP_MAIL_TEST_REDIRECT_TO` | vazio | Só em modo de teste: envia tudo para esse endereço |
+| `APP_FRONTEND_URL` | `http://localhost:3000` | Endereço do frontend, para montar os links dos e-mails |
+
+Falha no SMTP vira `EmailSendingException`. O que fazer com ela (desfazer o convite ou só registrar) é decisão de cada caso de uso.
 
 ---
 

@@ -4,6 +4,7 @@ import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.InactiveUserException;
 import com.escapa.backend.domain.user.InvalidCredentialsException;
+import com.escapa.backend.domain.user.PendingUserException;
 import com.escapa.backend.domain.user.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -171,6 +172,30 @@ class LoginUseCaseTest {
         );
 
         assertEquals("User account is inactive", exception.getMessage());
+    }
+
+    @Test
+    void shouldRejectPendingUserWithGuidanceToUseTheInviteLink() {
+        repository.save(new User(
+                UUID.randomUUID(),
+                "Felipe Andrade",
+                "felipe.andrade@vistamar.com.br",
+                "PENDING-NO-PASSWORD-SET",
+                "STUDENT",
+                null,
+                UserStatus.PENDING,
+                LocalDateTime.now()
+        ));
+
+        final PendingUserException exception = assertThrows(
+                PendingUserException.class,
+                () -> useCase.execute("felipe.andrade@vistamar.com.br", "qualquer-senha")
+        );
+
+        assertEquals("Account pending activation. Use the link sent to your e-mail to create your password",
+                exception.getMessage());
+        // Confere a senha contra o hash dummy, como no e-mail inexistente: o tempo de resposta é o mesmo.
+        assertEquals(List.of(passwordHasher.hash("dummy-password-for-timing")), passwordHasher.matchedHashes());
     }
 
     @Test

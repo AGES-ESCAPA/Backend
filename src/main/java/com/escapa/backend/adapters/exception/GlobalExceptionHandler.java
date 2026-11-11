@@ -49,6 +49,9 @@ import com.escapa.backend.domain.content.InvalidContentFileException;
 import com.escapa.backend.domain.user.InvalidAvatarFileException;
 import com.escapa.backend.domain.user.InvalidCredentialsException;
 import com.escapa.backend.domain.user.InvalidCurrentPasswordException;
+import com.escapa.backend.domain.user.InviteExpiredException;
+import com.escapa.backend.domain.user.InviteNotFoundException;
+import com.escapa.backend.domain.user.PendingUserException;
 import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.user.ProfileNotEditableException;
 import com.escapa.backend.domain.user.UserAlreadyInactiveException;
@@ -97,6 +100,7 @@ public class GlobalExceptionHandler {
             OrderNotFoundException.class,
             NotificationNotFoundException.class,
             CompanyNotFoundException.class,
+            InviteNotFoundException.class,
             CompanyEmployeeNotFoundException.class
     })
     public ResponseEntity<ApiError> handleNotFoundException(RuntimeException ex, HttpServletRequest request) {
@@ -105,7 +109,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             CompanyEmployeeCannotDeactivateException.class,
-            ProfileNotEditableException.class
+            ProfileNotEditableException.class,
+            PendingUserException.class
     })
     public ResponseEntity<ApiError> handleForbiddenAccountChange(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
@@ -115,6 +120,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleUserAlreadyInactiveException(
             UserAlreadyInactiveException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(InviteExpiredException.class)
+    public ResponseEntity<ApiError> handleInviteExpiredException(
+            InviteExpiredException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.GONE, ex.getMessage(), request);
     }
 
     @ExceptionHandler({InvalidOrderTransitionException.class, SeatsInUseException.class})

@@ -1,6 +1,7 @@
 package com.escapa.backend.infrastructure.persistence;
 
 import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CourseEnrollmentCount;
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.model.StudentCourseCard;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
@@ -12,7 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -54,6 +57,24 @@ public class EnrollmentRepositoryAdapter implements EnrollmentRepositoryPort {
                 entityPage.getTotalElements(),
                 entityPage.getTotalPages()
         );
+    }
+
+    @Override
+    @Transactional
+    public void recordLastAccess(UUID userId, UUID courseId, LocalDateTime accessedAt, Duration minInterval) {
+        userCourseJpaRepository.updateLastAccessDate(userId, courseId, accessedAt, accessedAt.minus(minInterval));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CourseEnrollmentCount> countEligibleEnrollmentsByCourse() {
+        return userCourseJpaRepository.countEligibleEnrollmentsByCourse().stream()
+                .map(view -> new CourseEnrollmentCount(
+                        view.getCourseId(),
+                        view.getTitle(),
+                        view.getCategory(),
+                        view.getEnrollments()))
+                .toList();
     }
 
     private StudentCourseCard toDomain(UserCourseEntity entity) {

@@ -50,8 +50,9 @@ public class SecurityConfig {
                         .accessDeniedHandler(this::writeForbidden))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/auth/me").authenticated()
+                        // /actuator/* so existe na porta de gestao (8081), que nao e publicada.
                         .requestMatchers(
-                                "/", "/error", "/actuator/health", "/api/v1/health", "/swagger-ui/**", "/swagger-ui.html",
+                                "/", "/error", "/actuator/health", "/actuator/prometheus", "/api/v1/health", "/swagger-ui/**", "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/api/v1/auth/**", "/api/v1/public/**")
                         .permitAll()
