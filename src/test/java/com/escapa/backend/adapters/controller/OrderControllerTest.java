@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -55,10 +56,19 @@ class OrderControllerTest extends PostgresIntegrationTest {
         jdbcTemplate.update("delete from orders");
         jdbcTemplate.update("delete from company_courses");
         jdbcTemplate.update("delete from user_courses");
+        // Os usuários criados aqui também saem: empresas que sobram mudam as contagens de outros
+        // testes (ex.: AdminMetricsRepositoryAdapterTest), conforme a ordem em que as classes rodam.
+        for (final UUID userId : userIds) {
+            jdbcTemplate.update("delete from users where id = ?", userId);
+        }
+        userIds.clear();
     }
+
+    private final List<UUID> userIds = new ArrayList<>();
 
     private UUID givenUser(String role) {
         final UUID id = UUID.randomUUID();
+        userIds.add(id);
         jdbcTemplate.update(
                 "insert into users (id, name, email, password_hash, role) values (?, ?, ?, 'hash', ?)",
                 id, "Comprador", id + "@email.com", role);

@@ -11,6 +11,14 @@ public interface CompanySeatsPort {
     /** @throws com.escapa.backend.domain.company.CompanyNotFoundException se a empresa não tem registro em {@code company} */
     int findSeatsTotal(UUID companyId);
 
+    /**
+     * Igual a {@link #findSeatsTotal}, mas trava a linha da empresa até o fim da transação: dois
+     * cadastros ao mesmo tempo não podem ocupar a mesma última vaga.
+     *
+     * @throws com.escapa.backend.domain.company.CompanyNotFoundException se a empresa não tem registro em {@code company}
+     */
+    int findSeatsTotalForUpdate(UUID companyId);
+
     int countSeatsInUse(UUID companyId);
 
     void updateSeatsTotal(UUID companyId, int seatsTotal);

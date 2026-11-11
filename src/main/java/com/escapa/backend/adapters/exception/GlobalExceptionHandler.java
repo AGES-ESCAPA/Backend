@@ -32,6 +32,8 @@ import com.escapa.backend.domain.order.InvalidOrderTransitionException;
 import com.escapa.backend.domain.order.OrderNotFoundException;
 import com.escapa.backend.domain.order.SeatsInUseException;
 import com.escapa.backend.domain.company.CompanyNotFoundException;
+import com.escapa.backend.domain.company.NoSeatsAvailableException;
+import com.escapa.backend.domain.user.EmployeeNotPendingException;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
@@ -126,7 +128,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.GONE, ex.getMessage(), request);
     }
 
-    @ExceptionHandler({InvalidOrderTransitionException.class, SeatsInUseException.class})
+    @ExceptionHandler({
+            InvalidOrderTransitionException.class,
+            SeatsInUseException.class,
+            NoSeatsAvailableException.class,
+            EmployeeNotPendingException.class
+    })
     public ResponseEntity<ApiError> handleOrderConflictException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }

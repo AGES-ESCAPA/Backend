@@ -3,7 +3,9 @@ package com.escapa.backend.domain.user;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.HexFormat;
 import java.util.UUID;
 
@@ -12,6 +14,8 @@ import java.util.UUID;
  * existe apenas no link enviado por e-mail.
  */
 public class AccountInvite {
+    private static final int TOKEN_BYTES = 32;
+
     private final UUID id;
     private final UUID userId;
     private final UUID companyId;
@@ -34,6 +38,13 @@ public class AccountInvite {
     public static AccountInvite issue(UUID userId, UUID companyId, String tokenHash,
                                       LocalDateTime now, long validityHours) {
         return new AccountInvite(null, userId, companyId, tokenHash, now.plusHours(validityHours), null, now);
+    }
+
+    /** Token do link do convite: 256 bits aleatórios em base64 seguro para URL. */
+    public static String generateToken() {
+        final byte[] bytes = new byte[TOKEN_BYTES];
+        new SecureRandom().nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
     /** SHA-256 do token em hex minúsculo, o mesmo formato gravado em {@code token_hash}. */
