@@ -1,9 +1,11 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.escapa.backend.application.port.AccountInviteRepositoryPort;
 import com.escapa.backend.domain.user.AccountInvite;
@@ -34,6 +36,12 @@ public class AccountInviteRepositoryAdapter implements AccountInviteRepositoryPo
     @Override
     public Optional<AccountInvite> findByTokenHash(String tokenHash) {
         return accountInviteJpaRepository.findByTokenHash(tokenHash).map(AccountInviteMapper::toDomain);
+    }
+
+    @Override
+    @Transactional
+    public boolean markAsUsed(UUID inviteId, LocalDateTime usedAt) {
+        return accountInviteJpaRepository.markAsUsed(inviteId, usedAt) == 1;
     }
 
     @Override

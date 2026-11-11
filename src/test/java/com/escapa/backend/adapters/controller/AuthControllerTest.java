@@ -12,6 +12,7 @@ import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.InactiveUserException;
 import com.escapa.backend.domain.user.InvalidCredentialsException;
+import com.escapa.backend.domain.user.PendingUserException;
 import com.escapa.backend.domain.user.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,9 @@ class AuthControllerTest {
                 }
                 if ("inativo@email.com".equalsIgnoreCase(email)) {
                     throw new InactiveUserException("User account is inactive");
+                }
+                if ("pendente@email.com".equalsIgnoreCase(email)) {
+                    throw new PendingUserException();
                 }
                 final String profile = "funcionario@empresa.com".equalsIgnoreCase(email) ? "EMPLOYEE" : "STUDENT";
                 final String avatarUrl = "com.foto@email.com".equalsIgnoreCase(email)
@@ -196,6 +200,16 @@ class AuthControllerTest {
                         .content(requestBody))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value("User account is inactive"));
+    }
+
+    @Test
+    void shouldReturn403WithGuidanceWhenUserIsPending() throws Exception {
+        mockMvc.perform(post(LOGIN_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"pendente@email.com\", \"password\": \"senha\"}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message")
+                        .value("Account pending activation. Use the link sent to your e-mail to create your password"));
     }
 
         private static final String REGISTER_COMPANY_URL = "/api/v1/auth/register/company";
