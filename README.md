@@ -807,12 +807,12 @@ Para o Dashboard de Engajamento. Mesma autenticação da US-30: `Authorization: 
 **Panorama (`/overview`):**
 
 - `completionRate`: % das matrículas concluídas, com uma casa decimal.
-- `completionRateChange`: variação da taxa em pontos percentuais desde o fim do mês anterior (usa `dt_inicio` e `conclusion_date`); `0` quando a empresa ainda não tinha matrículas naquela data.
+- `completionRateChange`: variação da taxa em pontos percentuais desde o fim do mês anterior, com a mesma regra de concluída: conta as matrículas iniciadas até aquele dia (`dt_inicio`) e, delas, as com `conclusion_date` até aquele dia ou em 100% sem data de conclusão; `0` quando a empresa ainda não tinha matrículas naquela data.
 - `averageHoursPerEmployee`: horas das aulas concluídas (`content.duration_minutes`; aula sem duração conta `0`) divididas pelos colaboradores `ACTIVE`.
 - `certificatesThisQuarter`: certificados emitidos desde o início do trimestre atual.
 - `weeklyEngagement`: % dos colaboradores `ACTIVE` com acesso a um curso nos últimos 7 dias (`last_access_date`, gravado na US-35 #91).
 - `completionByJobTitle`: taxa de conclusão por cargo (`users_company.role`), em ordem alfabética.
-- `monthlyHours`: **sempre 6 meses** (o atual e os 5 anteriores, do mais antigo ao mais recente, `month` como `yyyy-MM`), com `0` nos meses sem aulas concluídas; é a média de horas por colaborador `ACTIVE`, pela data de conclusão da aula.
+- `monthlyHours`: **sempre 6 meses** (o atual e os 5 anteriores, do mais antigo ao mais recente, cada item com `month` como `yyyy-MM` e `averageHours`), com `0` nos meses sem aulas concluídas; é a média de horas por colaborador `ACTIVE`, pela data de conclusão da aula.
 - Empresa sem colaboradores devolve tudo zerado, sem erro de divisão. Meses e trimestre seguem o fuso de São Paulo.
 - **Sem variação de engajamento:** o sistema guarda só o último acesso de cada matrícula, sem histórico, então não há como saber o engajamento do mês anterior. Por isso não existe `weeklyEngagementChange`.
 

@@ -30,6 +30,15 @@ public class CompanyReportAdapter implements CompanyReportRepositoryPort {
     private static final String COMPLETED =
             "(enrollment.conclusion_date is not null or enrollment.progress = 100)";
 
+    /**
+     * A mesma regra de {@link #COMPLETED} vista no fim do mês anterior, para a variação comparar taxas
+     * calculadas do mesmo jeito. Uma matrícula em 100% sem data de conclusão não diz quando terminou,
+     * então conta como concluída desde que já existisse naquele dia (o filtro de início fica na consulta).
+     */
+    private static final String COMPLETED_AT_PREVIOUS_MONTH_END =
+            "(enrollment.conclusion_date <= :previousMonthEnd"
+                    + " or (enrollment.conclusion_date is null and enrollment.progress = 100))";
+
     private static final String NOT_COMPLETED =
             "(enrollment.conclusion_date is null and (enrollment.progress is null or enrollment.progress < 100))";
 
@@ -107,7 +116,8 @@ public class CompanyReportAdapter implements CompanyReportRepositoryPort {
                                                    or enrollment.dt_inicio <= :previousMonthEnd) as previous_enrollments,
                                count(*) filter (where (enrollment.dt_inicio is null
                                                        or enrollment.dt_inicio <= :previousMonthEnd)
-                                                  and enrollment.conclusion_date <= :previousMonthEnd) as previous_completed
+                                                  and """ + COMPLETED_AT_PREVIOUS_MONTH_END + """
+                               ) as previous_completed
                         """ + ENROLLMENTS_FROM)
                 .param("companyId", companyId)
                 .param("quarterStart", period.quarterStart())

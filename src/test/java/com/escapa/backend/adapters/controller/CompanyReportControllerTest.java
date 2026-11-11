@@ -160,7 +160,7 @@ class CompanyReportControllerTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.data.weeklyEngagement", is(0.0)))
                 .andExpect(jsonPath("$.data.completionByJobTitle", empty()))
                 .andExpect(jsonPath("$.data.monthlyHours", hasSize(6)))
-                .andExpect(jsonPath("$.data.monthlyHours[?(@.hours > 0)]", empty()));
+                .andExpect(jsonPath("$.data.monthlyHours[?(@.averageHours > 0)]", empty()));
     }
 
     @Test
@@ -177,8 +177,8 @@ class CompanyReportControllerTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.data.completionByJobTitle[*].jobTitle", contains("COZINHA", "RECEPCAO")))
                 .andExpect(jsonPath("$.data.completionByJobTitle[*].completionRate", contains(0.0, 100.0)))
                 .andExpect(jsonPath("$.data.monthlyHours", hasSize(6)))
-                .andExpect(jsonPath("$.data.monthlyHours[?(@.hours > 0)]", hasSize(1)))
-                .andExpect(jsonPath("$.data.monthlyHours[?(@.hours > 0)].hours", contains(0.5)));
+                .andExpect(jsonPath("$.data.monthlyHours[?(@.averageHours > 0)]", hasSize(1)))
+                .andExpect(jsonPath("$.data.monthlyHours[?(@.averageHours > 0)].averageHours", contains(0.5)));
     }
 
     @Test

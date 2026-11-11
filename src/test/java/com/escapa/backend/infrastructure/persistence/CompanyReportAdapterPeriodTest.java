@@ -104,6 +104,22 @@ class CompanyReportAdapterPeriodTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void previousMonthEndUsesTheSameCompletionRuleWithFullProgressAndNoConclusionDate() {
+        final UUID fullBefore = activeEmployee("Cem por cento antes");
+        final UUID fullAfter = activeEmployee("Cem por cento depois");
+        final UUID almost = activeEmployee("Noventa e nove");
+        fixture.enrollment(fullBefore, course, LocalDate.of(2026, 10, 10), 100, null, null);
+        fixture.enrollment(fullAfter, course, LocalDate.of(2026, 11, 1), 100, null, null);
+        fixture.enrollment(almost, course, LocalDate.of(2026, 10, 10), 99, null, null);
+
+        final CompanyReportFigures figures = repository.loadFigures(company, PERIOD);
+
+        assertEquals(2, figures.completedEnrollments());
+        assertEquals(2, figures.enrollmentsAtPreviousMonthEnd());
+        assertEquals(1, figures.completedAtPreviousMonthEnd());
+    }
+
+    @Test
     void monthlyMinutesStartAtTheFirstMonthSumTheMonthAndLeaveEarlierLessonsOutOfTheSeries() {
         final UUID ana = activeEmployee("Ana");
         final UUID bia = activeEmployee("Bia");

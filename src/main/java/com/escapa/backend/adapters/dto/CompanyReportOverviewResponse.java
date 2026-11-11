@@ -26,7 +26,7 @@ public record CompanyReportOverviewResponse(
 
     @Schema(description = "Completion rate of one job title")
     public record JobTitleCompletionResponse(
-            @Schema(description = "Job title, kept in users_company.role", example = "RECEPCAO")
+            @Schema(description = "Job title, kept in users_company.role", example = "Recepção")
             String jobTitle,
             @Schema(example = "25.0")
             double completionRate
@@ -38,7 +38,7 @@ public record CompanyReportOverviewResponse(
             @Schema(description = "Month as yyyy-MM", example = "2026-11")
             String month,
             @Schema(example = "1.5")
-            double hours
+            double averageHours
     ) {
     }
 
