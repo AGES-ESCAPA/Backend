@@ -1,5 +1,6 @@
 package com.escapa.backend.application.port;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -11,6 +12,13 @@ public interface AccountInviteRepositoryPort {
     AccountInvite save(AccountInvite invite);
 
     Optional<AccountInvite> findByTokenHash(String tokenHash);
+
+    /**
+     * Marca o convite como usado só se ainda estiver em aberto, numa única instrução atômica.
+     * Devolve {@code false} se outra requisição já o usou: duas requisições com o mesmo token
+     * não conseguem criar a senha ao mesmo tempo.
+     */
+    boolean markAsUsed(UUID inviteId, LocalDateTime usedAt);
 
     /** Vale para convites usados ou não: identifica quem já foi colaborador. */
     boolean existsByUserId(UUID userId);

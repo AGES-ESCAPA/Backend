@@ -112,6 +112,21 @@ class AccountInviteRepositoryAdapterTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void shouldMarkAnOpenInviteAsUsedOnlyOnce() {
+        givenCompanyAndPendingEmployee();
+        final String tokenHash = sha256("token-" + UUID.randomUUID());
+        final LocalDateTime now = LocalDateTime.now().withNano(0);
+        final AccountInvite saved = accountInviteRepositoryPort.save(
+                AccountInvite.issue(employeeId, companyId, tokenHash, now, VALIDITY_HOURS));
+
+        assertTrue(accountInviteRepositoryPort.markAsUsed(saved.getId(), now.plusMinutes(1)));
+        assertFalse(accountInviteRepositoryPort.markAsUsed(saved.getId(), now.plusMinutes(2)));
+
+        final AccountInvite reloaded = accountInviteRepositoryPort.findByTokenHash(tokenHash).orElseThrow();
+        assertEquals(now.plusMinutes(1), reloaded.getUsedAt());
+    }
+
+    @Test
     void shouldReturnEmptyForAnUnknownTokenHash() {
         assertTrue(accountInviteRepositoryPort.findByTokenHash(sha256("inexistente")).isEmpty());
     }
