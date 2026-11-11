@@ -222,7 +222,7 @@ class StudentLessonControllerTest {
     private LessonDetails lesson(UUID id, boolean isFree) {
         final Content content = new Content(
                 id, moduleId, "Aula 2", "Descricao da aula", ContentType.VIDEO,
-                "https://cdn.example.com/aula-2.mp4", 12, isFree, 2, null, null);
+                "https://cdn.example.com/aula-2.mp4", 12, isFree, 2, null, null, null, null, false, false);
         return new LessonDetails(content, courseId, "Fundamentos", 1, true,
                 new LessonSupplement(List.of(), List.of()));
     }
@@ -240,7 +240,7 @@ class StudentLessonControllerTest {
         final Module module = new Module(UUID.randomUUID(), courseId, "Modulo 1", 1);
         final Content content = new Content(
                 UUID.randomUUID(), module.getId(), "Aula 1", "Descricao", ContentType.VIDEO,
-                "https://cdn.example.com/aula-1.mp4", 10, false, 1, null, null);
+                "https://cdn.example.com/aula-1.mp4", 10, false, 1, null, null, null, null, false, false);
         module.getContents().add(content);
         return module;
     }

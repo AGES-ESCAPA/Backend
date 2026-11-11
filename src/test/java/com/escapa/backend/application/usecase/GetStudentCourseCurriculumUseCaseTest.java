@@ -162,7 +162,7 @@ private CourseRepositoryPort stubCourseRepositoryPort() {
         final Module module = new Module(UUID.randomUUID(), courseId, "Modulo 1", 1);
         final Content content = new Content(
                 UUID.randomUUID(), module.getId(), "Aula 1", "desc", ContentType.VIDEO,
-                "https://cdn.example.com/video.mp4", 10, false, 1, null, null);
+                "https://cdn.example.com/video.mp4", 10, false, 1, null, null, null, null, false, false);
         module.getContents().add(content);
         return module;
     }

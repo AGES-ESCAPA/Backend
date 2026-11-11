@@ -1,7 +1,9 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.LessonNotificationPort;
+import com.escapa.backend.domain.content.ContentPendingDraft;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
@@ -13,8 +15,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Edita uma aula existente. Quando algum campo muda de fato, os alunos que ja
- * concluiram a aula sao notificados para refaze-la.
+ * Edita uma aula. Em curso publicado, a versão que o aluno lê só muda na
+ * publicação. Fora isso, quem já concluiu a aula é avisado na hora.
  */
 public class UpdateContentUseCase {
 
@@ -61,24 +63,54 @@ public class UpdateContentUseCase {
         final Content content = contentRepositoryPort.findById(id)
                 .orElseThrow(() -> new ContentNotFoundException(id));
         final EditableFields before = EditableFields.of(content);
+        final Content prospective = prospective(content, title, type, url, durationMinutes, description, isFree,
+                resources);
+        ContentTypeRules.validate(prospective);
 
-        // Trocar o tipo e limpar campos do tipo anterior e permitido; a validacao
-        // condicional abaixo garante que a nova combinacao continue coerente.
-        content.setTitle(title.trim());
-        content.setType(type);
-        content.setUrl(url);
-        content.setDurationMinutes(durationMinutes);
-        content.setDescription(description);
-        content.setIsFree(isFree != null && isFree);
-        content.setResources(resources == null ? new ArrayList<>() : new ArrayList<>(resources));
+        if (content.isHeldForPublish()) {
+            content.setPendingDraft(ContentPendingDraft.from(prospective));
+            return PublishedCurriculum.editorContent(contentRepositoryPort.save(content));
+        }
 
-        ContentTypeRules.validate(content);
+        apply(content, prospective);
         final Content saved = contentRepositoryPort.save(content);
-
         if (!before.equals(EditableFields.of(saved))) {
             lessonNotificationPort.notifyLessonUpdated(saved.getId(), saved.getTitle());
         }
         return saved;
+    }
+
+    private static Content prospective(
+            Content current,
+            String title,
+            ContentType type,
+            String url,
+            Integer durationMinutes,
+            String description,
+            Boolean isFree,
+            List<ContentResource> resources
+    ) {
+        final Content next = current.copy();
+        next.setTitle(title.trim());
+        next.setType(type);
+        next.setUrl(url);
+        next.setDurationMinutes(durationMinutes);
+        next.setDescription(description);
+        next.setIsFree(isFree != null && isFree);
+        next.setResources(resources == null ? new ArrayList<>() : new ArrayList<>(resources));
+        next.setPendingDraft(null);
+        return next;
+    }
+
+    private static void apply(Content content, Content prospective) {
+        content.setTitle(prospective.getTitle());
+        content.setType(prospective.getType());
+        content.setUrl(prospective.getUrl());
+        content.setDurationMinutes(prospective.getDurationMinutes());
+        content.setDescription(prospective.getDescription());
+        content.setIsFree(prospective.getIsFree());
+        content.setResources(prospective.getResources());
+        content.setPendingDraft(null);
     }
 
     private record EditableFields(

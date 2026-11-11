@@ -1,5 +1,6 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
@@ -28,6 +29,6 @@ public class ListCourseModulesUseCase {
         if (!courseRepositoryPort.existsById(courseId)) {
             throw new CourseNotFoundException(courseId);
         }
-        return moduleRepositoryPort.findByCourseId(courseId);
+        return PublishedCurriculum.forEditor(moduleRepositoryPort.findByCourseId(courseId));
     }
 }

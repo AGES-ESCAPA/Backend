@@ -1,13 +1,15 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.entity.Content;
 
 import java.util.UUID;
 
 /**
- * Remocao definitiva. A troca por soft-delete quando ja houver progresso de aluno
- * segue como pendencia herdada da BE-04.
+ * Em curso publicado, a aula some do construtor e continua visível para o aluno
+ * até a publicação. Fora isso, a remoção é definitiva.
  */
 public class DeleteContentUseCase {
 
@@ -18,9 +20,14 @@ public class DeleteContentUseCase {
     }
 
     public void execute(UUID id) {
-        if (contentRepositoryPort.findById(id).isEmpty()) {
-            throw new ContentNotFoundException(id);
+        final Content content = contentRepositoryPort.findById(id)
+                .orElseThrow(() -> new ContentNotFoundException(id));
+        if (!content.isHeldForPublish()) {
+            contentRepositoryPort.deleteById(id);
+            return;
         }
-        contentRepositoryPort.deleteById(id);
+        content.setPendingDeletion(true);
+        content.setOrder(PublishedCurriculum.parkedOrder(content.getOrder()));
+        contentRepositoryPort.save(content);
     }
 }

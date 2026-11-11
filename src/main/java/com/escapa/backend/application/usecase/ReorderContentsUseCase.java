@@ -1,5 +1,6 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.entity.Content;
@@ -37,13 +38,19 @@ public class ReorderContentsUseCase {
         }
 
         final Set<UUID> current = new HashSet<>(
-                contentRepositoryPort.findByModuleId(moduleId).stream().map(Content::getId).toList());
+                contentRepositoryPort.findByModuleId(moduleId).stream()
+                        .filter(content -> !content.isPendingDeletion())
+                        .map(Content::getId)
+                        .toList());
         if (!current.equals(requested)) {
             // Reordenacao parcial deixaria buracos ou colisoes na sequencia do modulo.
             throw new IllegalArgumentException("contentIds must contain every content of the module exactly once");
         }
 
         contentRepositoryPort.reorder(moduleId, orderedIds);
-        return contentRepositoryPort.findByModuleId(moduleId);
+        return contentRepositoryPort.findByModuleId(moduleId).stream()
+                .filter(content -> !content.isPendingDeletion())
+                .map(PublishedCurriculum::editorContent)
+                .toList();
     }
 }

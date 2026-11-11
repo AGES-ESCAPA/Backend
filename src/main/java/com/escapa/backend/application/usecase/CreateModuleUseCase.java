@@ -3,6 +3,8 @@ package com.escapa.backend.application.usecase;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.Module;
 
 import java.util.UUID;
@@ -28,17 +30,21 @@ public class CreateModuleUseCase {
         if (courseId == null) {
             throw new IllegalArgumentException("courseId is required");
         }
-        if (!courseRepositoryPort.existsById(courseId)) {
-            throw new CourseNotFoundException(courseId);
-        }
+        final Course course = courseRepositoryPort.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
         if (title == null || title.trim().isBlank()) {
             throw new IllegalArgumentException("title is required");
         }
 
+        final boolean published = course.getStatus() == CourseStatus.PUBLISHED;
         final Module module = new Module();
         module.setCourseId(courseId);
         module.setTitle(title.trim());
         module.setOrder(moduleRepositoryPort.nextOrder(courseId));
+        module.setCoursePublished(published);
+        if (!published) {
+            module.setPublishedOrder(module.getOrder());
+        }
         return moduleRepositoryPort.save(module);
     }
 }

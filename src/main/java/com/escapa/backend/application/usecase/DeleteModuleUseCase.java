@@ -1,14 +1,15 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
+import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
 
 import java.util.UUID;
 
 /**
- * Remocao definitiva do modulo e, por cascade, dos seus conteudos.
- * A troca por soft-delete quando ja houver progresso de aluno sobre o conteudo
- * fica registrada como pendencia da US-06 (fora do escopo desta task).
+ * Em curso publicado, o módulo some do construtor e continua visível para o
+ * aluno até a publicação. Fora isso, a remoção é definitiva.
  */
 public class DeleteModuleUseCase {
 
@@ -19,9 +20,14 @@ public class DeleteModuleUseCase {
     }
 
     public void execute(UUID id) {
-        if (!moduleRepositoryPort.existsById(id)) {
-            throw new ModuleNotFoundException(id);
+        final Module module = moduleRepositoryPort.findById(id)
+                .orElseThrow(() -> new ModuleNotFoundException(id));
+        if (!module.isHeldForPublish()) {
+            moduleRepositoryPort.deleteById(id);
+            return;
         }
-        moduleRepositoryPort.deleteById(id);
+        module.setPendingDeletion(true);
+        module.setOrder(PublishedCurriculum.parkedOrder(module.getOrder()));
+        moduleRepositoryPort.save(module);
     }
 }

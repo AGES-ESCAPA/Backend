@@ -17,8 +17,8 @@ public interface ModuleJpaRepository extends JpaRepository<ModuleEntity, UUID> {
     @EntityGraph(attributePaths = "contents")
     List<ModuleEntity> findByCourseIdOrderByOrderAsc(UUID courseId);
 
-    @Query("SELECT MAX(m.order) FROM ModuleEntity m WHERE m.course.id = :courseId")
-    Integer findMaxOrderByCourseId(@Param("courseId") UUID courseId);
+    @Query("SELECT MAX(m.order) FROM ModuleEntity m WHERE m.course.id = :courseId AND m.order > 0")
+    Integer findMaxPositiveOrderByCourseId(@Param("courseId") UUID courseId);
 
     // flush/clear automaticos mantem as duas fases do reorder na ordem certa e
     // evitam que o contexto de persistencia devolva a ordem antiga depois.

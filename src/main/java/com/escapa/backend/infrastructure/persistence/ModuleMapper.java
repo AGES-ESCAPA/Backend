@@ -1,5 +1,6 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
@@ -16,16 +17,23 @@ public final class ModuleMapper {
         if (entity == null) {
             return null;
         }
+        final boolean coursePublished = entity.getCourse() != null
+                && entity.getCourse().getStatus() == CourseStatus.PUBLISHED;
         final Module module = new Module(
                 entity.getId(),
                 entity.getCourse() != null ? entity.getCourse().getId() : null,
                 entity.getTitle(),
                 entity.getOrder()
         );
+        module.setPublishedOrder(entity.getPublishedOrder());
+        module.setPendingTitle(entity.getPendingTitle());
+        module.setPendingDeletion(entity.isPendingDeletion());
+        module.setCoursePublished(coursePublished);
         if (entity.getContents() != null) {
             module.setContents(new ArrayList<>(entity.getContents().stream()
                     .map(ContentMapper::toDomain)
                     .toList()));
+            module.getContents().forEach(content -> content.setCoursePublished(coursePublished));
         }
         return module;
     }
@@ -35,5 +43,8 @@ public final class ModuleMapper {
         entity.setCourse(course);
         entity.setTitle(module.getTitle());
         entity.setOrder(module.getOrder());
+        entity.setPublishedOrder(module.getPublishedOrder());
+        entity.setPendingTitle(module.getPendingTitle());
+        entity.setPendingDeletion(module.isPendingDeletion());
     }
 }

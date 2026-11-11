@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
@@ -38,24 +39,26 @@ public class ContentRepositoryAdapter implements ContentRepositoryPort {
         }
         final ModuleEntity module = moduleJpaRepository.getReferenceById(content.getModuleId());
         ContentMapper.applyToEntity(content, entity, module);
-        return ContentMapper.toDomain(contentJpaRepository.save(entity));
+        return toDomain(contentJpaRepository.save(entity));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Content> findById(UUID id) {
-        return contentJpaRepository.findById(id).map(ContentMapper::toDomain);
+        return contentJpaRepository.findById(id).map(this::toDomain);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Content> findByModuleId(UUID moduleId) {
         return contentJpaRepository.findByModuleIdOrderByOrderAsc(moduleId).stream()
-                .map(ContentMapper::toDomain)
+                .map(this::toDomain)
                 .toList();
     }
 
     @Override
     public int nextOrder(UUID moduleId) {
-        final Integer maxOrder = contentJpaRepository.findMaxOrderByModuleId(moduleId);
+        final Integer maxOrder = contentJpaRepository.findMaxPositiveOrderByModuleId(moduleId);
         return maxOrder != null ? maxOrder + 1 : 1;
     }
 
@@ -77,5 +80,17 @@ public class ContentRepositoryAdapter implements ContentRepositoryPort {
         for (int index = 0; index < orderedIds.size(); index++) {
             contentJpaRepository.updateOrderByIdAndModuleId(orderedIds.get(index), moduleId, index + 1);
         }
+    }
+
+    private Content toDomain(ContentEntity entity) {
+        final Content content = ContentMapper.toDomain(entity);
+        content.setCoursePublished(belongsToPublishedCourse(entity));
+        return content;
+    }
+
+    private static boolean belongsToPublishedCourse(ContentEntity entity) {
+        return entity.getModule() != null
+                && entity.getModule().getCourse() != null
+                && entity.getModule().getCourse().getStatus() == CourseStatus.PUBLISHED;
     }
 }

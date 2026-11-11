@@ -23,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -225,6 +226,8 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
         }
 
         return modules.stream()
+                .filter(module -> module.getPublishedOrder() != null)
+                .sorted(Comparator.comparing(ModuleEntity::getPublishedOrder))
                 .map(CourseRepositoryAdapter::toModule)
                 .toList();
     }
@@ -242,7 +245,7 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
         return new CourseDetails.Module(
                 module.getId(),
                 module.getTitle(),
-                module.getOrder(),
+                module.getPublishedOrder(),
                 contents.size(),
                 durationMinutes,
                 contents
@@ -257,13 +260,15 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
         }
 
         return contents.stream()
+                .filter(content -> content.getPublishedOrder() != null)
+                .sorted(Comparator.comparing(ContentEntity::getPublishedOrder))
                 .map(content -> new CourseDetails.Content(
                         content.getId(),
                         content.getTitle(),
                         content.getType() != null
                                 ? content.getType().name()
                                 : null,
-                        content.getOrder(),
+                        content.getPublishedOrder(),
                         content.getDurationMinutes(),
                         content.getIsFree(),
                         Boolean.TRUE.equals(content.getIsFree())

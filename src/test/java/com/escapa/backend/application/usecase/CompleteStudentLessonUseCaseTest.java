@@ -49,7 +49,8 @@ class CompleteStudentLessonUseCaseTest {
         final Module module = moduleRepository.findById(moduleId).orElseThrow();
         final Content content = new Content(
                 UUID.randomUUID(), moduleId, "Aula", "Descricao", ContentType.VIDEO,
-                "https://cdn.example.com/aula.mp4", 10, isFree, module.getContents().size() + 1, null, null);
+                "https://cdn.example.com/aula.mp4", 10, isFree, module.getContents().size() + 1, null, null,
+                null, null, false, false);
         module.getContents().add(content);
         lessonRepository.add(new LessonDetails(content, courseId, "Fundamentos", 1, enforceDeadlineBlock,
                 new LessonSupplement(List.of(), List.of())));

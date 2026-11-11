@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
 
+import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.model.StudentCourseCurriculum;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
@@ -51,7 +52,8 @@ public class GetStudentCourseCurriculumUseCase {
         enrollmentAccessValidator.requireActiveEnrollment(
                 userId, courseId, Boolean.TRUE.equals(course.getEnforceDeadlineBlock()), courseId);
 
-        final List<Module> modules = moduleRepositoryPort.findByCourseId(courseId);
+        final List<Module> modules = PublishedCurriculum.forStudents(
+                moduleRepositoryPort.findByCourseId(courseId), course.getStatus());
         final List<UUID> completedLessonIds = lessonProgressRepositoryPort.findCompletedLessonIds(userId, courseId);
 
         return lessonStatusCalculator.calculate(

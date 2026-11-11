@@ -5,6 +5,8 @@ import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CourseNotificationPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.application.port.CurriculumReleasePort;
+import com.escapa.backend.application.port.LessonNotificationPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CoursePendingDraft;
@@ -31,6 +33,8 @@ public class PublishCourseUseCase {
     private final CourseNotificationPort courseNotificationPort;
     private final UserRepositoryPort userRepository;
     private final CoursePrerequisiteRepositoryPort prerequisiteRepository;
+    private final CurriculumReleasePort curriculumReleasePort;
+    private final LessonNotificationPort lessonNotificationPort;
 
     public PublishCourseUseCase(
             CourseRepositoryPort courseRepository,
@@ -38,11 +42,25 @@ public class PublishCourseUseCase {
             CourseNotificationPort courseNotificationPort,
             UserRepositoryPort userRepository,
             CoursePrerequisiteRepositoryPort prerequisiteRepository) {
+        this(courseRepository, changeLogRepository, courseNotificationPort, userRepository, prerequisiteRepository,
+                courseId -> List.of(), (lessonId, lessonTitle) -> { });
+    }
+
+    public PublishCourseUseCase(
+            CourseRepositoryPort courseRepository,
+            CourseChangeLogRepositoryPort changeLogRepository,
+            CourseNotificationPort courseNotificationPort,
+            UserRepositoryPort userRepository,
+            CoursePrerequisiteRepositoryPort prerequisiteRepository,
+            CurriculumReleasePort curriculumReleasePort,
+            LessonNotificationPort lessonNotificationPort) {
         this.courseRepository = courseRepository;
         this.changeLogRepository = changeLogRepository;
         this.courseNotificationPort = courseNotificationPort;
         this.userRepository = userRepository;
         this.prerequisiteRepository = prerequisiteRepository;
+        this.curriculumReleasePort = curriculumReleasePort;
+        this.lessonNotificationPort = lessonNotificationPort;
     }
 
     public Course execute(UUID id, boolean notifyEnrolledStudents, User changedBy) {
@@ -65,6 +83,7 @@ public class PublishCourseUseCase {
         course.setUpdatedAt(LocalDateTime.now());
         final Course saved = courseRepository.save(course);
         publishPrerequisites(id, draft);
+        releaseCurriculum(id);
 
         changeLogRepository.save(id, changedBy != null ? changedBy.getId() : null,
                 "Versão " + saved.getMajorVersion() + ".0 publicada.",
@@ -88,6 +107,12 @@ public class PublishCourseUseCase {
         draft.applyTo(course);
         course.setInstructor(instructor);
         course.setPendingDraft(null);
+    }
+
+    private void releaseCurriculum(UUID courseId) {
+        for (final CurriculumReleasePort.ReleasedLessonChange change : curriculumReleasePort.release(courseId)) {
+            lessonNotificationPort.notifyLessonUpdated(change.lessonId(), change.title());
+        }
     }
 
     private void publishPrerequisites(UUID courseId, CoursePendingDraft draft) {

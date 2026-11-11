@@ -1,5 +1,6 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.content.ContentNotFoundException;
@@ -28,10 +29,10 @@ public class GetContentUseCase {
         final Content content = contentRepositoryPort.findById(id)
                 .orElseThrow(() -> new ContentNotFoundException(id));
 
-        // Conteudo de outro modulo nao e visivel por esta rota.
-        if (!moduleId.equals(content.getModuleId())) {
+        // Conteudo de outro modulo, ou já marcado para sair na publicação, não aparece aqui.
+        if (!moduleId.equals(content.getModuleId()) || content.isPendingDeletion()) {
             throw new ContentNotFoundException(id);
         }
-        return content;
+        return PublishedCurriculum.editorContent(content);
     }
 }

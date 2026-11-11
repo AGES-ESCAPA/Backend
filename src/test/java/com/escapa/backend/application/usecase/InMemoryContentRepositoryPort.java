@@ -43,7 +43,9 @@ public final class InMemoryContentRepositoryPort implements ContentRepositoryPor
     @Override
     public int nextOrder(UUID moduleId) {
         return findByModuleId(moduleId).stream()
-                .mapToInt(Content::getOrder)
+                .map(Content::getOrder)
+                .filter(order -> order != null && order > 0)
+                .mapToInt(Integer::intValue)
                 .max()
                 .orElse(0) + 1;
     }

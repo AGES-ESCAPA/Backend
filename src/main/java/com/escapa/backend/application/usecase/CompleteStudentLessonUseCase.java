@@ -1,6 +1,9 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.model.LessonDetails;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.application.port.LessonProgressRepositoryPort;
@@ -63,7 +66,10 @@ public class CompleteStudentLessonUseCase {
 
     /** Percentual arredondado para baixo: so chega a 100 com todas as aulas concluidas. */
     private int calculateProgress(UUID userId, UUID courseId) {
-        final int totalLessons = moduleRepositoryPort.findByCourseId(courseId).stream()
+        final var modules = moduleRepositoryPort.findByCourseId(courseId);
+        final boolean published = modules.stream().anyMatch(Module::isCoursePublished);
+        final int totalLessons = PublishedCurriculum.forStudents(
+                        modules, published ? CourseStatus.PUBLISHED : CourseStatus.DRAFT).stream()
                 .mapToInt(module -> module.getContents().size())
                 .sum();
         if (totalLessons == 0) {
