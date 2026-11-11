@@ -53,11 +53,21 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
     @AfterEach
     void cleanUpOrders() {
         jdbcTemplate.update("delete from orders");
+        // Os compradores também saem: empresas que sobram mudam as contagens de outros testes
+        // (ex.: AdminMetricsRepositoryAdapterTest), conforme a ordem em que as classes rodam.
+        for (final UUID userId : buyerIds) {
+            jdbcTemplate.update("delete from users where id = ?", userId);
+        }
+        buyerIds.clear();
     }
+
+    private final List<UUID> buyerIds = new ArrayList<>();
 
     private UUID givenUser(String role) {
         final String email = "comprador-" + UUID.randomUUID() + "@email.com";
-        return userRepositoryPort.save(new User("Comprador", email, "hash", role)).getId();
+        final UUID id = userRepositoryPort.save(new User("Comprador", email, "hash", role)).getId();
+        buyerIds.add(id);
+        return id;
     }
 
     private UUID givenCompany() {
