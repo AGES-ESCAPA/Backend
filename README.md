@@ -793,6 +793,36 @@ Para a Gestão de Colaboradores. Exigem `Authorization: Bearer <accessToken>` de
 - **Cada item:** `id`, `name`, `email`, `jobTitle` (cargo, de `users_company.role`), `status`, `assignedCourses` e `avatarUrl` (nulo sem foto).
 - **`assignedCourses`:** matrículas do colaborador que não foram revogadas, nos cursos que a empresa comprou e ainda tem. Um curso da empresa revogado pelo cancelamento do pedido não conta.
 
+## 📊 Relatório de progresso da equipe (US-35)
+
+```http
+GET /api/v1/company/reports/overview
+GET /api/v1/company/reports/employees?search=ana&status=IN_PROGRESS&page=0&size=10
+```
+
+Para o Dashboard de Engajamento. Mesma autenticação da US-30: `Authorization: Bearer <accessToken>` de uma **empresa** (`COMPANY`), sem token `401`, outro perfil `403`. A empresa é sempre a do token e um `companyId` enviado na query é ignorado; uma empresa sem registro em `company` retorna `404`.
+
+**Escopo dos números:** só entram matrículas **não revogadas** dos colaboradores vinculados à empresa (`users_company`), em cursos que a empresa comprou e ainda tem. Uma matrícula é **concluída** com `conclusion_date` preenchida ou `progress = 100` (a mesma regra do restante do sistema).
+
+**Panorama (`/overview`):**
+
+- `completionRate`: % das matrículas concluídas, com uma casa decimal.
+- `completionRateChange`: variação da taxa em pontos percentuais desde o fim do mês anterior, com a mesma regra de concluída: conta as matrículas iniciadas até aquele dia (`dt_inicio`) e, delas, as com `conclusion_date` até aquele dia ou em 100% sem data de conclusão; `0` quando a empresa ainda não tinha matrículas naquela data.
+- `averageHoursPerEmployee`: horas das aulas concluídas (`content.duration_minutes`; aula sem duração conta `0`) divididas pelos colaboradores `ACTIVE`.
+- `certificatesThisQuarter`: certificados emitidos desde o início do trimestre atual.
+- `weeklyEngagement`: % dos colaboradores `ACTIVE` com acesso a um curso nos últimos 7 dias (`last_access_date`, gravado na US-35 #91).
+- `completionByJobTitle`: taxa de conclusão por cargo (`users_company.role`), em ordem alfabética.
+- `monthlyHours`: **sempre 6 meses** (o atual e os 5 anteriores, do mais antigo ao mais recente, cada item com `month` como `yyyy-MM` e `averageHours`), com `0` nos meses sem aulas concluídas; é a média de horas por colaborador `ACTIVE`, pela data de conclusão da aula.
+- Empresa sem colaboradores devolve tudo zerado, sem erro de divisão. Meses e trimestre seguem o fuso de São Paulo.
+- **Sem variação de engajamento:** o sistema guarda só o último acesso de cada matrícula, sem histórico, então não há como saber o engajamento do mês anterior. Por isso não existe `weeklyEngagementChange`.
+
+**Listagem (`/employees`):** uma linha por colaborador e curso, no envelope `PageResponse`, do acesso mais recente para o mais antigo (quem nunca acessou vai por último, desempate por nome). `page` começa em `0` e `size` vai de `1` a `100` (padrão `10`); fora disso, `400`.
+
+- **`search`** (opcional): trecho do nome, sem diferenciar maiúsculas; vazio ou só espaços não filtra, e `%` e `_` valem como texto comum.
+- **`status`** (opcional): `IN_PROGRESS` ou `COMPLETED`; outro valor retorna `400`.
+- **Cada item:** `userId`, `name`, `avatarUrl` (nulo sem foto), `courseId`, `course`, `progress` (0 a 100; `100` quando há data de conclusão), `lastAccessAt` (nulo se nunca acessou) e `certificateIssued`.
+- **Seed de desenvolvimento:** a Pousada Vista Mar LTDA tem aulas concluídas, acessos e certificados espalhados pelos últimos 6 meses (datas relativas ao dia em que o seed roda), para os gráficos terem dados.
+
 ---
 
 ## 📧 Envio de e-mail (US-31)
