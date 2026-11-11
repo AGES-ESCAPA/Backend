@@ -2,6 +2,13 @@ package com.escapa.backend.infrastructure.config;
 
 import java.time.Clock;
 
+import com.escapa.backend.application.usecase.RegisterCompanyEmployeeUseCase;
+import com.escapa.backend.application.usecase.ResendEmployeeInviteUseCase;
+import com.escapa.backend.application.usecase.EmployeeInviteMailer;
+import com.escapa.backend.application.port.OrderAccessPort;
+import com.escapa.backend.application.port.EmailSenderPort;
+import com.escapa.backend.application.port.EmailTemplatePort;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -331,8 +338,9 @@ public class SpringConfig {
     }
 
     @Bean
-    public CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort(JdbcClient jdbcClient) {
-        return new CompanyEmployeeAdapter(jdbcClient);
+    public CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort(
+            JdbcClient jdbcClient, EntityManager entityManager) {
+        return new CompanyEmployeeAdapter(jdbcClient, entityManager);
     }
 
     @Bean
@@ -350,6 +358,47 @@ public class SpringConfig {
             CompanySeatsPort companySeatsPort,
             CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort) {
         return new GetCompanySeatsSummaryUseCase(companySeatsPort, companyEmployeeRepositoryPort);
+    }
+
+    @Bean
+    public RegisterCompanyEmployeeUseCase registerCompanyEmployeeUseCase(
+            UserRepositoryPort userRepositoryPort,
+            CompanyRepositoryPort companyRepositoryPort,
+            CompanySeatsPort companySeatsPort,
+            CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort,
+            CompanyCourseRepositoryPort companyCourseRepositoryPort,
+            OrderAccessPort orderAccessPort,
+            AccountInviteRepositoryPort accountInviteRepositoryPort,
+            PasswordHasherPort passwordHasherPort,
+            ContactValidatorPort contactValidatorPort,
+            @Value("${app.invite.expiration-hours}") long inviteExpirationHours
+    ) {
+        return new RegisterCompanyEmployeeUseCase(userRepositoryPort, companyRepositoryPort, companySeatsPort,
+                companyEmployeeRepositoryPort, companyCourseRepositoryPort, orderAccessPort,
+                accountInviteRepositoryPort, passwordHasherPort, contactValidatorPort,
+                Clock.systemDefaultZone(), inviteExpirationHours);
+    }
+
+    @Bean
+    public ResendEmployeeInviteUseCase resendEmployeeInviteUseCase(
+            UserRepositoryPort userRepositoryPort,
+            CompanyRepositoryPort companyRepositoryPort,
+            CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort,
+            AccountInviteRepositoryPort accountInviteRepositoryPort,
+            @Value("${app.invite.expiration-hours}") long inviteExpirationHours
+    ) {
+        return new ResendEmployeeInviteUseCase(userRepositoryPort, companyRepositoryPort,
+                companyEmployeeRepositoryPort, accountInviteRepositoryPort,
+                Clock.systemDefaultZone(), inviteExpirationHours);
+    }
+
+    @Bean
+    public EmployeeInviteMailer employeeInviteMailer(
+            EmailSenderPort emailSenderPort,
+            EmailTemplatePort emailTemplatePort,
+            @Value("${app.frontend-url}") String frontendUrl
+    ) {
+        return new EmployeeInviteMailer(emailSenderPort, emailTemplatePort, frontendUrl);
     }
 
     @Bean

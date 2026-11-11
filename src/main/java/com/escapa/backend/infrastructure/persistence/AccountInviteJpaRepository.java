@@ -20,6 +20,10 @@ public interface AccountInviteJpaRepository extends JpaRepository<AccountInviteE
     boolean existsByUserId(UUID userId);
 
     @Modifying
+    @Query("UPDATE AccountInviteEntity i SET i.usedAt = :now WHERE i.userId = :userId AND i.usedAt IS NULL")
+    int invalidateOpenByUserId(@Param("userId") UUID userId, @Param("now") LocalDateTime now);
+
+    @Modifying
     @Query("UPDATE AccountInviteEntity i SET i.usedAt = :usedAt WHERE i.id = :id AND i.usedAt IS NULL")
     int markAsUsed(@Param("id") UUID id, @Param("usedAt") LocalDateTime usedAt);
 }

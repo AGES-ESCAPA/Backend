@@ -223,6 +223,16 @@ class ListCompanyEmployeesUseCaseTest {
         }
 
         @Override
+        public void linkEmployee(UUID companyId, UUID userId, String jobTitle) {
+            throw new UnsupportedOperationException("not used by the employees list");
+        }
+
+        @Override
+        public boolean isEmployeeOfCompany(UUID companyId, UUID userId) {
+            throw new UnsupportedOperationException("not used by the employees list");
+        }
+
+        @Override
         public CompanyEmployeeCounts countEmployees(UUID companyId) {
             throw new UnsupportedOperationException("not used by the employees list");
         }
