@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
+import com.escapa.backend.application.port.AccountInviteRepositoryPort;
 import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
 import com.escapa.backend.application.port.AdminMetricsRepositoryPort;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
@@ -46,7 +47,9 @@ import com.escapa.backend.application.usecase.ChangePasswordUseCase;
 import com.escapa.backend.application.usecase.ListCompanyCoursesUseCase;
 import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
+import com.escapa.backend.application.usecase.CreateInvitePasswordUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
+import com.escapa.backend.application.usecase.GetAccountInviteUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.LoginUseCase;
 import com.escapa.backend.application.usecase.RegisterStudentUseCase;
@@ -221,6 +224,27 @@ public class SpringConfig {
             PasswordHasherPort passwordHasherPort
     ) {
         return new ChangePasswordUseCase(userRepositoryPort, passwordHasherPort);
+    }
+
+    @Bean
+    public GetAccountInviteUseCase getAccountInviteUseCase(
+            AccountInviteRepositoryPort accountInviteRepositoryPort,
+            UserRepositoryPort userRepositoryPort,
+            CompanyRepositoryPort companyRepositoryPort
+    ) {
+        return new GetAccountInviteUseCase(
+                accountInviteRepositoryPort, userRepositoryPort, companyRepositoryPort, Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public CreateInvitePasswordUseCase createInvitePasswordUseCase(
+            AccountInviteRepositoryPort accountInviteRepositoryPort,
+            UserRepositoryPort userRepositoryPort,
+            PasswordHasherPort passwordHasherPort,
+            TokenProviderPort tokenProviderPort
+    ) {
+        return new CreateInvitePasswordUseCase(accountInviteRepositoryPort, userRepositoryPort,
+                passwordHasherPort, tokenProviderPort, Clock.systemDefaultZone());
     }
 
     @Bean

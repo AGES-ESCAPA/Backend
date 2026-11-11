@@ -1,6 +1,10 @@
 package com.escapa.backend.domain.user;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.HexFormat;
 import java.util.UUID;
 
 /**
@@ -30,6 +34,16 @@ public class AccountInvite {
     public static AccountInvite issue(UUID userId, UUID companyId, String tokenHash,
                                       LocalDateTime now, long validityHours) {
         return new AccountInvite(null, userId, companyId, tokenHash, now.plusHours(validityHours), null, now);
+    }
+
+    /** SHA-256 do token em hex minúsculo, o mesmo formato gravado em {@code token_hash}. */
+    public static String hashToken(String token) {
+        try {
+            final MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(token.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is not available", e);
+        }
     }
 
     public boolean isUsed() {
