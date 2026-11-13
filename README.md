@@ -793,6 +793,25 @@ Para a Gestão de Colaboradores. Exigem `Authorization: Bearer <accessToken>` de
 - **Cada item:** `id`, `name`, `email`, `jobTitle` (cargo, de `users_company.role`), `status`, `assignedCourses` e `avatarUrl` (nulo sem foto).
 - **`assignedCourses`:** matrículas do colaborador que não foram revogadas, nos cursos que a empresa comprou e ainda tem. Um curso da empresa revogado pelo cancelamento do pedido não conta.
 
+---
+
+## 🚪 Desvinculação de colaborador (US-33)
+
+`DELETE /api/v1/company/employees/{id}` (perfil `COMPANY`). A empresa é sempre a do token. Responde `200 OK` com o resumo de vagas já atualizado (mesmo corpo de `GET /company/seats`).
+
+Tudo acontece na mesma transação; uma falha em qualquer passo desfaz a desvinculação inteira:
+
+- **Vínculo:** a linha de `users_company` é removida e a vaga fica livre.
+- **Matrículas:** as de `user_courses` nos cursos da empresa (`company_courses`) recebem `revoked_at`. Nada é apagado: progresso e certificados continuam no banco.
+- **Cursos próprios:** se o colaborador comprou o curso por conta própria (pedido `INDIVIDUAL` aprovado), a matrícula não é revogada.
+- **Conta:** o status vira `INACTIVE`, então ele não consegue mais entrar nem usar o token.
+- **Convites:** os convites em aberto (`used_at` nulo) são expirados na hora. As linhas ficam, pois identificam quem já foi colaborador.
+- **404:** colaborador de outra empresa, inexistente ou já desvinculado.
+
+Cadastrar de novo o mesmo e-mail reativa a conta e recupera o progresso (regra do cadastro de colaborador, US-31).
+
+---
+
 ## 📊 Relatório de progresso da equipe (US-35)
 
 ```http

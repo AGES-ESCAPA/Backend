@@ -31,6 +31,7 @@ import com.escapa.backend.domain.certificate.CertificateNotFoundException;
 import com.escapa.backend.domain.order.InvalidOrderTransitionException;
 import com.escapa.backend.domain.order.OrderNotFoundException;
 import com.escapa.backend.domain.order.SeatsInUseException;
+import com.escapa.backend.domain.company.CompanyEmployeeNotFoundException;
 import com.escapa.backend.domain.company.CompanyNotFoundException;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
@@ -99,7 +100,8 @@ public class GlobalExceptionHandler {
             OrderNotFoundException.class,
             NotificationNotFoundException.class,
             CompanyNotFoundException.class,
-            InviteNotFoundException.class
+            InviteNotFoundException.class,
+            CompanyEmployeeNotFoundException.class
     })
     public ResponseEntity<ApiError> handleNotFoundException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);

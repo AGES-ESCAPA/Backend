@@ -9,10 +9,13 @@ import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CompanyEmployee;
 import com.escapa.backend.application.usecase.GetCompanySeatsSummaryUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeesUseCase;
+import com.escapa.backend.application.usecase.UnlinkCompanyEmployeeUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,13 +33,16 @@ public class CompanyEmployeeController {
 
     private final GetCompanySeatsSummaryUseCase getCompanySeatsSummaryUseCase;
     private final ListCompanyEmployeesUseCase listCompanyEmployeesUseCase;
+    private final UnlinkCompanyEmployeeUseCase unlinkCompanyEmployeeUseCase;
 
     public CompanyEmployeeController(
             GetCompanySeatsSummaryUseCase getCompanySeatsSummaryUseCase,
-            ListCompanyEmployeesUseCase listCompanyEmployeesUseCase
+            ListCompanyEmployeesUseCase listCompanyEmployeesUseCase,
+            UnlinkCompanyEmployeeUseCase unlinkCompanyEmployeeUseCase
     ) {
         this.getCompanySeatsSummaryUseCase = getCompanySeatsSummaryUseCase;
         this.listCompanyEmployeesUseCase = listCompanyEmployeesUseCase;
+        this.unlinkCompanyEmployeeUseCase = unlinkCompanyEmployeeUseCase;
     }
 
     @GetMapping("/seats")
@@ -63,5 +69,19 @@ public class CompanyEmployeeController {
         final UUID companyId = AuthenticationContext.requireUser().id();
         final PageResult<CompanyEmployee> result = listCompanyEmployeesUseCase.execute(companyId, search, page, size);
         return ResponseEntity.ok(ApiResponse.success(PageResponse.of(result, CompanyEmployeeResponse::from)));
+    }
+
+    @DeleteMapping("/employees/{id}")
+    @Operation(
+            summary = "Unlink an employee from the company",
+            description = "Removes the link (freeing the seat), revokes the enrollments in the courses of the "
+                    + "company, sets the account INACTIVE and invalidates pending invites, all in one "
+                    + "transaction. Progress and certificates are kept, and courses the employee bought on "
+                    + "their own are not revoked. Returns the updated seats summary; 404 when the employee "
+                    + "does not belong to the company of the token.")
+    public ResponseEntity<ApiResponse<CompanySeatsResponse>> unlinkEmployee(@PathVariable UUID id) {
+        final UUID companyId = AuthenticationContext.requireUser().id();
+        return ResponseEntity.ok(ApiResponse.success(
+                CompanySeatsResponse.from(unlinkCompanyEmployeeUseCase.execute(companyId, id))));
     }
 }

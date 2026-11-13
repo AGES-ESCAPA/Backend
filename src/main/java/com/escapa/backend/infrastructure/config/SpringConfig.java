@@ -16,6 +16,7 @@ import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
 import com.escapa.backend.application.port.CompanyRepositoryPort;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
+import com.escapa.backend.application.port.CompanyEmployeeUnlinkPort;
 import com.escapa.backend.application.port.CompanyReportRepositoryPort;
 import com.escapa.backend.application.port.CompanySeatsPort;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
@@ -70,6 +71,7 @@ import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeeProgressUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeesUseCase;
+import com.escapa.backend.application.usecase.UnlinkCompanyEmployeeUseCase;
 import com.escapa.backend.application.usecase.ListCompanyCourseIdsUseCase;
 import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
 import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
@@ -98,6 +100,7 @@ import com.escapa.backend.infrastructure.persistence.CompanyCourseRepositoryAdap
 import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CompanyRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanyEmployeeAdapter;
+import com.escapa.backend.infrastructure.persistence.CompanyEmployeeUnlinkAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanyReportAdapter;
 import com.escapa.backend.infrastructure.persistence.AdminMetricsRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanySeatsAdapter;
@@ -360,6 +363,21 @@ public class SpringConfig {
     public ListCompanyEmployeesUseCase listCompanyEmployeesUseCase(
             CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort) {
         return new ListCompanyEmployeesUseCase(companyEmployeeRepositoryPort);
+    }
+
+    @Bean
+    public CompanyEmployeeUnlinkPort companyEmployeeUnlinkPort(JdbcClient jdbcClient) {
+        return new CompanyEmployeeUnlinkAdapter(jdbcClient);
+    }
+
+    @Bean
+    public UnlinkCompanyEmployeeUseCase unlinkCompanyEmployeeUseCase(
+            CompanyEmployeeUnlinkPort companyEmployeeUnlinkPort,
+            UserRepositoryPort userRepositoryPort,
+            GetCompanySeatsSummaryUseCase getCompanySeatsSummaryUseCase) {
+        return new UnlinkCompanyEmployeeUseCase(
+                companyEmployeeUnlinkPort, userRepositoryPort, getCompanySeatsSummaryUseCase,
+                Clock.systemDefaultZone());
     }
 
     @Bean
