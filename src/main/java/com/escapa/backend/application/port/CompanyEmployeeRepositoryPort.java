@@ -4,6 +4,7 @@ import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CompanyEmployee;
 import com.escapa.backend.application.model.CompanyEmployeeCounts;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -19,6 +20,9 @@ public interface CompanyEmployeeRepositoryPort {
     void linkEmployee(UUID companyId, UUID userId, String jobTitle);
 
     boolean isEmployeeOfCompany(UUID companyId, UUID userId);
+
+    /** Ids de todos os colaboradores vinculados à empresa, de qualquer status (ACTIVE, PENDING ou INACTIVE). */
+    List<UUID> findEmployeeIds(UUID companyId);
 
     /** Colaboradores vinculados, de qualquer status, e quantos estão ativos. */
     CompanyEmployeeCounts countEmployees(UUID companyId);

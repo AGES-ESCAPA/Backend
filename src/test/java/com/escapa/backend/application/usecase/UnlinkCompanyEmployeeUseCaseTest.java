@@ -303,6 +303,14 @@ class UnlinkCompanyEmployeeUseCaseTest {
         }
 
         @Override
+        public List<UUID> findEmployeeIds(UUID companyId) {
+            return links.entrySet().stream()
+                    .filter(link -> companyId.equals(link.getValue()))
+                    .map(Map.Entry::getKey)
+                    .toList();
+        }
+
+        @Override
         public CompanyEmployeeCounts countEmployees(UUID companyId) {
             final List<UUID> members = links.entrySet().stream()
                     .filter(entry -> entry.getValue().equals(companyId))
