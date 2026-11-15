@@ -33,6 +33,7 @@ A aplicação será executada em ambiente containerizado e deve manter boas prá
 - Banco: PostgreSQL em container, com schema versionado por migrations Flyway
 - Testes: JUnit 5 + Testcontainers — exigem Docker em execução
 - CI/CD: GitHub Actions (`.github/workflows/ci.yml`), com build, Checkstyle, testes, cobertura Jacoco e build da imagem Docker
+- Métricas: Actuator + Micrometer expõem `/actuator/prometheus` só na porta de gestão (`MANAGEMENT_SERVER_PORT`, padrão `8081`), coletada pelo Prometheus do cluster; essa porta nunca vai para o Ingress. Testes que leem métricas precisam de `@AutoConfigureObservability`
 
 ## Arquitetura de Pastas e Responsabilidades
 

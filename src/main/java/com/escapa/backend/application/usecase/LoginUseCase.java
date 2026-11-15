@@ -8,6 +8,7 @@ import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.InactiveUserException;
 import com.escapa.backend.domain.user.InvalidCredentialsException;
+import com.escapa.backend.domain.user.PendingUserException;
 import com.escapa.backend.domain.user.UserStatus;
 
 public class LoginUseCase {
@@ -47,6 +48,13 @@ public class LoginUseCase {
             throw new InvalidCredentialsException();
         }
         final User user = foundUser.get();
+
+        // O PENDING ainda não tem senha (o hash gravado não é BCrypt): conferir a senha daria 401
+        // em vez do 403 com a orientação. O hash dummy mantém o mesmo tempo de resposta.
+        if (user.getStatus() == UserStatus.PENDING) {
+            passwordHasherPort.matches(password, dummyPasswordHash);
+            throw new PendingUserException();
+        }
 
         if (!passwordHasherPort.matches(password, user.getPasswordHash())) {
             throw new InvalidCredentialsException();

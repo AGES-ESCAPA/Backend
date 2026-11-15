@@ -1,8 +1,8 @@
 # Ordem de subida:
-# 1. postgres e minio sobem em paralelo
+# 1. postgres, minio e mailpit sobem em paralelo
 # 2. minio-init aguarda o MinIO ficar saudável
 # 3. minio-init cria o bucket e envia as capas
-# 4. backend sobe após PostgreSQL saudável + seed do MinIO concluído
+# 4. backend sobe após PostgreSQL e Mailpit saudáveis + seed do MinIO concluído
 # 5. Flyway executa migrations/seeds
 
 services:
@@ -100,6 +100,18 @@ services:
       - /seed/init.sh
 
 
+  # Servidor de e-mail falso (US-31): recebe o SMTP do backend e guarda as mensagens,
+  # sem enviar nada de verdade. Caixa de entrada em http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit:v1.31.0
+    container_name: escapamailpit
+    restart: unless-stopped
+
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+
   backend:
     build:
       context: .
@@ -114,6 +126,10 @@ services:
 
       minio-init:
         condition: service_completed_successfully
+
+      # A imagem do Mailpit ja traz healthcheck (/mailpit readyz).
+      mailpit:
+        condition: service_healthy
 
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/escapa_db
@@ -137,6 +153,19 @@ services:
       MINIO_ROOT_USER: escapa
       MINIO_ROOT_PASSWORD: escapa12345
       MINIO_BUCKET: escapa-media
+
+      # Padrao: Mailpit em modo de teste. Para envio real em dev, sobrescreva no .env
+      # (ver README). APP_MAIL_TEST_MODE fica true fora de producao.
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-mailpit}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-1025}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+      APP_MAIL_AUTH: ${APP_MAIL_AUTH:-false}
+      APP_MAIL_STARTTLS: ${APP_MAIL_STARTTLS:-false}
+      APP_MAIL_FROM: ${APP_MAIL_FROM:-nao-responda@escapa.com.br}
+      APP_MAIL_TEST_MODE: ${APP_MAIL_TEST_MODE:-true}
+      APP_MAIL_TEST_REDIRECT_TO: ${APP_MAIL_TEST_REDIRECT_TO:-}
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL:-http://localhost:3000}
 
     ports:
       - "8080:8080"

@@ -6,9 +6,11 @@ import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.CurriculumReleasePort;
 import com.escapa.backend.application.port.LessonNotificationPort;
+import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.ArchiveCourseUseCase;
 import com.escapa.backend.application.usecase.CreateCourseUseCase;
+import com.escapa.backend.application.usecase.GetAdminCourseMetricsUseCase;
 import com.escapa.backend.application.usecase.GetAdminCourseUseCase;
 import com.escapa.backend.application.usecase.ListAdminCoursesUseCase;
 import com.escapa.backend.application.usecase.ListCourseCategoriesUseCase;
@@ -66,5 +68,11 @@ public class CourseConfig {
     @Bean
     public GetAdminCourseUseCase getAdminCourseUseCase(CourseRepositoryPort courseRepositoryPort) {
         return new GetAdminCourseUseCase(courseRepositoryPort);
+    }
+
+    @Bean
+    public GetAdminCourseMetricsUseCase getAdminCourseMetricsUseCase(
+            EnrollmentRepositoryPort enrollmentRepositoryPort) {
+        return new GetAdminCourseMetricsUseCase(enrollmentRepositoryPort);
     }
 }

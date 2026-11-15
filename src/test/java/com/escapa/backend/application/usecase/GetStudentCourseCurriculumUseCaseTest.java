@@ -52,8 +52,18 @@ class GetStudentCourseCurriculumUseCaseTest {
                 }
 
                 @Override
+                public void recordLastAccess(UUID user, UUID course, java.time.LocalDateTime accessedAt, java.time.Duration minInterval) {
+                    // Nao verificado neste teste.
+                }
+
+                @Override
                 public com.escapa.backend.application.dto.PageResult<com.escapa.backend.application.model.StudentCourseCard> findStudentEnrollments(UUID userId, String title, com.escapa.backend.domain.course.EnrollmentStatus status, int page, int size) {
                     return null;
+                }
+
+                @Override
+                public List<com.escapa.backend.application.model.CourseEnrollmentCount> countEligibleEnrollmentsByCourse() {
+                    return List.of();
                 }
             },
             clock

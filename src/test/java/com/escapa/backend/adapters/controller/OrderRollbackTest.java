@@ -14,6 +14,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,11 +47,24 @@ class OrderRollbackTest extends PostgresIntegrationTest {
     private OrderAccessPort orderAccessPort;
 
     // O banco é compartilhado entre as classes de teste e pedidos não têm ON DELETE CASCADE.
+    // Usuarios e cursos criados pelo teste: sem remove-los, as empresas ficam no banco e quebram quem
+    // conta usuarios COMPANY (AdminMetricsRepositoryAdapterTest).
+    private final List<UUID> userIds = new ArrayList<>();
+    private final List<UUID> courseIds = new ArrayList<>();
+
     @AfterEach
     void cleanUp() {
         jdbcTemplate.update("delete from orders");
         jdbcTemplate.update("delete from company_courses");
         jdbcTemplate.update("delete from user_courses");
+        for (final UUID userId : userIds) {
+            jdbcTemplate.update("delete from users where id = ?", userId);
+        }
+        for (final UUID courseId : courseIds) {
+            jdbcTemplate.update("delete from courses where id = ?", courseId);
+        }
+        userIds.clear();
+        courseIds.clear();
     }
 
     private UUID givenUser(String role) {
@@ -57,6 +72,7 @@ class OrderRollbackTest extends PostgresIntegrationTest {
         jdbcTemplate.update(
                 "insert into users (id, name, email, password_hash, role) values (?, 'Comprador', ?, 'hash', ?)",
                 id, id + "@email.com", role);
+        userIds.add(id);
         return id;
     }
 
@@ -70,6 +86,7 @@ class OrderRollbackTest extends PostgresIntegrationTest {
         final UUID id = UUID.randomUUID();
         jdbcTemplate.update(
                 "insert into courses (id, title, status, price, deadline) values (?, 'Curso', 'PUBLISHED', 100, 30)", id);
+        courseIds.add(id);
         return id;
     }
 

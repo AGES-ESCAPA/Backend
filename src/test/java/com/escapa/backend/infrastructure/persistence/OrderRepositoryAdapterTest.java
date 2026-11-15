@@ -50,14 +50,30 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
 
     // O banco é compartilhado entre as classes de teste e pedidos não têm ON DELETE CASCADE:
     // sem esta limpeza, outros testes que fazem deleteAll em users/courses quebram.
+    private final List<UUID> userIds = new ArrayList<>();
+    private final List<UUID> courseIds = new ArrayList<>();
+
     @AfterEach
     void cleanUpOrders() {
         jdbcTemplate.update("delete from orders");
+        // Os usuarios (com empresa, vinculos e matriculas, que saem em cascata) e os cursos criados aqui
+        // tambem saem: se ficassem, quem conta usuarios COMPANY (AdminMetricsRepositoryAdapterTest)
+        // enxergaria as empresas deste teste.
+        for (final UUID userId : userIds) {
+            jdbcTemplate.update("delete from users where id = ?", userId);
+        }
+        for (final UUID courseId : courseIds) {
+            jdbcTemplate.update("delete from courses where id = ?", courseId);
+        }
+        userIds.clear();
+        courseIds.clear();
     }
 
     private UUID givenUser(String role) {
         final String email = "comprador-" + UUID.randomUUID() + "@email.com";
-        return userRepositoryPort.save(new User("Comprador", email, "hash", role)).getId();
+        final UUID id = userRepositoryPort.save(new User("Comprador", email, "hash", role)).getId();
+        userIds.add(id);
+        return id;
     }
 
     private UUID givenCompany() {
@@ -71,7 +87,9 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
     private UUID givenCourse() {
         final CourseEntity course = new CourseEntity();
         course.setTitle("Marketing Digital para Hospitalidade");
-        return courseJpaRepository.save(course).getId();
+        final UUID id = courseJpaRepository.save(course).getId();
+        courseIds.add(id);
+        return id;
     }
 
     private Order individualCourseOrder(UUID buyerId, UUID courseId) {

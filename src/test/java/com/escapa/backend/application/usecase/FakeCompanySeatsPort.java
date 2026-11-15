@@ -23,6 +23,11 @@ public final class FakeCompanySeatsPort implements CompanySeatsPort {
     }
 
     @Override
+    public int findSeatsTotalForUpdate(UUID companyId) {
+        return findSeatsTotal(companyId);
+    }
+
+    @Override
     public int countSeatsInUse(UUID companyId) {
         return seatsInUse.get(companyId);
     }
