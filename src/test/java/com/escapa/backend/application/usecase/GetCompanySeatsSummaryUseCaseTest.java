@@ -160,6 +160,21 @@ class GetCompanySeatsSummaryUseCaseTest {
         }
 
         @Override
+        public int findSeatsTotalForUpdate(UUID companyId) {
+            throw new UnsupportedOperationException("not used by the seats summary");
+        }
+
+        @Override
+        public void linkEmployee(UUID companyId, UUID userId, String jobTitle) {
+            throw new UnsupportedOperationException("not used by the seats summary");
+        }
+
+        @Override
+        public boolean isEmployeeOfCompany(UUID companyId, UUID userId) {
+            throw new UnsupportedOperationException("not used by the seats summary");
+        }
+
+        @Override
         public int countSeatsInUse(UUID companyId) {
             seatsInUseCalls++;
             return seatsInUseCount != null ? seatsInUseCount : employeesOf.getOrDefault(companyId, List.of()).size();

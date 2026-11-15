@@ -273,6 +273,11 @@ class UnlinkCompanyEmployeeUseCaseTest {
         }
 
         @Override
+        public int findSeatsTotalForUpdate(UUID companyId) {
+            return findSeatsTotal(companyId);
+        }
+
+        @Override
         public int countSeatsInUse(UUID companyId) {
             return (int) links.values().stream().filter(companyId::equals).count();
         }
@@ -285,6 +290,16 @@ class UnlinkCompanyEmployeeUseCaseTest {
         @Override
         public boolean existsCompany(UUID companyId) {
             return seatsTotal.containsKey(companyId);
+        }
+
+        @Override
+        public void linkEmployee(UUID companyId, UUID userId, String jobTitle) {
+            links.put(userId, companyId);
+        }
+
+        @Override
+        public boolean isEmployeeOfCompany(UUID companyId, UUID userId) {
+            return companyId.equals(links.get(userId));
         }
 
         @Override

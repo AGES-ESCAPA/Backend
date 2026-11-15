@@ -1,6 +1,7 @@
 package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.application.dto.CompanyCourseSummary;
+import com.escapa.backend.application.model.AcquiredCourse;
 import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
 import org.junit.jupiter.api.Test;
 
@@ -66,6 +67,11 @@ class ListCompanyCoursesUseCaseTest {
         @Override
         public List<CompanyCourseSummary> findActiveCourses(UUID companyId) {
             return courses;
+        }
+
+        @Override
+        public List<AcquiredCourse> findAcquiredCourses(UUID companyId) {
+            return List.of();
         }
     }
 }

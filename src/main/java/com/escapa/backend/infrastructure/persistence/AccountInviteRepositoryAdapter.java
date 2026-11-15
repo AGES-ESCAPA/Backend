@@ -45,6 +45,12 @@ public class AccountInviteRepositoryAdapter implements AccountInviteRepositoryPo
     }
 
     @Override
+    @Transactional
+    public void invalidateOpenInvites(UUID userId, LocalDateTime now) {
+        accountInviteJpaRepository.invalidateOpenByUserId(userId, now);
+    }
+
+    @Override
     public boolean existsByUserId(UUID userId) {
         return accountInviteJpaRepository.existsByUserId(userId);
     }

@@ -1,6 +1,7 @@
 package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.application.dto.CompanyCourseSummary;
+import com.escapa.backend.application.model.AcquiredCourse;
 import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
 import org.junit.jupiter.api.Test;
 
@@ -28,6 +29,11 @@ class ListCompanyCourseIdsUseCaseTest {
                     public List<CompanyCourseSummary> findActiveCourses(UUID id) {
                         return List.of();
                     }
+
+                    @Override
+                    public List<AcquiredCourse> findAcquiredCourses(UUID id) {
+                        return List.of();
+                    }
                 };
 
         final ListCompanyCourseIdsUseCase useCase =
@@ -48,6 +54,11 @@ class ListCompanyCourseIdsUseCaseTest {
 
                     @Override
                     public List<CompanyCourseSummary> findActiveCourses(UUID id) {
+                        return List.of();
+                    }
+
+                    @Override
+                    public List<AcquiredCourse> findAcquiredCourses(UUID id) {
                         return List.of();
                     }
                 };

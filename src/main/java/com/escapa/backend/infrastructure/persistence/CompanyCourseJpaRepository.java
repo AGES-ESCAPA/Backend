@@ -66,7 +66,16 @@ interface ActiveCourseRow {
 List<ActiveCourseRow> findActiveCourses(@Param("companyId") UUID companyId);
 
 
-/** Revoga o curso da empresa, sem apagar o registro. */
+interface AcquiredCourseRow {
+        UUID getCourseId();
+        Integer getDeadline();
+    }
+
+    @Query("select cc.id.courseId as courseId, c.deadline as deadline from CompanyCourseEntity cc "
+            + "join cc.course c where cc.id.companyId = :companyId and cc.revokedAt is null")
+    List<AcquiredCourseRow> findAcquiredCourses(@Param("companyId") UUID companyId);
+
+    /** Revoga o curso da empresa, sem apagar o registro. */
     @Modifying
     @Query("update CompanyCourseEntity cc set cc.revokedAt = :revokedAt "
             + "where cc.id.companyId = :companyId and cc.id.courseId = :courseId and cc.revokedAt is null")

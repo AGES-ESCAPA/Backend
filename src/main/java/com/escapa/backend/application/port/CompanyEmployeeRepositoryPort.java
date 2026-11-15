@@ -15,6 +15,11 @@ public interface CompanyEmployeeRepositoryPort {
     /** A empresa tem registro em {@code company}? Um usuário COMPANY pode existir só em {@code users}. */
     boolean existsCompany(UUID companyId);
 
+    /** Vincula o usuário à empresa em {@code users_company}; o vínculo ocupa uma vaga. */
+    void linkEmployee(UUID companyId, UUID userId, String jobTitle);
+
+    boolean isEmployeeOfCompany(UUID companyId, UUID userId);
+
     /** Colaboradores vinculados, de qualquer status, e quantos estão ativos. */
     CompanyEmployeeCounts countEmployees(UUID companyId);
 

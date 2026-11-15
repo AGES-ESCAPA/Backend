@@ -24,6 +24,15 @@ public class CompanySeatsAdapter implements CompanySeatsPort {
     }
 
     @Override
+    public int findSeatsTotalForUpdate(UUID companyId) {
+        return jdbcClient.sql("select seats_total from company where id = :id for update")
+                .param("id", companyId)
+                .query(Integer.class)
+                .optional()
+                .orElseThrow(() -> new CompanyNotFoundException(companyId));
+    }
+
+    @Override
     public int countSeatsInUse(UUID companyId) {
         return jdbcClient.sql("select count(*) from users_company where company_id = :id")
                 .param("id", companyId)

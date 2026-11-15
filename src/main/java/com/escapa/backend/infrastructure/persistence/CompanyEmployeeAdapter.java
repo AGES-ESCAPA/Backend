@@ -5,6 +5,10 @@ import com.escapa.backend.application.model.CompanyEmployee;
 import com.escapa.backend.application.model.CompanyEmployeeCounts;
 import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
 import com.escapa.backend.domain.user.UserStatus;
+import com.escapa.backend.infrastructure.persistence.entity.CompanyEntity;
+import com.escapa.backend.infrastructure.persistence.entity.UsersCompanyEntity;
+import com.escapa.backend.infrastructure.persistence.entity.UsersCompanyId;
+import jakarta.persistence.EntityManager;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 import java.util.List;
@@ -46,9 +50,31 @@ public class CompanyEmployeeAdapter implements CompanyEmployeeRepositoryPort {
             """;
 
     private final JdbcClient jdbcClient;
+    private final EntityManager entityManager;
 
-    public CompanyEmployeeAdapter(JdbcClient jdbcClient) {
+    public CompanyEmployeeAdapter(JdbcClient jdbcClient, EntityManager entityManager) {
         this.jdbcClient = jdbcClient;
+        this.entityManager = entityManager;
+    }
+
+    @Override
+    public void linkEmployee(UUID companyId, UUID userId, String jobTitle) {
+        // Pelo JPA, e não por SQL: o usuário acabou de ser gravado na mesma transação e ainda não foi
+        // enviado ao banco; o JPA mantém a ordem dos inserts (users antes de users_company).
+        entityManager.persist(new UsersCompanyEntity(
+                new UsersCompanyId(userId, companyId),
+                entityManager.getReference(UserEntity.class, userId),
+                entityManager.getReference(CompanyEntity.class, companyId),
+                jobTitle));
+    }
+
+    @Override
+    public boolean isEmployeeOfCompany(UUID companyId, UUID userId) {
+        return jdbcClient.sql("select count(*) from users_company where company_id = :companyId and user_id = :userId")
+                .param("companyId", companyId)
+                .param("userId", userId)
+                .query(Integer.class)
+                .single() > 0;
     }
 
     @Override
