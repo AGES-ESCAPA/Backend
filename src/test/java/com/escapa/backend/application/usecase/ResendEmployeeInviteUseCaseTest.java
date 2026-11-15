@@ -55,7 +55,9 @@ class ResendEmployeeInviteUseCaseTest {
         final IssuedEmployeeInvite issued = useCase.execute(COMPANY_ID, employee.getId());
 
         assertNotEquals(OLD_TOKEN, issued.inviteToken());
-        assertTrue(invites.findByTokenHash(AccountInvite.hashToken(OLD_TOKEN)).orElseThrow().isUsed());
+        final AccountInvite old = invites.findByTokenHash(AccountInvite.hashToken(OLD_TOKEN)).orElseThrow();
+        assertTrue(old.isExpired(NOW));
+        assertFalse(old.isUsed());
         final AccountInvite fresh = invites.findByTokenHash(AccountInvite.hashToken(issued.inviteToken())).orElseThrow();
         assertFalse(fresh.isUsed());
         assertEquals(NOW.plusHours(72), fresh.getExpiresAt());

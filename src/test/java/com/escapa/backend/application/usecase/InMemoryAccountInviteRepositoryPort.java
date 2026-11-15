@@ -57,8 +57,8 @@ public final class InMemoryAccountInviteRepositoryPort implements AccountInviteR
     @Override
     public void invalidateOpenInvites(UUID userId, LocalDateTime now) {
         invites.values().stream()
-                .filter(invite -> invite.getUserId().equals(userId) && !invite.isUsed())
-                .forEach(invite -> invite.markAsUsed(now));
+                .filter(invite -> invite.getUserId().equals(userId) && !invite.isUsed() && !invite.isExpired(now))
+                .forEach(invite -> invite.expire(now));
     }
 
     @Override

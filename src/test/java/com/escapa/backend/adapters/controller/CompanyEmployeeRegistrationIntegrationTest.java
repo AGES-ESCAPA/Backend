@@ -225,11 +225,14 @@ class CompanyEmployeeRegistrationIntegrationTest extends PostgresIntegrationTest
                 formerId, courseWithDeadline, Timestamp.valueOf(LocalDateTime.now().minusDays(5)),
                 Date.valueOf(LocalDate.now().minusDays(60)));
 
-        registerAs(company, "Ex Colaborador", email).andExpect(status().isCreated());
+        registerAs(company, "Ex Colaborador", email)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.name", is("Ex Colaborador")));
 
         assertEquals(formerId, userIdOf(email));
         assertEquals(1, count("users where email = ?", email));
         assertEquals("PENDING", jdbcTemplate.queryForObject("select status from users where id = ?", String.class, formerId));
+        assertEquals("Ex Colaborador", jdbcTemplate.queryForObject("select name from users where id = ?", String.class, formerId));
         assertEquals(40, jdbcTemplate.queryForObject(
                 "select progress from user_courses where user_id = ? and course_id = ?",
                 Integer.class, formerId, courseWithDeadline));
@@ -259,9 +262,11 @@ class CompanyEmployeeRegistrationIntegrationTest extends PostgresIntegrationTest
         assertEquals(2, emailSender.sent.size());
         final String newToken = tokenIn(emailSender.sent.get(1).textBody());
         assertNotEquals(oldToken, newToken);
-        assertEquals(1, count("account_invites where user_id = ? and used_at is null", employeeId));
+        // O link antigo expira (410), não vira "usado": used_at fica só para a senha criada pelo convite.
+        assertEquals(0, count("account_invites where user_id = ? and used_at is not null", employeeId));
+        assertEquals(1, count("account_invites where user_id = ? and expires_at > localtimestamp", employeeId));
         mockMvc.perform(get("/api/v1/auth/invites/" + oldToken))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isGone());
         mockMvc.perform(get("/api/v1/auth/invites/" + newToken))
                 .andExpect(status().isOk());
     }

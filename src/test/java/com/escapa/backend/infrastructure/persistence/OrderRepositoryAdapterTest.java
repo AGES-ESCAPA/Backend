@@ -50,23 +50,29 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
 
     // O banco é compartilhado entre as classes de teste e pedidos não têm ON DELETE CASCADE:
     // sem esta limpeza, outros testes que fazem deleteAll em users/courses quebram.
+    private final List<UUID> userIds = new ArrayList<>();
+    private final List<UUID> courseIds = new ArrayList<>();
+
     @AfterEach
     void cleanUpOrders() {
         jdbcTemplate.update("delete from orders");
-        // Os compradores também saem: empresas que sobram mudam as contagens de outros testes
-        // (ex.: AdminMetricsRepositoryAdapterTest), conforme a ordem em que as classes rodam.
-        for (final UUID userId : buyerIds) {
+        // Os usuarios (com empresa, vinculos e matriculas, que saem em cascata) e os cursos criados aqui
+        // tambem saem: se ficassem, quem conta usuarios COMPANY (AdminMetricsRepositoryAdapterTest)
+        // enxergaria as empresas deste teste.
+        for (final UUID userId : userIds) {
             jdbcTemplate.update("delete from users where id = ?", userId);
         }
-        buyerIds.clear();
+        for (final UUID courseId : courseIds) {
+            jdbcTemplate.update("delete from courses where id = ?", courseId);
+        }
+        userIds.clear();
+        courseIds.clear();
     }
-
-    private final List<UUID> buyerIds = new ArrayList<>();
 
     private UUID givenUser(String role) {
         final String email = "comprador-" + UUID.randomUUID() + "@email.com";
         final UUID id = userRepositoryPort.save(new User("Comprador", email, "hash", role)).getId();
-        buyerIds.add(id);
+        userIds.add(id);
         return id;
     }
 
@@ -81,7 +87,9 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
     private UUID givenCourse() {
         final CourseEntity course = new CourseEntity();
         course.setTitle("Marketing Digital para Hospitalidade");
-        return courseJpaRepository.save(course).getId();
+        final UUID id = courseJpaRepository.save(course).getId();
+        courseIds.add(id);
+        return id;
     }
 
     private Order individualCourseOrder(UUID buyerId, UUID courseId) {

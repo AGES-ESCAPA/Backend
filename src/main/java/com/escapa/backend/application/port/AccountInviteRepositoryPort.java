@@ -20,7 +20,10 @@ public interface AccountInviteRepositoryPort {
      */
     boolean markAsUsed(UUID inviteId, LocalDateTime usedAt);
 
-    /** Encerra os convites ainda em aberto do usuário (como se usados): o link já enviado deixa de valer. */
+    /**
+     * Expira os convites ainda em aberto do usuário: o link já enviado passa a responder como expirado.
+     * {@code used_at} continua significando só "a senha foi criada com este link".
+     */
     void invalidateOpenInvites(UUID userId, LocalDateTime now);
 
     /** Vale para convites usados ou não: identifica quem já foi colaborador. */

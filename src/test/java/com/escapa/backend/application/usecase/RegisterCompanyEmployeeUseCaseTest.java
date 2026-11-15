@@ -184,6 +184,8 @@ class RegisterCompanyEmployeeUseCaseTest {
         assertEquals(1, users.findAll().stream().filter(user -> "ana@empresa.com.br".equals(user.getEmail())).count());
         final User stored = users.findById(former.getId()).orElseThrow();
         assertEquals(UserStatus.PENDING, stored.getStatus());
+        assertEquals("Ana Paula", stored.getName());
+        assertEquals("Ana Paula", registered.employee().getName());
         assertNotEquals("old-password-hash", stored.getPasswordHash());
         assertTrue(links.isEmployeeOfCompany(COMPANY_ID, former.getId()));
         assertEquals(new Enrollment(TODAY, TODAY.plusDays(30)), enrollments.enrollment(former.getId(), COURSE_A));

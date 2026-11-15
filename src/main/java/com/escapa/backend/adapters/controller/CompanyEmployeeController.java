@@ -17,10 +17,12 @@ import com.escapa.backend.application.usecase.GetCompanySeatsSummaryUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeesUseCase;
 import com.escapa.backend.application.usecase.RegisterCompanyEmployeeUseCase;
 import com.escapa.backend.application.usecase.ResendEmployeeInviteUseCase;
+import com.escapa.backend.application.usecase.UnlinkCompanyEmployeeUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,19 +47,22 @@ public class CompanyEmployeeController {
     private final RegisterCompanyEmployeeUseCase registerCompanyEmployeeUseCase;
     private final ResendEmployeeInviteUseCase resendEmployeeInviteUseCase;
     private final EmployeeInviteMailer employeeInviteMailer;
+    private final UnlinkCompanyEmployeeUseCase unlinkCompanyEmployeeUseCase;
 
     public CompanyEmployeeController(
             GetCompanySeatsSummaryUseCase getCompanySeatsSummaryUseCase,
             ListCompanyEmployeesUseCase listCompanyEmployeesUseCase,
             RegisterCompanyEmployeeUseCase registerCompanyEmployeeUseCase,
             ResendEmployeeInviteUseCase resendEmployeeInviteUseCase,
-            EmployeeInviteMailer employeeInviteMailer
+            EmployeeInviteMailer employeeInviteMailer,
+            UnlinkCompanyEmployeeUseCase unlinkCompanyEmployeeUseCase
     ) {
         this.getCompanySeatsSummaryUseCase = getCompanySeatsSummaryUseCase;
         this.listCompanyEmployeesUseCase = listCompanyEmployeesUseCase;
         this.registerCompanyEmployeeUseCase = registerCompanyEmployeeUseCase;
         this.resendEmployeeInviteUseCase = resendEmployeeInviteUseCase;
         this.employeeInviteMailer = employeeInviteMailer;
+        this.unlinkCompanyEmployeeUseCase = unlinkCompanyEmployeeUseCase;
     }
 
     @GetMapping("/seats")
@@ -122,5 +127,19 @@ public class CompanyEmployeeController {
         return ResponseEntity.ok(ApiResponse.success(
                 new ResentInviteResponse(issued.employee().getId(), issued.employee().getEmail(), inviteSent),
                 inviteSent ? "Convite reenviado com sucesso" : "Não foi possível enviar o e-mail do convite. Tente novamente"));
+    }
+
+    @DeleteMapping("/employees/{id}")
+    @Operation(
+            summary = "Unlink an employee from the company",
+            description = "Removes the link (freeing the seat), revokes the enrollments in the courses of the "
+                    + "company, sets the account INACTIVE and invalidates pending invites, all in one "
+                    + "transaction. Progress and certificates are kept, and courses the employee bought on "
+                    + "their own are not revoked. Returns the updated seats summary; 404 when the employee "
+                    + "does not belong to the company of the token.")
+    public ResponseEntity<ApiResponse<CompanySeatsResponse>> unlinkEmployee(@PathVariable UUID id) {
+        final UUID companyId = AuthenticationContext.requireUser().id();
+        return ResponseEntity.ok(ApiResponse.success(
+                CompanySeatsResponse.from(unlinkCompanyEmployeeUseCase.execute(companyId, id))));
     }
 }

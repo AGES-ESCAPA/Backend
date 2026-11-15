@@ -20,7 +20,7 @@ public class AccountInvite {
     private final UUID userId;
     private final UUID companyId;
     private final String tokenHash;
-    private final LocalDateTime expiresAt;
+    private LocalDateTime expiresAt;
     private LocalDateTime usedAt;
     private final LocalDateTime createdAt;
 
@@ -67,6 +67,11 @@ public class AccountInvite {
 
     public void markAsUsed(LocalDateTime now) {
         this.usedAt = now;
+    }
+
+    /** Encerra o convite sem marcá-lo como usado: o link passa a responder como expirado. */
+    public void expire(LocalDateTime now) {
+        this.expiresAt = now;
     }
 
     public UUID getId() {

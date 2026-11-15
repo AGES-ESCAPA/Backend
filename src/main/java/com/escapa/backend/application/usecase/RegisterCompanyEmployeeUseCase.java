@@ -144,6 +144,8 @@ public class RegisterCompanyEmployeeUseCase {
             throw new DuplicateRegistrationException("email");
         }
         // A conta antiga volta a ser PENDING: a senha antiga deixa de valer até o colaborador criar outra.
+        // O nome é o que o gestor acabou de informar, que pode ter mudado desde o vínculo anterior.
+        former.setName(name);
         former.setStatus(UserStatus.PENDING);
         former.setPasswordHash(unusablePasswordHash());
         return userRepositoryPort.save(former);
