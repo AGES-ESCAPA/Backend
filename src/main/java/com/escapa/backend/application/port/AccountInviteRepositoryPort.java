@@ -26,6 +26,12 @@ public interface AccountInviteRepositoryPort {
      */
     void invalidateOpenInvites(UUID userId, LocalDateTime now);
 
+    /**
+     * O convite mais recente do usuário foi usado, ou seja, a senha atual foi criada por ele? Falso
+     * quando o usuário não tem convite ou quando o último foi encerrado sem uso (a conta não tem senha).
+     */
+    boolean isLatestInviteUsed(UUID userId);
+
     /** Vale para convites usados ou não: identifica quem já foi colaborador. */
     boolean existsByUserId(UUID userId);
 }

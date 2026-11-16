@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -171,6 +172,16 @@ class GetCompanySeatsSummaryUseCaseTest {
 
         @Override
         public boolean isEmployeeOfCompany(UUID companyId, UUID userId) {
+            throw new UnsupportedOperationException("not used by the seats summary");
+        }
+
+        @Override
+        public Optional<CompanyEmployee> findEmployee(UUID companyId, UUID userId) {
+            throw new UnsupportedOperationException("not used by the seats summary");
+        }
+
+        @Override
+        public void updateJobTitle(UUID companyId, UUID userId, String jobTitle) {
             throw new UnsupportedOperationException("not used by the seats summary");
         }
 
