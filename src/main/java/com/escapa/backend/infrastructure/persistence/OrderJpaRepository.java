@@ -64,6 +64,30 @@ public interface OrderJpaRepository extends JpaRepository<OrderEntity, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select o from OrderEntity o where o.id = :id")
     Optional<OrderEntity> lockById(@Param("id") UUID id);
+
+    /**
+     * Joins e filtros da gestão de pedidos, compartilhados pela listagem, pela contagem e pelos totais.
+     * {@code :search} chega em minúsculas, com curingas escapados por {@code !}, e casa com o
+     * solicitante exibido (empresa, ou comprador sem empresa), o título do curso ou o código
+     * {@code PED-} + últimos 8 caracteres do UUID, o mesmo que o frontend mostra.
+     */
+    String FILTERED_ORDERS = """
+            FROM OrderEntity o
+            LEFT JOIN UserEntity u ON o.buyerUserId = u.id
+            LEFT JOIN CompanyEntity comp ON o.companyId = comp.id
+            LEFT JOIN CourseEntity c ON o.courseId = c.id
+            WHERE (:type IS NULL OR o.type = :type)
+              AND (:courseId IS NULL OR o.courseId = :courseId)
+              AND (:status IS NULL OR o.status = :status)
+              AND (CAST(:fromDateTime AS LocalDateTime) IS NULL OR o.createdAt >= :fromDateTime)
+              AND (CAST(:toExclusive AS LocalDateTime) IS NULL OR o.createdAt < :toExclusive)
+              AND (CAST(:search AS String) IS NULL
+                   OR LOWER(COALESCE(comp.companyName, u.name)) LIKE :search ESCAPE '!'
+                   OR LOWER(c.title) LIKE :search ESCAPE '!'
+                   OR LOWER(CONCAT('ped-', SUBSTRING(REPLACE(CAST(o.id AS String), '-', ''), 25, 8)))
+                      LIKE :search ESCAPE '!')
+            """;
+
     @Query(value = """
             SELECT
                 o.id AS id,
@@ -79,33 +103,42 @@ public interface OrderJpaRepository extends JpaRepository<OrderEntity, UUID> {
                 o.paymentMethod AS paymentMethod,
                 o.amount AS amount,
                 o.status AS status
-            FROM OrderEntity o
-            LEFT JOIN UserEntity u ON o.buyerUserId = u.id
-            LEFT JOIN CompanyEntity comp ON o.companyId = comp.id
-            LEFT JOIN CourseEntity c ON o.courseId = c.id
-            WHERE (:type IS NULL OR o.type = :type)
-              AND (:courseId IS NULL OR o.courseId = :courseId)
-              AND (:status IS NULL OR o.status = :status)
-              AND (CAST(:fromDateTime AS LocalDateTime) IS NULL OR o.createdAt >= :fromDateTime)
-              AND (CAST(:toExclusive AS LocalDateTime) IS NULL OR o.createdAt < :toExclusive)
+            """ + FILTERED_ORDERS + """
             ORDER BY o.createdAt DESC, o.id DESC
             """,
-            countQuery = """
-            SELECT COUNT(o)
-            FROM OrderEntity o
-            WHERE (:type IS NULL OR o.type = :type)
-              AND (:courseId IS NULL OR o.courseId = :courseId)
-              AND (:status IS NULL OR o.status = :status)
-              AND (CAST(:fromDateTime AS LocalDateTime) IS NULL OR o.createdAt >= :fromDateTime)
-              AND (CAST(:toExclusive AS LocalDateTime) IS NULL OR o.createdAt < :toExclusive)
-            """)
+            countQuery = "SELECT COUNT(o) " + FILTERED_ORDERS)
     Page<OrderListingView> findOrders(
             @Param("type") OrderType type,
             @Param("courseId") UUID courseId,
             @Param("status") OrderStatus status,
             @Param("fromDateTime") LocalDateTime fromDateTime,
             @Param("toExclusive") LocalDateTime toExclusive,
+            @Param("search") String search,
             Pageable pageable
+    );
+
+    interface OrderStatsView {
+        Long getApprovedCount();
+
+        BigDecimal getApprovedRevenue();
+
+        Long getCancelledOrRefundedCount();
+    }
+
+    @Query("""
+            SELECT
+                COUNT(CASE WHEN o.status = :approved THEN 1 END) AS approvedCount,
+                SUM(CASE WHEN o.status = :approved THEN o.amount END) AS approvedRevenue,
+                COUNT(CASE WHEN o.status <> :approved THEN 1 END) AS cancelledOrRefundedCount
+            """ + FILTERED_ORDERS)
+    OrderStatsView summarizeOrders(
+            @Param("type") OrderType type,
+            @Param("courseId") UUID courseId,
+            @Param("status") OrderStatus status,
+            @Param("fromDateTime") LocalDateTime fromDateTime,
+            @Param("toExclusive") LocalDateTime toExclusive,
+            @Param("search") String search,
+            @Param("approved") OrderStatus approved
     );
 
     @Query("""

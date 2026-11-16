@@ -5,6 +5,7 @@ import com.escapa.backend.application.port.OrderAccessPort;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.usecase.CreateOrderUseCase;
 import com.escapa.backend.application.usecase.GetSeatPriceUseCase;
+import com.escapa.backend.application.usecase.GetAdminOrderStatsUseCase;
 import com.escapa.backend.application.usecase.GetAdminOrderUseCase;
 import com.escapa.backend.application.usecase.ListAdminOrdersUseCase;
 import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
@@ -47,6 +48,11 @@ public class OrderConfig {
     @Bean
     public ListAdminOrdersUseCase listAdminOrdersUseCase(OrderRepositoryPort orderRepositoryPort) {
         return new ListAdminOrdersUseCase(orderRepositoryPort);
+    }
+
+    @Bean
+    public GetAdminOrderStatsUseCase getAdminOrderStatsUseCase(OrderRepositoryPort orderRepositoryPort) {
+        return new GetAdminOrderStatsUseCase(orderRepositoryPort);
     }
 
     @Bean

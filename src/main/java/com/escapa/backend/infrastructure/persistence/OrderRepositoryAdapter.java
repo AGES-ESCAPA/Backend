@@ -3,11 +3,13 @@ package com.escapa.backend.infrastructure.persistence;
 import com.escapa.backend.application.dto.OrderFilter;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.OrderDetails;
+import com.escapa.backend.application.model.OrderStats;
 import com.escapa.backend.application.model.OrderSummary;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.domain.entity.Order;
 import org.springframework.transaction.annotation.Transactional;
 import com.escapa.backend.domain.order.OrderItemType;
+import com.escapa.backend.domain.order.OrderStatus;
 import com.escapa.backend.domain.order.OrderStatusChange;
 import com.escapa.backend.domain.order.OrderType;
 import com.escapa.backend.infrastructure.persistence.entity.CompanyEntity;
@@ -19,9 +21,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -74,11 +78,10 @@ public class OrderRepositoryAdapter implements OrderRepositoryPort {
     @Override
     public PageResult<OrderSummary> findOrders(OrderFilter filter, int page, int size) {
         final Pageable pageable = PageRequest.of(page, size);
-        final LocalDateTime fromDateTime = filter.from() != null ? filter.from().atStartOfDay() : null;
-        final LocalDateTime toExclusive = filter.to() != null ? filter.to().plusDays(1).atStartOfDay() : null;
 
         final Page<OrderJpaRepository.OrderListingView> jpaPage = repository.findOrders(
-                filter.type(), filter.courseId(), filter.status(), fromDateTime, toExclusive, pageable);
+                filter.type(), filter.courseId(), filter.status(),
+                fromDateTime(filter), toExclusive(filter), searchPattern(filter), pageable);
 
         final List<OrderSummary> content = jpaPage.getContent().stream()
                 .map(this::toOrderSummary)
@@ -87,6 +90,39 @@ public class OrderRepositoryAdapter implements OrderRepositoryPort {
         return new PageResult<>(
                 content, jpaPage.getNumber(), jpaPage.getSize(),
                 jpaPage.getTotalElements(), jpaPage.getTotalPages());
+    }
+
+    @Override
+    public OrderStats summarizeOrders(OrderFilter filter) {
+        final OrderJpaRepository.OrderStatsView view = repository.summarizeOrders(
+                filter.type(), filter.courseId(), filter.status(),
+                fromDateTime(filter), toExclusive(filter), searchPattern(filter), OrderStatus.APPROVED);
+
+        return new OrderStats(
+                view.getApprovedCount(),
+                view.getApprovedRevenue() != null ? view.getApprovedRevenue() : BigDecimal.ZERO,
+                view.getCancelledOrRefundedCount());
+    }
+
+    private static LocalDateTime fromDateTime(OrderFilter filter) {
+        return filter.from() != null ? filter.from().atStartOfDay() : null;
+    }
+
+    /** O dia final entra inteiro: a busca vai até o início do dia seguinte, exclusive. */
+    private static LocalDateTime toExclusive(OrderFilter filter) {
+        return filter.to() != null ? filter.to().plusDays(1).atStartOfDay() : null;
+    }
+
+    /** O termo é texto literal: {@code %}, {@code _} e o próprio {@code !} são escapados para o LIKE. */
+    private static String searchPattern(OrderFilter filter) {
+        if (filter.search() == null) {
+            return null;
+        }
+        final String escaped = filter.search().toLowerCase(Locale.ROOT)
+                .replace("!", "!!")
+                .replace("%", "!%")
+                .replace("_", "!_");
+        return "%" + escaped + "%";
     }
 
     @Override

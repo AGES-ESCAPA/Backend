@@ -56,7 +56,7 @@ class ListAdminOrdersUseCaseTest {
     @Test
     void shouldReturnEmptyPageWhenNoOrdersExist() {
         final PageResult<OrderSummary> result = useCase.execute(
-                null, null, null, null, null, 0, 10);
+                null, null, null, null, null, null, 0, 10);
 
         assertTrue(result.content().isEmpty());
         assertEquals(0, result.totalElements());
@@ -74,7 +74,7 @@ class ListAdminOrdersUseCaseTest {
         repository.addSummary(order2);
         repository.addSummary(order3);
 
-        final PageResult<OrderSummary> page0 = useCase.execute(null, null, null, null, null, 0, 2);
+        final PageResult<OrderSummary> page0 = useCase.execute(null, null, null, null, null, null, 0, 2);
 
         assertEquals(2, page0.content().size());
         assertEquals(order2.id(), page0.content().get(0).id());
@@ -82,7 +82,7 @@ class ListAdminOrdersUseCaseTest {
         assertEquals(3, page0.totalElements());
         assertEquals(2, page0.totalPages());
 
-        final PageResult<OrderSummary> page1 = useCase.execute(null, null, null, null, null, 1, 2);
+        final PageResult<OrderSummary> page1 = useCase.execute(null, null, null, null, null, null, 1, 2);
         assertEquals(1, page1.content().size());
         assertEquals(order1.id(), page1.content().get(0).id());
     }
@@ -97,7 +97,7 @@ class ListAdminOrdersUseCaseTest {
         repository.addSummary(corporate);
 
         final PageResult<OrderSummary> result = useCase.execute(
-                OrderType.INDIVIDUAL, null, null, null, null, 0, 10);
+                OrderType.INDIVIDUAL, null, null, null, null, null, 0, 10);
 
         assertEquals(1, result.content().size());
         assertEquals(individual.id(), result.content().get(0).id());
@@ -113,7 +113,7 @@ class ListAdminOrdersUseCaseTest {
         repository.addSummary(orderCourseB);
 
         final PageResult<OrderSummary> result = useCase.execute(
-                null, COURSE_A, null, null, null, 0, 10);
+                null, COURSE_A, null, null, null, null, 0, 10);
 
         assertEquals(1, result.content().size());
         assertEquals(orderCourseA.id(), result.content().get(0).id());
@@ -131,7 +131,7 @@ class ListAdminOrdersUseCaseTest {
         repository.addSummary(refunded);
 
         final PageResult<OrderSummary> result = useCase.execute(
-                null, null, null, null, OrderStatus.CANCELLED, 0, 10);
+                null, null, null, null, OrderStatus.CANCELLED, null, 0, 10);
 
         assertEquals(1, result.content().size());
         assertEquals(cancelled.id(), result.content().get(0).id());
@@ -150,7 +150,7 @@ class ListAdminOrdersUseCaseTest {
         repository.addSummary(aprOrder);
 
         final PageResult<OrderSummary> result = useCase.execute(
-                null, null, LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), null, 0, 10);
+                null, null, LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), null, null, 0, 10);
 
         assertEquals(2, result.content().size());
         assertEquals(marOrder2.id(), result.content().get(0).id());
@@ -170,7 +170,7 @@ class ListAdminOrdersUseCaseTest {
         repository.addSummary(diffStatus);
 
         final PageResult<OrderSummary> result = useCase.execute(
-                OrderType.CORPORATE, COURSE_A, LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), OrderStatus.APPROVED, 0, 10);
+                OrderType.CORPORATE, COURSE_A, LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), OrderStatus.APPROVED, null, 0, 10);
 
         assertEquals(1, result.content().size());
         assertEquals(matching.id(), result.content().get(0).id());
@@ -179,7 +179,7 @@ class ListAdminOrdersUseCaseTest {
     @Test
     void shouldThrowExceptionWhenFromDateIsAfterToDate() {
         final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                useCase.execute(null, null, LocalDate.of(2026, 4, 1), LocalDate.of(2026, 3, 1), null, 0, 10));
+                useCase.execute(null, null, LocalDate.of(2026, 4, 1), LocalDate.of(2026, 3, 1), null, null, 0, 10));
 
         assertEquals("The 'from' date cannot be after the 'to' date", ex.getMessage());
     }
