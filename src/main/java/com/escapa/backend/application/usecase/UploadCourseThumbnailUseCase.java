@@ -28,7 +28,7 @@ public class UploadCourseThumbnailUseCase {
     }
 
     public String execute(InputStream content, long size, String contentType) {
-        if (!ALLOWED_CONTENT_TYPES.containsKey(contentType)) {
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.containsKey(contentType)) {
             throw InvalidCourseThumbnailException.unsupportedType(contentType);
         }
         if (size > MAX_FILE_SIZE_BYTES) {

@@ -29,6 +29,7 @@ public class ContentRepositoryAdapter implements ContentRepositoryPort {
     }
 
     @Override
+    @Transactional
     public Content save(Content content) {
         final ContentEntity entity;
         if (content.getId() == null) {
