@@ -21,6 +21,7 @@ import com.escapa.backend.domain.user.UserNotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +49,21 @@ public class PublishCourseUseCase {
             UserRepositoryPort userRepository,
             CoursePrerequisiteRepositoryPort prerequisiteRepository) {
         this(courseRepository, changeLogRepository, courseNotificationPort, userRepository, prerequisiteRepository,
-                courseId -> List.of(), (lessonId, lessonTitle) -> { }, url -> { });
+                courseId -> List.of(), (lessonId, lessonTitle) -> { }, noopFileStorage());
+    }
+
+    private static FileStoragePort noopFileStorage() {
+        return new FileStoragePort() {
+            @Override
+            public String upload(String key, InputStream content, long size, String contentType) {
+                throw new UnsupportedOperationException("File storage is not configured in this constructor");
+            }
+
+            @Override
+            public void delete(String url) {
+                // no-op for unit tests that do not assert thumbnail cleanup
+            }
+        };
     }
 
     public PublishCourseUseCase(
