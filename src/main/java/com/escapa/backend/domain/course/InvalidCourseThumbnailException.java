@@ -13,4 +13,8 @@ public class InvalidCourseThumbnailException extends RuntimeException {
     public static InvalidCourseThumbnailException tooLarge(long maxBytes) {
         return new InvalidCourseThumbnailException("File exceeds the maximum size of " + maxBytes + " bytes");
     }
+
+    public static InvalidCourseThumbnailException empty() {
+        return new InvalidCourseThumbnailException("File must not be empty");
+    }
 }

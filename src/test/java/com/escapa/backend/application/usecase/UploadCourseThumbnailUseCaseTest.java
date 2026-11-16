@@ -53,4 +53,10 @@ class UploadCourseThumbnailUseCaseTest {
         assertThrows(InvalidCourseThumbnailException.class, () -> useCase.execute(fakeFile(), tooLarge, "image/jpeg"));
         assertTrue(fileStorage.getUploadedKeys().isEmpty());
     }
+
+    @Test
+    void shouldRejectEmptyFile() {
+        assertThrows(InvalidCourseThumbnailException.class, () -> useCase.execute(fakeFile(), 0, "image/png"));
+        assertTrue(fileStorage.getUploadedKeys().isEmpty());
+    }
 }

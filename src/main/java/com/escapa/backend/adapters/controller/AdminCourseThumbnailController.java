@@ -18,6 +18,7 @@ import com.escapa.backend.adapters.dto.course.CourseThumbnailResponse;
 import com.escapa.backend.adapters.security.AdminRequestGuard;
 import com.escapa.backend.adapters.security.AuthenticationContext;
 import com.escapa.backend.application.usecase.UploadCourseThumbnailUseCase;
+import com.escapa.backend.domain.course.InvalidCourseThumbnailException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,6 +45,9 @@ public class AdminCourseThumbnailController {
             @RequestParam("file") MultipartFile file
     ) {
         adminRequestGuard.requireAdmin(AuthenticationContext.requireUser().id());
+        if (file == null || file.isEmpty()) {
+            throw InvalidCourseThumbnailException.empty();
+        }
         final String url = uploadCourseThumbnailUseCase.execute(
                 openStream(file), file.getSize(), file.getContentType());
         return ResponseEntity.status(HttpStatus.CREATED)

@@ -31,6 +31,9 @@ public class UploadCourseThumbnailUseCase {
         if (contentType == null || !ALLOWED_CONTENT_TYPES.containsKey(contentType)) {
             throw InvalidCourseThumbnailException.unsupportedType(contentType);
         }
+        if (size <= 0) {
+            throw InvalidCourseThumbnailException.empty();
+        }
         if (size > MAX_FILE_SIZE_BYTES) {
             throw InvalidCourseThumbnailException.tooLarge(MAX_FILE_SIZE_BYTES);
         }
