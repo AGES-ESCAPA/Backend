@@ -5,8 +5,9 @@ import com.escapa.backend.application.port.CourseNotificationPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.CurriculumReleasePort;
-import com.escapa.backend.application.port.LessonNotificationPort;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
+import com.escapa.backend.application.port.FileStoragePort;
+import com.escapa.backend.application.port.LessonNotificationPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.ArchiveCourseUseCase;
 import com.escapa.backend.application.usecase.CreateCourseUseCase;
@@ -44,10 +45,12 @@ public class CourseConfig {
             UserRepositoryPort userRepositoryPort,
             CoursePrerequisiteRepositoryPort prerequisiteRepositoryPort,
             CurriculumReleasePort curriculumReleasePort,
-            LessonNotificationPort lessonNotificationPort) {
+            LessonNotificationPort lessonNotificationPort,
+            FileStoragePort fileStoragePort) {
         return new PublishCourseUseCase(
                 courseRepositoryPort, changeLogRepositoryPort, courseNotificationPort,
-                userRepositoryPort, prerequisiteRepositoryPort, curriculumReleasePort, lessonNotificationPort);
+                userRepositoryPort, prerequisiteRepositoryPort, curriculumReleasePort,
+                lessonNotificationPort, fileStoragePort);
     }
 
     @Bean

@@ -6,6 +6,7 @@ import com.escapa.backend.application.port.CourseNotificationPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.CurriculumReleasePort;
+import com.escapa.backend.application.port.FileStoragePort;
 import com.escapa.backend.application.port.LessonNotificationPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class PublishCourseUseCase {
@@ -35,6 +37,7 @@ public class PublishCourseUseCase {
     private final CoursePrerequisiteRepositoryPort prerequisiteRepository;
     private final CurriculumReleasePort curriculumReleasePort;
     private final LessonNotificationPort lessonNotificationPort;
+    private final FileStoragePort fileStoragePort;
 
     public PublishCourseUseCase(
             CourseRepositoryPort courseRepository,
@@ -43,7 +46,7 @@ public class PublishCourseUseCase {
             UserRepositoryPort userRepository,
             CoursePrerequisiteRepositoryPort prerequisiteRepository) {
         this(courseRepository, changeLogRepository, courseNotificationPort, userRepository, prerequisiteRepository,
-                courseId -> List.of(), (lessonId, lessonTitle) -> { });
+                courseId -> List.of(), (lessonId, lessonTitle) -> { }, url -> { });
     }
 
     public PublishCourseUseCase(
@@ -53,7 +56,8 @@ public class PublishCourseUseCase {
             UserRepositoryPort userRepository,
             CoursePrerequisiteRepositoryPort prerequisiteRepository,
             CurriculumReleasePort curriculumReleasePort,
-            LessonNotificationPort lessonNotificationPort) {
+            LessonNotificationPort lessonNotificationPort,
+            FileStoragePort fileStoragePort) {
         this.courseRepository = courseRepository;
         this.changeLogRepository = changeLogRepository;
         this.courseNotificationPort = courseNotificationPort;
@@ -61,6 +65,7 @@ public class PublishCourseUseCase {
         this.prerequisiteRepository = prerequisiteRepository;
         this.curriculumReleasePort = curriculumReleasePort;
         this.lessonNotificationPort = lessonNotificationPort;
+        this.fileStoragePort = fileStoragePort;
     }
 
     public Course execute(UUID id, boolean notifyEnrolledStudents, User changedBy) {
@@ -76,7 +81,9 @@ public class PublishCourseUseCase {
             throw new CourseValidationException("Cannot publish course due to missing requirements", missingFields);
         }
 
+        final String previousThumbnailUrl = course.getThumbnailUrl();
         applyDraft(course, draft);
+        deleteReplacedThumbnail(previousThumbnailUrl, course.getThumbnailUrl());
         course.setStatus(CourseStatus.PUBLISHED);
         course.setMajorVersion(course.getMajorVersion() + 1);
         course.setMinorVersion(0);
@@ -107,6 +114,17 @@ public class PublishCourseUseCase {
         draft.applyTo(course);
         course.setInstructor(instructor);
         course.setPendingDraft(null);
+    }
+
+    /**
+     * Só remove a capa publicada anterior quando o rascunho a substituiu ou limpou.
+     * Até o publish os alunos ainda veem {@code previousThumbnailUrl}.
+     */
+    private void deleteReplacedThumbnail(String previousThumbnailUrl, String publishedThumbnailUrl) {
+        if (previousThumbnailUrl == null || Objects.equals(previousThumbnailUrl, publishedThumbnailUrl)) {
+            return;
+        }
+        fileStoragePort.delete(previousThumbnailUrl);
     }
 
     private void releaseCurriculum(UUID courseId) {

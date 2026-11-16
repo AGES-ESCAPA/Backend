@@ -85,21 +85,25 @@ class PublishCourseUseCaseTest {
         final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
         final InMemoryCoursePrerequisiteRepositoryPort prerequisiteRepository =
                 new InMemoryCoursePrerequisiteRepositoryPort();
+        final InMemoryFileStoragePort fileStorage = new InMemoryFileStoragePort();
         final User admin = new User("Admin Um", "admin@escapa.com", "hash", "ADMIN");
         admin.setId(UUID.randomUUID());
         final Course course = courseRepository.save(completeCourse(admin));
         course.setStatus(CourseStatus.PUBLISHED);
         course.setMajorVersion(1);
+        course.setThumbnailUrl("https://storage.test/courses/thumbnails/antiga.png");
         final Course prerequisite = courseRepository.save(new Course(
                 "Pre requisito", null, null, null, null, null, null, null,
                 null, null, null, List.of(), true, false, admin));
         course.setPendingDraft(CoursePendingDraft.fromPublished(course, List.of(prerequisite.getId()))
-                .applyUpdate("Titulo publicado depois", null, null, null, null, null, null, null,
-                        null, null, null, null, null, null));
+                .applyUpdate("Titulo publicado depois", null, null,
+                        "https://storage.test/courses/thumbnails/nova.png",
+                        null, null, null, null, null, null, null, null, null, null));
         courseRepository.save(course);
         final PublishCourseUseCase useCase = new PublishCourseUseCase(
                 courseRepository, new InMemoryCourseChangeLogRepositoryPort(), new InMemoryCourseNotificationPort(),
-                new InMemoryUserRepositoryPort(), prerequisiteRepository);
+                new InMemoryUserRepositoryPort(), prerequisiteRepository,
+                courseId -> List.of(), (lessonId, lessonTitle) -> { }, fileStorage);
 
         assertEquals("Fundamentos de Design", courseRepository.findById(course.getId()).orElseThrow().getTitle());
 
@@ -110,6 +114,7 @@ class PublishCourseUseCaseTest {
         assertEquals(2, published.getMajorVersion());
         assertTrue(prerequisiteRepository.existsByCourseIdAndPrerequisiteCourseId(
                 course.getId(), prerequisite.getId()));
+        assertEquals(List.of("https://storage.test/courses/thumbnails/antiga.png"), fileStorage.getDeletedUrls());
     }
 
     @Test
