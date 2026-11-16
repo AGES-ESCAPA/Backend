@@ -11,8 +11,11 @@ import com.escapa.backend.infrastructure.persistence.entity.UsersCompanyId;
 import jakarta.persistence.EntityManager;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -47,6 +50,16 @@ public class CompanyEmployeeAdapter implements CompanyEmployeeRepositoryPort {
               where enrollment.user_id = u.id
                 and enrollment.revoked_at is null
                 and owned.revoked_at is null)
+            """;
+
+    /** Colaboradores da empresa como aparecem na listagem; quem usa acrescenta filtro e ordem. */
+    private static final String EMPLOYEE_QUERY = """
+            select u.id, u.name, u.email, link.role as job_title, u.status, u.avatar_url,
+            """ + ASSIGNED_COURSES + """
+                   as assigned_courses
+              from users_company link
+              join users u on u.id = link.user_id
+             where link.company_id = :companyId
             """;
 
     private final JdbcClient jdbcClient;
@@ -124,29 +137,45 @@ public class CompanyEmployeeAdapter implements CompanyEmployeeRepositoryPort {
                 .query(Long.class)
                 .single();
 
-        final List<CompanyEmployee> content = bind(jdbcClient.sql("""
-                        select u.id, u.name, u.email, link.role as job_title, u.status, u.avatar_url,
-                        """ + ASSIGNED_COURSES + """
-                               as assigned_courses
-                          from users_company link
-                          join users u on u.id = link.user_id
-                         where link.company_id = :companyId
-                        """ + filter + " order by " + NAME_KEY + ", u.id limit :limit offset :offset"),
+        final List<CompanyEmployee> content = bind(jdbcClient.sql(EMPLOYEE_QUERY
+                        + filter + " order by " + NAME_KEY + ", u.id limit :limit offset :offset"),
                 companyId, pattern)
                 .param("limit", size)
                 .param("offset", (long) page * size)
-                .query((rs, rowNum) -> new CompanyEmployee(
-                        rs.getObject("id", UUID.class),
-                        rs.getString("name"),
-                        rs.getString("email"),
-                        rs.getString("job_title"),
-                        UserStatus.valueOf(rs.getString("status")),
-                        rs.getInt("assigned_courses"),
-                        rs.getString("avatar_url")))
+                .query(CompanyEmployeeAdapter::toEmployee)
                 .list();
 
         final int totalPages = (int) ((total + size - 1) / size);
         return new PageResult<>(content, page, size, total, totalPages);
+    }
+
+    @Override
+    public Optional<CompanyEmployee> findEmployee(UUID companyId, UUID userId) {
+        return jdbcClient.sql(EMPLOYEE_QUERY + " and link.user_id = :userId")
+                .param("companyId", companyId)
+                .param("userId", userId)
+                .query(CompanyEmployeeAdapter::toEmployee)
+                .optional();
+    }
+
+    @Override
+    public void updateJobTitle(UUID companyId, UUID userId, String jobTitle) {
+        jdbcClient.sql("update users_company set role = :role where company_id = :companyId and user_id = :userId")
+                .param("role", jobTitle)
+                .param("companyId", companyId)
+                .param("userId", userId)
+                .update();
+    }
+
+    private static CompanyEmployee toEmployee(ResultSet rs, int rowNum) throws SQLException {
+        return new CompanyEmployee(
+                rs.getObject("id", UUID.class),
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getString("job_title"),
+                UserStatus.valueOf(rs.getString("status")),
+                rs.getInt("assigned_courses"),
+                rs.getString("avatar_url"));
     }
 
     private static JdbcClient.StatementSpec bind(JdbcClient.StatementSpec statement, UUID companyId, String pattern) {

@@ -7,25 +7,32 @@ import com.escapa.backend.adapters.dto.CreateCompanyEmployeeRequest;
 import com.escapa.backend.adapters.dto.PageResponse;
 import com.escapa.backend.adapters.dto.RegisteredEmployeeResponse;
 import com.escapa.backend.adapters.dto.ResentInviteResponse;
+import com.escapa.backend.adapters.dto.UpdateCompanyEmployeeRequest;
+import com.escapa.backend.adapters.dto.UpdatedEmployeeResponse;
 import com.escapa.backend.adapters.security.AuthenticationContext;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CompanyEmployee;
 import com.escapa.backend.application.model.IssuedEmployeeInvite;
 import com.escapa.backend.application.model.RegisteredEmployee;
+import com.escapa.backend.application.model.UpdatedEmployee;
 import com.escapa.backend.application.usecase.EmployeeInviteMailer;
 import com.escapa.backend.application.usecase.GetCompanySeatsSummaryUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeesUseCase;
 import com.escapa.backend.application.usecase.RegisterCompanyEmployeeUseCase;
 import com.escapa.backend.application.usecase.ResendEmployeeInviteUseCase;
 import com.escapa.backend.application.usecase.UnlinkCompanyEmployeeUseCase;
+import com.escapa.backend.application.usecase.UpdateCompanyEmployeeUseCase;
+import com.escapa.backend.application.usecase.UpdateCompanyEmployeeUseCase.EmployeeChanges;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,6 +55,7 @@ public class CompanyEmployeeController {
     private final ResendEmployeeInviteUseCase resendEmployeeInviteUseCase;
     private final EmployeeInviteMailer employeeInviteMailer;
     private final UnlinkCompanyEmployeeUseCase unlinkCompanyEmployeeUseCase;
+    private final UpdateCompanyEmployeeUseCase updateCompanyEmployeeUseCase;
 
     public CompanyEmployeeController(
             GetCompanySeatsSummaryUseCase getCompanySeatsSummaryUseCase,
@@ -55,7 +63,8 @@ public class CompanyEmployeeController {
             RegisterCompanyEmployeeUseCase registerCompanyEmployeeUseCase,
             ResendEmployeeInviteUseCase resendEmployeeInviteUseCase,
             EmployeeInviteMailer employeeInviteMailer,
-            UnlinkCompanyEmployeeUseCase unlinkCompanyEmployeeUseCase
+            UnlinkCompanyEmployeeUseCase unlinkCompanyEmployeeUseCase,
+            UpdateCompanyEmployeeUseCase updateCompanyEmployeeUseCase
     ) {
         this.getCompanySeatsSummaryUseCase = getCompanySeatsSummaryUseCase;
         this.listCompanyEmployeesUseCase = listCompanyEmployeesUseCase;
@@ -63,6 +72,7 @@ public class CompanyEmployeeController {
         this.resendEmployeeInviteUseCase = resendEmployeeInviteUseCase;
         this.employeeInviteMailer = employeeInviteMailer;
         this.unlinkCompanyEmployeeUseCase = unlinkCompanyEmployeeUseCase;
+        this.updateCompanyEmployeeUseCase = updateCompanyEmployeeUseCase;
     }
 
     @GetMapping("/seats")
@@ -127,6 +137,31 @@ public class CompanyEmployeeController {
         return ResponseEntity.ok(ApiResponse.success(
                 new ResentInviteResponse(issued.employee().getId(), issued.employee().getEmail(), inviteSent),
                 inviteSent ? "Convite reenviado com sucesso" : "Não foi possível enviar o e-mail do convite. Tente novamente"));
+    }
+
+    @PutMapping("/employees/{id}")
+    @Operation(
+            summary = "Edit an employee of the company",
+            description = "Saves name, e-mail, job title and status (ACTIVE or INACTIVE). INACTIVE blocks the "
+                    + "login and the token in use, but keeps the link, the seat and the enrollments. An employee "
+                    + "without a password stays PENDING when set ACTIVE. Changing the e-mail of a PENDING "
+                    + "employee invalidates the previous invite and e-mails a new one (inviteSent is null when "
+                    + "no invite was issued). E-mail in use by another account returns 409; an employee of "
+                    + "another company returns 404.")
+    public ResponseEntity<ApiResponse<UpdatedEmployeeResponse>> updateEmployee(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateCompanyEmployeeRequest request
+    ) {
+        final UUID companyId = AuthenticationContext.requireUser().id();
+        final UpdatedEmployee updated = updateCompanyEmployeeUseCase.execute(companyId, id, new EmployeeChanges(
+                request.name(), request.email(), request.jobTitle(), request.status()));
+        // Fora da transação da edição, como no cadastro: uma falha no envio não desfaz a edição.
+        final Boolean inviteSent = updated.hasNewInvite()
+                ? employeeInviteMailer.send(updated.employee().name(), updated.employee().email(),
+                        updated.companyName(), updated.inviteToken())
+                : null;
+        return ResponseEntity.ok(ApiResponse.success(
+                UpdatedEmployeeResponse.from(updated, inviteSent), "Colaborador atualizado com sucesso"));
     }
 
     @DeleteMapping("/employees/{id}")

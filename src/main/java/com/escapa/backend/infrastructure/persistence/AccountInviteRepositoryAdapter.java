@@ -51,6 +51,13 @@ public class AccountInviteRepositoryAdapter implements AccountInviteRepositoryPo
     }
 
     @Override
+    public boolean isLatestInviteUsed(UUID userId) {
+        return accountInviteJpaRepository.findFirstByUserIdOrderByCreatedAtDesc(userId)
+                .map(invite -> invite.getUsedAt() != null)
+                .orElse(false);
+    }
+
+    @Override
     public boolean existsByUserId(UUID userId) {
         return accountInviteJpaRepository.existsByUserId(userId);
     }

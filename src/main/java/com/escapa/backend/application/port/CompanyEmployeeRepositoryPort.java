@@ -5,6 +5,7 @@ import com.escapa.backend.application.model.CompanyEmployee;
 import com.escapa.backend.application.model.CompanyEmployeeCounts;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -23,6 +24,12 @@ public interface CompanyEmployeeRepositoryPort {
 
     /** Ids de todos os colaboradores vinculados à empresa, de qualquer status (ACTIVE, PENDING ou INACTIVE). */
     List<UUID> findEmployeeIds(UUID companyId);
+
+    /** O colaborador como aparece na listagem; vazio se não existir ou não for desta empresa. */
+    Optional<CompanyEmployee> findEmployee(UUID companyId, UUID userId);
+
+    /** Grava o cargo em {@code users_company.role}. */
+    void updateJobTitle(UUID companyId, UUID userId, String jobTitle);
 
     /** Colaboradores vinculados, de qualquer status, e quantos estão ativos. */
     CompanyEmployeeCounts countEmployees(UUID companyId);

@@ -311,6 +311,16 @@ class UnlinkCompanyEmployeeUseCaseTest {
         }
 
         @Override
+        public Optional<CompanyEmployee> findEmployee(UUID companyId, UUID userId) {
+            throw new UnsupportedOperationException("not used by the unlink");
+        }
+
+        @Override
+        public void updateJobTitle(UUID companyId, UUID userId, String jobTitle) {
+            throw new UnsupportedOperationException("not used by the unlink");
+        }
+
+        @Override
         public CompanyEmployeeCounts countEmployees(UUID companyId) {
             final List<UUID> members = links.entrySet().stream()
                     .filter(entry -> entry.getValue().equals(companyId))
