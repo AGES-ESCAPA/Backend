@@ -62,6 +62,11 @@ class GetStudentCourseCurriculumUseCaseTest {
                 }
 
                 @Override
+                public boolean hasCompletedCourse(UUID user, UUID course) {
+                    return false;
+                }
+
+                @Override
                 public List<com.escapa.backend.application.model.CourseEnrollmentCount> countEligibleEnrollmentsByCourse() {
                     return List.of();
                 }

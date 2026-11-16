@@ -32,6 +32,7 @@ public final class InMemoryEnrollmentRepositoryPort implements EnrollmentReposit
     private final List<StudentCourseCard> courseCards = new ArrayList<>();
     private final Map<Key, LocalDateTime> lastAccess = new HashMap<>();
     private final Set<Key> revoked = new HashSet<>();
+    private final Set<Key> completed = new HashSet<>();
 
     public void registerCourse(UUID courseId, String title, String category, CourseStatus status) {
         courses.put(courseId, new CourseRecord(courseId, title, category, status));
@@ -72,6 +73,17 @@ public final class InMemoryEnrollmentRepositoryPort implements EnrollmentReposit
 
     public void addCourseCard(StudentCourseCard card) {
         courseCards.add(card);
+    }
+
+    /** Marca a matricula (ja registrada com {@code enroll}) como concluida. */
+    public void complete(UUID userId, UUID courseId) {
+        completed.add(new Key(userId, courseId));
+    }
+
+    @Override
+    public boolean hasCompletedCourse(UUID userId, UUID courseId) {
+        final Key key = new Key(userId, courseId);
+        return enrollments.containsKey(key) && !revoked.contains(key) && completed.contains(key);
     }
 
     @Override

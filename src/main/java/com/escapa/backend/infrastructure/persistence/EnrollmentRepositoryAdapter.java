@@ -60,6 +60,12 @@ public class EnrollmentRepositoryAdapter implements EnrollmentRepositoryPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public boolean hasCompletedCourse(UUID userId, UUID courseId) {
+        return userCourseJpaRepository.existsCompletedByUserIdAndCourseId(userId, courseId);
+    }
+
+    @Override
     @Transactional
     public void recordLastAccess(UUID userId, UUID courseId, LocalDateTime accessedAt, Duration minInterval) {
         userCourseJpaRepository.updateLastAccessDate(userId, courseId, accessedAt, accessedAt.minus(minInterval));

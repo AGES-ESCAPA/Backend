@@ -18,6 +18,9 @@ public interface EnrollmentRepositoryPort {
 
     PageResult<StudentCourseCard> findStudentEnrollments(UUID userId, String title, EnrollmentStatus status, int page, int size);
 
+    /** Se o aluno tem matricula nao revogada e concluida no curso (mesma regra do status COMPLETED). */
+    boolean hasCompletedCourse(UUID userId, UUID courseId);
+
     /**
      * Registra o instante do ultimo acesso do aluno ao curso (US-35). So grava se ainda nao houver acesso
      * registrado ou se o ultimo for anterior a {@code minInterval} antes de {@code accessedAt}, para

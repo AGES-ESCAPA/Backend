@@ -93,6 +93,11 @@ class StudentLessonControllerTest {
             }
 
             @Override
+            public boolean hasCompletedCourse(UUID user, UUID course) {
+                return false;
+            }
+
+            @Override
             public List<com.escapa.backend.application.model.CourseEnrollmentCount> countEligibleEnrollmentsByCourse() {
                 return List.of();
             }
@@ -208,6 +213,11 @@ class StudentLessonControllerTest {
                     @Override
                     public com.escapa.backend.application.dto.PageResult<com.escapa.backend.application.model.StudentCourseCard> findStudentEnrollments(UUID userId, String title, com.escapa.backend.domain.course.EnrollmentStatus status, int page, int size) {
                         return null;
+                    }
+
+                    @Override
+                    public boolean hasCompletedCourse(UUID user, UUID course) {
+                        return false;
                     }
 
                     @Override

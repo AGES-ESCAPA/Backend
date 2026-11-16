@@ -27,6 +27,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import com.escapa.backend.domain.certificate.CertificateGenerationException;
 import com.escapa.backend.domain.certificate.CertificateGenerationUnavailableException;
 import com.escapa.backend.domain.certificate.CertificateAccessDeniedException;
+import com.escapa.backend.domain.course.CourseReviewNotAllowedException;
 import com.escapa.backend.domain.certificate.CertificateNotFoundException;
 import com.escapa.backend.domain.order.InvalidOrderTransitionException;
 import com.escapa.backend.domain.order.OrderNotFoundException;
@@ -166,7 +167,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             LessonAccessDeniedException.class,
             AdminAccessDeniedException.class,
-            CertificateAccessDeniedException.class
+            CertificateAccessDeniedException.class,
+            CourseReviewNotAllowedException.class
     })
     public ResponseEntity<ApiError> handleAccessDeniedException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);

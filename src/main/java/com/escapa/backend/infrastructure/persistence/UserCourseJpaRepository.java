@@ -72,6 +72,12 @@ public interface UserCourseJpaRepository
                 Pageable pageable
             );
 
+            @Query("select count(uc) > 0 from UserCourseEntity uc "
+                + "where uc.id.userId = :userId and uc.id.courseId = :courseId and uc.revokedAt is null "
+                + "and (uc.conclusionDate is not null or uc.progress = 100)")
+            boolean existsCompletedByUserIdAndCourseId(
+                @Param("userId") UUID userId, @Param("courseId") UUID courseId);
+
             /** Revoga a matricula do aluno no curso, sem apagar progresso nem certificado. */
             @Modifying
             @Query("update UserCourseEntity uc set uc.revokedAt = :revokedAt "
