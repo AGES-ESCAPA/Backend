@@ -28,7 +28,7 @@ class UpdateCourseUseCaseTest {
 
         final Course updated = useCase.execute(
                 course.getId(), "Titulo novo", null, null, null, null, null, null,
-                null, null, null, null, null, null, null, admin);
+                null, null, null, null, null, null, null);
 
         assertEquals("Titulo novo", updated.getTitle());
         assertEquals(admin.getId(), updated.getCreatedBy().getId());
@@ -48,7 +48,7 @@ class UpdateCourseUseCaseTest {
 
         final Course updated = useCase.execute(
                 course.getId(), null, null, null, null, null, newInstructor.getId(), null,
-                null, null, null, null, null, null, null, admin);
+                null, null, null, null, null, null, null);
 
         assertEquals(newInstructor.getId(), updated.getInstructor().getId());
     }
@@ -62,7 +62,7 @@ class UpdateCourseUseCaseTest {
 
         assertThrows(CourseNotFoundException.class, () -> useCase.execute(
                 UUID.randomUUID(), "Titulo", null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null));
+                null, null, null, null, null, null, null));
     }
 
     @Test
@@ -79,7 +79,7 @@ class UpdateCourseUseCaseTest {
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(
                 course.getId(), null, null, null, null, null, student.getId(), null,
-                null, null, null, null, null, null, null, admin));
+                null, null, null, null, null, null, null));
     }
 
     @Test
@@ -98,7 +98,7 @@ class UpdateCourseUseCaseTest {
 
         final Course updated = useCase.execute(
                 course.getId(), "Titulo revisado", null, null, null, null, null, null,
-                null, null, null, 250.0, null, null, null, admin);
+                null, null, null, 250.0, null, null, null);
 
         assertEquals("Titulo revisado", updated.getTitle());
         assertEquals(250.0, updated.getPrice());
@@ -125,7 +125,7 @@ class UpdateCourseUseCaseTest {
 
         final Course updated = useCase.execute(
                 course.getId(), "Titulo revisado", null, null, null, null, null, null,
-                null, null, null, null, null, null, null, admin);
+                null, null, null, null, null, null, null);
 
         assertEquals("Titulo revisado", updated.getTitle());
         assertEquals(0, updated.getMinorVersion());

@@ -30,11 +30,15 @@ public class UpdateCourseUseCase {
         this.prerequisiteRepositoryPort = prerequisiteRepositoryPort;
     }
 
+    /**
+     * Atualiza um curso. Em curso publicado a alteração fica só no rascunho — sem
+     * incrementar versão nem gravar change log; o histórico nasce no publish.
+     */
     public Course execute(UUID id, String title, String shortDescription, String description, String thumbnailUrl,
                           String teaserVideoUrl, UUID instructorId, String category, String level,
                           Integer durationTime, Integer deadline, Double price,
                           List<String> learningObjectives, Boolean requireSequentialProgress,
-                          Boolean enforceDeadlineBlock, User changedBy) {
+                          Boolean enforceDeadlineBlock) {
 
         final Course course = courseRepositoryPort.findById(id).orElseThrow(() -> new CourseNotFoundException(id));
         if (PublishedCourseDrafts.isPublished(course)) {
