@@ -1,5 +1,6 @@
 package com.escapa.backend.infrastructure.config;
 
+import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.OrderAccessPort;
 import com.escapa.backend.application.port.OrderRepositoryPort;
@@ -74,10 +75,11 @@ public class OrderConfig {
             OrderRepositoryPort orderRepositoryPort,
             CourseRepositoryPort courseRepositoryPort,
             OrderAccessPort orderAccessPort,
+            CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort,
             @Value("${app.seat-price}") BigDecimal seatPrice
     ) {
-        return new CreateOrderUseCase(
-                orderRepositoryPort, courseRepositoryPort, orderAccessPort, seatPrice, Clock.systemDefaultZone());
+        return new CreateOrderUseCase(orderRepositoryPort, courseRepositoryPort, orderAccessPort,
+                companyEmployeeRepositoryPort, seatPrice, Clock.systemDefaultZone());
     }
 
     @Bean

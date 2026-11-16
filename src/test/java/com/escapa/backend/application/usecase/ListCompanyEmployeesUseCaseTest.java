@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -233,7 +234,22 @@ class ListCompanyEmployeesUseCaseTest {
         }
 
         @Override
+        public List<UUID> findEmployeeIds(UUID companyId) {
+            throw new UnsupportedOperationException("not used by the employees list");
+        }
+
+        @Override
         public CompanyEmployeeCounts countEmployees(UUID companyId) {
+            throw new UnsupportedOperationException("not used by the employees list");
+        }
+
+        @Override
+        public Optional<CompanyEmployee> findEmployee(UUID companyId, UUID userId) {
+            throw new UnsupportedOperationException("not used by the employees list");
+        }
+
+        @Override
+        public void updateJobTitle(UUID companyId, UUID userId, String jobTitle) {
             throw new UnsupportedOperationException("not used by the employees list");
         }
 

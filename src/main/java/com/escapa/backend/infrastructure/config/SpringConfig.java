@@ -80,6 +80,7 @@ import com.escapa.backend.application.usecase.GetUserByIdUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeeProgressUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeesUseCase;
 import com.escapa.backend.application.usecase.UnlinkCompanyEmployeeUseCase;
+import com.escapa.backend.application.usecase.UpdateCompanyEmployeeUseCase;
 import com.escapa.backend.application.usecase.ListCompanyCourseIdsUseCase;
 import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
 import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
@@ -400,6 +401,20 @@ public class SpringConfig {
     ) {
         return new ResendEmployeeInviteUseCase(userRepositoryPort, companyRepositoryPort,
                 companyEmployeeRepositoryPort, accountInviteRepositoryPort,
+                Clock.systemDefaultZone(), inviteExpirationHours);
+    }
+
+    @Bean
+    public UpdateCompanyEmployeeUseCase updateCompanyEmployeeUseCase(
+            UserRepositoryPort userRepositoryPort,
+            CompanyRepositoryPort companyRepositoryPort,
+            CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort,
+            AccountInviteRepositoryPort accountInviteRepositoryPort,
+            ContactValidatorPort contactValidatorPort,
+            @Value("${app.invite.expiration-hours}") long inviteExpirationHours
+    ) {
+        return new UpdateCompanyEmployeeUseCase(userRepositoryPort, companyRepositoryPort,
+                companyEmployeeRepositoryPort, accountInviteRepositoryPort, contactValidatorPort,
                 Clock.systemDefaultZone(), inviteExpirationHours);
     }
 

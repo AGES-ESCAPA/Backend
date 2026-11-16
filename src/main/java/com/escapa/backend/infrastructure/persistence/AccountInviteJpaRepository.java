@@ -19,6 +19,8 @@ public interface AccountInviteJpaRepository extends JpaRepository<AccountInviteE
 
     boolean existsByUserId(UUID userId);
 
+    Optional<AccountInviteEntity> findFirstByUserIdOrderByCreatedAtDesc(UUID userId);
+
     @Modifying
     @Query("UPDATE AccountInviteEntity i SET i.expiresAt = :now "
             + "WHERE i.userId = :userId AND i.usedAt IS NULL AND i.expiresAt > :now")

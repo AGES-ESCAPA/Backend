@@ -4,7 +4,6 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,7 +46,7 @@ public class RegisterCompanyEmployeeUseCase {
     private final OrderAccessPort orderAccessPort;
     private final AccountInviteRepositoryPort accountInviteRepositoryPort;
     private final PasswordHasherPort passwordHasherPort;
-    private final ContactValidatorPort contactValidatorPort;
+    private final EmployeeDataValidator validator;
     private final Clock clock;
     private final long inviteValidityHours;
 
@@ -72,14 +71,14 @@ public class RegisterCompanyEmployeeUseCase {
         this.orderAccessPort = orderAccessPort;
         this.accountInviteRepositoryPort = accountInviteRepositoryPort;
         this.passwordHasherPort = passwordHasherPort;
-        this.contactValidatorPort = contactValidatorPort;
+        this.validator = new EmployeeDataValidator(contactValidatorPort);
         this.clock = clock;
         this.inviteValidityHours = inviteValidityHours;
     }
 
     public RegisteredEmployee execute(UUID companyId, String name, String email) {
-        final String cleanName = requireName(name);
-        final String cleanEmail = requireValidEmail(email);
+        final String cleanName = validator.requireName(name);
+        final String cleanEmail = validator.requireValidEmail(email);
 
         final Company company = companyRepositoryPort.findById(companyId)
                 .orElseThrow(() -> new CompanyNotFoundException(companyId));
@@ -95,33 +94,6 @@ public class RegisterCompanyEmployeeUseCase {
                 LocalDateTime.now(clock), inviteValidityHours));
 
         return new RegisteredEmployee(employee, assignedCourses, company.getCompanyName(), token);
-    }
-
-    private String requireName(String name) {
-        if (name == null || name.trim().isBlank()) {
-            throw new IllegalArgumentException("Name is required");
-        }
-        final String clean = name.trim();
-        if (clean.length() > RegisterStudentUseCase.MAX_FIELD_LENGTH) {
-            throw new IllegalArgumentException(
-                    "name must have at most " + RegisterStudentUseCase.MAX_FIELD_LENGTH + " characters");
-        }
-        return clean;
-    }
-
-    private String requireValidEmail(String email) {
-        if (email == null || email.trim().isBlank()) {
-            throw new IllegalArgumentException("Email is required");
-        }
-        final String clean = email.trim().toLowerCase(Locale.ROOT);
-        if (clean.length() > RegisterStudentUseCase.MAX_FIELD_LENGTH) {
-            throw new IllegalArgumentException(
-                    "email must have at most " + RegisterStudentUseCase.MAX_FIELD_LENGTH + " characters");
-        }
-        if (!contactValidatorPort.isValidEmail(clean)) {
-            throw new IllegalArgumentException("Invalid email");
-        }
-        return clean;
     }
 
     /** Trava a empresa antes de contar: dois cadastros ao mesmo tempo não ocupam a mesma última vaga. */
