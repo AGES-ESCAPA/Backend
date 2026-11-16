@@ -144,6 +144,36 @@ class PublishCourseUseCaseTest {
     }
 
     @Test
+    void shouldRejectPublishingWhenDraftPrerequisitesFormACycle() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryCoursePrerequisiteRepositoryPort prerequisiteRepository =
+                new InMemoryCoursePrerequisiteRepositoryPort();
+        final User admin = new User("Admin Um", "admin@escapa.com", "hash", "ADMIN");
+        admin.setId(UUID.randomUUID());
+        final Course courseA = courseRepository.save(completeCourse(admin));
+        courseA.setTitle("Curso A");
+        courseA.setStatus(CourseStatus.PUBLISHED);
+        courseA.setMajorVersion(1);
+        final Course courseB = courseRepository.save(completeCourse(admin));
+        courseB.setTitle("Curso B");
+        courseB.setStatus(CourseStatus.PUBLISHED);
+        courseB.setMajorVersion(1);
+        courseRepository.save(courseA);
+        courseRepository.save(courseB);
+        // Rascunhos cruzados: A exige B e B exige A.
+        courseA.setPendingDraft(CoursePendingDraft.fromPublished(courseA, List.of(courseB.getId())));
+        courseB.setPendingDraft(CoursePendingDraft.fromPublished(courseB, List.of(courseA.getId())));
+        courseRepository.save(courseA);
+        courseRepository.save(courseB);
+        final PublishCourseUseCase useCase = new PublishCourseUseCase(
+                courseRepository, new InMemoryCourseChangeLogRepositoryPort(), new InMemoryCourseNotificationPort(),
+                new InMemoryUserRepositoryPort(), prerequisiteRepository);
+
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(courseA.getId(), false, admin));
+        assertTrue(prerequisiteRepository.findPrerequisiteCourseIds(courseA.getId()).isEmpty());
+    }
+
+    @Test
     void shouldThrowWhenCourseNotFound() {
         final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
         final PublishCourseUseCase useCase = new PublishCourseUseCase(

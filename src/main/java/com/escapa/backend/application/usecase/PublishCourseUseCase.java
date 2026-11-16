@@ -1,5 +1,6 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.CoursePrerequisiteCycles;
 import com.escapa.backend.application.course.PublishedCourseDrafts;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CourseNotificationPort;
@@ -38,6 +39,7 @@ public class PublishCourseUseCase {
     private final CurriculumReleasePort curriculumReleasePort;
     private final LessonNotificationPort lessonNotificationPort;
     private final FileStoragePort fileStoragePort;
+    private final CoursePrerequisiteCycles prerequisiteCycles;
 
     public PublishCourseUseCase(
             CourseRepositoryPort courseRepository,
@@ -66,6 +68,7 @@ public class PublishCourseUseCase {
         this.curriculumReleasePort = curriculumReleasePort;
         this.lessonNotificationPort = lessonNotificationPort;
         this.fileStoragePort = fileStoragePort;
+        this.prerequisiteCycles = new CoursePrerequisiteCycles(courseRepository, prerequisiteRepository);
     }
 
     public Course execute(UUID id, boolean notifyEnrolledStudents, User changedBy) {
@@ -138,6 +141,7 @@ public class PublishCourseUseCase {
             return;
         }
         final List<UUID> prerequisiteIds = draft.prerequisiteIds() == null ? List.of() : draft.prerequisiteIds();
+        prerequisiteCycles.assertAcyclic(courseId, prerequisiteIds);
         prerequisiteRepository.replaceAll(courseId, prerequisiteIds);
     }
 
