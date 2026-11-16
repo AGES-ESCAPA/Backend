@@ -69,7 +69,10 @@ class AdminMetricsSecurityIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.data.partnerCompanies").value(1))
                 .andExpect(jsonPath("$.data.averageCompletionRate").value(100.00))
                 .andExpect(jsonPath("$.data.activeStudentsByMonth.length()").value(6))
-                .andExpect(jsonPath("$.data.activeStudentsByMonth[5].activeStudents").value(1));
+                .andExpect(jsonPath("$.data.activeStudentsByMonth[5].activeStudents").value(1))
+                .andExpect(jsonPath("$.data.activeStudentsChange").value(0.0))
+                .andExpect(jsonPath("$.data.partnerCompaniesChange").value(0.0))
+                .andExpect(jsonPath("$.data.topEngagedCompanies.length()").value(0));
     }
 
     private UUID user(String role) {

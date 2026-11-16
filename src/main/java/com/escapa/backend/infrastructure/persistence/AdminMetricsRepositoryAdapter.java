@@ -1,9 +1,12 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import com.escapa.backend.application.model.CompanyEngagement;
 import com.escapa.backend.application.model.EnrollmentCompletionCounts;
 import com.escapa.backend.application.port.AdminMetricsRepositoryPort;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 
 public class AdminMetricsRepositoryAdapter implements AdminMetricsRepositoryPort {
     private static final String ACTIVE_STUDENTS = """
@@ -39,6 +42,43 @@ public class AdminMetricsRepositoryAdapter implements AdminMetricsRepositoryPort
     public long countPartnerCompanies() {
         return jdbcClient.sql("select count(*) from users where role = 'COMPANY' and status = 'ACTIVE'")
                 .query(Long.class).single();
+    }
+
+    @Override
+    public long countPartnerCompaniesCreatedBefore(LocalDate startOfCurrentMonth) {
+        return jdbcClient.sql("""
+                select count(*)
+                  from users
+                 where role = 'COMPANY' and status = 'ACTIVE'
+                   and created_at < :startOfCurrentMonth
+                """)
+                .param("startOfCurrentMonth", startOfCurrentMonth)
+                .query(Long.class).single();
+    }
+
+    @Override
+    public List<CompanyEngagement> findTopEngagedCompanies(int limit) {
+        return jdbcClient.sql("""
+                select company.id as company_id,
+                       company.company_name as name,
+                       count(*) as enrollments
+                  from company
+                  join users account on account.id = company.id
+                  join users_company link on link.company_id = company.id
+                  join user_courses enrollment on enrollment.user_id = link.user_id
+                  join courses course on course.id = enrollment.course_id
+                 where account.role = 'COMPANY' and account.status = 'ACTIVE'
+                   and enrollment.revoked_at is null and course.status <> 'DRAFT'
+                 group by company.id, company.company_name
+                 order by enrollments desc, company.company_name asc, company.id asc
+                 limit :resultLimit
+                """)
+                .param("resultLimit", limit)
+                .query((rs, rowNum) -> new CompanyEngagement(
+                        rs.getObject("company_id", UUID.class),
+                        rs.getString("name"),
+                        rs.getLong("enrollments")))
+                .list();
     }
 
     @Override
