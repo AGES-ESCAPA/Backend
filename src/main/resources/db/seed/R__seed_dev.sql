@@ -1250,6 +1250,11 @@ INSERT INTO content (id, module_id, title, description, type, url, duration_minu
      'VIDEO', NULL, 15, FALSE, 7,
      NULL, '2026-02-16 16:20:00');
 
+-- Curso publicado: o aluno só enxerga módulo e aula com published_order.
+-- Sem isso a grade vem vazia e "Acessar curso" não abre a sala de aula.
+UPDATE modules SET published_order = "order" WHERE published_order IS NULL;
+UPDATE content SET published_order = "order" WHERE published_order IS NULL;
+
 INSERT INTO user_courses (
     user_id, course_id, dt_inicio, dt_expiracao, progress, conclusion_date, last_access_date,
     certificate_issued, certificate_code, certificate_issued_at

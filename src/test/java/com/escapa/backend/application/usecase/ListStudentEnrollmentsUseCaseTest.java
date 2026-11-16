@@ -5,17 +5,19 @@ import com.escapa.backend.application.model.StudentCourseCard;
 import com.escapa.backend.domain.course.EnrollmentStatus;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ListStudentEnrollmentsUseCaseTest {
 
+    private final InMemoryEnrollmentRepositoryPort repository = new InMemoryEnrollmentRepositoryPort();
+    private final InMemoryCourseReviewRepositoryPort reviewRepository = new InMemoryCourseReviewRepositoryPort();
+    private final ListStudentEnrollmentsUseCase useCase = new ListStudentEnrollmentsUseCase(repository, reviewRepository);
+
     @Test
     void shouldListStudentEnrollmentsWithFiltersAndPagination() {
-        InMemoryEnrollmentRepositoryPort repository = new InMemoryEnrollmentRepositoryPort();
-        ListStudentEnrollmentsUseCase useCase = new ListStudentEnrollmentsUseCase(repository);
-
         UUID userId = UUID.randomUUID();
         repository.addCourseCard(new StudentCourseCard(UUID.randomUUID(), "Course A", "Inst 1", null, 10, 5, 100, EnrollmentStatus.COMPLETED));
         repository.addCourseCard(new StudentCourseCard(UUID.randomUUID(), "Course B", "Inst 2", null, 20, 10, 50, EnrollmentStatus.IN_PROGRESS));
@@ -33,11 +35,24 @@ class ListStudentEnrollmentsUseCaseTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenUserIdIsNull() {
-        InMemoryEnrollmentRepositoryPort repository = new InMemoryEnrollmentRepositoryPort();
-        ListStudentEnrollmentsUseCase useCase = new ListStudentEnrollmentsUseCase(repository);
+    void shouldFillTheRatingTheStudentGaveToEachCourse() {
+        final UUID userId = UUID.randomUUID();
+        final UUID ratedCourseId = UUID.randomUUID();
+        final UUID unratedCourseId = UUID.randomUUID();
+        repository.addCourseCard(new StudentCourseCard(ratedCourseId, "Rated", "Inst", null, 10, 5, 100, EnrollmentStatus.COMPLETED));
+        repository.addCourseCard(new StudentCourseCard(unratedCourseId, "Unrated", "Inst", null, 10, 5, 100, EnrollmentStatus.COMPLETED));
+        reviewRepository.saveRating(userId, ratedCourseId, 4, LocalDateTime.now());
+        reviewRepository.saveRating(UUID.randomUUID(), unratedCourseId, 2, LocalDateTime.now());
 
+        final PageResult<StudentCourseCard> result = useCase.execute(userId, null, null, 0, 10);
+
+        assertEquals(4, result.content().get(0).myRating());
+        assertNull(result.content().get(1).myRating());
+        assertEquals(2, result.totalElements());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserIdIsNull() {
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(null, null, null, 0, 10));
     }
 }
-
