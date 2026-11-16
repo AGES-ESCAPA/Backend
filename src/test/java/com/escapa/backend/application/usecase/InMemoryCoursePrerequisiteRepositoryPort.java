@@ -40,4 +40,17 @@ public final class InMemoryCoursePrerequisiteRepositoryPort implements CoursePre
         links.removeIf(
                 link -> link.courseId().equals(courseId) && link.prerequisiteCourseId().equals(prerequisiteCourseId));
     }
+
+    @Override
+    public void replaceAll(UUID courseId, List<UUID> prerequisiteCourseIds) {
+        links.removeIf(link -> link.courseId().equals(courseId));
+        if (prerequisiteCourseIds == null) {
+            return;
+        }
+        for (final UUID prerequisiteCourseId : prerequisiteCourseIds) {
+            if (prerequisiteCourseId != null && !prerequisiteCourseId.equals(courseId)) {
+                links.add(new Link(courseId, prerequisiteCourseId));
+            }
+        }
+    }
 }

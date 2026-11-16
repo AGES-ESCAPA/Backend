@@ -8,6 +8,7 @@ import com.escapa.backend.infrastructure.persistence.ContentMapper;
 import com.escapa.backend.infrastructure.persistence.UserMapper;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
+import com.escapa.backend.domain.course.CoursePendingDraft;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -104,6 +105,18 @@ public final class CourseMapper {
         entity.setEnforceDeadlineBlock(course.getEnforceDeadlineBlock());
         entity.setCreatedAt(course.getCreatedAt());
         entity.setUpdatedAt(course.getUpdatedAt());
+        entity.setPendingDraft(writeDraft(course.getPendingDraft()));
+    }
+
+    private static String writeDraft(CoursePendingDraft draft) {
+        if (draft == null) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.writeValueAsString(draft);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Invalid course draft", exception);
+        }
     }
 
     public static Course toDomain(CourseEntity entity) {
@@ -186,5 +199,17 @@ public final class CourseMapper {
         course.setUpdatedAt(entity.getUpdatedAt());
         course.setMajorVersion(entity.getMajorVersion());
         course.setMinorVersion(entity.getMinorVersion());
+        course.setPendingDraft(readDraft(entity.getPendingDraft()));
+    }
+
+    private static CoursePendingDraft readDraft(String json) {
+        if (json == null || json.isBlank()) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.readValue(json, CoursePendingDraft.class);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Invalid course draft JSON", exception);
+        }
     }
 }

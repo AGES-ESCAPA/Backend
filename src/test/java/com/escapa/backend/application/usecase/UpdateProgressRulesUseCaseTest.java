@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class UpdateProgressRulesUseCaseTest {
 
     @Test
-    void shouldUpdateRulesAndLogWhenPublishedCourseChanges() {
+    void shouldKeepPublishedRulesUntilTheCourseIsPublishedAgain() {
         final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
         final InMemoryCourseChangeLogRepositoryPort changeLogRepository = new InMemoryCourseChangeLogRepositoryPort();
         final User admin = adminUser();
@@ -25,15 +25,18 @@ class UpdateProgressRulesUseCaseTest {
         course.setStatus(CourseStatus.PUBLISHED);
         courseRepository.save(course);
         final UpdateProgressRulesUseCase useCase =
-                new UpdateProgressRulesUseCase(courseRepository, changeLogRepository);
+                new UpdateProgressRulesUseCase(courseRepository, changeLogRepository,
+                new InMemoryCoursePrerequisiteRepositoryPort());
 
         useCase.execute(course.getId(), false, true, admin);
 
         final Course updated = courseRepository.findById(course.getId()).orElseThrow();
-        assertFalse(updated.getRequireSequentialProgress());
-        assertTrue(updated.getEnforceDeadlineBlock());
-        assertEquals(1, updated.getMinorVersion());
-        assertEquals(1, changeLogRepository.entriesFor(course.getId()).size());
+        assertTrue(updated.getRequireSequentialProgress());
+        assertFalse(updated.getEnforceDeadlineBlock());
+        assertEquals(0, updated.getMinorVersion());
+        assertEquals(false, updated.getPendingDraft().requireSequentialProgress());
+        assertEquals(true, updated.getPendingDraft().enforceDeadlineBlock());
+        assertTrue(changeLogRepository.entriesFor(course.getId()).isEmpty());
     }
 
     @Test
@@ -43,7 +46,8 @@ class UpdateProgressRulesUseCaseTest {
         final User admin = adminUser();
         final Course course = courseRepository.save(course(admin));
         final UpdateProgressRulesUseCase useCase =
-                new UpdateProgressRulesUseCase(courseRepository, changeLogRepository);
+                new UpdateProgressRulesUseCase(courseRepository, changeLogRepository,
+                new InMemoryCoursePrerequisiteRepositoryPort());
 
         useCase.execute(course.getId(), true, false, admin);
 
@@ -54,7 +58,8 @@ class UpdateProgressRulesUseCaseTest {
     void shouldThrowWhenCourseNotFound() {
         final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
         final UpdateProgressRulesUseCase useCase =
-                new UpdateProgressRulesUseCase(courseRepository, new InMemoryCourseChangeLogRepositoryPort());
+                new UpdateProgressRulesUseCase(courseRepository, new InMemoryCourseChangeLogRepositoryPort(),
+                        new InMemoryCoursePrerequisiteRepositoryPort());
 
         assertThrows(CourseNotFoundException.class,
                 () -> useCase.execute(UUID.randomUUID(), true, false, null));

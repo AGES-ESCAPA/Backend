@@ -18,10 +18,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.escapa.backend.application.model.CompanyEngagement;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -75,7 +78,10 @@ class AdminMetricsControllerTest {
                 .andExpect(jsonPath("$.data.averageCompletionRate").value(0.00))
                 .andExpect(jsonPath("$.data.activeStudentsByMonth.length()").value(6))
                 .andExpect(jsonPath("$.data.activeStudentsByMonth[0].month").value("2026-06"))
-                .andExpect(jsonPath("$.data.activeStudentsByMonth[5].month").value("2026-11"));
+                .andExpect(jsonPath("$.data.activeStudentsByMonth[5].month").value("2026-11"))
+                .andExpect(jsonPath("$.data.activeStudentsChange").value(0.0))
+                .andExpect(jsonPath("$.data.partnerCompaniesChange").value(0.0))
+                .andExpect(jsonPath("$.data.topEngagedCompanies.length()").value(0));
     }
 
     private static void authenticate(UUID userId, String role) {
@@ -96,6 +102,11 @@ class AdminMetricsControllerTest {
         }
 
         @Override
+        public long countPartnerCompaniesCreatedBefore(LocalDate startOfCurrentMonth) {
+            return 0;
+        }
+
+        @Override
         public EnrollmentCompletionCounts countHistoricalCompletion() {
             return new EnrollmentCompletionCounts(0, 0);
         }
@@ -103,6 +114,11 @@ class AdminMetricsControllerTest {
         @Override
         public long countActiveStudentsInPeriod(LocalDate from, LocalDate to) {
             return 0;
+        }
+
+        @Override
+        public List<CompanyEngagement> findTopEngagedCompanies(int limit) {
+            return List.of();
         }
     }
 }

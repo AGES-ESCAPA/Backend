@@ -61,7 +61,7 @@ public class ModuleRepositoryAdapter implements ModuleRepositoryPort {
 
     @Override
     public int nextOrder(UUID courseId) {
-        final Integer maxOrder = moduleJpaRepository.findMaxOrderByCourseId(courseId);
+        final Integer maxOrder = moduleJpaRepository.findMaxPositiveOrderByCourseId(courseId);
         return maxOrder != null ? maxOrder + 1 : 1;
     }
 

@@ -23,7 +23,7 @@ class LessonStatusCalculatorTest {
     private Content content(UUID moduleId, String title, int order) {
         return new Content(
                 UUID.randomUUID(), moduleId, title, "desc", ContentType.VIDEO,
-                "https://cdn.example.com/video.mp4", 10, false, order, null, null);
+                "https://cdn.example.com/video.mp4", 10, false, order, null, null, null, null, false, false);
     }
 
     private Function<UUID, List<UUID>> noPrerequisites() {
@@ -99,7 +99,7 @@ class LessonStatusCalculatorTest {
     }
 
     @Test
-    void shouldLockAllLessonsOfAModuleWithIncompletePrerequisite() {
+    void shouldKeepLaterModulesOpenWhenSequentialProgressIsDisabled() {
         final Module m1 = new Module(UUID.randomUUID(), courseId, "Modulo 1", 1);
         final Content c1 = content(m1.getId(), "Aula 1", 1);
         m1.getContents().add(c1);
@@ -115,6 +115,34 @@ class LessonStatusCalculatorTest {
 
         final StudentCourseCurriculum result = calculator.calculate(
                 courseId, List.of(m1, m2), List.of(), prerequisites, false);
+
+        assertFalse(result.modules().get(1).locked());
+        assertTrue(result.modules().stream()
+                .flatMap(module -> module.lessons().stream())
+                .allMatch(lesson -> lesson.status() == LessonStatus.AVAILABLE));
+    }
+
+    @Test
+    void shouldLockAllLessonsOfAModuleWithIncompletePrerequisiteWhenSequentialProgressIsRequired() {
+        final Module m1 = new Module(UUID.randomUUID(), courseId, "Modulo 1", 1);
+        final Content c1 = content(m1.getId(), "Aula 1", 1);
+        final Content c1b = content(m1.getId(), "Aula 1b", 2);
+        m1.getContents().add(c1);
+        m1.getContents().add(c1b);
+
+        final Module m2 = new Module(UUID.randomUUID(), courseId, "Modulo 2", 2);
+        final Content c2 = content(m2.getId(), "Aula 2", 1);
+        final Content c3 = content(m2.getId(), "Aula 3", 2);
+        m2.getContents().add(c2);
+        m2.getContents().add(c3);
+
+        final Function<UUID, List<UUID>> prerequisites = moduleId ->
+                moduleId.equals(m2.getId()) ? List.of(m1.getId()) : List.of();
+
+        // A aula imediatamente anterior está concluída, então só o pré-requisito
+        // do módulo (ainda incompleto) pode bloquear o módulo seguinte.
+        final StudentCourseCurriculum result = calculator.calculate(
+                courseId, List.of(m1, m2), List.of(c1b.getId()), prerequisites, true);
 
         final StudentCourseCurriculum.Module module2Result = result.modules().get(1);
         assertTrue(module2Result.locked());

@@ -58,6 +58,17 @@ public class ContentEntity {
     @Column(name = "\"order\"", nullable = false)
     private Integer order;
 
+    /** Ordem publicada. Null esconde a aula até a próxima publicação do curso. */
+    @Column(name = "published_order")
+    private Integer publishedOrder;
+
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "pending_draft", columnDefinition = "JSON")
+    private String pendingDraft;
+
+    @Column(name = "pending_deletion", nullable = false)
+    private boolean pendingDeletion;
+
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     @Column(name = "recursos", columnDefinition = "JSON")
     private String recursos;

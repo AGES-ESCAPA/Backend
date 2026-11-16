@@ -1,5 +1,6 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
@@ -24,7 +25,12 @@ public class UpdateModuleUseCase {
         }
         final Module module = moduleRepositoryPort.findById(id)
                 .orElseThrow(() -> new ModuleNotFoundException(id));
+        if (module.isHeldForPublish()) {
+            module.setPendingTitle(title.trim());
+            return PublishedCurriculum.editorModule(moduleRepositoryPort.save(module));
+        }
         module.setTitle(title.trim());
+        module.setPendingTitle(null);
         return moduleRepositoryPort.save(module);
     }
 }

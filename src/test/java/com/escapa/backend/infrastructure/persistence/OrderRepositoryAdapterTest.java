@@ -3,6 +3,7 @@ package com.escapa.backend.infrastructure.persistence;
 import com.escapa.backend.application.dto.OrderFilter;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.OrderDetails;
+import com.escapa.backend.application.model.OrderStats;
 import com.escapa.backend.application.model.OrderSummary;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
@@ -273,6 +274,85 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
 
         assertEquals(3, pagedIds.stream().distinct().count());
         assertTrue(pagedIds.containsAll(savedIds));
+    }
+
+    @Test
+    void shouldSummarizeAllOrdersMatchingTheFiltersRegardlessOfPagination() {
+        final UUID courseId = givenCourse();
+        for (int i = 0; i < 3; i++) {
+            orderRepositoryPort.save(individualCourseOrder(givenUser("STUDENT"), courseId));
+        }
+        final Order refunded = individualCourseOrder(givenUser("STUDENT"), courseId);
+        refunded.changeStatus(OrderStatus.REFUNDED, null, null);
+        orderRepositoryPort.save(refunded);
+        orderRepositoryPort.save(individualCourseOrder(givenUser("STUDENT"), givenCourse()));
+
+        final OrderStats stats = orderRepositoryPort.summarizeOrders(
+                new OrderFilter(null, courseId, null, null, null));
+
+        assertEquals(3, stats.approvedCount());
+        assertEquals(0, new BigDecimal("351.00").compareTo(stats.approvedRevenue()));
+        assertEquals(1, stats.cancelledOrRefundedCount());
+    }
+
+    @Test
+    void shouldSearchAcrossAllPagesByCourseTitleRequesterAndOrderCode() {
+        final CourseEntity otherCourse = new CourseEntity();
+        otherCourse.setTitle("Gastronomia Regional");
+        final UUID gastronomyId = courseJpaRepository.save(otherCourse).getId();
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+
+        final Order oldest = individualCourseOrder(givenUser("STUDENT"), gastronomyId);
+        oldest.setCreatedAt(now.minusDays(5));
+        final UUID oldestId = orderRepositoryPort.save(oldest).getId();
+        for (int day = 0; day < 3; day++) {
+            final Order order = individualCourseOrder(givenUser("STUDENT"), givenCourse());
+            order.setCreatedAt(now.minusDays(day));
+            orderRepositoryPort.save(order);
+        }
+
+        final PageResult<OrderSummary> byTitle = orderRepositoryPort.findOrders(
+                new OrderFilter(null, null, null, null, null, "  gastronomia  "), 0, 2);
+        assertEquals(List.of(oldestId), byTitle.content().stream().map(OrderSummary::id).toList());
+        assertEquals(1, byTitle.totalElements());
+
+        final String hex = oldestId.toString().replace("-", "");
+        final String code = "PED-" + hex.substring(hex.length() - 8).toUpperCase();
+        final PageResult<OrderSummary> byCode = orderRepositoryPort.findOrders(
+                new OrderFilter(null, null, null, null, null, code), 0, 2);
+        assertEquals(List.of(oldestId), byCode.content().stream().map(OrderSummary::id).toList());
+
+        final OrderStats stats = orderRepositoryPort.summarizeOrders(
+                new OrderFilter(null, null, null, null, null, "gastronomia"));
+        assertEquals(1, stats.approvedCount());
+    }
+
+    @Test
+    void shouldSearchCorporateOrdersByCompanyNameAndTreatWildcardsLiterally() {
+        final UUID companyId = givenCompany();
+        final Order order = individualCourseOrder(givenUser("COMPANY"), givenCourse());
+        order.setType(OrderType.CORPORATE);
+        order.setCompanyId(companyId);
+        final UUID orderId = orderRepositoryPort.save(order).getId();
+        orderRepositoryPort.save(individualCourseOrder(givenUser("STUDENT"), givenCourse()));
+
+        final PageResult<OrderSummary> byCompany = orderRepositoryPort.findOrders(
+                new OrderFilter(null, null, null, null, null, "hotel teste"), 0, 10);
+        assertEquals(List.of(orderId), byCompany.content().stream().map(OrderSummary::id).toList());
+
+        final PageResult<OrderSummary> wildcard = orderRepositoryPort.findOrders(
+                new OrderFilter(null, null, null, null, null, "%"), 0, 10);
+        assertTrue(wildcard.content().isEmpty());
+    }
+
+    @Test
+    void shouldReturnZeroRevenueWhenNoApprovedOrderMatches() {
+        final OrderStats stats = orderRepositoryPort.summarizeOrders(
+                new OrderFilter(null, UUID.randomUUID(), null, null, null));
+
+        assertEquals(0, stats.approvedCount());
+        assertEquals(0, BigDecimal.ZERO.compareTo(stats.approvedRevenue()));
+        assertEquals(0, stats.cancelledOrRefundedCount());
     }
 
     @Test

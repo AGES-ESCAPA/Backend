@@ -290,6 +290,7 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
         module.setCourse(course);
         module.setTitle("Modulo 1");
         module.setOrder(1);
+        module.setPublishedOrder(1);
 
         final ContentEntity freeContent = new ContentEntity();
         freeContent.setModule(module);
@@ -299,6 +300,7 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
         freeContent.setDurationMinutes(10);
         freeContent.setIsFree(true);
         freeContent.setOrder(1);
+        freeContent.setPublishedOrder(1);
 
         final ContentEntity paidContent = new ContentEntity();
         paidContent.setModule(module);
@@ -308,6 +310,7 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
         paidContent.setDurationMinutes(20);
         paidContent.setIsFree(false);
         paidContent.setOrder(2);
+        paidContent.setPublishedOrder(2);
 
         module.setContents(List.of(freeContent, paidContent));
         course.setModules(List.of(module));

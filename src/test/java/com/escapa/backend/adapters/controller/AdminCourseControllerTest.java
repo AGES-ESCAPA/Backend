@@ -37,6 +37,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -67,15 +68,16 @@ class AdminCourseControllerTest {
 
         final AdminCourseController controller = new AdminCourseController(
                 new GetCourseRulesUseCase(courseRepository, prerequisiteRepository, changeLogRepository),
-                new UpdateProgressRulesUseCase(courseRepository, changeLogRepository),
+                new UpdateProgressRulesUseCase(courseRepository, changeLogRepository, prerequisiteRepository),
                 new AddCoursePrerequisiteUseCase(courseRepository, prerequisiteRepository, changeLogRepository),
                 new RemoveCoursePrerequisiteUseCase(courseRepository, prerequisiteRepository, changeLogRepository),
                 new SearchCoursesForPrerequisiteUseCase(courseRepository),
                 new GetCourseChangeLogUseCase(changeLogRepository),
                 new GetAdminCourseUseCase(courseRepository),
                 new CreateCourseUseCase(courseRepository, userRepository),
-                new PublishCourseUseCase(courseRepository, changeLogRepository, new InMemoryCourseNotificationPort()),
-                new UpdateCourseUseCase(courseRepository, userRepository, changeLogRepository),
+                new PublishCourseUseCase(courseRepository, changeLogRepository, new InMemoryCourseNotificationPort(),
+                        userRepository, prerequisiteRepository),
+                new UpdateCourseUseCase(courseRepository, userRepository, prerequisiteRepository),
                 new ListAdminCoursesUseCase(courseRepository),
                 new ListCourseCategoriesUseCase(courseRepository),
                 new ArchiveCourseUseCase(courseRepository),
@@ -224,6 +226,24 @@ class AdminCourseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].title").value("Gestão de eventos"));
+    }
+
+    @Test
+    void shouldNotChangeThePublishedCourseWhenSavingADraft() throws Exception {
+        final UUID courseId = saveCourse("Publicado", CourseStatus.PUBLISHED);
+
+        mockMvc.perform(put(COURSES_URL + "/{id}", courseId).header(USER_HEADER, adminId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Rascunho novo\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.title").value("Rascunho novo"))
+                .andExpect(jsonPath("$.data.status").value("PUBLISHED"));
+
+        assertEquals("Publicado", courseRepository.findById(courseId).orElseThrow().getTitle());
+
+        mockMvc.perform(get(COURSES_URL + "/{id}", courseId).header(USER_HEADER, adminId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.title").value("Rascunho novo"));
     }
 
     private UUID saveCourse(String title, CourseStatus status) {

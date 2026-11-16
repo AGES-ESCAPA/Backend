@@ -79,10 +79,12 @@ class UserControllerTest {
 
         mockMvc.perform(get(USERS_URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.length()").value(1));
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].status").value("ACTIVE"));
         mockMvc.perform(get(USERS_URL + "/{id}", saved.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.name").value("Maria Silva"));
+                .andExpect(jsonPath("$.data.name").value("Maria Silva"))
+                .andExpect(jsonPath("$.data.status").value("ACTIVE"));
     }
 
     @Test

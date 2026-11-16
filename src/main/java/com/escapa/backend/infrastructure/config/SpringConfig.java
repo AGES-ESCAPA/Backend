@@ -30,6 +30,7 @@ import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CourseNotificationPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.application.port.CourseReviewRepositoryPort;
 import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.application.port.FileStoragePort;
@@ -91,6 +92,7 @@ import com.escapa.backend.application.usecase.ListUsersUseCase;
 import com.escapa.backend.application.usecase.MarkAllNotificationsAsReadUseCase;
 import com.escapa.backend.application.usecase.MarkNotificationAsReadUseCase;
 import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
+import com.escapa.backend.application.usecase.RateCourseUseCase;
 import com.escapa.backend.application.usecase.RefundOrderUseCase;
 import com.escapa.backend.application.usecase.RegisterCompanyUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
@@ -103,6 +105,7 @@ import com.escapa.backend.application.usecase.UpdateProfileUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.application.usecase.UploadAvatarUseCase;
 import com.escapa.backend.application.usecase.UploadContentFileUseCase;
+import com.escapa.backend.application.usecase.UploadCourseThumbnailUseCase;
 import com.escapa.backend.infrastructure.persistence.CompanyCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CompanyCourseRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
@@ -119,6 +122,7 @@ import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseNotificationAdapter;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CoursePrerequisiteRepositoryAdapter;
+import com.escapa.backend.infrastructure.persistence.CourseReviewRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.LessonNotificationAdapter;
 import com.escapa.backend.infrastructure.persistence.NotificationJpaRepository;
 import com.escapa.backend.infrastructure.persistence.NotificationRepositoryAdapter;
@@ -511,8 +515,9 @@ public class SpringConfig {
     @Bean
     public UpdateProgressRulesUseCase updateProgressRulesUseCase(
             CourseRepositoryPort courseRepository,
-            CourseChangeLogRepositoryPort changeLogRepository) {
-        return new UpdateProgressRulesUseCase(courseRepository, changeLogRepository);
+            CourseChangeLogRepositoryPort changeLogRepository,
+            CoursePrerequisiteRepositoryPort coursePrerequisiteRepository) {
+        return new UpdateProgressRulesUseCase(courseRepository, changeLogRepository, coursePrerequisiteRepository);
     }
 
     @Bean
@@ -701,10 +706,25 @@ public class SpringConfig {
     }
 
     @Bean
+    public CourseReviewRepositoryPort courseReviewRepositoryPort(JdbcClient jdbcClient) {
+        return new CourseReviewRepositoryAdapter(jdbcClient);
+    }
+
+    @Bean
     public ListStudentEnrollmentsUseCase listStudentEnrollmentsUseCase(
-            EnrollmentRepositoryPort enrollmentRepositoryPort
+            EnrollmentRepositoryPort enrollmentRepositoryPort,
+            CourseReviewRepositoryPort courseReviewRepositoryPort
     ) {
-        return new ListStudentEnrollmentsUseCase(enrollmentRepositoryPort);
+        return new ListStudentEnrollmentsUseCase(enrollmentRepositoryPort, courseReviewRepositoryPort);
+    }
+
+    @Bean
+    public RateCourseUseCase rateCourseUseCase(
+            EnrollmentRepositoryPort enrollmentRepositoryPort,
+            CourseReviewRepositoryPort courseReviewRepositoryPort
+    ) {
+        return new RateCourseUseCase(
+                enrollmentRepositoryPort, courseReviewRepositoryPort, Clock.systemDefaultZone());
     }
 
     @Bean
@@ -755,5 +775,10 @@ public class SpringConfig {
     @Bean
     public UploadContentFileUseCase uploadContentFileUseCase(FileStoragePort fileStoragePort) {
         return new UploadContentFileUseCase(fileStoragePort);
+    }
+
+    @Bean
+    public UploadCourseThumbnailUseCase uploadCourseThumbnailUseCase(FileStoragePort fileStoragePort) {
+        return new UploadCourseThumbnailUseCase(fileStoragePort);
     }
 }

@@ -6,6 +6,7 @@ import com.escapa.backend.adapters.security.AuthenticatedUser;
 import com.escapa.backend.application.model.OrderDetails;
 import com.escapa.backend.application.model.OrderSummary;
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
+import com.escapa.backend.application.usecase.GetAdminOrderStatsUseCase;
 import com.escapa.backend.application.usecase.GetAdminOrderUseCase;
 import com.escapa.backend.application.usecase.InMemoryOrderRepositoryPort;
 import com.escapa.backend.application.usecase.InMemoryUserRepositoryPort;
@@ -54,6 +55,7 @@ class AdminOrderControllerTest {
         final AdminOrderController controller = new AdminOrderController(
                 new ListAdminOrdersUseCase(orderRepository),
                 new GetAdminOrderUseCase(orderRepository),
+                new GetAdminOrderStatsUseCase(orderRepository),
                 new AdminRequestGuard(new AuthorizeAdminUseCase(userRepository))
         );
 
@@ -120,6 +122,58 @@ class AdminOrderControllerTest {
                 .andExpect(jsonPath("$.data.content[0].status").value("APPROVED"))
                 .andExpect(jsonPath("$.data.totalElements").value(1))
                 .andExpect(jsonPath("$.data.pageNumber").value(0));
+    }
+
+    @Test
+    void shouldReturnOrderStatsForTheFilters() throws Exception {
+        final LocalDateTime now = LocalDateTime.now();
+        orderRepository.addSummary(statsSummary(OrderType.INDIVIDUAL, OrderStatus.APPROVED, "97.00", now));
+        orderRepository.addSummary(statsSummary(OrderType.INDIVIDUAL, OrderStatus.APPROVED, "150.50", now));
+        orderRepository.addSummary(statsSummary(OrderType.INDIVIDUAL, OrderStatus.REFUNDED, "80.00", now));
+        orderRepository.addSummary(statsSummary(OrderType.CORPORATE, OrderStatus.APPROVED, "990.00", now));
+
+        mockMvc.perform(get(ORDERS_URL + "/stats").header(USER_HEADER, adminId).param("type", "INDIVIDUAL"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.approvedCount").value(2))
+                .andExpect(jsonPath("$.data.approvedRevenue").value(247.50))
+                .andExpect(jsonPath("$.data.cancelledOrRefundedCount").value(1));
+    }
+
+    @Test
+    void shouldSearchOrdersBeyondTheCurrentPage() throws Exception {
+        final LocalDateTime now = LocalDateTime.now();
+        for (int i = 0; i < 3; i++) {
+            orderRepository.addSummary(statsSummary(OrderType.INDIVIDUAL, OrderStatus.APPROVED, "97.00", now));
+        }
+        final OrderSummary target = new OrderSummary(
+                UUID.randomUUID(), "Pousada Vista Mar LTDA", OrderType.CORPORATE, null, null, 10,
+                now.minusDays(10), PaymentMethod.CARD, new BigDecimal("990.00"), OrderStatus.APPROVED);
+        orderRepository.addSummary(target);
+
+        mockMvc.perform(get(ORDERS_URL).header(USER_HEADER, adminId)
+                        .param("search", "vista mar").param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(1))
+                .andExpect(jsonPath("$.data.content[0].id").value(target.id().toString()));
+
+        mockMvc.perform(get(ORDERS_URL + "/stats").header(USER_HEADER, adminId).param("search", "vista mar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.approvedCount").value(1))
+                .andExpect(jsonPath("$.data.approvedRevenue").value(990.00));
+    }
+
+    @Test
+    void shouldRejectNonAdminUsersOnStats() throws Exception {
+        authenticate(studentId, "STUDENT");
+        mockMvc.perform(get(ORDERS_URL + "/stats").header(USER_HEADER, "Bearer student-token"))
+                .andExpect(status().isForbidden());
+    }
+
+    private static OrderSummary statsSummary(OrderType type, OrderStatus status, String amount, LocalDateTime date) {
+        return new OrderSummary(
+                UUID.randomUUID(), "Comprador", type, UUID.randomUUID(), "Curso", null,
+                date, PaymentMethod.CARD, new BigDecimal(amount), status);
     }
 
     @Test

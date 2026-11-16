@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -25,6 +26,7 @@ import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -50,6 +52,9 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
 
     @Autowired
     private TokenProviderPort tokenProviderPort;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private UserEntity student;
     private AdminEntity instructor;
@@ -168,6 +173,24 @@ class StudentEnrollmentControllerTest extends PostgresIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements", is(1)))
                 .andExpect(jsonPath("$.data.content[0].title", is("Advanced Java")));
+    }
+
+    @Test
+    void shouldReturnTheRatingTheStudentGaveToEachCourse() throws Exception {
+        CourseEntity rated = createCourse("Rated Course");
+        createUserCourse(student, rated, LocalDate.now().minusDays(10), null, 100, LocalDate.now());
+        CourseEntity unrated = createCourse("Unrated Course");
+        createUserCourse(student, unrated, LocalDate.now().minusDays(5), null, 100, LocalDate.now());
+        jdbcTemplate.update("insert into course_reviews (id, course_id, user_id, rating) values (?, ?, ?, ?)",
+                UUID.randomUUID(), rated.getId(), student.getId(), 4);
+
+        mockMvc.perform(get("/api/v1/student/enrollments")
+                        .header("Authorization", authorization()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].title", is("Unrated Course")))
+                .andExpect(jsonPath("$.data.content[0].myRating").value(nullValue()))
+                .andExpect(jsonPath("$.data.content[1].title", is("Rated Course")))
+                .andExpect(jsonPath("$.data.content[1].myRating", is(4)));
     }
 
     private CourseEntity createCourse(String title) {

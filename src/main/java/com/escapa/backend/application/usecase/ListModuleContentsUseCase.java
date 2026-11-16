@@ -1,5 +1,6 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.entity.Content;
@@ -28,6 +29,9 @@ public class ListModuleContentsUseCase {
         if (!moduleRepositoryPort.existsById(moduleId)) {
             throw new ModuleNotFoundException(moduleId);
         }
-        return contentRepositoryPort.findByModuleId(moduleId);
+        return contentRepositoryPort.findByModuleId(moduleId).stream()
+                .filter(content -> !content.isPendingDeletion())
+                .map(PublishedCurriculum::editorContent)
+                .toList();
     }
 }

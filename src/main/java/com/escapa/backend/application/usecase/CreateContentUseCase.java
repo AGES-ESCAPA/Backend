@@ -6,6 +6,7 @@ import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.content.ContentTypeRules;
 import com.escapa.backend.domain.entity.Content;
+import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
 
 import java.time.LocalDateTime;
@@ -51,9 +52,8 @@ public class CreateContentUseCase {
         if (moduleId == null) {
             throw new IllegalArgumentException("moduleId is required");
         }
-        if (!moduleRepositoryPort.existsById(moduleId)) {
-            throw new ModuleNotFoundException(moduleId);
-        }
+        final Module module = moduleRepositoryPort.findById(moduleId)
+                .orElseThrow(() -> new ModuleNotFoundException(moduleId));
         if (title == null || title.trim().isBlank()) {
             throw new IllegalArgumentException("title is required");
         }
@@ -69,6 +69,10 @@ public class CreateContentUseCase {
         content.setResources(resources == null ? new ArrayList<>() : new ArrayList<>(resources));
         content.setOrder(contentRepositoryPort.nextOrder(moduleId));
         content.setCreatedAt(LocalDateTime.now());
+        content.setCoursePublished(module.isCoursePublished());
+        if (!module.isCoursePublished()) {
+            content.setPublishedOrder(content.getOrder());
+        }
 
         ContentTypeRules.validate(content);
         return contentRepositoryPort.save(content);
