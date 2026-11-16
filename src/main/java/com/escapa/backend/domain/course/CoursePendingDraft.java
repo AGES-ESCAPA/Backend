@@ -65,7 +65,7 @@ public record CoursePendingDraft(
                 title != null && !title.trim().isBlank() ? title.trim() : this.title,
                 shortDescription != null ? shortDescription : this.shortDescription,
                 description != null ? description : this.description,
-                thumbnailUrl != null ? blankToNull(thumbnailUrl) : this.thumbnailUrl,
+                thumbnailUrl != null ? CourseStrings.blankToNull(thumbnailUrl) : this.thumbnailUrl,
                 teaserVideoUrl != null ? teaserVideoUrl : this.teaserVideoUrl,
                 instructorId != null ? instructorId : this.instructorId,
                 category != null ? category : this.category,
@@ -80,10 +80,7 @@ public record CoursePendingDraft(
     }
 
     public CoursePendingDraft withRules(boolean requireSequentialProgress, boolean enforceDeadlineBlock) {
-        return new CoursePendingDraft(
-                title, shortDescription, description, thumbnailUrl, teaserVideoUrl, instructorId,
-                category, level, durationTime, deadline, price, copyStrings(learningObjectives),
-                requireSequentialProgress, enforceDeadlineBlock, copyIds(prerequisiteIds));
+        return copy(requireSequentialProgress, enforceDeadlineBlock, copyIds(prerequisiteIds));
     }
 
     public boolean containsPrerequisite(UUID prerequisiteId) {
@@ -93,19 +90,13 @@ public record CoursePendingDraft(
     public CoursePendingDraft withPrerequisite(UUID prerequisiteId) {
         final List<UUID> ids = new ArrayList<>(copyIds(prerequisiteIds));
         ids.add(prerequisiteId);
-        return new CoursePendingDraft(
-                title, shortDescription, description, thumbnailUrl, teaserVideoUrl, instructorId,
-                category, level, durationTime, deadline, price, copyStrings(learningObjectives),
-                requireSequentialProgress, enforceDeadlineBlock, List.copyOf(ids));
+        return copy(requireSequentialProgress, enforceDeadlineBlock, List.copyOf(ids));
     }
 
     public CoursePendingDraft withoutPrerequisite(UUID prerequisiteId) {
         final List<UUID> ids = new ArrayList<>(copyIds(prerequisiteIds));
         ids.remove(prerequisiteId);
-        return new CoursePendingDraft(
-                title, shortDescription, description, thumbnailUrl, teaserVideoUrl, instructorId,
-                category, level, durationTime, deadline, price, copyStrings(learningObjectives),
-                requireSequentialProgress, enforceDeadlineBlock, List.copyOf(ids));
+        return copy(requireSequentialProgress, enforceDeadlineBlock, List.copyOf(ids));
     }
 
     public void applyTo(Course course) {
@@ -128,9 +119,26 @@ public record CoursePendingDraft(
         }
     }
 
-    private static String blankToNull(String value) {
-        final String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
+    private CoursePendingDraft copy(
+            Boolean requireSequentialProgress,
+            Boolean enforceDeadlineBlock,
+            List<UUID> prerequisiteIds) {
+        return new CoursePendingDraft(
+                title,
+                shortDescription,
+                description,
+                thumbnailUrl,
+                teaserVideoUrl,
+                instructorId,
+                category,
+                level,
+                durationTime,
+                deadline,
+                price,
+                copyStrings(learningObjectives),
+                requireSequentialProgress,
+                enforceDeadlineBlock,
+                prerequisiteIds);
     }
 
     private static List<String> copyStrings(List<String> values) {

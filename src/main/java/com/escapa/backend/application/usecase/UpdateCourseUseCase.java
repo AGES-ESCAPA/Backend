@@ -6,6 +6,7 @@ import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CoursePendingDraft;
+import com.escapa.backend.domain.course.CourseStrings;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserNotFoundException;
@@ -84,16 +85,11 @@ public class UpdateCourseUseCase {
         }
         // null mantém a capa atual; string vazia remove. A URL nova substitui.
         if (thumbnailUrl != null) {
-            course.setThumbnailUrl(blankToNull(thumbnailUrl));
+            course.setThumbnailUrl(CourseStrings.blankToNull(thumbnailUrl));
         }
         if (teaserVideoUrl != null) {
             course.setTeaserVideoUrl(teaserVideoUrl);
         }
-    }
-
-    private static String blankToNull(String value) {
-        final String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private void updateInstructor(Course course, UUID instructorId) {

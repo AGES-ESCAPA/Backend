@@ -2,6 +2,7 @@ package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
+import com.escapa.backend.domain.course.CourseStrings;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserNotFoundException;
@@ -41,7 +42,7 @@ public class CreateCourseUseCase {
                 title.trim(),
                 shortDescription,
                 description,
-                blankToNull(thumbnailUrl),
+                CourseStrings.blankToNull(thumbnailUrl),
                 teaserVideoUrl,
                 instructor,
                 category,
@@ -58,14 +59,6 @@ public class CreateCourseUseCase {
         final Course saved = courseRepositoryPort.save(course);
         LOGGER.info("Course {} created by user {}", saved.getId(), createdById);
         return saved;
-    }
-
-    private static String blankToNull(String value) {
-        if (value == null) {
-            return null;
-        }
-        final String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private User resolveInstructor(UUID instructorId) {
