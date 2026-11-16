@@ -91,6 +91,14 @@ public class CompanyEmployeeAdapter implements CompanyEmployeeRepositoryPort {
     }
 
     @Override
+    public List<UUID> findEmployeeIds(UUID companyId) {
+        return jdbcClient.sql("select user_id from users_company where company_id = :companyId order by user_id")
+                .param("companyId", companyId)
+                .query(UUID.class)
+                .list();
+    }
+
+    @Override
     public boolean existsCompany(UUID companyId) {
         return jdbcClient.sql("select exists (select 1 from company where id = :companyId)")
                 .param("companyId", companyId)

@@ -234,6 +234,11 @@ class ListCompanyEmployeesUseCaseTest {
         }
 
         @Override
+        public List<UUID> findEmployeeIds(UUID companyId) {
+            throw new UnsupportedOperationException("not used by the employees list");
+        }
+
+        @Override
         public CompanyEmployeeCounts countEmployees(UUID companyId) {
             throw new UnsupportedOperationException("not used by the employees list");
         }

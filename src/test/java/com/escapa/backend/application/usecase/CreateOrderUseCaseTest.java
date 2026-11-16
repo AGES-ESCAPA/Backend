@@ -31,9 +31,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,6 +55,7 @@ class CreateOrderUseCaseTest {
     private InMemoryCourseRepositoryPort courses;
     private FakeOrders orders;
     private FakeAccess access;
+    private FakeEmployeeLinks employees;
     private CreateOrderUseCase useCase;
 
     @BeforeEach
@@ -60,7 +63,8 @@ class CreateOrderUseCaseTest {
         courses = new InMemoryCourseRepositoryPort();
         orders = new FakeOrders();
         access = new FakeAccess();
-        useCase = new CreateOrderUseCase(orders, courses, access, SEAT_PRICE, CLOCK);
+        employees = new FakeEmployeeLinks();
+        useCase = new CreateOrderUseCase(orders, courses, access, employees, SEAT_PRICE, CLOCK);
     }
 
     private Course givenCourse(CourseStatus status, Double price, Integer deadline) {
@@ -181,7 +185,7 @@ class CreateOrderUseCaseTest {
     @Test
     void shouldMultiplyTheConfiguredSeatPriceByTheQuantity() {
         final CreateOrderUseCase custom = new CreateOrderUseCase(
-                orders, courses, access, new BigDecimal("12.345"), CLOCK);
+                orders, courses, access, employees, new BigDecimal("12.345"), CLOCK);
 
         final Order order = custom.execute(seatsOrder("COMPANY", 3));
 
@@ -357,6 +361,114 @@ class CreateOrderUseCaseTest {
                 () -> useCase.execute(courseOrder("STUDENT", course.getId(), PaymentMethod.CARD, 1)));
     }
 
+    @Test
+    void shouldEnrollNoEmployeeWhenTheCompanyHasNone() {
+        final Course course = givenCourse(CourseStatus.PUBLISHED, 297.0, 365);
+
+        final Order order = useCase.execute(courseOrder("COMPANY", course.getId(), PaymentMethod.CARD, 1));
+
+        assertEquals(OrderStatus.APPROVED, order.getStatus());
+        assertEquals(new Enrollment(TODAY, null), access.companyCourses.get(key(buyerId, course)));
+        assertTrue(access.studentEnrollments.isEmpty());
+    }
+
+    @Test
+    void shouldEnrollEveryLinkedEmployeeFromTodayUntilTheDeadlineWhenTheCompanyBuysACourse() {
+        final Course course = givenCourse(CourseStatus.PUBLISHED, 297.0, 365);
+        final List<UUID> linked = givenEmployees(3);
+
+        final Order order = useCase.execute(courseOrder("COMPANY", course.getId(), PaymentMethod.CARD, 1));
+
+        assertEquals(OrderStatus.APPROVED, order.getStatus());
+        assertEquals(1, orders.saved.size());
+        assertEquals(new Enrollment(TODAY, null), access.companyCourses.get(key(buyerId, course)));
+        assertEquals(3, access.studentEnrollments.size());
+        for (final UUID employeeId : linked) {
+            assertEquals(new Enrollment(TODAY, TODAY.plusDays(365)), access.studentEnrollments.get(key(employeeId, course)));
+        }
+    }
+
+    @Test
+    void shouldEnrollTheEmployeesWithoutAnEndDateWhenTheCourseHasNoDeadline() {
+        final Course course = givenCourse(CourseStatus.PUBLISHED, 297.0, null);
+        final UUID employeeId = givenEmployees(1).get(0);
+
+        useCase.execute(courseOrder("COMPANY", course.getId(), PaymentMethod.CARD, 1));
+
+        assertEquals(new Enrollment(TODAY, null), access.studentEnrollments.get(key(employeeId, course)));
+    }
+
+    @Test
+    void shouldNotEnrollEmployeesOfAnotherCompany() {
+        final Course course = givenCourse(CourseStatus.PUBLISHED, 297.0, 365);
+        final UUID outsiderId = UUID.randomUUID();
+        employees.linkEmployee(UUID.randomUUID(), outsiderId, "Recepção");
+
+        useCase.execute(courseOrder("COMPANY", course.getId(), PaymentMethod.CARD, 1));
+
+        assertNull(access.studentEnrollments.get(key(outsiderId, course)));
+    }
+
+    @Test
+    void shouldReactivateTheRevokedEnrollmentOfAnEmployee() {
+        final Course course = givenCourse(CourseStatus.PUBLISHED, 297.0, 365);
+        final UUID employeeId = givenEmployees(1).get(0);
+        // A porta não devolve matrícula revogada como acesso: o caso de uso a grava de novo e o adaptador
+        // reativa a linha mantendo o progresso (coberto por CompanyCourseEnrollmentIntegrationTest).
+        access.revokedEnrollments.add(key(employeeId, course));
+
+        useCase.execute(courseOrder("COMPANY", course.getId(), PaymentMethod.CARD, 1));
+
+        assertEquals(new Enrollment(TODAY, TODAY.plusDays(365)), access.studentEnrollments.get(key(employeeId, course)));
+        assertTrue(access.revokedEnrollments.isEmpty());
+    }
+
+    @Test
+    void shouldRenewTheExpiredEnrollmentOfAnEmployee() {
+        final Course course = givenCourse(CourseStatus.PUBLISHED, 297.0, 365);
+        final UUID employeeId = givenEmployees(1).get(0);
+        access.studentEnrollments.put(key(employeeId, course), new Enrollment(TODAY.minusDays(60), TODAY.minusDays(1)));
+
+        useCase.execute(courseOrder("COMPANY", course.getId(), PaymentMethod.CARD, 1));
+
+        assertEquals(new Enrollment(TODAY, TODAY.plusDays(365)), access.studentEnrollments.get(key(employeeId, course)));
+    }
+
+    @Test
+    void shouldKeepTheActiveEnrollmentOfAnEmployeeWithoutDuplicatingOrChangingTheDates() {
+        final Course course = givenCourse(CourseStatus.PUBLISHED, 297.0, 365);
+        final List<UUID> linked = givenEmployees(2);
+        final Enrollment individual = new Enrollment(TODAY.minusDays(10), TODAY.plusDays(20));
+        access.studentEnrollments.put(key(linked.get(0), course), individual);
+
+        useCase.execute(courseOrder("COMPANY", course.getId(), PaymentMethod.CARD, 1));
+
+        assertEquals(individual, access.studentEnrollments.get(key(linked.get(0), course)));
+        assertEquals(1, access.enrollmentSaves.getOrDefault(key(linked.get(1), course), 0));
+        assertEquals(0, access.enrollmentSaves.getOrDefault(key(linked.get(0), course), 0));
+        assertEquals(2, access.studentEnrollments.size());
+    }
+
+    @Test
+    void shouldPropagateAFailureWhileEnrollingAnEmployeeSoTheWholeOrderRollsBack() {
+        final Course course = givenCourse(CourseStatus.PUBLISHED, 297.0, 365);
+        givenEmployees(3);
+        access.failOnStudentEnrollment = true;
+
+        assertThrows(IllegalStateException.class,
+                () -> useCase.execute(courseOrder("COMPANY", course.getId(), PaymentMethod.CARD, 1)));
+    }
+
+    private List<UUID> givenEmployees(int count) {
+        final List<UUID> linked = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            final UUID employeeId = UUID.randomUUID();
+            employees.linkEmployee(buyerId, employeeId, "Recepção");
+            linked.add(employeeId);
+        }
+        return linked;
+    }
+
     private static String key(UUID buyerId, Course course) {
         return buyerId + ":" + course.getId();
     }
@@ -408,17 +520,28 @@ class CreateOrderUseCaseTest {
         private final Map<String, Enrollment> studentEnrollments = new HashMap<>();
         private final Map<String, Enrollment> companyCourses = new HashMap<>();
         private final Map<UUID, Integer> seatsAdded = new HashMap<>();
+        private final Set<String> revokedEnrollments = new HashSet<>();
+        private final Map<String, Integer> enrollmentSaves = new HashMap<>();
         private boolean failOnSave;
+        private boolean failOnStudentEnrollment;
 
+        // Como o adaptador: matrícula revogada não conta como acesso.
         @Override
         public Optional<Enrollment> findStudentEnrollment(UUID userId, UUID courseId) {
-            return Optional.ofNullable(studentEnrollments.get(userId + ":" + courseId));
+            final String key = userId + ":" + courseId;
+            return revokedEnrollments.contains(key) ? Optional.empty() : Optional.ofNullable(studentEnrollments.get(key));
         }
 
         @Override
         public void saveStudentEnrollment(UUID userId, UUID courseId, LocalDate startDate, LocalDate expirationDate) {
             failIfRequested();
-            studentEnrollments.put(userId + ":" + courseId, new Enrollment(startDate, expirationDate));
+            if (failOnStudentEnrollment) {
+                throw new IllegalStateException("simulated failure while enrolling an employee");
+            }
+            final String key = userId + ":" + courseId;
+            revokedEnrollments.remove(key);
+            enrollmentSaves.merge(key, 1, Integer::sum);
+            studentEnrollments.put(key, new Enrollment(startDate, expirationDate));
         }
 
         @Override

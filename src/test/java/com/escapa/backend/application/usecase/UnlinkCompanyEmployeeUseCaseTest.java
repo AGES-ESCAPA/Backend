@@ -303,6 +303,14 @@ class UnlinkCompanyEmployeeUseCaseTest {
         }
 
         @Override
+        public List<UUID> findEmployeeIds(UUID companyId) {
+            return links.entrySet().stream()
+                    .filter(link -> companyId.equals(link.getValue()))
+                    .map(Map.Entry::getKey)
+                    .toList();
+        }
+
+        @Override
         public Optional<CompanyEmployee> findEmployee(UUID companyId, UUID userId) {
             throw new UnsupportedOperationException("not used by the unlink");
         }

@@ -2,6 +2,7 @@ package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.application.model.CreateOrderCommand;
 import com.escapa.backend.application.model.Enrollment;
+import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.OrderAccessPort;
 import com.escapa.backend.application.port.OrderRepositoryPort;
@@ -32,6 +33,10 @@ import java.util.UUID;
  * de assentos vezes o valor do assento (configuração). O pedido e a liberação de acesso rodam na
  * mesma transação, então uma falha em qualquer etapa desfaz as duas coisas.
  *
+ * <p>Na compra de curso por empresa, todos os colaboradores já vinculados são matriculados na mesma
+ * transação (US-31, #87), com as mesmas regras do cadastro de colaborador: quem já tem matrícula ativa
+ * no curso fica como está, e uma matrícula revogada ou vencida é reativada mantendo o progresso.
+ *
  * <p>Só o cartão é aceito por enquanto: PIX e BOLETO existem na coluna, mas aprovar na hora um
  * pedido marcado assim registraria um pagamento que nunca aconteceu.
  */
@@ -42,6 +47,7 @@ public class CreateOrderUseCase {
     private final OrderRepositoryPort orderRepositoryPort;
     private final CourseRepositoryPort courseRepositoryPort;
     private final OrderAccessPort orderAccessPort;
+    private final CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort;
     private final BigDecimal seatPrice;
     private final Clock clock;
 
@@ -49,12 +55,14 @@ public class CreateOrderUseCase {
             OrderRepositoryPort orderRepositoryPort,
             CourseRepositoryPort courseRepositoryPort,
             OrderAccessPort orderAccessPort,
+            CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort,
             BigDecimal seatPrice,
             Clock clock
     ) {
         this.orderRepositoryPort = orderRepositoryPort;
         this.courseRepositoryPort = courseRepositoryPort;
         this.orderAccessPort = orderAccessPort;
+        this.companyEmployeeRepositoryPort = companyEmployeeRepositoryPort;
         this.seatPrice = seatPrice;
         this.clock = clock;
     }
@@ -93,6 +101,7 @@ public class CreateOrderUseCase {
             final Order order = orderRepositoryPort.save(approvedOrder(command, courseAmount(course), course.getId(), null));
             // O prazo do curso conta a partir da matrícula de cada colaborador, não da compra da empresa.
             orderAccessPort.saveCompanyCourse(command.buyerId(), course.getId(), today, null);
+            enrollCompanyEmployees(command.buyerId(), course.getId(), today, expirationDate);
             return order;
         }
 
@@ -117,6 +126,19 @@ public class CreateOrderUseCase {
         return order;
     }
 
+    /**
+     * Matricula cada colaborador vinculado, de qualquer status: o status da conta é que controla a
+     * entrada na plataforma, então quem for reativado já encontra o curso. Uma matrícula ativa (por
+     * exemplo, de uma compra individual) não é duplicada nem tem as datas mudadas.
+     */
+    private void enrollCompanyEmployees(UUID companyId, UUID courseId, LocalDate today, LocalDate expirationDate) {
+        for (final UUID employeeId : companyEmployeeRepositoryPort.findEmployeeIds(companyId)) {
+            if (!isActive(orderAccessPort.findStudentEnrollment(employeeId, courseId), today)) {
+                orderAccessPort.saveStudentEnrollment(employeeId, courseId, today, expirationDate);
+            }
+        }
+    }
+
     private Course findPublishedCourse(UUID courseId) {
         if (courseId == null) {
             throw new OrderValidationException("courseId is required to buy a course");
@@ -131,12 +153,15 @@ public class CreateOrderUseCase {
 
     /** Acesso ativo é o que não tem data de fim ou ainda não venceu; um acesso vencido pode ser renovado. */
     private void requireNoActiveAccess(Optional<Enrollment> access, LocalDate today) {
-        final boolean active = access
-                .map(found -> found.expirationDate() == null || !found.expirationDate().isBefore(today))
-                .orElse(false);
-        if (active) {
+        if (isActive(access, today)) {
             throw new CourseAlreadyActiveException("The buyer already has active access to this course");
         }
+    }
+
+    private static boolean isActive(Optional<Enrollment> access, LocalDate today) {
+        return access
+                .map(found -> found.expirationDate() == null || !found.expirationDate().isBefore(today))
+                .orElse(false);
     }
 
     private BigDecimal courseAmount(Course course) {

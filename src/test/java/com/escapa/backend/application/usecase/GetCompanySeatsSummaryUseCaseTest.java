@@ -166,6 +166,11 @@ class GetCompanySeatsSummaryUseCaseTest {
         }
 
         @Override
+        public List<UUID> findEmployeeIds(UUID companyId) {
+            throw new UnsupportedOperationException("not used by the seats summary");
+        }
+
+        @Override
         public void linkEmployee(UUID companyId, UUID userId, String jobTitle) {
             throw new UnsupportedOperationException("not used by the seats summary");
         }
