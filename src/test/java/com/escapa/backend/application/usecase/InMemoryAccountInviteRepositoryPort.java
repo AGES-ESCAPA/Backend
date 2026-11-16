@@ -1,7 +1,9 @@
 package com.escapa.backend.application.usecase;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -59,6 +61,23 @@ public final class InMemoryAccountInviteRepositoryPort implements AccountInviteR
         invites.values().stream()
                 .filter(invite -> invite.getUserId().equals(userId) && !invite.isUsed() && !invite.isExpired(now))
                 .forEach(invite -> invite.expire(now));
+    }
+
+    @Override
+    public boolean isLatestInviteUsed(UUID userId) {
+        return invites.values().stream()
+                .filter(invite -> invite.getUserId().equals(userId))
+                .max(Comparator.comparing(AccountInvite::getCreatedAt))
+                .map(AccountInvite::isUsed)
+                .orElse(false);
+    }
+
+    /** Convites do usuário, do mais antigo ao mais recente. */
+    public List<AccountInvite> invitesOf(UUID userId) {
+        return invites.values().stream()
+                .filter(invite -> invite.getUserId().equals(userId))
+                .map(invite -> copy(invite, invite.getId()))
+                .toList();
     }
 
     @Override

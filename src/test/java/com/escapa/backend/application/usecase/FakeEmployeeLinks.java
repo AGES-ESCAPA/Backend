@@ -5,7 +5,12 @@ import com.escapa.backend.application.model.CompanyEmployee;
 import com.escapa.backend.application.model.CompanyEmployeeCounts;
 import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
 
+import com.escapa.backend.domain.user.UserStatus;
+
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -13,12 +18,33 @@ import java.util.UUID;
 public final class FakeEmployeeLinks implements CompanyEmployeeRepositoryPort {
 
     private final Set<String> links = new HashSet<>();
+    private final Map<String, String> jobTitles = new HashMap<>();
     private String lastJobTitle;
 
     @Override
     public void linkEmployee(UUID companyId, UUID userId, String jobTitle) {
         links.add(key(companyId, userId));
+        jobTitles.put(key(companyId, userId), jobTitle);
         lastJobTitle = jobTitle;
+    }
+
+    /** Só o cargo e o vínculo são guardados aqui; nome, e-mail e status vêm de quem chama. */
+    @Override
+    public Optional<CompanyEmployee> findEmployee(UUID companyId, UUID userId) {
+        if (!isEmployeeOfCompany(companyId, userId)) {
+            return Optional.empty();
+        }
+        return Optional.of(new CompanyEmployee(userId, null, null, jobTitles.get(key(companyId, userId)),
+                UserStatus.ACTIVE, 2, "https://cdn/avatar.png"));
+    }
+
+    @Override
+    public void updateJobTitle(UUID companyId, UUID userId, String jobTitle) {
+        jobTitles.put(key(companyId, userId), jobTitle);
+    }
+
+    String jobTitle(UUID companyId, UUID userId) {
+        return jobTitles.get(key(companyId, userId));
     }
 
     @Override
