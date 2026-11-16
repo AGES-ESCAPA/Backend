@@ -14,9 +14,11 @@ import com.escapa.backend.domain.entity.Module;
 
 /**
  * Calcula o status (COMPLETED/AVAILABLE/LOCKED) de cada aula de um curso para um
- * aluno, com base no progresso, nos pre-requisitos de modulo e na regra de
- * progressao sequencial do curso. Compartilhada entre a grade de aulas (US-13)
- * e, futuramente, a API de conteudo da aula (US-11), para recusar aulas bloqueadas.
+ * aluno, com base no progresso e na regra de progressao sequencial do curso.
+ * Com a regra desligada, modulos e aulas ficam liberados sem ordem. Com a regra
+ * ligada, o modulo seguinte so abre depois do anterior e cada aula espera a
+ * anterior. Compartilhada entre a grade de aulas (US-13) e, futuramente, a API
+ * de conteudo da aula (US-11), para recusar aulas bloqueadas.
  */
 public class LessonStatusCalculator {
 
@@ -24,7 +26,7 @@ public class LessonStatusCalculator {
      * @param modules                    modulos do curso, ordenados, cada um com suas aulas ordenadas
      * @param completedContentIds        ids das aulas que o aluno ja concluiu neste curso
      * @param prerequisiteModuleIdsFinder devolve os ids dos modulos pre-requisito de um modulo
-     * @param requireSequentialProgress  se o curso exige concluir a aula anterior antes da proxima
+     * @param requireSequentialProgress  se o curso exige concluir o modulo anterior antes do proximo
      */
     public StudentCourseCurriculum calculate(
             UUID courseId,
@@ -83,7 +85,7 @@ public class LessonStatusCalculator {
         if (completed.contains(lesson.getId())) {
             return LessonStatus.COMPLETED;
         }
-        if (modulePrerequisitePending) {
+        if (requireSequentialProgress && modulePrerequisitePending) {
             return LessonStatus.LOCKED;
         }
         if (requireSequentialProgress && isBlockedBySequentialProgress(lesson, orderedLessons, completed)) {

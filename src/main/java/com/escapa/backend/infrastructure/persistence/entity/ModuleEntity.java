@@ -49,6 +49,16 @@ public class ModuleEntity {
     @Column(name = "\"order\"", nullable = false)
     private Integer order;
 
+    /** Ordem publicada. Null esconde o módulo até a próxima publicação do curso. */
+    @Column(name = "published_order")
+    private Integer publishedOrder;
+
+    @Column(name = "pending_title")
+    private String pendingTitle;
+
+    @Column(name = "pending_deletion", nullable = false)
+    private boolean pendingDeletion;
+
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
     @OrderBy("order ASC")
     private List<ContentEntity> contents = new ArrayList<>();

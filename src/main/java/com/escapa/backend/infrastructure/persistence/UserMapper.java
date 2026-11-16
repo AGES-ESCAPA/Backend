@@ -56,15 +56,11 @@ public final class UserMapper {
 
     private static com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus toEntityStatus(
             UserStatus status) {
-        return status == UserStatus.INACTIVE
-                ? com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus.INACTIVE
-                : com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus.ACTIVE;
+        return com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus.valueOf(status.name());
     }
 
     private static UserStatus toDomainStatus(
             com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus status) {
-        return status == com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus.INACTIVE
-                ? UserStatus.INACTIVE
-                : UserStatus.ACTIVE;
+        return UserStatus.valueOf(status.name());
     }
 }

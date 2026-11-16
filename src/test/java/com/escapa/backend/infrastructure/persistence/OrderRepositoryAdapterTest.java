@@ -3,6 +3,7 @@ package com.escapa.backend.infrastructure.persistence;
 import com.escapa.backend.application.dto.OrderFilter;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.OrderDetails;
+import com.escapa.backend.application.model.OrderStats;
 import com.escapa.backend.application.model.OrderSummary;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
@@ -50,14 +51,30 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
 
     // O banco é compartilhado entre as classes de teste e pedidos não têm ON DELETE CASCADE:
     // sem esta limpeza, outros testes que fazem deleteAll em users/courses quebram.
+    private final List<UUID> userIds = new ArrayList<>();
+    private final List<UUID> courseIds = new ArrayList<>();
+
     @AfterEach
     void cleanUpOrders() {
         jdbcTemplate.update("delete from orders");
+        // Os usuarios (com empresa, vinculos e matriculas, que saem em cascata) e os cursos criados aqui
+        // tambem saem: se ficassem, quem conta usuarios COMPANY (AdminMetricsRepositoryAdapterTest)
+        // enxergaria as empresas deste teste.
+        for (final UUID userId : userIds) {
+            jdbcTemplate.update("delete from users where id = ?", userId);
+        }
+        for (final UUID courseId : courseIds) {
+            jdbcTemplate.update("delete from courses where id = ?", courseId);
+        }
+        userIds.clear();
+        courseIds.clear();
     }
 
     private UUID givenUser(String role) {
         final String email = "comprador-" + UUID.randomUUID() + "@email.com";
-        return userRepositoryPort.save(new User("Comprador", email, "hash", role)).getId();
+        final UUID id = userRepositoryPort.save(new User("Comprador", email, "hash", role)).getId();
+        userIds.add(id);
+        return id;
     }
 
     private UUID givenCompany() {
@@ -71,7 +88,9 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
     private UUID givenCourse() {
         final CourseEntity course = new CourseEntity();
         course.setTitle("Marketing Digital para Hospitalidade");
-        return courseJpaRepository.save(course).getId();
+        final UUID id = courseJpaRepository.save(course).getId();
+        courseIds.add(id);
+        return id;
     }
 
     private Order individualCourseOrder(UUID buyerId, UUID courseId) {
@@ -255,6 +274,85 @@ class OrderRepositoryAdapterTest extends PostgresIntegrationTest {
 
         assertEquals(3, pagedIds.stream().distinct().count());
         assertTrue(pagedIds.containsAll(savedIds));
+    }
+
+    @Test
+    void shouldSummarizeAllOrdersMatchingTheFiltersRegardlessOfPagination() {
+        final UUID courseId = givenCourse();
+        for (int i = 0; i < 3; i++) {
+            orderRepositoryPort.save(individualCourseOrder(givenUser("STUDENT"), courseId));
+        }
+        final Order refunded = individualCourseOrder(givenUser("STUDENT"), courseId);
+        refunded.changeStatus(OrderStatus.REFUNDED, null, null);
+        orderRepositoryPort.save(refunded);
+        orderRepositoryPort.save(individualCourseOrder(givenUser("STUDENT"), givenCourse()));
+
+        final OrderStats stats = orderRepositoryPort.summarizeOrders(
+                new OrderFilter(null, courseId, null, null, null));
+
+        assertEquals(3, stats.approvedCount());
+        assertEquals(0, new BigDecimal("351.00").compareTo(stats.approvedRevenue()));
+        assertEquals(1, stats.cancelledOrRefundedCount());
+    }
+
+    @Test
+    void shouldSearchAcrossAllPagesByCourseTitleRequesterAndOrderCode() {
+        final CourseEntity otherCourse = new CourseEntity();
+        otherCourse.setTitle("Gastronomia Regional");
+        final UUID gastronomyId = courseJpaRepository.save(otherCourse).getId();
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+
+        final Order oldest = individualCourseOrder(givenUser("STUDENT"), gastronomyId);
+        oldest.setCreatedAt(now.minusDays(5));
+        final UUID oldestId = orderRepositoryPort.save(oldest).getId();
+        for (int day = 0; day < 3; day++) {
+            final Order order = individualCourseOrder(givenUser("STUDENT"), givenCourse());
+            order.setCreatedAt(now.minusDays(day));
+            orderRepositoryPort.save(order);
+        }
+
+        final PageResult<OrderSummary> byTitle = orderRepositoryPort.findOrders(
+                new OrderFilter(null, null, null, null, null, "  gastronomia  "), 0, 2);
+        assertEquals(List.of(oldestId), byTitle.content().stream().map(OrderSummary::id).toList());
+        assertEquals(1, byTitle.totalElements());
+
+        final String hex = oldestId.toString().replace("-", "");
+        final String code = "PED-" + hex.substring(hex.length() - 8).toUpperCase();
+        final PageResult<OrderSummary> byCode = orderRepositoryPort.findOrders(
+                new OrderFilter(null, null, null, null, null, code), 0, 2);
+        assertEquals(List.of(oldestId), byCode.content().stream().map(OrderSummary::id).toList());
+
+        final OrderStats stats = orderRepositoryPort.summarizeOrders(
+                new OrderFilter(null, null, null, null, null, "gastronomia"));
+        assertEquals(1, stats.approvedCount());
+    }
+
+    @Test
+    void shouldSearchCorporateOrdersByCompanyNameAndTreatWildcardsLiterally() {
+        final UUID companyId = givenCompany();
+        final Order order = individualCourseOrder(givenUser("COMPANY"), givenCourse());
+        order.setType(OrderType.CORPORATE);
+        order.setCompanyId(companyId);
+        final UUID orderId = orderRepositoryPort.save(order).getId();
+        orderRepositoryPort.save(individualCourseOrder(givenUser("STUDENT"), givenCourse()));
+
+        final PageResult<OrderSummary> byCompany = orderRepositoryPort.findOrders(
+                new OrderFilter(null, null, null, null, null, "hotel teste"), 0, 10);
+        assertEquals(List.of(orderId), byCompany.content().stream().map(OrderSummary::id).toList());
+
+        final PageResult<OrderSummary> wildcard = orderRepositoryPort.findOrders(
+                new OrderFilter(null, null, null, null, null, "%"), 0, 10);
+        assertTrue(wildcard.content().isEmpty());
+    }
+
+    @Test
+    void shouldReturnZeroRevenueWhenNoApprovedOrderMatches() {
+        final OrderStats stats = orderRepositoryPort.summarizeOrders(
+                new OrderFilter(null, UUID.randomUUID(), null, null, null));
+
+        assertEquals(0, stats.approvedCount());
+        assertEquals(0, BigDecimal.ZERO.compareTo(stats.approvedRevenue()));
+        assertEquals(0, stats.cancelledOrRefundedCount());
     }
 
     @Test

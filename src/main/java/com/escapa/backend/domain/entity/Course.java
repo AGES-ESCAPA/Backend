@@ -1,5 +1,6 @@
 package com.escapa.backend.domain.entity;
 
+import com.escapa.backend.domain.course.CoursePendingDraft;
 import com.escapa.backend.domain.course.CourseStatus;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -39,6 +40,8 @@ public class Course {
     private LocalDateTime updatedAt;
     private Integer majorVersion = 0;
     private Integer minorVersion = 0;
+    /** Preenchido só enquanto um curso publicado tem alterações ainda não publicadas. */
+    private CoursePendingDraft pendingDraft;
 
     private List<Module> modules = new ArrayList<>();
 

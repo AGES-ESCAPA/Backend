@@ -3,6 +3,7 @@ package com.escapa.backend.infrastructure.config;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
+import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
 import com.escapa.backend.application.usecase.PublishCourseUseCase;
 import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
@@ -50,6 +51,8 @@ class UseCaseTransactionConfigTest extends PostgresIntegrationTest {
         assertFalse(attributeOf(PublishCourseUseCase.class).isReadOnly());
         // Download looks like a query but stores the generated PDF in the cache column.
         assertFalse(attributeOf(DownloadCertificateUseCase.class).isReadOnly());
+        // Opening a lesson records the student's last access (US-35): a read-only prefix would break every open.
+        assertFalse(attributeOf(OpenStudentLessonUseCase.class).isReadOnly());
     }
 
     private TransactionAttribute attributeOf(Class<?> useCaseType) throws NoSuchMethodException {

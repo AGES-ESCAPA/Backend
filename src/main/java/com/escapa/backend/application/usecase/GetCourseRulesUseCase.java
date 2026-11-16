@@ -1,11 +1,13 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.PublishedCourseDrafts;
 import com.escapa.backend.application.dto.ChangeLogEntry;
 import com.escapa.backend.application.model.CourseRules;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.course.CoursePendingDraft;
 import com.escapa.backend.domain.entity.Course;
 
 import java.util.List;
@@ -33,8 +35,12 @@ public class GetCourseRulesUseCase {
         final Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
 
-        final List<CourseRules.Prerequisite> prerequisites = prerequisiteRepository
-                .findPrerequisiteCourseIds(courseId).stream()
+        final CoursePendingDraft draft = PublishedCourseDrafts.isPublished(course)
+                ? course.getPendingDraft() : null;
+        final List<UUID> prerequisiteIds = draft != null
+                ? (draft.prerequisiteIds() == null ? List.of() : draft.prerequisiteIds())
+                : prerequisiteRepository.findPrerequisiteCourseIds(courseId);
+        final List<CourseRules.Prerequisite> prerequisites = prerequisiteIds.stream()
                 .map(this::toPrerequisite)
                 .filter(Objects::nonNull)
                 .toList();
@@ -43,8 +49,10 @@ public class GetCourseRulesUseCase {
                 changeLogRepository.findRecentByCourseId(courseId, RECENT_CHANGE_LOG_LIMIT);
 
         return new CourseRules(
-                course.getRequireSequentialProgress(),
-                course.getEnforceDeadlineBlock(),
+                draft != null && draft.requireSequentialProgress() != null
+                        ? draft.requireSequentialProgress() : course.getRequireSequentialProgress(),
+                draft != null && draft.enforceDeadlineBlock() != null
+                        ? draft.enforceDeadlineBlock() : course.getEnforceDeadlineBlock(),
                 course.getMajorVersion() + "." + course.getMinorVersion(),
                 prerequisites,
                 changeLog);
@@ -52,6 +60,7 @@ public class GetCourseRulesUseCase {
 
     private CourseRules.Prerequisite toPrerequisite(UUID prerequisiteCourseId) {
         return courseRepository.findById(prerequisiteCourseId)
+                .map(PublishedCourseDrafts::editorView)
                 .map(course -> new CourseRules.Prerequisite(course.getId(), course.getTitle()))
                 .orElse(null);
     }

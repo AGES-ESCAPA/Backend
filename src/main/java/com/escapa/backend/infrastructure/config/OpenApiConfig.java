@@ -89,10 +89,12 @@ public class OpenApiConfig implements WebMvcConfigurer {
 
     private static boolean isProtectedController(String controller) {
         return controller.startsWith("Admin")
+                || controller.startsWith("Company")
                 || controller.startsWith("Student")
                 || controller.startsWith("Avatar")
                 || controller.startsWith("Password")
                 || controller.startsWith("Profile")
+                || "OrderController".equals(controller)
                 || "UserController".equals(controller);
     }
 

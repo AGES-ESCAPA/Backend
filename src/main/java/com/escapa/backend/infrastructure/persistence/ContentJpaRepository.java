@@ -24,8 +24,8 @@ public interface ContentJpaRepository extends JpaRepository<ContentEntity, UUID>
             """)
     Optional<ContentEntity> findByIdAndCourseId(@Param("id") UUID id, @Param("courseId") UUID courseId);
 
-    @Query("SELECT MAX(c.order) FROM ContentEntity c WHERE c.module.id = :moduleId")
-    Integer findMaxOrderByModuleId(@Param("moduleId") UUID moduleId);
+    @Query("SELECT MAX(c.order) FROM ContentEntity c WHERE c.module.id = :moduleId AND c.order > 0")
+    Integer findMaxPositiveOrderByModuleId(@Param("moduleId") UUID moduleId);
 
     // flush/clear automaticos mantem as duas fases do reorder na ordem certa e
     // evitam que o contexto de persistencia devolva a ordem antiga depois.

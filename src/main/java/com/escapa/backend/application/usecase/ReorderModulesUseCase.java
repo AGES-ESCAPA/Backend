@@ -1,5 +1,6 @@
 package com.escapa.backend.application.usecase;
 
+import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
@@ -40,13 +41,16 @@ public class ReorderModulesUseCase {
         }
 
         final Set<UUID> current = new HashSet<>(
-                moduleRepositoryPort.findByCourseId(courseId).stream().map(Module::getId).toList());
+                moduleRepositoryPort.findByCourseId(courseId).stream()
+                        .filter(module -> !module.isPendingDeletion())
+                        .map(Module::getId)
+                        .toList());
         if (!current.equals(requested)) {
             // Reordenacao parcial deixaria buracos ou colisoes na sequencia do curso.
             throw new IllegalArgumentException("moduleIds must contain every module of the course exactly once");
         }
 
         moduleRepositoryPort.reorder(courseId, orderedIds);
-        return moduleRepositoryPort.findByCourseId(courseId);
+        return PublishedCurriculum.forEditor(moduleRepositoryPort.findByCourseId(courseId));
     }
 }

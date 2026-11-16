@@ -3,17 +3,22 @@ package com.escapa.backend.application.usecase;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import com.escapa.backend.application.model.OrderDetails;
+import com.escapa.backend.application.model.OrderStats;
 import com.escapa.backend.application.model.OrderSummary;
 import com.escapa.backend.application.dto.OrderFilter;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.domain.entity.Order;
+import com.escapa.backend.domain.order.OrderStatus;
 
+import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 /**
  * Repositório de pedidos em memória. Guarda e devolve cópias, como um banco faria:
@@ -56,14 +61,7 @@ public final class InMemoryOrderRepositoryPort implements OrderRepositoryPort {
 
     @Override
     public PageResult<OrderSummary> findOrders(OrderFilter filter, int page, int size) {
-        final List<OrderSummary> filtered = summaries.stream()
-                .filter(summary -> filter.type() == null || filter.type() == summary.type())
-                .filter(summary -> filter.courseId() == null || filter.courseId().equals(summary.courseId()))
-                .filter(summary -> filter.status() == null || filter.status() == summary.status())
-                .filter(summary -> filter.from() == null
-                        || !summary.purchaseDate().toLocalDate().isBefore(filter.from()))
-                .filter(summary -> filter.to() == null
-                        || !summary.purchaseDate().toLocalDate().isAfter(filter.to()))
+        final List<OrderSummary> filtered = filter(filter).stream()
                 .sorted(Comparator.comparing(OrderSummary::purchaseDate).reversed()
                         .thenComparing(OrderSummary::id, Comparator.reverseOrder()))
                 .toList();
@@ -71,6 +69,39 @@ public final class InMemoryOrderRepositoryPort implements OrderRepositoryPort {
         final int end = Math.min(start + size, filtered.size());
         final int totalPages = size == 0 ? 0 : (int) Math.ceil((double) filtered.size() / size);
         return new PageResult<>(filtered.subList(start, end), page, size, filtered.size(), totalPages);
+    }
+
+    @Override
+    public OrderStats summarizeOrders(OrderFilter filter) {
+        final List<OrderSummary> filtered = filter(filter);
+        final List<OrderSummary> approved = filtered.stream()
+                .filter(summary -> summary.status() == OrderStatus.APPROVED)
+                .toList();
+        final BigDecimal revenue = approved.stream()
+                .map(OrderSummary::amount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return new OrderStats(approved.size(), revenue, filtered.size() - approved.size());
+    }
+
+    private List<OrderSummary> filter(OrderFilter filter) {
+        return summaries.stream()
+                .filter(summary -> filter.type() == null || filter.type() == summary.type())
+                .filter(summary -> filter.courseId() == null || filter.courseId().equals(summary.courseId()))
+                .filter(summary -> filter.status() == null || filter.status() == summary.status())
+                .filter(summary -> filter.from() == null
+                        || !summary.purchaseDate().toLocalDate().isBefore(filter.from()))
+                .filter(summary -> filter.to() == null
+                        || !summary.purchaseDate().toLocalDate().isAfter(filter.to()))
+                .filter(summary -> filter.search() == null || matchesSearch(summary, filter.search()))
+                .toList();
+    }
+
+    private static boolean matchesSearch(OrderSummary summary, String search) {
+        final String term = search.toLowerCase(Locale.ROOT);
+        final String hex = summary.id().toString().replace("-", "");
+        final String code = "ped-" + hex.substring(hex.length() - 8);
+        return Stream.of(code, summary.requester(), summary.courseTitle())
+                .anyMatch(field -> field != null && field.toLowerCase(Locale.ROOT).contains(term));
     }
 
     @Override

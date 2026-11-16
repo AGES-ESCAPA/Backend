@@ -59,7 +59,9 @@ public final class InMemoryModuleRepositoryPort implements ModuleRepositoryPort 
     @Override
     public int nextOrder(UUID courseId) {
         return findByCourseId(courseId).stream()
-                .mapToInt(Module::getOrder)
+                .map(Module::getOrder)
+                .filter(order -> order != null && order > 0)
+                .mapToInt(Integer::intValue)
                 .max()
                 .orElse(0) + 1;
     }

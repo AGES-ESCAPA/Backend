@@ -2,10 +2,16 @@ package com.escapa.backend.infrastructure.config;
 
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CourseNotificationPort;
+import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.application.port.CurriculumReleasePort;
+import com.escapa.backend.application.port.EnrollmentRepositoryPort;
+import com.escapa.backend.application.port.FileStoragePort;
+import com.escapa.backend.application.port.LessonNotificationPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.ArchiveCourseUseCase;
 import com.escapa.backend.application.usecase.CreateCourseUseCase;
+import com.escapa.backend.application.usecase.GetAdminCourseMetricsUseCase;
 import com.escapa.backend.application.usecase.GetAdminCourseUseCase;
 import com.escapa.backend.application.usecase.ListAdminCoursesUseCase;
 import com.escapa.backend.application.usecase.ListCourseCategoriesUseCase;
@@ -27,16 +33,24 @@ public class CourseConfig {
     public UpdateCourseUseCase updateCourseUseCase(
             CourseRepositoryPort courseRepositoryPort,
             UserRepositoryPort userRepositoryPort,
-            CourseChangeLogRepositoryPort changeLogRepositoryPort) {
-        return new UpdateCourseUseCase(courseRepositoryPort, userRepositoryPort, changeLogRepositoryPort);
+            CoursePrerequisiteRepositoryPort prerequisiteRepositoryPort) {
+        return new UpdateCourseUseCase(courseRepositoryPort, userRepositoryPort, prerequisiteRepositoryPort);
     }
 
     @Bean
     public PublishCourseUseCase publishCourseUseCase(
             CourseRepositoryPort courseRepositoryPort,
             CourseChangeLogRepositoryPort changeLogRepositoryPort,
-            CourseNotificationPort courseNotificationPort) {
-        return new PublishCourseUseCase(courseRepositoryPort, changeLogRepositoryPort, courseNotificationPort);
+            CourseNotificationPort courseNotificationPort,
+            UserRepositoryPort userRepositoryPort,
+            CoursePrerequisiteRepositoryPort prerequisiteRepositoryPort,
+            CurriculumReleasePort curriculumReleasePort,
+            LessonNotificationPort lessonNotificationPort,
+            FileStoragePort fileStoragePort) {
+        return new PublishCourseUseCase(
+                courseRepositoryPort, changeLogRepositoryPort, courseNotificationPort,
+                userRepositoryPort, prerequisiteRepositoryPort, curriculumReleasePort,
+                lessonNotificationPort, fileStoragePort);
     }
 
     @Bean
@@ -57,5 +71,11 @@ public class CourseConfig {
     @Bean
     public GetAdminCourseUseCase getAdminCourseUseCase(CourseRepositoryPort courseRepositoryPort) {
         return new GetAdminCourseUseCase(courseRepositoryPort);
+    }
+
+    @Bean
+    public GetAdminCourseMetricsUseCase getAdminCourseMetricsUseCase(
+            EnrollmentRepositoryPort enrollmentRepositoryPort) {
+        return new GetAdminCourseMetricsUseCase(enrollmentRepositoryPort);
     }
 }

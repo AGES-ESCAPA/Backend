@@ -52,8 +52,23 @@ class GetStudentCourseCurriculumUseCaseTest {
                 }
 
                 @Override
+                public void recordLastAccess(UUID user, UUID course, java.time.LocalDateTime accessedAt, java.time.Duration minInterval) {
+                    // Nao verificado neste teste.
+                }
+
+                @Override
                 public com.escapa.backend.application.dto.PageResult<com.escapa.backend.application.model.StudentCourseCard> findStudentEnrollments(UUID userId, String title, com.escapa.backend.domain.course.EnrollmentStatus status, int page, int size) {
                     return null;
+                }
+
+                @Override
+                public boolean hasCompletedCourse(UUID user, UUID course) {
+                    return false;
+                }
+
+                @Override
+                public List<com.escapa.backend.application.model.CourseEnrollmentCount> countEligibleEnrollmentsByCourse() {
+                    return List.of();
                 }
             },
             clock
@@ -162,7 +177,7 @@ private CourseRepositoryPort stubCourseRepositoryPort() {
         final Module module = new Module(UUID.randomUUID(), courseId, "Modulo 1", 1);
         final Content content = new Content(
                 UUID.randomUUID(), module.getId(), "Aula 1", "desc", ContentType.VIDEO,
-                "https://cdn.example.com/video.mp4", 10, false, 1, null, null);
+                "https://cdn.example.com/video.mp4", 10, false, 1, null, null, null, null, false, false);
         module.getContents().add(content);
         return module;
     }

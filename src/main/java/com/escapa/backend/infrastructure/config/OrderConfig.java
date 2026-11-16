@@ -1,10 +1,12 @@
 package com.escapa.backend.infrastructure.config;
 
+import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.OrderAccessPort;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.usecase.CreateOrderUseCase;
 import com.escapa.backend.application.usecase.GetSeatPriceUseCase;
+import com.escapa.backend.application.usecase.GetAdminOrderStatsUseCase;
 import com.escapa.backend.application.usecase.GetAdminOrderUseCase;
 import com.escapa.backend.application.usecase.ListAdminOrdersUseCase;
 import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
@@ -50,6 +52,11 @@ public class OrderConfig {
     }
 
     @Bean
+    public GetAdminOrderStatsUseCase getAdminOrderStatsUseCase(OrderRepositoryPort orderRepositoryPort) {
+        return new GetAdminOrderStatsUseCase(orderRepositoryPort);
+    }
+
+    @Bean
     public GetAdminOrderUseCase getAdminOrderUseCase(OrderRepositoryPort orderRepositoryPort) {
         return new GetAdminOrderUseCase(orderRepositoryPort);
     }
@@ -68,10 +75,11 @@ public class OrderConfig {
             OrderRepositoryPort orderRepositoryPort,
             CourseRepositoryPort courseRepositoryPort,
             OrderAccessPort orderAccessPort,
+            CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort,
             @Value("${app.seat-price}") BigDecimal seatPrice
     ) {
-        return new CreateOrderUseCase(
-                orderRepositoryPort, courseRepositoryPort, orderAccessPort, seatPrice, Clock.systemDefaultZone());
+        return new CreateOrderUseCase(orderRepositoryPort, courseRepositoryPort, orderAccessPort,
+                companyEmployeeRepositoryPort, seatPrice, Clock.systemDefaultZone());
     }
 
     @Bean

@@ -1,6 +1,7 @@
 package com.escapa.backend.infrastructure.persistence;
 
 import com.escapa.backend.application.port.CompanySeatsPort;
+import com.escapa.backend.domain.company.CompanyNotFoundException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 import java.util.UUID;
@@ -18,7 +19,17 @@ public class CompanySeatsAdapter implements CompanySeatsPort {
         return jdbcClient.sql("select seats_total from company where id = :id")
                 .param("id", companyId)
                 .query(Integer.class)
-                .single();
+                .optional()
+                .orElseThrow(() -> new CompanyNotFoundException(companyId));
+    }
+
+    @Override
+    public int findSeatsTotalForUpdate(UUID companyId) {
+        return jdbcClient.sql("select seats_total from company where id = :id for update")
+                .param("id", companyId)
+                .query(Integer.class)
+                .optional()
+                .orElseThrow(() -> new CompanyNotFoundException(companyId));
     }
 
     @Override

@@ -31,6 +31,7 @@ TRUNCATE TABLE
     course_materials,
     course_prerequisites,
     courses,
+    account_invites,
     users_company,
     regular_users,
     admins,
@@ -135,12 +136,12 @@ INSERT INTO company (id, company_name, cnpj_id, company_email, matricula, seats_
     ('d0000000-0000-4000-d000-000000000006', 'Spa & Wellness Gramado LTDA', '66777888000146', 'rh@spagramado.com.br', 6734, 0, '51999990006');
     
 INSERT INTO users_company (user_id, company_id, role) VALUES
-    ('c0000000-0000-4000-c000-000000000001', 'd0000000-0000-4000-d000-000000000001', 'RECEPCAO'),
-    ('c0000000-0000-4000-c000-000000000002', 'd0000000-0000-4000-d000-000000000002', 'GERENCIA'),
-    ('c0000000-0000-4000-c000-000000000003', 'd0000000-0000-4000-d000-000000000003', 'GOVERNANCA'),
-    ('c0000000-0000-4000-c000-000000000004', 'd0000000-0000-4000-d000-000000000004', 'ATENDIMENTO'),
-    ('c0000000-0000-4000-c000-000000000005', 'd0000000-0000-4000-d000-000000000005', 'OPERACOES'),
-    ('c0000000-0000-4000-c000-000000000006', 'd0000000-0000-4000-d000-000000000006', 'SPA');
+    ('c0000000-0000-4000-c000-000000000001', 'd0000000-0000-4000-d000-000000000001', 'Recepção'),
+    ('c0000000-0000-4000-c000-000000000002', 'd0000000-0000-4000-d000-000000000002', 'Gerência'),
+    ('c0000000-0000-4000-c000-000000000003', 'd0000000-0000-4000-d000-000000000003', 'Governança'),
+    ('c0000000-0000-4000-c000-000000000004', 'd0000000-0000-4000-d000-000000000004', 'Atendimento'),
+    ('c0000000-0000-4000-c000-000000000005', 'd0000000-0000-4000-d000-000000000005', 'Operações'),
+    ('c0000000-0000-4000-c000-000000000006', 'd0000000-0000-4000-d000-000000000006', 'Spa');
 
 -- -----------------------------------------------------------------------------
 -- courses (thumbnail_url aponta para o bucket seedado no MinIO)
@@ -1249,6 +1250,11 @@ INSERT INTO content (id, module_id, title, description, type, url, duration_minu
      'VIDEO', NULL, 15, FALSE, 7,
      NULL, '2026-02-16 16:20:00');
 
+-- Curso publicado: o aluno só enxerga módulo e aula com published_order.
+-- Sem isso a grade vem vazia e "Acessar curso" não abre a sala de aula.
+UPDATE modules SET published_order = "order" WHERE published_order IS NULL;
+UPDATE content SET published_order = "order" WHERE published_order IS NULL;
+
 INSERT INTO user_courses (
     user_id, course_id, dt_inicio, dt_expiracao, progress, conclusion_date, last_access_date,
     certificate_issued, certificate_code, certificate_issued_at
@@ -1459,3 +1465,166 @@ INSERT INTO content_references (id, content_id, title, url, "order") VALUES
     ('04000000-0000-4000-9000-000000000001', '02000000-0000-4000-9000-000000000181', 'Introdução à IA', 'https://example.com/ia', 1),
     ('04000000-0000-4000-9000-000000000002', '02000000-0000-4000-9000-000000000181', 'História da IA', 'https://example.com/historia-ia', 2),
     ('04000000-0000-4000-9000-000000000003', '02000000-0000-4000-9000-000000000182', 'O futuro do turismo', 'https://example.com/turismo-futuro', 1);
+
+
+-- -----------------------------------------------------------------------------
+-- Colaboradores da Pousada Vista Mar LTDA (US-31, #83)
+-- A empresa tem seats_total = 10 e 9 colaboradores vinculados, nos tres status:
+-- 6 ACTIVE (com a Luciana Prado ja seedada acima), 2 PENDING e 1 INACTIVE. Todos
+-- ocupam vaga. Cada um esta matriculado nos dois cursos da empresa (company_courses).
+-- Convite pendente: PENDING. Convite usado: os demais.
+--
+-- Tokens de desenvolvimento dos convites pendentes (o banco guarda so o SHA-256):
+--   Felipe Andrade   -> /criar-senha?token=convite-felipe-andrade-dev
+--   Gabriela Moreira -> /criar-senha?token=convite-gabriela-moreira-dev
+-- Colaborador PENDING tem senha inutilizavel (nao e um hash BCrypt valido).
+-- -----------------------------------------------------------------------------
+INSERT INTO users (id, name, email, password_hash, role, status, created_at) VALUES
+    ('c0000000-0000-4000-c000-000000000007', 'Ana Paula Ferreira', 'ana.ferreira@vistamar.com.br',
+     '$2b$10$x1Lr6X2h7LbTZWbbZHsjIOZQUc2C3k7pWwVrNRbuU0L/RW4HytA5C', 'STUDENT', 'ACTIVE', '2026-03-02 09:00:00'),
+    ('c0000000-0000-4000-c000-000000000008', 'Bruno Teixeira', 'bruno.teixeira@vistamar.com.br',
+     '$2b$10$x1Lr6X2h7LbTZWbbZHsjIOZQUc2C3k7pWwVrNRbuU0L/RW4HytA5C', 'STUDENT', 'ACTIVE', '2026-03-02 09:10:00'),
+    ('c0000000-0000-4000-c000-000000000009', 'Camila Nogueira', 'camila.nogueira@vistamar.com.br',
+     '$2b$10$x1Lr6X2h7LbTZWbbZHsjIOZQUc2C3k7pWwVrNRbuU0L/RW4HytA5C', 'STUDENT', 'ACTIVE', '2026-03-02 09:20:00'),
+    ('c0000000-0000-4000-c000-000000000010', 'Diego Fontana', 'diego.fontana@vistamar.com.br',
+     '$2b$10$x1Lr6X2h7LbTZWbbZHsjIOZQUc2C3k7pWwVrNRbuU0L/RW4HytA5C', 'STUDENT', 'ACTIVE', '2026-03-02 09:30:00'),
+    ('c0000000-0000-4000-c000-000000000011', 'Elisa Marques', 'elisa.marques@vistamar.com.br',
+     '$2b$10$x1Lr6X2h7LbTZWbbZHsjIOZQUc2C3k7pWwVrNRbuU0L/RW4HytA5C', 'STUDENT', 'ACTIVE', '2026-03-02 09:40:00'),
+    ('c0000000-0000-4000-c000-000000000012', 'Felipe Andrade', 'felipe.andrade@vistamar.com.br',
+     'PENDING-NO-PASSWORD-SET', 'STUDENT', 'PENDING', '2026-10-20 10:00:00'),
+    ('c0000000-0000-4000-c000-000000000013', 'Gabriela Moreira', 'gabriela.moreira@vistamar.com.br',
+     'PENDING-NO-PASSWORD-SET', 'STUDENT', 'PENDING', '2026-10-21 11:00:00'),
+    ('c0000000-0000-4000-c000-000000000014', 'Henrique Lopes', 'henrique.lopes@vistamar.com.br',
+     '$2b$10$x1Lr6X2h7LbTZWbbZHsjIOZQUc2C3k7pWwVrNRbuU0L/RW4HytA5C', 'STUDENT', 'INACTIVE', '2026-03-02 09:50:00');
+
+INSERT INTO regular_users (user_id, cpf, phone) VALUES
+    ('c0000000-0000-4000-c000-000000000007', '40777788801', '+55 51 99100-0007'),
+    ('c0000000-0000-4000-c000-000000000008', '40777788802', '+55 51 99100-0008'),
+    ('c0000000-0000-4000-c000-000000000009', '40777788803', '+55 51 99100-0009'),
+    ('c0000000-0000-4000-c000-000000000010', '40777788804', '+55 51 99100-0010'),
+    ('c0000000-0000-4000-c000-000000000011', '40777788805', '+55 51 99100-0011'),
+    ('c0000000-0000-4000-c000-000000000012', '40777788806', NULL),
+    ('c0000000-0000-4000-c000-000000000013', '40777788807', NULL),
+    ('c0000000-0000-4000-c000-000000000014', '40777788808', '+55 51 99100-0014');
+
+INSERT INTO users_company (user_id, company_id, role) VALUES
+    ('c0000000-0000-4000-c000-000000000007', 'd0000000-0000-4000-d000-000000000001', 'Recepção'),
+    ('c0000000-0000-4000-c000-000000000008', 'd0000000-0000-4000-d000-000000000001', 'Governança'),
+    ('c0000000-0000-4000-c000-000000000009', 'd0000000-0000-4000-d000-000000000001', 'Atendimento'),
+    ('c0000000-0000-4000-c000-000000000010', 'd0000000-0000-4000-d000-000000000001', 'Recepção'),
+    ('c0000000-0000-4000-c000-000000000011', 'd0000000-0000-4000-d000-000000000001', 'Operações'),
+    ('c0000000-0000-4000-c000-000000000012', 'd0000000-0000-4000-d000-000000000001', 'Recepção'),
+    ('c0000000-0000-4000-c000-000000000013', 'd0000000-0000-4000-d000-000000000001', 'Atendimento'),
+    ('c0000000-0000-4000-c000-000000000014', 'd0000000-0000-4000-d000-000000000001', 'Governança');
+
+INSERT INTO user_courses (user_id, course_id, dt_inicio, dt_expiracao, progress, conclusion_date, certificate_issued) VALUES
+    ('c0000000-0000-4000-c000-000000000007', 'e0000000-0000-4000-e000-000000000005', '2026-03-02', '2027-03-02', 40, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000007', 'e0000000-0000-4000-e000-000000000006', '2026-03-02', '2027-03-02', 40, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000008', 'e0000000-0000-4000-e000-000000000005', '2026-03-02', '2027-03-02', 40, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000008', 'e0000000-0000-4000-e000-000000000006', '2026-03-02', '2027-03-02', 40, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000009', 'e0000000-0000-4000-e000-000000000005', '2026-03-02', '2027-03-02', 40, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000009', 'e0000000-0000-4000-e000-000000000006', '2026-03-02', '2027-03-02', 40, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000010', 'e0000000-0000-4000-e000-000000000005', '2026-03-02', '2027-03-02', 40, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000010', 'e0000000-0000-4000-e000-000000000006', '2026-03-02', '2027-03-02', 40, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000011', 'e0000000-0000-4000-e000-000000000005', '2026-03-02', '2027-03-02', 40, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000011', 'e0000000-0000-4000-e000-000000000006', '2026-03-02', '2027-03-02', 40, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000012', 'e0000000-0000-4000-e000-000000000005', '2026-10-20', '2027-10-20', 0, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000012', 'e0000000-0000-4000-e000-000000000006', '2026-10-20', '2027-10-20', 0, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000013', 'e0000000-0000-4000-e000-000000000005', '2026-10-21', '2027-10-21', 0, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000013', 'e0000000-0000-4000-e000-000000000006', '2026-10-21', '2027-10-21', 0, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000014', 'e0000000-0000-4000-e000-000000000005', '2026-03-02', '2027-03-02', 25, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000014', 'e0000000-0000-4000-e000-000000000006', '2026-03-02', '2027-03-02', 25, NULL, FALSE),
+    ('c0000000-0000-4000-c000-000000000001', 'e0000000-0000-4000-e000-000000000006', '2026-03-01', '2027-03-01', 10, NULL, FALSE);
+
+-- -----------------------------------------------------------------------------
+-- Atividade da equipe da Pousada Vista Mar LTDA (US-35, #92): aulas concluidas,
+-- acessos e certificados espalhados pelos ultimos 6 meses, para o Dashboard de
+-- Engajamento ter dados. As datas sao relativas a execucao do seed. A ultima aula
+-- de cada linha foi concluida ha end_days_ago dias (sempre >= 1, nunca no futuro) e
+-- as anteriores a cada step_days dias. A duracao vem da propria aula (content).
+-- -----------------------------------------------------------------------------
+WITH plan (user_id, course_id, lessons, end_days_ago, step_days) AS (
+    VALUES
+        ('c0000000-0000-4000-c000-000000000001'::uuid, 'e0000000-0000-4000-e000-000000000005'::uuid, 15, 125, 2),
+        ('c0000000-0000-4000-c000-000000000001', 'e0000000-0000-4000-e000-000000000006', 3, 20, 3),
+        ('c0000000-0000-4000-c000-000000000007', 'e0000000-0000-4000-e000-000000000005', 15, 95, 5),
+        ('c0000000-0000-4000-c000-000000000007', 'e0000000-0000-4000-e000-000000000006', 28, 4, 2),
+        ('c0000000-0000-4000-c000-000000000008', 'e0000000-0000-4000-e000-000000000005', 15, 60, 3),
+        ('c0000000-0000-4000-c000-000000000008', 'e0000000-0000-4000-e000-000000000006', 10, 2, 4),
+        ('c0000000-0000-4000-c000-000000000009', 'e0000000-0000-4000-e000-000000000005', 8, 25, 6),
+        ('c0000000-0000-4000-c000-000000000009', 'e0000000-0000-4000-e000-000000000006', 5, 40, 7),
+        ('c0000000-0000-4000-c000-000000000010', 'e0000000-0000-4000-e000-000000000005', 15, 12, 2),
+        ('c0000000-0000-4000-c000-000000000010', 'e0000000-0000-4000-e000-000000000006', 28, 35, 2),
+        ('c0000000-0000-4000-c000-000000000011', 'e0000000-0000-4000-e000-000000000005', 6, 100, 5),
+        ('c0000000-0000-4000-c000-000000000011', 'e0000000-0000-4000-e000-000000000006', 3, 70, 10),
+        ('c0000000-0000-4000-c000-000000000014', 'e0000000-0000-4000-e000-000000000005', 4, 150, 5)
+),
+ordered AS (
+    SELECT plan.*,
+           lesson.id AS content_id,
+           row_number() OVER (PARTITION BY plan.user_id, plan.course_id
+                              ORDER BY course_module."order", lesson."order") AS position
+      FROM plan
+      JOIN modules course_module ON course_module.course_id = plan.course_id
+      JOIN content lesson ON lesson.module_id = course_module.id
+)
+INSERT INTO user_content_progress (user_id, content_id, completed_at)
+SELECT user_id,
+       content_id,
+       date_trunc('day', localtimestamp)
+           - make_interval(days => end_days_ago + (lessons - position::int) * step_days)
+           + interval '14 hours'
+           + make_interval(mins => position::int * 3)
+  FROM ordered
+ WHERE position <= lessons
+ON CONFLICT (user_id, content_id) DO NOTHING;
+
+-- Recalcula a matricula a partir das aulas concluidas (mesma regra da V16: arredonda para
+-- baixo). Quem chegou a 100% recebe data de conclusao e certificado.
+UPDATE user_courses enrollment
+   SET progress = computed.percent,
+       last_access_date = computed.last_completed_at + interval '10 minutes',
+       conclusion_date = CASE WHEN computed.percent = 100 THEN computed.last_completed_at::date END,
+       certificate_issued = (computed.percent = 100),
+       certificate_code = CASE WHEN computed.percent = 100
+           THEN 'CERT-VM-' || right(computed.user_id::text, 2) || '-' || right(computed.course_id::text, 1) END,
+       certificate_issued_at = CASE WHEN computed.percent = 100
+           THEN computed.last_completed_at + interval '1 hour' END
+  FROM (
+        SELECT done.user_id, done.course_id, done.last_completed_at,
+               floor(done.lessons * 100.0 / total.lessons)::int AS percent
+          FROM (SELECT progress.user_id, course_module.course_id, count(*) AS lessons,
+                       max(progress.completed_at) AS last_completed_at
+                  FROM user_content_progress progress
+                  JOIN content lesson ON lesson.id = progress.content_id
+                  JOIN modules course_module ON course_module.id = lesson.module_id
+                 WHERE progress.user_id IN (SELECT user_id FROM users_company
+                                            WHERE company_id = 'd0000000-0000-4000-d000-000000000001')
+                 GROUP BY progress.user_id, course_module.course_id) done
+          JOIN (SELECT course_module.course_id, count(*) AS lessons
+                  FROM modules course_module
+                  JOIN content lesson ON lesson.module_id = course_module.id
+                 GROUP BY course_module.course_id) total ON total.course_id = done.course_id
+       ) computed
+ WHERE enrollment.user_id = computed.user_id
+   AND enrollment.course_id = computed.course_id;
+
+INSERT INTO account_invites (id, user_id, company_id, token_hash, expires_at, used_at, created_at) VALUES
+    ('07000000-0000-4000-9000-000000000001', 'c0000000-0000-4000-c000-000000000001', 'd0000000-0000-4000-d000-000000000001',
+     encode(sha256('seed-convite-usado-01'::bytea), 'hex'), '2026-03-05 09:00:00', '2026-03-03 10:00:00', '2026-03-02 09:00:00'),
+    ('07000000-0000-4000-9000-000000000002', 'c0000000-0000-4000-c000-000000000007', 'd0000000-0000-4000-d000-000000000001',
+     encode(sha256('seed-convite-usado-07'::bytea), 'hex'), '2026-03-05 09:00:00', '2026-03-03 10:00:00', '2026-03-02 09:00:00'),
+    ('07000000-0000-4000-9000-000000000003', 'c0000000-0000-4000-c000-000000000008', 'd0000000-0000-4000-d000-000000000001',
+     encode(sha256('seed-convite-usado-08'::bytea), 'hex'), '2026-03-05 09:00:00', '2026-03-03 10:00:00', '2026-03-02 09:00:00'),
+    ('07000000-0000-4000-9000-000000000004', 'c0000000-0000-4000-c000-000000000009', 'd0000000-0000-4000-d000-000000000001',
+     encode(sha256('seed-convite-usado-09'::bytea), 'hex'), '2026-03-05 09:00:00', '2026-03-03 10:00:00', '2026-03-02 09:00:00'),
+    ('07000000-0000-4000-9000-000000000005', 'c0000000-0000-4000-c000-000000000010', 'd0000000-0000-4000-d000-000000000001',
+     encode(sha256('seed-convite-usado-10'::bytea), 'hex'), '2026-03-05 09:00:00', '2026-03-03 10:00:00', '2026-03-02 09:00:00'),
+    ('07000000-0000-4000-9000-000000000006', 'c0000000-0000-4000-c000-000000000011', 'd0000000-0000-4000-d000-000000000001',
+     encode(sha256('seed-convite-usado-11'::bytea), 'hex'), '2026-03-05 09:00:00', '2026-03-03 10:00:00', '2026-03-02 09:00:00'),
+    ('07000000-0000-4000-9000-000000000007', 'c0000000-0000-4000-c000-000000000014', 'd0000000-0000-4000-d000-000000000001',
+     encode(sha256('seed-convite-usado-14'::bytea), 'hex'), '2026-03-05 09:00:00', '2026-03-03 10:00:00', '2026-03-02 09:00:00'),
+    ('07000000-0000-4000-9000-000000000008', 'c0000000-0000-4000-c000-000000000012', 'd0000000-0000-4000-d000-000000000001',
+     encode(sha256('convite-felipe-andrade-dev'::bytea), 'hex'), CURRENT_TIMESTAMP + INTERVAL '72 hours', NULL, CURRENT_TIMESTAMP),
+    ('07000000-0000-4000-9000-000000000009', 'c0000000-0000-4000-c000-000000000013', 'd0000000-0000-4000-d000-000000000001',
+     encode(sha256('convite-gabriela-moreira-dev'::bytea), 'hex'), CURRENT_TIMESTAMP + INTERVAL '72 hours', NULL, CURRENT_TIMESTAMP);

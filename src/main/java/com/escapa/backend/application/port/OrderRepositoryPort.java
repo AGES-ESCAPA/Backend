@@ -3,6 +3,7 @@ package com.escapa.backend.application.port;
 import com.escapa.backend.application.dto.OrderFilter;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.OrderDetails;
+import com.escapa.backend.application.model.OrderStats;
 import com.escapa.backend.application.model.OrderSummary;
 import com.escapa.backend.domain.entity.Order;
 
@@ -32,6 +33,9 @@ public interface OrderRepositoryPort {
 
     /** Pedidos que atendem aos filtros, paginados, do mais recente para o mais antigo. */
     PageResult<OrderSummary> findOrders(OrderFilter filter, int page, int size);
+
+    /** Totais de todos os pedidos que atendem aos filtros, sem paginação. */
+    OrderStats summarizeOrders(OrderFilter filter);
 
     /** Detalhe do pedido com comprador, item e histórico de status em ordem cronológica. */
     Optional<OrderDetails> findDetailsById(UUID id);

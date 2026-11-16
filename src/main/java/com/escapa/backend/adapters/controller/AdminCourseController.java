@@ -200,13 +200,12 @@ public class AdminCourseController {
     public ResponseEntity<ApiResponse<CourseResponse>> updateCourse(
             @PathVariable UUID courseId,
             @Valid @RequestBody UpdateCourseRequest request) {
-        final User admin = requireAdmin();
+        requireAdmin();
         final Course course = updateCourseUseCase.execute(
                 courseId, request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
                 request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
                 request.durationTime(), request.deadline(), request.price(),
-                request.learningObjectives(), request.requireSequentialProgress(), request.enforceDeadlineBlock(),
-                admin
+                request.learningObjectives(), request.requireSequentialProgress(), request.enforceDeadlineBlock()
         );
         return ResponseEntity.ok(ApiResponse.success(CourseResponse.from(course), "Course updated successfully"));
     }

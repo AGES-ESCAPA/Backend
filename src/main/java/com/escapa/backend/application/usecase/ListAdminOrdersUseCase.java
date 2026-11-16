@@ -27,6 +27,7 @@ public class ListAdminOrdersUseCase {
             LocalDate from,
             LocalDate to,
             OrderStatus status,
+            String search,
             int page,
             int size
     ) {
@@ -37,7 +38,7 @@ public class ListAdminOrdersUseCase {
         final int safePage = Math.max(page, 0);
         final int safeSize = size <= 0 ? DEFAULT_PAGE_SIZE : Math.min(size, MAX_PAGE_SIZE);
 
-        final OrderFilter filter = new OrderFilter(type, courseId, from, to, status);
+        final OrderFilter filter = new OrderFilter(type, courseId, from, to, status, search);
         return orderRepositoryPort.findOrders(filter, safePage, safeSize);
     }
 }

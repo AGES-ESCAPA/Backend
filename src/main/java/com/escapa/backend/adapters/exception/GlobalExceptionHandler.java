@@ -27,10 +27,15 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import com.escapa.backend.domain.certificate.CertificateGenerationException;
 import com.escapa.backend.domain.certificate.CertificateGenerationUnavailableException;
 import com.escapa.backend.domain.certificate.CertificateAccessDeniedException;
+import com.escapa.backend.domain.course.CourseReviewNotAllowedException;
 import com.escapa.backend.domain.certificate.CertificateNotFoundException;
 import com.escapa.backend.domain.order.InvalidOrderTransitionException;
 import com.escapa.backend.domain.order.OrderNotFoundException;
 import com.escapa.backend.domain.order.SeatsInUseException;
+import com.escapa.backend.domain.company.CompanyEmployeeNotFoundException;
+import com.escapa.backend.domain.company.CompanyNotFoundException;
+import com.escapa.backend.domain.company.NoSeatsAvailableException;
+import com.escapa.backend.domain.user.EmployeeNotPendingException;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
@@ -44,9 +49,13 @@ import com.escapa.backend.domain.user.AdminAccessDeniedException;
 import com.escapa.backend.domain.user.CompanyEmployeeCannotDeactivateException;
 import com.escapa.backend.domain.user.InactiveUserException;
 import com.escapa.backend.domain.content.InvalidContentFileException;
+import com.escapa.backend.domain.course.InvalidCourseThumbnailException;
 import com.escapa.backend.domain.user.InvalidAvatarFileException;
 import com.escapa.backend.domain.user.InvalidCredentialsException;
 import com.escapa.backend.domain.user.InvalidCurrentPasswordException;
+import com.escapa.backend.domain.user.InviteExpiredException;
+import com.escapa.backend.domain.user.InviteNotFoundException;
+import com.escapa.backend.domain.user.PendingUserException;
 import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.user.ProfileNotEditableException;
 import com.escapa.backend.domain.user.UserAlreadyInactiveException;
@@ -93,7 +102,10 @@ public class GlobalExceptionHandler {
             CourseNotFoundException.class,
             CertificateNotFoundException.class,
             OrderNotFoundException.class,
-            NotificationNotFoundException.class
+            NotificationNotFoundException.class,
+            CompanyNotFoundException.class,
+            InviteNotFoundException.class,
+            CompanyEmployeeNotFoundException.class
     })
     public ResponseEntity<ApiError> handleNotFoundException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
@@ -101,7 +113,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             CompanyEmployeeCannotDeactivateException.class,
-            ProfileNotEditableException.class
+            ProfileNotEditableException.class,
+            PendingUserException.class
     })
     public ResponseEntity<ApiError> handleForbiddenAccountChange(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
@@ -113,7 +126,18 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
-    @ExceptionHandler({InvalidOrderTransitionException.class, SeatsInUseException.class})
+    @ExceptionHandler(InviteExpiredException.class)
+    public ResponseEntity<ApiError> handleInviteExpiredException(
+            InviteExpiredException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.GONE, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler({
+            InvalidOrderTransitionException.class,
+            SeatsInUseException.class,
+            NoSeatsAvailableException.class,
+            EmployeeNotPendingException.class
+    })
     public ResponseEntity<ApiError> handleOrderConflictException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
@@ -130,7 +154,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
-    @ExceptionHandler({InvalidAvatarFileException.class, InvalidContentFileException.class})
+    @ExceptionHandler({
+            InvalidAvatarFileException.class,
+            InvalidContentFileException.class,
+            InvalidCourseThumbnailException.class
+    })
     public ResponseEntity<ApiError> handleInvalidUploadedFileException(
             RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
@@ -139,7 +167,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             LessonAccessDeniedException.class,
             AdminAccessDeniedException.class,
-            CertificateAccessDeniedException.class
+            CertificateAccessDeniedException.class,
+            CourseReviewNotAllowedException.class
     })
     public ResponseEntity<ApiError> handleAccessDeniedException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);

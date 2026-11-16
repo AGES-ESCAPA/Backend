@@ -17,4 +17,7 @@ public interface CoursePrerequisiteRepositoryPort {
     void save(UUID courseId, UUID prerequisiteCourseId);
 
     void deleteByCourseIdAndPrerequisiteCourseId(UUID courseId, UUID prerequisiteCourseId);
+
+    /** Substitui o conjunto publicado de pré-requisitos pelo informado. */
+    void replaceAll(UUID courseId, List<UUID> prerequisiteCourseIds);
 }

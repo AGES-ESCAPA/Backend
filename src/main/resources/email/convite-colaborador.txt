@@ -1,0 +1,10 @@
+Olá, {{nome}}!
+
+Você foi convidado(a) pela empresa {{empresa}} para acessar os cursos da Escapa!.
+
+Para ativar sua conta, crie sua senha pelo link abaixo:
+{{link}}
+
+Se você não esperava este convite, ignore este e-mail.
+
+Equipe Escapa!

@@ -1,5 +1,6 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import com.escapa.backend.domain.content.ContentPendingDraft;
 import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
@@ -35,6 +36,9 @@ public final class ContentMapper {
         content.setOrder(entity.getOrder());
         content.setResources(readResources(entity.getRecursos()));
         content.setCreatedAt(entity.getCreatedAt());
+        content.setPublishedOrder(entity.getPublishedOrder());
+        content.setPendingDraft(readPendingDraft(entity.getPendingDraft()));
+        content.setPendingDeletion(entity.isPendingDeletion());
         return content;
     }
 
@@ -47,6 +51,9 @@ public final class ContentMapper {
         entity.setDurationMinutes(content.getDurationMinutes());
         entity.setIsFree(content.getIsFree() != null && content.getIsFree());
         entity.setOrder(content.getOrder());
+        entity.setPublishedOrder(content.getPublishedOrder());
+        entity.setPendingDraft(writePendingDraft(content.getPendingDraft()));
+        entity.setPendingDeletion(content.isPendingDeletion());
         entity.setRecursos(writeResources(content.getResources()));
         if (entity.getCreatedAt() == null) {
             final LocalDateTime createdAt =
@@ -63,6 +70,28 @@ public final class ContentMapper {
             return new ArrayList<>(OBJECT_MAPPER.readValue(json, new TypeReference<List<ContentResource>>() { }));
         } catch (JsonProcessingException e) {
             return new ArrayList<>();
+        }
+    }
+
+    public static ContentPendingDraft readPendingDraft(String json) {
+        if (json == null || json.isBlank()) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.readValue(json, ContentPendingDraft.class);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Invalid content draft JSON", exception);
+        }
+    }
+
+    public static String writePendingDraft(ContentPendingDraft draft) {
+        if (draft == null) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.writeValueAsString(draft);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Failed to serialize content draft", exception);
         }
     }
 

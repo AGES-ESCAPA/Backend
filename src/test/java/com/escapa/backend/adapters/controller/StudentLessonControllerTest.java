@@ -15,7 +15,7 @@ import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
-import com.escapa.backend.application.usecase.GetStudentLessonUseCase;
+import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
 import com.escapa.backend.application.usecase.InMemoryEnrollmentProgressRepositoryPort;
 import com.escapa.backend.application.usecase.InMemoryLessonProgressRepositoryPort;
 import com.escapa.backend.domain.content.ContentType;
@@ -83,12 +83,27 @@ class StudentLessonControllerTest {
             }
 
             @Override
+            public void recordLastAccess(UUID user, UUID course, java.time.LocalDateTime accessedAt, java.time.Duration minInterval) {
+                // O registro de ultimo acesso nao e verificado neste teste de controller.
+            }
+
+            @Override
             public com.escapa.backend.application.dto.PageResult<com.escapa.backend.application.model.StudentCourseCard> findStudentEnrollments(UUID userId, String title, com.escapa.backend.domain.course.EnrollmentStatus status, int page, int size) {
                 return null;
             }
+
+            @Override
+            public boolean hasCompletedCourse(UUID user, UUID course) {
+                return false;
+            }
+
+            @Override
+            public List<com.escapa.backend.application.model.CourseEnrollmentCount> countEligibleEnrollmentsByCourse() {
+                return List.of();
+            }
         };
         final Clock clock = Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
-        final GetStudentLessonUseCase useCase = new GetStudentLessonUseCase(
+        final OpenStudentLessonUseCase useCase = new OpenStudentLessonUseCase(
                 lessonRepositoryPort,
                 lessonEnrollmentPort,
                 lessonId -> new LessonSupplement(List.of(), List.of()),
@@ -191,8 +206,23 @@ class StudentLessonControllerTest {
                     }
 
                     @Override
+                    public void recordLastAccess(UUID user, UUID course, java.time.LocalDateTime accessedAt, java.time.Duration minInterval) {
+                        // Nao verificado neste teste.
+                    }
+
+                    @Override
                     public com.escapa.backend.application.dto.PageResult<com.escapa.backend.application.model.StudentCourseCard> findStudentEnrollments(UUID userId, String title, com.escapa.backend.domain.course.EnrollmentStatus status, int page, int size) {
                         return null;
+                    }
+
+                    @Override
+                    public boolean hasCompletedCourse(UUID user, UUID course) {
+                        return false;
+                    }
+
+                    @Override
+                    public List<com.escapa.backend.application.model.CourseEnrollmentCount> countEligibleEnrollmentsByCourse() {
+                        return List.of();
                     }
                 },
                 Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
@@ -222,7 +252,7 @@ class StudentLessonControllerTest {
     private LessonDetails lesson(UUID id, boolean isFree) {
         final Content content = new Content(
                 id, moduleId, "Aula 2", "Descricao da aula", ContentType.VIDEO,
-                "https://cdn.example.com/aula-2.mp4", 12, isFree, 2, null, null);
+                "https://cdn.example.com/aula-2.mp4", 12, isFree, 2, null, null, null, null, false, false);
         return new LessonDetails(content, courseId, "Fundamentos", 1, true,
                 new LessonSupplement(List.of(), List.of()));
     }
@@ -240,7 +270,7 @@ class StudentLessonControllerTest {
         final Module module = new Module(UUID.randomUUID(), courseId, "Modulo 1", 1);
         final Content content = new Content(
                 UUID.randomUUID(), module.getId(), "Aula 1", "Descricao", ContentType.VIDEO,
-                "https://cdn.example.com/aula-1.mp4", 10, false, 1, null, null);
+                "https://cdn.example.com/aula-1.mp4", 10, false, 1, null, null, null, null, false, false);
         module.getContents().add(content);
         return module;
     }

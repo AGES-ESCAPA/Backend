@@ -19,9 +19,15 @@ public class ArchiveCourseUseCase {
         this.courseRepositoryPort = courseRepositoryPort;
     }
 
+    /**
+     * Arquiva o curso e descarta o rascunho pendente.
+     * Sem isso, edições feitas após o arquivamento (gravadas nas colunas) podem ser
+     * sobrescritas por um rascunho antigo na próxima publicação.
+     */
     public Course execute(UUID id) {
         final Course course = courseRepositoryPort.findById(id).orElseThrow(() -> new CourseNotFoundException(id));
         course.setStatus(CourseStatus.ARCHIVED);
+        course.setPendingDraft(null);
         course.setUpdatedAt(LocalDateTime.now());
         final Course saved = courseRepositoryPort.save(course);
         LOGGER.info("Course {} archived", saved.getId());
