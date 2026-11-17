@@ -43,9 +43,9 @@ CASCADE;
 -- users
 -- -----------------------------------------------------------------------------
 INSERT INTO users (id, name, email, password_hash, role, status, created_at) VALUES
-    ('a0000000-0000-4000-a000-000000000001', 'Barbara Diogo', 'barbara.diogo@escapa.com.br',
+    ('a0000000-0000-4000-a000-000000000001', 'Barbara Diogo de Paula', 'barbara.diogo@escapa.com.br',
      '$2b$10$x1Lr6X2h7LbTZWbbZHsjIOZQUc2C3k7pWwVrNRbuU0L/RW4HytA5C', 'ADMIN', 'ACTIVE', '2026-01-10 09:00:00'),
-    ('a0000000-0000-4000-a000-000000000002', 'Thamires Magalhães', 'thamires.magalhaes@escapa.com.br',
+    ('a0000000-0000-4000-a000-000000000002', 'Thamiris Magalhães de Sousa', 'thamiris.magalhaes@escapa.com.br',
      '$2b$10$x1Lr6X2h7LbTZWbbZHsjIOZQUc2C3k7pWwVrNRbuU0L/RW4HytA5C', 'ADMIN', 'ACTIVE', '2026-01-12 14:30:00'),
     ('b0000000-0000-4000-b000-000000000001', 'Mariana Costa', 'mariana.costa@email.com',
      '$2b$10$x1Lr6X2h7LbTZWbbZHsjIOZQUc2C3k7pWwVrNRbuU0L/RW4HytA5C', 'STUDENT', 'ACTIVE', '2026-02-03 10:15:00'),
@@ -99,11 +99,11 @@ INSERT INTO users (id, name, email, password_hash, role, status, created_at) VAL
 INSERT INTO admins (user_id, department, headline, bio, avatar_url) VALUES
     ('a0000000-0000-4000-a000-000000000001', 'Gestão de Turismo & IA',
      'Pesquisadora em Gestão de Turismo & IA — ESCAPA!',
-     'Formada em Gestão de Turismo, com MBA em Marketing Estratégico, Mestrado e Doutorado em Administração e Marketing pela PUC/RS, Barbara Diogo reúne quase 15 anos de experiência no setor. Atuou em hotéis e agências de viagem, foi professora universitária e integra o grupo de pesquisa em Comportamento do Consumidor da PUC/RS. Morou três anos na Irlanda, ampliando sua visão global sobre turismo, marketing e comportamento de viajantes.',
+     'Formada em Gestão de Turismo, com MBA em Marketing Estratégico, Mestrado e Doutorado em Administração e Marketing pela PUC/RS, Barbara Diogo de Paula reúne quase 15 anos de experiência no setor. Atuou em hotéis e agências de viagem, foi professora universitária e integra o grupo de pesquisa em Comportamento do Consumidor da PUC/RS. Morou três anos na Irlanda, ampliando sua visão global sobre turismo, marketing e comportamento de viajantes.',
      'http://localhost:9000/escapa-media/avatars/barbara-diogo.png'),
     ('a0000000-0000-4000-a000-000000000002', 'Marketing e Destinos',
      'Pesquisadora em Marketing de Luxo e Destinos — ESCAPA!',
-     'Jornalista, Mestre em Comunicação pela Unisinos/RS e Doutora em Administração/Marketing pela ESPM/SP, Thamiris Magalhães possui um período de estágio doutoral na KEDGE Business School, em Bordeaux, onde se aprofundou em Marketing de Luxo. Com mais de 10 anos de docência, soma experiências em agências, jornais e universidades, além de ser autora de pesquisas de alto impacto publicadas em alguns dos maiores periódicos do mundo, como o Journal of Services Marketing e o Marketing Theory Journal.',
+     'Jornalista, Mestre em Comunicação pela Unisinos/RS e Doutora em Administração/Marketing pela ESPM/SP, Thamiris Magalhães de Sousa possui um período de estágio doutoral na KEDGE Business School, em Bordeaux, onde se aprofundou em Marketing de Luxo. Com mais de 10 anos de docência, soma experiências em agências, jornais e universidades, além de ser autora de pesquisas de alto impacto publicadas em alguns dos maiores periódicos do mundo, como o Journal of Services Marketing e o Marketing Theory Journal.',
      'http://localhost:9000/escapa-media/avatars/thamires-magalhaes.png');
 
 INSERT INTO regular_users (user_id, cpf, phone) VALUES
