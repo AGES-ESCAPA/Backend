@@ -136,6 +136,7 @@ import com.escapa.backend.infrastructure.persistence.UserRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.UsersCompanyJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UsersCompanyRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.course.CourseRepositoryAdapter;
+import com.escapa.backend.infrastructure.storage.MinioClientFactory;
 import com.escapa.backend.infrastructure.storage.MinioFileStorageAdapter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -747,12 +748,10 @@ public class SpringConfig {
     public MinioClient minioClient(
             @Value("${app.storage.minio.endpoint}") String endpoint,
             @Value("${app.storage.minio.access-key}") String accessKey,
-            @Value("${app.storage.minio.secret-key}") String secretKey
+            @Value("${app.storage.minio.secret-key}") String secretKey,
+            @Value("${app.storage.minio.region:}") String region
     ) {
-        return MinioClient.builder()
-                .endpoint(endpoint)
-                .credentials(accessKey, secretKey)
-                .build();
+        return MinioClientFactory.create(endpoint, accessKey, secretKey, region);
     }
 
     @Bean
