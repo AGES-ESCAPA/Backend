@@ -14,11 +14,27 @@ public class MinioFileStorageAdapter implements FileStoragePort {
     private final MinioClient minioClient;
     private final String bucket;
     private final String publicBaseUrl;
+    private final boolean publicUrlIncludesBucket;
 
     public MinioFileStorageAdapter(MinioClient minioClient, String bucket, String publicBaseUrl) {
+        this(minioClient, bucket, publicBaseUrl, true);
+    }
+
+    /**
+     * @param publicUrlIncludesBucket {@code true} para MinIO (URL em estilo path: {@code base/bucket/key});
+     *                                {@code false} para Garage, que resolve o bucket pelo hostname
+     *                                ({@code base/key}).
+     */
+    public MinioFileStorageAdapter(
+            MinioClient minioClient,
+            String bucket,
+            String publicBaseUrl,
+            boolean publicUrlIncludesBucket
+    ) {
         this.minioClient = minioClient;
         this.bucket = bucket;
         this.publicBaseUrl = publicBaseUrl;
+        this.publicUrlIncludesBucket = publicUrlIncludesBucket;
     }
 
     @Override
@@ -32,7 +48,7 @@ public class MinioFileStorageAdapter implements FileStoragePort {
         } catch (Exception e) {
             throw new FileStorageException("Failed to upload file to storage", e);
         }
-        return publicBaseUrl + "/" + bucket + "/" + key;
+        return publicPrefix() + key;
     }
 
     @Override
@@ -49,7 +65,11 @@ public class MinioFileStorageAdapter implements FileStoragePort {
     }
 
     private String extractKey(String url) {
-        final String prefix = publicBaseUrl + "/" + bucket + "/";
+        final String prefix = publicPrefix();
         return url.startsWith(prefix) ? url.substring(prefix.length()) : url;
+    }
+
+    private String publicPrefix() {
+        return publicUrlIncludesBucket ? publicBaseUrl + "/" + bucket + "/" : publicBaseUrl + "/";
     }
 }

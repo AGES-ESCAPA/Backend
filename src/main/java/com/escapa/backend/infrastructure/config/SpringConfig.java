@@ -759,9 +759,10 @@ public class SpringConfig {
     public FileStoragePort fileStoragePort(
             MinioClient minioClient,
             @Value("${app.storage.minio.bucket}") String bucket,
-            @Value("${app.storage.minio.public-base-url}") String publicBaseUrl
+            @Value("${app.storage.minio.public-base-url}") String publicBaseUrl,
+            @Value("${app.storage.minio.public-url-includes-bucket}") boolean publicUrlIncludesBucket
     ) {
-        return new MinioFileStorageAdapter(minioClient, bucket, publicBaseUrl);
+        return new MinioFileStorageAdapter(minioClient, bucket, publicBaseUrl, publicUrlIncludesBucket);
     }
 
         @Bean
