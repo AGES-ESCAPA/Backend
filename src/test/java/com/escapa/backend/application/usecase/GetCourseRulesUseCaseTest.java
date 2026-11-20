@@ -2,6 +2,8 @@ package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.application.model.CourseRules;
 import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.course.CoursePendingDraft;
+import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
 import org.junit.jupiter.api.Test;
@@ -11,6 +13,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GetCourseRulesUseCaseTest {
 
@@ -50,6 +53,51 @@ class GetCourseRulesUseCaseTest {
                 new InMemoryCourseChangeLogRepositoryPort());
 
         assertThrows(CourseNotFoundException.class, () -> useCase.execute(UUID.randomUUID()));
+    }
+
+    @Test
+    void shouldUseDraftRulesAndOmitMissingDraftPrerequisites() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryCoursePrerequisiteRepositoryPort prerequisiteRepository =
+                new InMemoryCoursePrerequisiteRepositoryPort();
+        final InMemoryCourseChangeLogRepositoryPort changeLogRepository = new InMemoryCourseChangeLogRepositoryPort();
+        final User admin = adminUser();
+        final Course course = courseRepository.save(course("Publicado", admin));
+        course.setStatus(CourseStatus.PUBLISHED);
+        final Course prerequisite = courseRepository.save(course("Pre-requisito", admin));
+        final UUID missingId = UUID.randomUUID();
+        course.setPendingDraft(CoursePendingDraft.fromPublished(
+                course, List.of(prerequisite.getId(), missingId))
+                .withRules(false, true));
+
+        final GetCourseRulesUseCase useCase =
+                new GetCourseRulesUseCase(courseRepository, prerequisiteRepository, changeLogRepository);
+
+        final CourseRules rules = useCase.execute(course.getId());
+
+        assertEquals(false, rules.requireSequentialProgress());
+        assertEquals(true, rules.enforceDeadlineBlock());
+        assertEquals(1, rules.prerequisites().size());
+        assertEquals(prerequisite.getId(), rules.prerequisites().get(0).courseId());
+    }
+
+    @Test
+    void shouldFallBackToPublishedRulesWhenDraftRulesAreNull() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final Course course = courseRepository.save(course("Publicado", adminUser()));
+        course.setStatus(CourseStatus.PUBLISHED);
+        course.setPendingDraft(new CoursePendingDraft(
+                null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null));
+        final GetCourseRulesUseCase useCase = new GetCourseRulesUseCase(
+                courseRepository, new InMemoryCoursePrerequisiteRepositoryPort(),
+                new InMemoryCourseChangeLogRepositoryPort());
+
+        final CourseRules rules = useCase.execute(course.getId());
+
+        assertEquals(true, rules.requireSequentialProgress());
+        assertEquals(false, rules.enforceDeadlineBlock());
+        assertTrue(rules.prerequisites().isEmpty());
     }
 
     private static User adminUser() {

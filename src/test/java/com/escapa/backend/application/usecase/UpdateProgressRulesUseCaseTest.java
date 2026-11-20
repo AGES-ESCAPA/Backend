@@ -1,6 +1,7 @@
 package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.course.CoursePendingDraft;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
@@ -51,6 +52,45 @@ class UpdateProgressRulesUseCaseTest {
 
         useCase.execute(course.getId(), true, false, admin);
 
+        assertTrue(changeLogRepository.entriesFor(course.getId()).isEmpty());
+    }
+
+    @Test
+    void shouldLogChangedRulesWhenNoAdminIsProvided() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryCourseChangeLogRepositoryPort changeLogRepository = new InMemoryCourseChangeLogRepositoryPort();
+        final Course course = courseRepository.save(course(adminUser()));
+        final UpdateProgressRulesUseCase useCase =
+                new UpdateProgressRulesUseCase(courseRepository, changeLogRepository,
+                        new InMemoryCoursePrerequisiteRepositoryPort());
+
+        useCase.execute(course.getId(), false, true, null);
+
+        final Course updated = courseRepository.findById(course.getId()).orElseThrow();
+        assertFalse(updated.getRequireSequentialProgress());
+        assertTrue(updated.getEnforceDeadlineBlock());
+        assertEquals(1, changeLogRepository.entriesFor(course.getId()).size());
+    }
+
+    @Test
+    void shouldNotSavePublishedDraftWhenRequestedRulesAlreadyMatch() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryCourseChangeLogRepositoryPort changeLogRepository = new InMemoryCourseChangeLogRepositoryPort();
+        final Course course = course(adminUser());
+        course.setStatus(CourseStatus.PUBLISHED);
+        course.setPendingDraft(new CoursePendingDraft(
+                null, null, null, null, null, null, null, null, null, null, null,
+                null, false, true, List.of()));
+        courseRepository.save(course);
+        final UpdateProgressRulesUseCase useCase =
+                new UpdateProgressRulesUseCase(courseRepository, changeLogRepository,
+                        new InMemoryCoursePrerequisiteRepositoryPort());
+
+        useCase.execute(course.getId(), false, true, null);
+
+        final Course stored = courseRepository.findById(course.getId()).orElseThrow();
+        assertEquals(false, stored.getPendingDraft().requireSequentialProgress());
+        assertEquals(true, stored.getPendingDraft().enforceDeadlineBlock());
         assertTrue(changeLogRepository.entriesFor(course.getId()).isEmpty());
     }
 

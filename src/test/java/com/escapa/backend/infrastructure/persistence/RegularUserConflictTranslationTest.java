@@ -106,6 +106,18 @@ class RegularUserConflictTranslationTest {
         assertEquals("email already registered", translated.getMessage());
     }
 
+    @Test
+    void shouldIdentifyConstraintInSuppressedException() {
+        final RuntimeException failure = new RuntimeException("Save failed");
+        failure.addSuppressed(new ConstraintViolationException(
+                "Insert failed", new SQLException("Duplicate", "23505"), "users_email_key"));
+
+        final RuntimeException translated = RegularUserRepositoryAdapter.translateConflict(failure);
+
+        assertInstanceOf(DuplicateRegistrationException.class, translated);
+        assertEquals("email already registered", translated.getMessage());
+    }
+
     private static DataIntegrityViolationException violation(String sqlState, String constraintName, String message) {
         final SQLException sqlException = new SQLException(message, sqlState);
         final ConstraintViolationException violation = new ConstraintViolationException(

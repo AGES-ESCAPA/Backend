@@ -10,6 +10,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DeleteModuleUseCaseTest {
 
@@ -44,5 +45,20 @@ class DeleteModuleUseCaseTest {
     @Test
     void shouldRejectUnknownModule() {
         assertThrows(ModuleNotFoundException.class, () -> useCase.execute(UUID.randomUUID()));
+    }
+
+    @Test
+    void shouldKeepPublishedModuleUntilTheCourseIsRepublished() {
+        final Module module = createUseCase.execute(courseId, "Módulo publicado");
+        module.setCoursePublished(true);
+        module.setPublishedOrder(1);
+        module.setOrder(4);
+        moduleRepository.save(module);
+
+        useCase.execute(module.getId());
+
+        final Module saved = moduleRepository.findById(module.getId()).orElseThrow();
+        assertTrue(saved.isPendingDeletion());
+        assertEquals(-1_000_004, saved.getOrder());
     }
 }

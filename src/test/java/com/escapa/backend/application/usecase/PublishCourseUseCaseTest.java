@@ -8,8 +8,11 @@ import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.domain.user.UserNotFoundException;
+import com.escapa.backend.application.port.CurriculumReleasePort;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -171,6 +174,123 @@ class PublishCourseUseCaseTest {
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(courseA.getId(), false, admin));
         assertTrue(prerequisiteRepository.findPrerequisiteCourseIds(courseA.getId()).isEmpty());
+    }
+
+    @Test
+    void shouldPublishWithSameThumbnailAndNotifyReleasedLessons() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryCourseChangeLogRepositoryPort changeLogRepository = new InMemoryCourseChangeLogRepositoryPort();
+        final InMemoryCourseNotificationPort courseNotifications = new InMemoryCourseNotificationPort();
+        final InMemoryFileStoragePort fileStorage = new InMemoryFileStoragePort();
+        final User admin = new User("Admin Um", "admin@escapa.com", "hash", "ADMIN");
+        admin.setId(UUID.randomUUID());
+        final Course course = courseRepository.save(completeCourse(admin));
+        final String thumbnail = "https://storage.test/courses/thumbnails/current.png";
+        course.setStatus(CourseStatus.PUBLISHED);
+        course.setMajorVersion(1);
+        course.setThumbnailUrl(thumbnail);
+        course.setPendingDraft(CoursePendingDraft.fromPublished(course, List.of())
+                .applyUpdate("Novo título", null, null, thumbnail, null, null,
+                        null, null, null, null, null, null, null, null));
+        courseRepository.save(course);
+        final UUID lessonId = UUID.randomUUID();
+        final CurriculumReleasePort releasePort = courseId -> List.of(
+                new CurriculumReleasePort.ReleasedLessonChange(lessonId, "Aula atualizada"));
+        final List<CurriculumReleasePort.ReleasedLessonChange> notifiedLessons = new ArrayList<>();
+        final PublishCourseUseCase useCase = new PublishCourseUseCase(
+                courseRepository, changeLogRepository, courseNotifications, new InMemoryUserRepositoryPort(),
+                new InMemoryCoursePrerequisiteRepositoryPort(), releasePort,
+                (id, title) -> notifiedLessons.add(new CurriculumReleasePort.ReleasedLessonChange(id, title)),
+                fileStorage);
+
+        final Course published = useCase.execute(course.getId(), false, null);
+
+        assertEquals("Novo título", published.getTitle());
+        assertTrue(fileStorage.getDeletedUrls().isEmpty());
+        assertEquals(List.of(new CurriculumReleasePort.ReleasedLessonChange(lessonId, "Aula atualizada")),
+                notifiedLessons);
+        assertEquals(2, published.getMajorVersion());
+        assertTrue(courseNotifications.notifiedCourseIds().isEmpty());
+    }
+
+    @Test
+    void shouldResolveChangedDraftInstructorAndRejectUnknownInstructor() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort users = new InMemoryUserRepositoryPort();
+        final User originalInstructor = users.save(new User("Original", "original@example.com", "hash", "ADMIN"));
+        final User nextInstructor = users.save(new User("Nova", "nova@example.com", "hash", "ADMIN"));
+        final Course course = courseRepository.save(completeCourse(originalInstructor));
+        course.setStatus(CourseStatus.PUBLISHED);
+        course.setMajorVersion(1);
+        course.setPendingDraft(CoursePendingDraft.fromPublished(course, List.of())
+                .applyUpdate(null, null, null, null, null, nextInstructor.getId(),
+                        null, null, null, null, null, null, null, null));
+        courseRepository.save(course);
+        final PublishCourseUseCase useCase = new PublishCourseUseCase(
+                courseRepository, new InMemoryCourseChangeLogRepositoryPort(), new InMemoryCourseNotificationPort(),
+                users, new InMemoryCoursePrerequisiteRepositoryPort());
+
+        final Course published = useCase.execute(course.getId(), false, originalInstructor);
+
+        assertEquals(nextInstructor.getId(), published.getInstructor().getId());
+        final Course invalidCourse = completeCourse(originalInstructor);
+        invalidCourse.setStatus(CourseStatus.PUBLISHED);
+        invalidCourse.setMajorVersion(1);
+        invalidCourse.setPendingDraft(CoursePendingDraft.fromPublished(invalidCourse, List.of())
+                .applyUpdate(null, null, null, null, null, UUID.randomUUID(),
+                        null, null, null, null, null, null, null, null));
+        courseRepository.save(invalidCourse);
+        assertThrows(UserNotFoundException.class, () -> useCase.execute(
+                invalidCourse.getId(), false, originalInstructor));
+    }
+
+    @Test
+    void shouldReportBlankRequiredFieldsAndEmptyModuleContents() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final Course course = new Course(
+                " ", " ", " ", null, null, null, " ", " ",
+                null, null, null, List.of(), true, false, null);
+        final Module module = new Module(UUID.randomUUID(), course, "Módulo", 1);
+        module.setContents(null);
+        course.setModules(List.of(module));
+        courseRepository.save(course);
+        final PublishCourseUseCase useCase = new PublishCourseUseCase(
+                courseRepository, new InMemoryCourseChangeLogRepositoryPort(), new InMemoryCourseNotificationPort(),
+                new InMemoryUserRepositoryPort(), new InMemoryCoursePrerequisiteRepositoryPort());
+
+        final CourseValidationException exception = assertThrows(
+                CourseValidationException.class, () -> useCase.execute(course.getId(), false, null));
+
+        assertTrue(exception.getMissingFields().containsAll(List.of(
+                "title", "description", "shortDescription", "instructorId", "category",
+                "level", "price", "durationTime", "deadline",
+                "modules (at least one module with content is required)")));
+    }
+
+    @Test
+    void shouldPublishDraftWithNullPrerequisiteList() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryCoursePrerequisiteRepositoryPort prerequisites =
+                new InMemoryCoursePrerequisiteRepositoryPort();
+        final User admin = new User("Admin Um", "admin@escapa.com", "hash", "ADMIN");
+        admin.setId(UUID.randomUUID());
+        final Course course = courseRepository.save(completeCourse(admin));
+        course.setStatus(CourseStatus.PUBLISHED);
+        course.setMajorVersion(1);
+        course.setPendingDraft(new CoursePendingDraft(
+                "Fundamentos de Design", "Resumo curto", "Descricao completa", null, null,
+                admin.getId(), "Design", "INICIANTE", 40, 365, 499.00,
+                List.of("Objetivo 1"), true, false, null));
+        courseRepository.save(course);
+        final PublishCourseUseCase useCase = new PublishCourseUseCase(
+                courseRepository, new InMemoryCourseChangeLogRepositoryPort(),
+                new InMemoryCourseNotificationPort(), new InMemoryUserRepositoryPort(), prerequisites);
+
+        final Course published = useCase.execute(course.getId(), false, admin);
+
+        assertEquals(CourseStatus.PUBLISHED, published.getStatus());
+        assertEquals(2, published.getMajorVersion());
+        assertTrue(prerequisites.findPrerequisiteCourseIds(course.getId()).isEmpty());
     }
 
     @Test

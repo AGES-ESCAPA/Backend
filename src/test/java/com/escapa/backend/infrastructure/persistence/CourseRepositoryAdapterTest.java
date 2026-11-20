@@ -5,6 +5,7 @@ import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.infrastructure.persistence.entity.AdminEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,6 +69,72 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
 
         assertEquals(1, result.totalElements());
         assertEquals("Curso Publicado", result.content().get(0).title());
+    }
+
+    @Test
+    void shouldSaveCoursesWithAndWithoutOptionalAdminRelations() {
+        final AdminEntity adminEntity = createInstructor("Admin persistido");
+        final User admin = new User(adminEntity.getName(), adminEntity.getEmail(), "hash", "ADMIN");
+        admin.setId(adminEntity.getId());
+        final Course course = new Course(
+                "Curso com admin", "Resumo", "Descricao", null, null, admin, "Turismo",
+                "INICIANTE", 12, 365, 99.0, List.of("Objetivo"), true, false, admin);
+
+        final Course saved = courseRepositoryPort.save(course);
+        saved.setTitle("Curso atualizado");
+        final Course updated = courseRepositoryPort.save(saved);
+        final Course withoutAdmin = courseRepositoryPort.save(new Course(
+                "Curso sem admin", null, null, null, null, null, null, null,
+                null, null, null, List.of(), true, false, null));
+
+        assertEquals("Curso atualizado", updated.getTitle());
+        assertEquals(admin.getId(), updated.getInstructor().getId());
+        assertEquals(admin.getId(), updated.getCreatedBy().getId());
+        assertNull(withoutAdmin.getInstructor());
+        assertNull(withoutAdmin.getCreatedBy());
+        assertTrue(courseRepositoryPort.existsById(updated.getId()));
+        assertFalse(courseRepositoryPort.existsById(UUID.randomUUID()));
+        assertFalse(courseRepositoryPort.existsById(null));
+    }
+
+    @Test
+    void shouldMapPublishedDetailsWithoutInstructorAndWithObjectives() {
+        final CourseEntity entity = buildCourse(
+                "Curso sem instrutor", "Turismo", "INICIANTE", CourseStatus.PUBLISHED, null);
+        entity.setLearningObjectives("[\"Aprender a receber visitantes\"]");
+        final CourseEntity saved = courseJpaRepository.saveAndFlush(entity);
+
+        final CourseDetails details = courseRepositoryPort.findDetailsById(saved.getId()).orElseThrow();
+
+        assertNull(details.instructor());
+        assertEquals(List.of("Aprender a receber visitantes"), details.learningObjectives());
+        assertTrue(details.materials().isEmpty());
+        assertTrue(details.modules().isEmpty());
+    }
+
+    @Test
+    void shouldHideUnreleasedModulesAndLessonsFromPublishedDetails() {
+        final CourseEntity course = buildCourse(
+                "Curso com rascunhos", "Turismo", "INICIANTE", CourseStatus.PUBLISHED,
+                createInstructor("Instrutora Rascunhos"));
+        final ModuleEntity unreleasedModule = module(course, 1, null);
+        final ModuleEntity publishedModule = module(course, 2, 2);
+        final ContentEntity unreleasedLesson = new ContentEntity();
+        unreleasedLesson.setModule(publishedModule);
+        unreleasedLesson.setTitle("Aula em rascunho");
+        unreleasedLesson.setType(ContentType.VIDEO);
+        unreleasedLesson.setIsFree(false);
+        unreleasedLesson.setOrder(1);
+        unreleasedLesson.setPublishedOrder(null);
+        publishedModule.getContents().add(unreleasedLesson);
+        course.setModules(new ArrayList<>(List.of(unreleasedModule, publishedModule)));
+        final CourseEntity saved = courseJpaRepository.saveAndFlush(course);
+
+        final CourseDetails details = courseRepositoryPort.findDetailsById(saved.getId()).orElseThrow();
+
+        assertEquals(1, details.modules().size());
+        assertEquals("Módulo 2", details.modules().get(0).title());
+        assertTrue(details.modules().get(0).contents().isEmpty());
     }
 
     @Test
@@ -263,6 +331,15 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
         course.setCreatedAt(LocalDateTime.now());
         course.setPrice(99.90);
         return course;
+    }
+
+    private ModuleEntity module(CourseEntity course, int order, Integer publishedOrder) {
+        final ModuleEntity module = new ModuleEntity();
+        module.setCourse(course);
+        module.setTitle("Módulo " + order);
+        module.setOrder(order);
+        module.setPublishedOrder(publishedOrder);
+        return module;
     }
 
     private CourseEntity persistCourseWithFullGraph(CourseStatus status) {

@@ -1,6 +1,7 @@
 package com.escapa.backend.domain.user;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -18,5 +19,13 @@ class CpfValidatorTest {
         assertFalse(CpfValidator.isValid("529.982.247-24"));
         assertFalse(CpfValidator.isValid("111.111.111-11"));
         assertFalse(CpfValidator.isValid("abc52998224725"));
+    }
+
+    @Test
+    void shouldRejectMissingOrWrongLengthValuesAndExtractDigits() {
+        assertFalse(CpfValidator.isValid(null));
+        assertFalse(CpfValidator.isValid("123"));
+        assertEquals("", CpfValidator.digitsOnly(null));
+        assertEquals("52998224725", CpfValidator.digitsOnly("529.982.247-25"));
     }
 }

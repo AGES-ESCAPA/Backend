@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DeleteContentUseCaseTest {
 
@@ -34,5 +35,21 @@ class DeleteContentUseCaseTest {
                 ContentNotFoundException.class,
                 () -> useCase.execute(UUID.randomUUID())
         );
+    }
+
+    @Test
+    void shouldKeepPublishedContentUntilTheCourseIsRepublished() {
+        final Content created = createUseCase.execute(
+                moduleId, "Aula publicada", ContentType.TEXT, null, null, "Texto", false);
+        created.setCoursePublished(true);
+        created.setPublishedOrder(2);
+        created.setOrder(5);
+        contentRepository.save(created);
+
+        useCase.execute(created.getId());
+
+        final Content saved = contentRepository.findById(created.getId()).orElseThrow();
+        assertTrue(saved.isPendingDeletion());
+        assertEquals(-1_000_005, saved.getOrder());
     }
 }

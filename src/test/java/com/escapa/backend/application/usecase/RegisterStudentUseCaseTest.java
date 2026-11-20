@@ -1,7 +1,6 @@
 package com.escapa.backend.application.usecase;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -59,7 +58,6 @@ class RegisterStudentUseCaseTest {
                 "  Maria da Silva  ", "529.982.247-25", "  MARIA@EMAIL.COM  ", "(51) 99999-0000", "12345678"));
 
         final User saved = regularUserRepository.findByCpf("52998224725");
-        assertNotNull(saved);
         assertEquals("Maria da Silva", saved.getName());
         assertEquals("maria@email.com", saved.getEmail());
         assertEquals("hashed:12345678", saved.getPasswordHash());

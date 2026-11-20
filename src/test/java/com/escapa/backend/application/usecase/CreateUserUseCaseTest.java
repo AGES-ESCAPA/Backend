@@ -52,6 +52,24 @@ class CreateUserUseCaseTest {
     }
 
     @Test
+    void shouldRejectMissingAndMalformedRequiredFields() {
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute(null, "maria@email.com", "password123", "STUDENT"));
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute("Maria", null, "password123", "STUDENT"));
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute("Maria", "   ", "password123", "STUDENT"));
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute("Maria", "invalid-email", "password123", "STUDENT"));
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute("Maria", "maria@email.com", null, "STUDENT"));
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute("Maria", "maria@email.com", "password123", null));
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute("Maria", "maria@email.com", "password123", "   "));
+    }
+
+    @Test
     void shouldRejectDuplicateEmailIgnoringCase() {
         useCase.execute("Maria Silva", "maria@email.com", "password123", "STUDENT");
 
