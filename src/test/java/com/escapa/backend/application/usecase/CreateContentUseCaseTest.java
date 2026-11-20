@@ -12,6 +12,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -127,6 +128,26 @@ class CreateContentUseCaseTest {
                 ModuleNotFoundException.class,
                 () -> useCase.execute(UUID.randomUUID(), "Aula", ContentType.TEXT, null, null, "Texto", false)
         );
+    }
+
+    @Test
+    void shouldRejectNullModuleId() {
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute(null, "Aula", ContentType.TEXT, null, null, "Texto", false));
+    }
+
+    @Test
+    void shouldKeepNewPublishedContentUnreleasedAndAcceptNullResources() {
+        moduleRepository.findById(moduleId).orElseThrow().setCoursePublished(true);
+
+        final Content content = useCase.execute(
+                moduleId, "Aula nova", ContentType.TEXT, null, null, "Texto", null, null);
+
+        assertEquals(1, content.getOrder());
+        assertNull(content.getPublishedOrder());
+        assertTrue(content.isCoursePublished());
+        assertTrue(content.getResources().isEmpty());
+        assertFalse(content.getIsFree());
     }
 
     @Test

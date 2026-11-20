@@ -2,10 +2,12 @@ package com.escapa.backend.infrastructure.persistence;
 
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.model.LessonDetails;
+import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
@@ -34,6 +36,9 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
 
     @Autowired
     private EnrollmentRepositoryPort enrollmentRepositoryPort;
+
+    @Autowired
+    private EnrollmentProgressRepositoryPort enrollmentProgressRepositoryPort;
 
     @Autowired
     private CourseJpaRepository courseJpaRepository;
@@ -119,6 +124,44 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void shouldUsePublishedOrdersAndHideUnreleasedLessons() {
+        final CourseEntity publishedCourse = givenCourse(false);
+        publishedCourse.setStatus(CourseStatus.PUBLISHED);
+        courseJpaRepository.save(publishedCourse);
+        final ModuleEntity publishedModule = givenModule(publishedCourse, "Módulo", 2);
+        publishedModule.setPublishedOrder(5);
+        moduleJpaRepository.save(publishedModule);
+        final ContentEntity visibleLesson = givenContent(publishedModule, "Aula publicada", 1);
+        visibleLesson.setPublishedOrder(7);
+        contentJpaRepository.save(visibleLesson);
+
+        final LessonDetails visible = lessonRepositoryPort
+                .findByCourseIdAndId(publishedCourse.getId(), visibleLesson.getId()).orElseThrow();
+
+        assertEquals(7, visible.content().getOrder());
+        assertEquals(5, visible.moduleOrder());
+
+        final CourseEntity hiddenCourse = givenCourse(false);
+        hiddenCourse.setStatus(CourseStatus.PUBLISHED);
+        courseJpaRepository.save(hiddenCourse);
+        final ModuleEntity hiddenModule = givenModule(hiddenCourse, "Módulo oculto", 1);
+        final ContentEntity hiddenLesson = givenContent(hiddenModule, "Aula não publicada", 1);
+        assertTrue(lessonRepositoryPort
+                .findByCourseIdAndId(hiddenCourse.getId(), hiddenLesson.getId()).isEmpty());
+
+        final CourseEntity unpublishedModuleCourse = givenCourse(false);
+        unpublishedModuleCourse.setStatus(CourseStatus.PUBLISHED);
+        courseJpaRepository.save(unpublishedModuleCourse);
+        final ModuleEntity unpublishedModule = givenModule(unpublishedModuleCourse, "Módulo sem publicação", 1);
+        final ContentEntity lessonInUnpublishedModule =
+                givenContent(unpublishedModule, "Aula de módulo oculto", 1);
+        lessonInUnpublishedModule.setPublishedOrder(1);
+        contentJpaRepository.save(lessonInUnpublishedModule);
+        assertTrue(lessonRepositoryPort.findByCourseIdAndId(
+                unpublishedModuleCourse.getId(), lessonInUnpublishedModule.getId()).isEmpty());
+    }
+
+    @Test
     void shouldFindEnrollmentPeriodByUserAndCourse() {
         final CourseEntity course = givenCourse(false);
         final UUID userId = givenUserId();
@@ -139,6 +182,44 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
         givenEnrollment(givenUserId(), course, LocalDate.of(2026, 1, 10), null);
 
         assertTrue(enrollmentRepositoryPort.findByUserIdAndCourseId(givenUserId(), course.getId()).isEmpty());
+    }
+
+    @Test
+    void shouldUpdateProgressAndSetConclusionDateOnlyOnce() {
+        final CourseEntity course = givenCourse(false);
+        final UUID userId = givenUserId();
+        givenEnrollment(userId, course, LocalDate.of(2026, 1, 10), null);
+        final LocalDate firstConclusion = LocalDate.of(2026, 11, 10);
+
+        enrollmentProgressRepositoryPort.updateProgress(userId, course.getId(), 75, null);
+        enrollmentProgressRepositoryPort.updateProgress(userId, course.getId(), 100, firstConclusion);
+        enrollmentProgressRepositoryPort.updateProgress(
+                userId, course.getId(), 100, firstConclusion.plusDays(1));
+
+        final UserCourseEntity enrollment = userCourseJpaRepository
+                .findById(new UserCourseId(userId, course.getId())).orElseThrow();
+        assertEquals(100, enrollment.getProgress());
+        assertEquals(firstConclusion, enrollment.getConclusionDate());
+    }
+
+    @Test
+    void shouldIgnoreMissingAndRevokedEnrollmentProgressUpdates() {
+        final CourseEntity course = givenCourse(false);
+        final UUID userId = givenUserId();
+
+        enrollmentProgressRepositoryPort.updateProgress(userId, course.getId(), 50, null);
+        givenEnrollment(userId, course, LocalDate.of(2026, 1, 10), null);
+        final UserCourseEntity enrollment = userCourseJpaRepository
+                .findById(new UserCourseId(userId, course.getId())).orElseThrow();
+        enrollment.setRevokedAt(LocalDateTime.of(2026, 10, 1, 12, 0));
+        userCourseJpaRepository.save(enrollment);
+
+        enrollmentProgressRepositoryPort.updateProgress(userId, course.getId(), 100, LocalDate.now());
+
+        final UserCourseEntity unchanged = userCourseJpaRepository
+                .findById(new UserCourseId(userId, course.getId())).orElseThrow();
+        assertNull(unchanged.getProgress());
+        assertNull(unchanged.getConclusionDate());
     }
 
     @Test

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -115,6 +116,32 @@ class UpdateContentUseCaseTest {
         useCase.execute(created.getId(), " Aula original ", ContentType.VIDEO,
                 "https://vimeo.com/1", 10, "Descricao", false);
 
+        assertTrue(lessonNotificationPort.notifiedLessonIds().isEmpty());
+    }
+
+    @Test
+    void shouldRejectMissingIdAndBlankTitle() {
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(
+                null, "Aula", ContentType.VIDEO, "https://vimeo.com/1", 10, "Descricao", false));
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(
+                UUID.randomUUID(), "  ", ContentType.VIDEO, "https://vimeo.com/1", 10, "Descricao", false));
+    }
+
+    @Test
+    void shouldKeepPublishedContentInDraftWhenResourcesAreNull() {
+        final Content content = givenVideoContent();
+        content.setCoursePublished(true);
+        content.setPublishedOrder(1);
+        contentRepository.save(content);
+
+        final Content updated = useCase.execute(
+                content.getId(), "Aula revisada", ContentType.VIDEO,
+                "https://vimeo.com/2", 20, "Nova descricao", null, null);
+
+        assertEquals("Aula original", contentRepository.findById(content.getId()).orElseThrow().getTitle());
+        assertEquals("Aula revisada", updated.getPendingDraft().title());
+        assertEquals(List.of(), updated.getPendingDraft().resources());
+        assertFalse(updated.getPendingDraft().isFree());
         assertTrue(lessonNotificationPort.notifiedLessonIds().isEmpty());
     }
 

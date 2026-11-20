@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class LoginUseCaseTest {
@@ -50,7 +49,6 @@ class LoginUseCaseTest {
 
         final LoginOutput output = useCase.execute("mariana.costa@email.com", "password123");
 
-        assertNotNull(output);
         assertEquals("Bearer", output.tokenType());
         assertEquals(3600L, output.expiresIn());
         assertEquals("mocked-jwt-student", output.accessToken());
@@ -77,7 +75,6 @@ class LoginUseCaseTest {
 
         final LoginOutput output = useCase.execute("luciana.prado@vistamar.com.br", "escapa@2026");
 
-        assertNotNull(output);
         assertEquals("EMPLOYEE", output.profile());
         assertEquals("mocked-jwt-employee", output.accessToken());
     }
@@ -214,7 +211,6 @@ class LoginUseCaseTest {
 
         final LoginOutput output = useCase.execute("  MARIANA.COSTA@EMAIL.COM  ", "password123");
 
-        assertNotNull(output);
         assertEquals("mariana.costa@email.com", output.user().getEmail());
     }
 

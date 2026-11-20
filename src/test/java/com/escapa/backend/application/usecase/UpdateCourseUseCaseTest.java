@@ -1,6 +1,7 @@
 package com.escapa.backend.application.usecase;
 
 import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.user.UserNotFoundException;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
@@ -51,6 +52,59 @@ class UpdateCourseUseCaseTest {
                 null, null, null, null, null, null, null);
 
         assertEquals(newInstructor.getId(), updated.getInstructor().getId());
+    }
+
+    @Test
+    void shouldUpdateEveryProvidedFieldAndClearBlankThumbnail() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
+        final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
+        final Course course = courseRepository.save(new Course(
+                "Titulo", null, null, "https://example.com/old.png", null, null, null, null,
+                null, null, null, List.of(), true, false, admin));
+        final UpdateCourseUseCase useCase =
+                new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
+
+        final Course updated = useCase.execute(
+                course.getId(), "  Novo titulo  ", "Resumo", "Descricao", "   ", "video",
+                admin.getId(), "Turismo", "AVANCADO", 60, 90, 120.0,
+                List.of("Objetivo"), false, true);
+
+        assertEquals("Novo titulo", updated.getTitle());
+        assertEquals("Resumo", updated.getShortDescription());
+        assertEquals("Descricao", updated.getDescription());
+        assertNull(updated.getThumbnailUrl());
+        assertEquals("video", updated.getTeaserVideoUrl());
+        assertEquals(admin.getId(), updated.getInstructor().getId());
+        assertEquals("Turismo", updated.getCategory());
+        assertEquals("AVANCADO", updated.getLevel());
+        assertEquals(60, updated.getDurationTime());
+        assertEquals(90, updated.getDeadline());
+        assertEquals(120.0, updated.getPrice());
+        assertEquals(List.of("Objetivo"), updated.getLearningObjectives());
+        assertEquals(false, updated.getRequireSequentialProgress());
+        assertEquals(true, updated.getEnforceDeadlineBlock());
+    }
+
+    @Test
+    void shouldIgnoreBlankTitleAndRejectMissingInstructor() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
+        final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
+        final Course course = courseRepository.save(new Course(
+                "Titulo original", null, null, null, null, null, null, null,
+                null, null, null, List.of(), true, false, admin));
+        final UpdateCourseUseCase useCase =
+                new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
+
+        final Course unchanged = useCase.execute(
+                course.getId(), "   ", null, null, null, null, null, null,
+                null, null, null, null, null, null, null);
+
+        assertEquals("Titulo original", unchanged.getTitle());
+        assertThrows(UserNotFoundException.class, () -> useCase.execute(
+                course.getId(), null, null, null, null, null, UUID.randomUUID(), null,
+                null, null, null, null, null, null, null));
     }
 
     @Test
