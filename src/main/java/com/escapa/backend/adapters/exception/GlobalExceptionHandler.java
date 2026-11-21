@@ -57,6 +57,8 @@ import com.escapa.backend.domain.user.InvalidCredentialsException;
 import com.escapa.backend.domain.user.InvalidCurrentPasswordException;
 import com.escapa.backend.domain.user.InviteExpiredException;
 import com.escapa.backend.domain.user.InviteNotFoundException;
+import com.escapa.backend.domain.user.PasswordResetTokenExpiredException;
+import com.escapa.backend.domain.user.PasswordResetTokenNotFoundException;
 import com.escapa.backend.domain.user.PendingUserException;
 import com.escapa.backend.domain.user.ProfileNotEditableException;
 import com.escapa.backend.domain.user.UserAlreadyInactiveException;
@@ -103,6 +105,7 @@ public class GlobalExceptionHandler {
             NotificationNotFoundException.class,
             CompanyNotFoundException.class,
             InviteNotFoundException.class,
+            PasswordResetTokenNotFoundException.class,
             CompanyEmployeeNotFoundException.class
     })
     public ResponseEntity<ApiError> handleNotFoundException(RuntimeException ex, HttpServletRequest request) {
@@ -124,9 +127,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(InviteExpiredException.class)
-    public ResponseEntity<ApiError> handleInviteExpiredException(
-            InviteExpiredException ex, HttpServletRequest request) {
+    @ExceptionHandler({
+            InviteExpiredException.class,
+            PasswordResetTokenExpiredException.class
+    })
+    public ResponseEntity<ApiError> handleGoneException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.GONE, ex.getMessage(), request);
     }
 

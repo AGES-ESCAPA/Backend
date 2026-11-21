@@ -43,6 +43,7 @@ import com.escapa.backend.application.port.OrderAccessPort;
 import com.escapa.backend.application.port.OrderAccessRevocationPort;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
+import com.escapa.backend.application.port.PasswordResetTokenRepositoryPort;
 import com.escapa.backend.application.port.RegularUserRepositoryPort;
 import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
@@ -71,6 +72,7 @@ import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
+import com.escapa.backend.application.usecase.GetPasswordResetTokenUseCase;
 import com.escapa.backend.application.usecase.GetProfileUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
@@ -89,6 +91,7 @@ import com.escapa.backend.application.usecase.LoginUseCase;
 import com.escapa.backend.application.usecase.MarkAllNotificationsAsReadUseCase;
 import com.escapa.backend.application.usecase.MarkNotificationAsReadUseCase;
 import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
+import com.escapa.backend.application.usecase.PasswordResetMailer;
 import com.escapa.backend.application.usecase.RateCourseUseCase;
 import com.escapa.backend.application.usecase.RefundOrderUseCase;
 import com.escapa.backend.application.usecase.RegisterCompanyEmployeeUseCase;
@@ -97,7 +100,9 @@ import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ReorderContentsUseCase;
 import com.escapa.backend.application.usecase.ReorderModulesUseCase;
+import com.escapa.backend.application.usecase.RequestPasswordResetUseCase;
 import com.escapa.backend.application.usecase.ResendEmployeeInviteUseCase;
+import com.escapa.backend.application.usecase.ResetPasswordUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
 import com.escapa.backend.application.usecase.UnlinkCompanyEmployeeUseCase;
 import com.escapa.backend.application.usecase.UpdateCompanyEmployeeUseCase;
@@ -424,6 +429,50 @@ public class SpringConfig {
             @Value("${app.frontend-url}") String frontendUrl
     ) {
         return new EmployeeInviteMailer(emailSenderPort, emailTemplatePort, frontendUrl);
+    }
+
+    @Bean
+    public PasswordResetMailer passwordResetMailer(
+            EmailSenderPort emailSenderPort,
+            EmailTemplatePort emailTemplatePort,
+            @Value("${app.frontend-url}") String frontendUrl
+    ) {
+        return new PasswordResetMailer(emailSenderPort, emailTemplatePort, frontendUrl);
+    }
+
+    @Bean
+    public RequestPasswordResetUseCase requestPasswordResetUseCase(
+            UserRepositoryPort userRepositoryPort,
+            PasswordResetTokenRepositoryPort passwordResetTokenRepositoryPort,
+            @Value("${app.password-reset.expiration-hours}") long passwordResetExpirationHours
+    ) {
+        return new RequestPasswordResetUseCase(
+                userRepositoryPort,
+                passwordResetTokenRepositoryPort,
+                Clock.systemDefaultZone(),
+                passwordResetExpirationHours);
+    }
+
+    @Bean
+    public GetPasswordResetTokenUseCase getPasswordResetTokenUseCase(
+            PasswordResetTokenRepositoryPort passwordResetTokenRepositoryPort,
+            UserRepositoryPort userRepositoryPort
+    ) {
+        return new GetPasswordResetTokenUseCase(
+                passwordResetTokenRepositoryPort, userRepositoryPort, Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public ResetPasswordUseCase resetPasswordUseCase(
+            PasswordResetTokenRepositoryPort passwordResetTokenRepositoryPort,
+            UserRepositoryPort userRepositoryPort,
+            PasswordHasherPort passwordHasherPort
+    ) {
+        return new ResetPasswordUseCase(
+                passwordResetTokenRepositoryPort,
+                userRepositoryPort,
+                passwordHasherPort,
+                Clock.systemDefaultZone());
     }
 
     @Bean
