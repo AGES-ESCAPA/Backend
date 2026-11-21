@@ -253,6 +253,13 @@
                         </goals>
                         <configuration>
                             <haltOnFailure>true</haltOnFailure>
+                            <!-- Records e beans de configuração puxam a razão de branches
+                                 para baixo sem medir regra de negócio. O relatório HTML
+                                 continua com o bundle inteiro. -->
+                            <excludes>
+                                <exclude>com/escapa/backend/adapters/dto/**/*.class</exclude>
+                                <exclude>com/escapa/backend/infrastructure/config/**/*.class</exclude>
+                            </excludes>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>

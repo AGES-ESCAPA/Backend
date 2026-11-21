@@ -46,6 +46,7 @@ seus resultados.
 O relatório mede as classes de produção analisadas pelo JaCoCo. A suíte padrão exclui os testes
 PDF; execute também o comando PDF acima para agregar sua execução. `jacoco:check` falha o build
 (`haltOnFailure`) se a cobertura de linhas cair abaixo de 95% ou a de branches abaixo de 90%.
+Essa trava não conta `adapters/dto` nem `infrastructure/config`; o HTML continua mostrando os dois.
 
 ## Tipos de teste existentes
 
