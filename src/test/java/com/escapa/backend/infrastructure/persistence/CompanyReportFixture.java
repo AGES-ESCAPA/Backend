@@ -1,10 +1,10 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /** Dados dos testes do relatório de progresso da equipe (US-35): empresas, colaboradores, cursos e aulas. */
 final class CompanyReportFixture {

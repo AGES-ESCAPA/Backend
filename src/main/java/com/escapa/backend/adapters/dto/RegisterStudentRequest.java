@@ -2,13 +2,13 @@ package com.escapa.backend.adapters.dto;
 
 import java.util.Locale;
 
-import com.escapa.backend.application.usecase.CreateUserUseCase;
-import com.escapa.backend.application.usecase.RegisterStudentCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
+import com.escapa.backend.application.usecase.CreateUserUseCase;
+import com.escapa.backend.application.usecase.RegisterStudentCommand;
 
 @Schema(description = "Student registration payload")
 public record RegisterStudentRequest(

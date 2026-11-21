@@ -1,5 +1,16 @@
 package com.escapa.backend.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import com.escapa.backend.application.model.AccountInviteDetails;
 import com.escapa.backend.domain.entity.Company;
 import com.escapa.backend.domain.entity.User;
@@ -7,16 +18,6 @@ import com.escapa.backend.domain.user.AccountInvite;
 import com.escapa.backend.domain.user.InviteExpiredException;
 import com.escapa.backend.domain.user.InviteNotFoundException;
 import com.escapa.backend.domain.user.UserStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.time.Clock;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class GetAccountInviteUseCaseTest {
 

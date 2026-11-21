@@ -3,13 +3,13 @@ package com.escapa.backend.domain.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.escapa.backend.domain.user.UserStatus;
-import com.escapa.backend.domain.user.UserTypes;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import com.escapa.backend.domain.user.UserStatus;
+import com.escapa.backend.domain.user.UserTypes;
 
 @Getter
 @Setter

@@ -1,7 +1,8 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.domain.entity.Course;
 import java.util.UUID;
+
+import com.escapa.backend.domain.entity.Course;
 
 public record CourseSearchResponse(UUID id, String title) {
 

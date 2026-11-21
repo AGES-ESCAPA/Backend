@@ -1,6 +1,5 @@
 package com.escapa.backend.infrastructure.config;
 
-import com.escapa.backend.adapters.exception.ApiError;
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.core.converter.ResolvedSchema;
@@ -21,6 +20,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import com.escapa.backend.adapters.exception.ApiError;
 
 @Configuration
 public class OpenApiConfig implements WebMvcConfigurer {

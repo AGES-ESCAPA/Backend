@@ -1,7 +1,8 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.model.CompanySeatsSummary;
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.escapa.backend.application.model.CompanySeatsSummary;
 
 @Schema(description = "Seats contracted and in use by the company. Every linked employee takes a seat, "
         + "whatever the status; only unlinking the employee frees it.")

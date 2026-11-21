@@ -1,17 +1,20 @@
 package com.escapa.backend.adapters.exception;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.sql.SQLException;
+
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.transaction.TransactionSystemException;
-
-import java.sql.SQLException;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 class GlobalExceptionHandlerTest {
 
@@ -63,5 +66,31 @@ class GlobalExceptionHandlerTest {
                 handler.handleDataIntegrityViolationException(duplicate, request).getBody().message());
         assertEquals("Resource already exists",
                 handler.handleDataIntegrityViolationException(unexpected, request).getBody().message());
+    }
+
+    @Test
+    void shouldRejectUploadsLargerThanTheLimit() {
+        final var response = handler.handleMaxUploadSizeExceededException(
+                new MaxUploadSizeExceededException(1024L), request);
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
+        assertEquals("File exceeds the maximum upload size allowed", response.getBody().message());
+    }
+
+    @Test
+    void shouldReportUnknownPathsAsNotFound() {
+        final var response = handler.handleNoResourceFoundException(
+                new NoResourceFoundException(HttpMethod.GET, request.getRequestURI()), request);
+
+        assertEquals(HttpStatus.NOT_FOUND.value(), response.getStatusCode().value());
+        assertEquals("Resource not found: /api/v1/users", response.getBody().message());
+    }
+
+    @Test
+    void shouldHideUnexpectedErrorsBehindAGenericResponse() {
+        final var response = handler.handleGenericException(new IllegalStateException("db down"), request);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getStatusCode().value());
+        assertEquals("Unexpected error occurred", response.getBody().message());
     }
 }

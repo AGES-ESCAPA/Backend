@@ -1,13 +1,14 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.ChangeLogEntry;
-import com.escapa.backend.application.dto.PageResult;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.dto.ChangeLogEntry;
+import com.escapa.backend.application.dto.PageResult;
 
 class GetCourseChangeLogUseCaseTest {
 

@@ -1,17 +1,18 @@
 package com.escapa.backend.domain.entity;
 
-import com.escapa.backend.domain.course.CoursePendingDraft;
-import com.escapa.backend.domain.course.CourseStatus;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import com.escapa.backend.domain.course.CoursePendingDraft;
+import com.escapa.backend.domain.course.CourseStatus;
 
 @Getter
 @Setter

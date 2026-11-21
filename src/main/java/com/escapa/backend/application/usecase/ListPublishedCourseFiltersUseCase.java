@@ -1,12 +1,12 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.PublishedCourseFilters;
-import com.escapa.backend.application.port.CourseRepositoryPort;
-
 import java.text.Normalizer;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+
+import com.escapa.backend.application.dto.PublishedCourseFilters;
+import com.escapa.backend.application.port.CourseRepositoryPort;
 
 /**
  * Caso de uso: listar as categorias e os níveis disponíveis na vitrine pública.

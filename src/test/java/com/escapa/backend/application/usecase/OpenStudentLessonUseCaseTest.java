@@ -1,17 +1,7 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.Enrollment;
-import com.escapa.backend.application.model.LessonConcept;
-import com.escapa.backend.application.model.LessonDetails;
-import com.escapa.backend.application.model.LessonReference;
-import com.escapa.backend.application.model.LessonSupplement;
-import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
-import com.escapa.backend.domain.content.ContentNotFoundException;
-import com.escapa.backend.domain.content.ContentType;
-import com.escapa.backend.domain.content.LessonAccessDeniedException;
-import com.escapa.backend.domain.content.LessonAccessDeniedException.Reason;
-import com.escapa.backend.domain.entity.Content;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -24,8 +14,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.model.Enrollment;
+import com.escapa.backend.application.model.LessonConcept;
+import com.escapa.backend.application.model.LessonDetails;
+import com.escapa.backend.application.model.LessonReference;
+import com.escapa.backend.application.model.LessonSupplement;
+import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
+import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.content.LessonAccessDeniedException;
+import com.escapa.backend.domain.content.LessonAccessDeniedException.Reason;
+import com.escapa.backend.domain.entity.Content;
 
 class OpenStudentLessonUseCaseTest {
 

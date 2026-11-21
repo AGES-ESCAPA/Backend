@@ -3,10 +3,11 @@ package com.escapa.backend.adapters.dto;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import com.escapa.backend.application.model.CertificateDetails;
 import com.escapa.backend.application.model.CertificateView;
 import com.escapa.backend.application.model.FormattedCertificate;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Tela de certificado digital (US-18). {@code certificate}, {@code student} e

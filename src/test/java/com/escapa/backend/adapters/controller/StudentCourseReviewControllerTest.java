@@ -1,11 +1,15 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
-import com.escapa.backend.adapters.security.AuthenticatedUser;
-import com.escapa.backend.application.model.Enrollment;
-import com.escapa.backend.application.usecase.InMemoryCourseReviewRepositoryPort;
-import com.escapa.backend.application.usecase.InMemoryEnrollmentRepositoryPort;
-import com.escapa.backend.application.usecase.RateCourseUseCase;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.Clock;
+import java.time.LocalDate;
+import java.util.UUID;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,15 +20,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.time.Clock;
-import java.time.LocalDate;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
+import com.escapa.backend.adapters.security.AuthenticatedUser;
+import com.escapa.backend.application.model.Enrollment;
+import com.escapa.backend.application.usecase.InMemoryCourseReviewRepositoryPort;
+import com.escapa.backend.application.usecase.InMemoryEnrollmentRepositoryPort;
+import com.escapa.backend.application.usecase.RateCourseUseCase;
 
 class StudentCourseReviewControllerTest {
 

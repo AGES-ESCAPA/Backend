@@ -1,5 +1,14 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CompanyEmployeeProgress;
 import com.escapa.backend.application.model.CompanyReportFigures;
@@ -8,14 +17,6 @@ import com.escapa.backend.application.model.CompanyReportFigures.MonthFigures;
 import com.escapa.backend.application.model.CompanyReportPeriod;
 import com.escapa.backend.application.model.EmployeeProgressStatus;
 import com.escapa.backend.application.port.CompanyReportRepositoryPort;
-import org.springframework.jdbc.core.simple.JdbcClient;
-
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.YearMonth;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
 
 /**
  * Leituras do relatório de progresso da equipe (US-35). Toda consulta parte de {@code users_company}

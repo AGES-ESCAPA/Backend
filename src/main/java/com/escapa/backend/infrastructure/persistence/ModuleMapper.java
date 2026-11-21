@@ -1,11 +1,11 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.util.ArrayList;
+
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-
-import java.util.ArrayList;
 
 public final class ModuleMapper {
 

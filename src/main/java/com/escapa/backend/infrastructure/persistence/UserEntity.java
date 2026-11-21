@@ -3,8 +3,6 @@ package com.escapa.backend.infrastructure.persistence;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,6 +15,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import com.escapa.backend.infrastructure.persistence.entity.enums.UserStatus;
 
 @Entity
 @Table(name = "users")

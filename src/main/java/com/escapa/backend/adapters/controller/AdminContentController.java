@@ -1,18 +1,8 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.dto.ContentResponse;
-import com.escapa.backend.adapters.dto.ContentRequest;
-import com.escapa.backend.adapters.dto.ReorderContentsRequest;
-import com.escapa.backend.adapters.security.AdminRequestGuard;
-import com.escapa.backend.adapters.security.AuthenticationContext;
-import com.escapa.backend.application.usecase.CreateContentUseCase;
-import com.escapa.backend.application.usecase.DeleteContentUseCase;
-import com.escapa.backend.application.usecase.GetContentUseCase;
-import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
-import com.escapa.backend.application.usecase.ReorderContentsUseCase;
-import com.escapa.backend.application.usecase.UpdateContentUseCase;
-import com.escapa.backend.domain.entity.Content;
+import java.util.List;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,8 +17,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.UUID;
+import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.ContentRequest;
+import com.escapa.backend.adapters.dto.ContentResponse;
+import com.escapa.backend.adapters.dto.ReorderContentsRequest;
+import com.escapa.backend.adapters.security.AdminRequestGuard;
+import com.escapa.backend.adapters.security.AuthenticationContext;
+import com.escapa.backend.application.usecase.CreateContentUseCase;
+import com.escapa.backend.application.usecase.DeleteContentUseCase;
+import com.escapa.backend.application.usecase.GetContentUseCase;
+import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
+import com.escapa.backend.application.usecase.ReorderContentsUseCase;
+import com.escapa.backend.application.usecase.UpdateContentUseCase;
+import com.escapa.backend.domain.entity.Content;
 
 @RestController
 @Tag(name = "Admin - Contents", description = "Lesson management for authenticated ADMIN users")

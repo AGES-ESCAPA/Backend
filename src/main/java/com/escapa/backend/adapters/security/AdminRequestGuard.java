@@ -1,9 +1,11 @@
 package com.escapa.backend.adapters.security;
 
+import java.util.UUID;
+
+import org.springframework.stereotype.Component;
+
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.domain.entity.User;
-import java.util.UUID;
-import org.springframework.stereotype.Component;
 
 /** Revalida no banco o ADMIN identificado pelo token da requisicao. */
 @Component

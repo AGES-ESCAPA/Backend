@@ -1,5 +1,20 @@
 package com.escapa.backend.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import com.escapa.backend.application.model.IssuedEmployeeInvite;
 import com.escapa.backend.domain.entity.Company;
 import com.escapa.backend.domain.entity.User;
@@ -7,20 +22,6 @@ import com.escapa.backend.domain.user.AccountInvite;
 import com.escapa.backend.domain.user.EmployeeNotPendingException;
 import com.escapa.backend.domain.user.UserNotFoundException;
 import com.escapa.backend.domain.user.UserStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.time.Clock;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ResendEmployeeInviteUseCaseTest {
 

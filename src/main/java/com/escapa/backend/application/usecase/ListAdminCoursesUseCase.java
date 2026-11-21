@@ -1,11 +1,11 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.Comparator;
+import java.util.List;
+
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
-
-import java.util.Comparator;
-import java.util.List;
 
 /**
  * Lista os cursos do painel administrativo: rascunhos e publicados,

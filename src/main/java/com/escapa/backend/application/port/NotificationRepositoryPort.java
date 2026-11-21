@@ -1,10 +1,10 @@
 package com.escapa.backend.application.port;
 
-import com.escapa.backend.application.model.UserNotification;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.model.UserNotification;
 
 public interface NotificationRepositoryPort {
 

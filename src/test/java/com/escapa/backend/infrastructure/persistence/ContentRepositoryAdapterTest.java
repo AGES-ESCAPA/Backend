@@ -1,5 +1,15 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.ContentResource;
@@ -7,15 +17,6 @@ import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ContentRepositoryAdapterTest extends PostgresIntegrationTest {
 

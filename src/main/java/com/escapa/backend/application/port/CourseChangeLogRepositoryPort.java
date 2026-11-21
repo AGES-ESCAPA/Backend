@@ -1,10 +1,10 @@
 package com.escapa.backend.application.port;
 
-import com.escapa.backend.application.dto.ChangeLogEntry;
-import com.escapa.backend.application.dto.PageResult;
-
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.dto.ChangeLogEntry;
+import com.escapa.backend.application.dto.PageResult;
 
 /**
  * Histórico de alterações de um curso (US-09). Trabalha só com tipos de

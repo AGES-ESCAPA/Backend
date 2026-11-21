@@ -1,11 +1,13 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.application.port.TokenProviderPort;
-import com.escapa.backend.application.port.UserRepositoryPort;
-import com.escapa.backend.domain.entity.User;
-import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
-import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.UUID;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +15,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.UUID;
-
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.escapa.backend.application.port.TokenProviderPort;
+import com.escapa.backend.application.port.UserRepositoryPort;
+import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
+import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
+import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 
 @AutoConfigureMockMvc
 class CompanyCourseControllerTest extends PostgresIntegrationTest {

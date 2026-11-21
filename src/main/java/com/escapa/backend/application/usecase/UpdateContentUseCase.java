@@ -1,18 +1,18 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.LessonNotificationPort;
-import com.escapa.backend.domain.content.ContentPendingDraft;
 import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.content.ContentPendingDraft;
 import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.content.ContentTypeRules;
 import com.escapa.backend.domain.entity.Content;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Edita uma aula. Em curso publicado, a versão que o aluno lê só muda na

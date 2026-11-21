@@ -1,20 +1,22 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.domain.content.ContentResource;
-import com.escapa.backend.domain.content.ContentType;
-import com.escapa.backend.domain.entity.Content;
-import com.escapa.backend.domain.module.ModuleNotFoundException;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.content.ContentResource;
+import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.entity.Content;
+import com.escapa.backend.domain.entity.Module;
+import com.escapa.backend.domain.module.ModuleNotFoundException;
 
 class CreateContentUseCaseTest {
 
@@ -138,7 +140,9 @@ class CreateContentUseCaseTest {
 
     @Test
     void shouldKeepNewPublishedContentUnreleasedAndAcceptNullResources() {
-        moduleRepository.findById(moduleId).orElseThrow().setCoursePublished(true);
+        final Module publishedModule = moduleRepository.findById(moduleId).orElseThrow();
+        publishedModule.setCoursePublished(true);
+        moduleRepository.save(publishedModule);
 
         final Content content = useCase.execute(
                 moduleId, "Aula nova", ContentType.TEXT, null, null, "Texto", null, null);

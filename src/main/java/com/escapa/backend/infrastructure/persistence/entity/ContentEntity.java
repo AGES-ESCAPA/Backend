@@ -1,6 +1,8 @@
 package com.escapa.backend.infrastructure.persistence.entity;
 
-import com.escapa.backend.domain.content.ContentType;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,8 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
+import com.escapa.backend.domain.content.ContentType;
 
 @Entity
 @Table(name = "content")

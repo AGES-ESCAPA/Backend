@@ -1,15 +1,16 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.escapa.backend.application.model.LessonConcept;
 import com.escapa.backend.application.model.LessonReference;
 import com.escapa.backend.application.model.LessonSupplement;
 import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Repository
 public class LessonSupplementRepositoryAdapter implements LessonSupplementRepositoryPort {

@@ -1,10 +1,11 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.domain.entity.User;
-import com.escapa.backend.domain.user.UserStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.domain.user.UserStatus;
 
 class UserResponseTest {
 

@@ -1,12 +1,12 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.model.CompanyEmployeeCounts;
 import com.escapa.backend.application.model.CompanySeatsSummary;
 import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
 import com.escapa.backend.application.port.CompanySeatsPort;
 import com.escapa.backend.domain.company.CompanyNotFoundException;
-
-import java.util.UUID;
 
 /**
  * Resumo das vagas contratadas e em uso da empresa (US-30). A empresa é sempre a do token; nenhuma

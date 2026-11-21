@@ -1,31 +1,36 @@
 package com.escapa.backend.infrastructure.persistence.course;
 
-import com.escapa.backend.domain.course.CourseStatus;
-import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
+import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
+import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
+
 class CourseMapperTest {
 
     @Test
-    void shouldHandleNullInputsWithoutChangingExistingValues() {
+    void shouldReturnNullWhenMappingNullInputs() {
+        assertNull(CourseMapper.toSummary(null));
+        assertNull(CourseMapper.toDomain(null));
+    }
+
+    @Test
+    void shouldKeepExistingValuesWhenApplyInputsAreNull() {
         final CourseEntity entity = new CourseEntity();
         entity.setTitle("Existing title");
         final Course course = new Course();
         course.setTitle("Domain title");
 
-        assertNull(CourseMapper.toSummary(null));
-        assertNull(CourseMapper.toDomain(null));
         CourseMapper.applyToEntity(null, entity);
         CourseMapper.applyToEntity(course, null);
 

@@ -1,14 +1,14 @@
 package com.escapa.backend.adapters.dto;
 
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import com.escapa.backend.application.model.LessonConcept;
 import com.escapa.backend.application.model.LessonDetails;
 import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
-
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Aula para o player e o cabecalho da Sala de Aula. {@code description} ja vem

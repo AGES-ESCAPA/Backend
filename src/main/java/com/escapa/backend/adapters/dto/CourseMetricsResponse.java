@@ -1,10 +1,10 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.model.CourseMetrics;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.model.CourseMetrics;
 
 public record CourseMetricsResponse(
         CourseRankingResponse mostAccessedCourse,

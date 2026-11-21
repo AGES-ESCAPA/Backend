@@ -1,5 +1,28 @@
 package com.escapa.backend.adapters.controller;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
 import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
 import com.escapa.backend.adapters.security.AuthenticatedUser;
 import com.escapa.backend.application.dto.CourseSummary;
@@ -15,35 +38,13 @@ import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
-import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
 import com.escapa.backend.application.usecase.InMemoryEnrollmentProgressRepositoryPort;
 import com.escapa.backend.application.usecase.InMemoryLessonProgressRepositoryPort;
+import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.Module;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /** Mapeamento HTTP da US-11 (aula) e da US-13 (grade de aulas). */
 class StudentLessonControllerTest {

@@ -1,17 +1,8 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.dto.ModuleRequest;
-import com.escapa.backend.adapters.dto.ModuleResponse;
-import com.escapa.backend.adapters.dto.ReorderModulesRequest;
-import com.escapa.backend.adapters.security.AdminRequestGuard;
-import com.escapa.backend.adapters.security.AuthenticationContext;
-import com.escapa.backend.application.usecase.CreateModuleUseCase;
-import com.escapa.backend.application.usecase.DeleteModuleUseCase;
-import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
-import com.escapa.backend.application.usecase.ReorderModulesUseCase;
-import com.escapa.backend.application.usecase.UpdateModuleUseCase;
-import com.escapa.backend.domain.entity.Module;
+import java.util.List;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,8 +17,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.UUID;
+import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.ModuleRequest;
+import com.escapa.backend.adapters.dto.ModuleResponse;
+import com.escapa.backend.adapters.dto.ReorderModulesRequest;
+import com.escapa.backend.adapters.security.AdminRequestGuard;
+import com.escapa.backend.adapters.security.AuthenticationContext;
+import com.escapa.backend.application.usecase.CreateModuleUseCase;
+import com.escapa.backend.application.usecase.DeleteModuleUseCase;
+import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
+import com.escapa.backend.application.usecase.ReorderModulesUseCase;
+import com.escapa.backend.application.usecase.UpdateModuleUseCase;
+import com.escapa.backend.domain.entity.Module;
 
 /**
  * CRUD administrativo de modulos (US-06) para usuarios ADMIN autenticados.

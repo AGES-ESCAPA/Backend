@@ -1,13 +1,13 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.FormattedCertificate;
-import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
-import com.escapa.backend.domain.certificate.CertificateTheme;
-
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.escapa.backend.application.model.FormattedCertificate;
+import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
+import com.escapa.backend.domain.certificate.CertificateTheme;
 
 /**
  * Nao chama nenhum navegador: devolve bytes previsiveis e conta as chamadas.

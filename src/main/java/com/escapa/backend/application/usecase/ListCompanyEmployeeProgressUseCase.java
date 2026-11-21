@@ -1,12 +1,12 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CompanyEmployeeProgress;
 import com.escapa.backend.application.model.EmployeeProgressStatus;
 import com.escapa.backend.application.port.CompanyReportRepositoryPort;
 import com.escapa.backend.domain.company.CompanyNotFoundException;
-
-import java.util.UUID;
 
 /**
  * Progresso de cada colaborador em cada curso da empresa (US-35): uma linha por colaborador e curso,

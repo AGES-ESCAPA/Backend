@@ -1,22 +1,23 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.port.LessonProgressRepositoryPort;
-import com.escapa.backend.domain.content.ContentType;
-import com.escapa.backend.domain.entity.Content;
-import com.escapa.backend.application.port.ContentRepositoryPort;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import com.escapa.backend.infrastructure.persistence.entity.UserContentProgressEntity;
-import com.escapa.backend.infrastructure.persistence.entity.UserContentProgressId;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.escapa.backend.application.port.ContentRepositoryPort;
+import com.escapa.backend.application.port.LessonProgressRepositoryPort;
+import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.entity.Content;
+import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
+import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
+import com.escapa.backend.infrastructure.persistence.entity.UserContentProgressEntity;
+import com.escapa.backend.infrastructure.persistence.entity.UserContentProgressId;
 
 class LessonProgressRepositoryAdapterTest extends PostgresIntegrationTest {
 

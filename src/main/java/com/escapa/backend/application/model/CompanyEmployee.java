@@ -1,8 +1,8 @@
 package com.escapa.backend.application.model;
 
-import com.escapa.backend.domain.user.UserStatus;
-
 import java.util.UUID;
+
+import com.escapa.backend.domain.user.UserStatus;
 
 /**
  * Colaborador vinculado a uma empresa, como aparece na Gestão de Colaboradores (US-30).

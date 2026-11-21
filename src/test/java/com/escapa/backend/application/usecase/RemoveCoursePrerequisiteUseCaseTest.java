@@ -1,17 +1,18 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.domain.entity.User;
-import com.escapa.backend.domain.course.CourseStatus;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.domain.entity.User;
 
 class RemoveCoursePrerequisiteUseCaseTest {
 
@@ -33,6 +34,8 @@ class RemoveCoursePrerequisiteUseCaseTest {
         assertFalse(prerequisiteRepository.existsByCourseIdAndPrerequisiteCourseId(
                 course.getId(), prerequisite.getId()));
         assertEquals(1, changeLogRepository.entriesFor(course.getId()).size());
+        assertEquals("Pré-requisito removido.",
+                changeLogRepository.entriesFor(course.getId()).get(0).description());
     }
 
     @Test
@@ -82,8 +85,9 @@ class RemoveCoursePrerequisiteUseCaseTest {
                 courseRepository, new InMemoryCoursePrerequisiteRepositoryPort(),
                 new InMemoryCourseChangeLogRepositoryPort());
 
-        assertThrows(IllegalArgumentException.class,
+        final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> useCase.execute(course.getId(), UUID.randomUUID(), null));
+        assertEquals("Pré-requisito não encontrado.", exception.getMessage());
     }
 
     private static User adminUser() {

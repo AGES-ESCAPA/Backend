@@ -1,8 +1,8 @@
 package com.escapa.backend.adapters.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.math.BigDecimal;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Price of one corporate seat, used to show the total before the purchase")
 public record SeatPriceResponse(

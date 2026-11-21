@@ -1,5 +1,9 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
 import com.escapa.backend.application.course.PublishedCourseDrafts;
 import com.escapa.backend.application.dto.ChangeLogEntry;
 import com.escapa.backend.application.model.CourseRules;
@@ -9,10 +13,6 @@ import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CoursePendingDraft;
 import com.escapa.backend.domain.entity.Course;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 public class GetCourseRulesUseCase {
 

@@ -1,12 +1,12 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.CourseReviewRepositoryPort;
-import com.escapa.backend.application.port.EnrollmentRepositoryPort;
-import com.escapa.backend.domain.course.CourseReviewNotAllowedException;
-
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.escapa.backend.application.port.CourseReviewRepositoryPort;
+import com.escapa.backend.application.port.EnrollmentRepositoryPort;
+import com.escapa.backend.domain.course.CourseReviewNotAllowedException;
 
 /**
  * Registra a avaliacao (1 a 5 estrelas) que o aluno da a um curso que concluiu.

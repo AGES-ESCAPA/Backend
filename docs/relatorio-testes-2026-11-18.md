@@ -28,7 +28,7 @@ antes da fase `clean`.
 
 ## Cobertura JaCoCo
 
-O relatório final está em [`target/site/jacoco/index.html`](../target/site/jacoco/index.html).
+O relatório JaCoCo é gerado em `target/site/jacoco/index.html` ao rodar `mvn test` ou `mvn verify`. Esse caminho é artefato de build e não faz parte do repositório.
 
 | Métrica | Cobertos / total | Cobertura |
 |---|---:|---:|
@@ -44,8 +44,8 @@ e condições compostas); por isso, cobrir uma linha não significa necessariame
 seus resultados.
 
 O relatório mede as classes de produção analisadas pelo JaCoCo. A suíte padrão exclui os testes
-PDF; execute também o comando PDF acima para agregar sua execução. A configuração atual gera o
-relatório, mas não faz o Maven falhar automaticamente se a cobertura cair abaixo das metas.
+PDF; execute também o comando PDF acima para agregar sua execução. `jacoco:check` falha o build
+(`haltOnFailure`) se a cobertura de linhas cair abaixo de 95% ou a de branches abaixo de 90%.
 
 ## Tipos de teste existentes
 

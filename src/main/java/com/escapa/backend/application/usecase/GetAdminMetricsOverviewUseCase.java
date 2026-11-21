@@ -1,8 +1,5 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.AdminMetricsOverview;
-import com.escapa.backend.application.model.EnrollmentCompletionCounts;
-import com.escapa.backend.application.port.AdminMetricsRepositoryPort;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
@@ -10,6 +7,10 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.escapa.backend.application.model.AdminMetricsOverview;
+import com.escapa.backend.application.model.EnrollmentCompletionCounts;
+import com.escapa.backend.application.port.AdminMetricsRepositoryPort;
 
 public class GetAdminMetricsOverviewUseCase {
     private static final int MONTHS_IN_SERIES = 6;

@@ -1,13 +1,7 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.dto.OrderActionRequest;
-import com.escapa.backend.adapters.dto.OrderStatusResponse;
-import com.escapa.backend.adapters.security.AdminRequestGuard;
-import com.escapa.backend.adapters.security.AuthenticationContext;
-import com.escapa.backend.application.usecase.CancelOrderUseCase;
-import com.escapa.backend.application.usecase.RefundOrderUseCase;
-import com.escapa.backend.domain.entity.User;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,7 +12,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
+import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.OrderActionRequest;
+import com.escapa.backend.adapters.dto.OrderStatusResponse;
+import com.escapa.backend.adapters.security.AdminRequestGuard;
+import com.escapa.backend.adapters.security.AuthenticationContext;
+import com.escapa.backend.application.usecase.CancelOrderUseCase;
+import com.escapa.backend.application.usecase.RefundOrderUseCase;
+import com.escapa.backend.domain.entity.User;
 
 /**
  * Cancelamento e reembolso de pedidos (US-28). Exigem token de um ADMIN, no mesmo modelo

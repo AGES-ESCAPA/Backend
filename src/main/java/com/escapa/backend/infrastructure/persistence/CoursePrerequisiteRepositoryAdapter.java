@@ -1,14 +1,15 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.util.List;
+import java.util.UUID;
+
+import jakarta.persistence.EntityManager;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CoursePrerequisiteId;
-import jakarta.persistence.EntityManager;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.UUID;
 
 public class CoursePrerequisiteRepositoryAdapter implements CoursePrerequisiteRepositoryPort {
 

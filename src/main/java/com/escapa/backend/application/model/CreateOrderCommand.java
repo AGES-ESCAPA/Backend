@@ -1,9 +1,9 @@
 package com.escapa.backend.application.model;
 
+import java.util.UUID;
+
 import com.escapa.backend.domain.order.OrderItemType;
 import com.escapa.backend.domain.order.PaymentMethod;
-
-import java.util.UUID;
 
 /**
  * Pedido de compra pedido pelo usuário autenticado. Não tem valor nem dados de cartão: o valor é

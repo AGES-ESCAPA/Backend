@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,9 +16,6 @@ import org.junit.jupiter.api.Test;
 import com.escapa.backend.domain.entity.Company;
 import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.infrastructure.validation.RegistrationContactValidator;
-
-import jakarta.validation.Validation;
-import jakarta.validation.ValidatorFactory;
 
 class RegisterCompanyUseCaseTest {
 

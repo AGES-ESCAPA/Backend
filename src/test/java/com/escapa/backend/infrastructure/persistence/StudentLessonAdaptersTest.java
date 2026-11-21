@@ -1,5 +1,20 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.model.LessonDetails;
 import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
@@ -14,20 +29,6 @@ import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserCourseId;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
-
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StudentLessonAdaptersTest extends PostgresIntegrationTest {
 
@@ -124,7 +125,7 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
     }
 
     @Test
-    void shouldUsePublishedOrdersAndHideUnreleasedLessons() {
+    void shouldExposePublishedOrdersForVisibleLessons() {
         final CourseEntity publishedCourse = givenCourse(false);
         publishedCourse.setStatus(CourseStatus.PUBLISHED);
         courseJpaRepository.save(publishedCourse);
@@ -140,15 +141,22 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
 
         assertEquals(7, visible.content().getOrder());
         assertEquals(5, visible.moduleOrder());
+    }
 
+    @Test
+    void shouldHideLessonWithoutPublishedOrder() {
         final CourseEntity hiddenCourse = givenCourse(false);
         hiddenCourse.setStatus(CourseStatus.PUBLISHED);
         courseJpaRepository.save(hiddenCourse);
         final ModuleEntity hiddenModule = givenModule(hiddenCourse, "Módulo oculto", 1);
         final ContentEntity hiddenLesson = givenContent(hiddenModule, "Aula não publicada", 1);
+
         assertTrue(lessonRepositoryPort
                 .findByCourseIdAndId(hiddenCourse.getId(), hiddenLesson.getId()).isEmpty());
+    }
 
+    @Test
+    void shouldHideLessonWhoseModuleIsNotPublished() {
         final CourseEntity unpublishedModuleCourse = givenCourse(false);
         unpublishedModuleCourse.setStatus(CourseStatus.PUBLISHED);
         courseJpaRepository.save(unpublishedModuleCourse);
@@ -157,6 +165,7 @@ class StudentLessonAdaptersTest extends PostgresIntegrationTest {
                 givenContent(unpublishedModule, "Aula de módulo oculto", 1);
         lessonInUnpublishedModule.setPublishedOrder(1);
         contentJpaRepository.save(lessonInUnpublishedModule);
+
         assertTrue(lessonRepositoryPort.findByCourseIdAndId(
                 unpublishedModuleCourse.getId(), lessonInUnpublishedModule.getId()).isEmpty());
     }

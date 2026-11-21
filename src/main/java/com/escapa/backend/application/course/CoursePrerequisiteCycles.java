@@ -1,15 +1,15 @@
 package com.escapa.backend.application.course;
 
-import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
-import com.escapa.backend.application.port.CourseRepositoryPort;
-import com.escapa.backend.domain.course.CoursePendingDraft;
-import com.escapa.backend.domain.entity.Course;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
+import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.domain.course.CoursePendingDraft;
+import com.escapa.backend.domain.entity.Course;
 
 /**
  * Detecta ciclos na grafo de pré-requisitos considerando rascunhos de cursos publicados.

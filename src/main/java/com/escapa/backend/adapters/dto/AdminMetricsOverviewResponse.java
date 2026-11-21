@@ -1,9 +1,10 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.model.AdminMetricsOverview;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.model.AdminMetricsOverview;
 
 public record AdminMetricsOverviewResponse(long activeStudents, long partnerCompanies, BigDecimal averageCompletionRate,
         List<MonthlyActiveStudentsResponse> activeStudentsByMonth, BigDecimal activeStudentsChange,

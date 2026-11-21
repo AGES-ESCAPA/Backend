@@ -1,24 +1,25 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.domain.order.OrderStatus;
-import com.escapa.backend.domain.order.OrderType;
-import com.escapa.backend.domain.order.PaymentMethod;
-import com.escapa.backend.infrastructure.persistence.entity.OrderEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
-import jakarta.persistence.LockModeType;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.escapa.backend.domain.order.OrderStatus;
+import com.escapa.backend.domain.order.OrderType;
+import com.escapa.backend.domain.order.PaymentMethod;
+import com.escapa.backend.infrastructure.persistence.entity.OrderEntity;
 
 public interface OrderJpaRepository extends JpaRepository<OrderEntity, UUID> {
 

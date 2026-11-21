@@ -1,8 +1,9 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.usecase.CreateUserUseCase;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
+import com.escapa.backend.application.usecase.CreateUserUseCase;
 
 public record CreateInvitePasswordRequest(
         @NotBlank(message = "Password is required")

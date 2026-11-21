@@ -1,9 +1,9 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.TokenProviderPort;
-import com.escapa.backend.application.model.TokenClaims;
-
 import java.util.UUID;
+
+import com.escapa.backend.application.model.TokenClaims;
+import com.escapa.backend.application.port.TokenProviderPort;
 
 final class FakeTokenProviderPort implements TokenProviderPort {
 

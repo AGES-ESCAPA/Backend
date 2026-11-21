@@ -1,20 +1,21 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.escapa.backend.application.port.CurriculumReleasePort;
 import com.escapa.backend.domain.content.ContentPendingDraft;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 @Transactional
 class CurriculumReleaseAdapterTest extends PostgresIntegrationTest {

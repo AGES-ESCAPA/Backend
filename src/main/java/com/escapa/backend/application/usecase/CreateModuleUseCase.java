@@ -1,13 +1,13 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.Module;
-
-import java.util.UUID;
 
 /**
  * Cria o modulo sempre no fim da lista do curso: {@code order} nao vem do cliente,

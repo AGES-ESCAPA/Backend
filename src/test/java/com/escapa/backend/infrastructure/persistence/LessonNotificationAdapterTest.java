@@ -1,5 +1,16 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.escapa.backend.application.model.UserNotification;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.LessonNotificationPort;
@@ -10,16 +21,6 @@ import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserContentProgressEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserContentProgressId;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LessonNotificationAdapterTest extends PostgresIntegrationTest {
 

@@ -1,15 +1,16 @@
 package com.escapa.backend.infrastructure.persistence.course;
 
-import com.escapa.backend.domain.course.CoursePendingDraft;
-import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.course.CoursePendingDraft;
+import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 
 class CourseMapperPendingDraftTest {
 

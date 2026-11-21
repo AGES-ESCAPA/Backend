@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,9 +19,6 @@ import com.escapa.backend.adapters.dto.AvatarResponse;
 import com.escapa.backend.adapters.security.AuthenticationContext;
 import com.escapa.backend.application.usecase.UploadAvatarUseCase;
 import com.escapa.backend.domain.entity.User;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @Tag(name = "Me - Avatar", description = "Profile photo of the authenticated user")

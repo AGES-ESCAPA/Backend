@@ -1,11 +1,11 @@
 package com.escapa.backend.adapters.dto.course;
 
-import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.domain.course.CourseStatus;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Course;
 
 public record CourseResponse(
         UUID id,

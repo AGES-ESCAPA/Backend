@@ -1,8 +1,16 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.application.port.OrderAccessPort;
-import com.escapa.backend.application.port.TokenProviderPort;
-import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,16 +22,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.doThrow;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.escapa.backend.application.port.OrderAccessPort;
+import com.escapa.backend.application.port.TokenProviderPort;
+import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
 
 /**
  * Uma falha em qualquer etapa desfaz o pedido e a liberação de acesso. A liberação é forçada a falhar

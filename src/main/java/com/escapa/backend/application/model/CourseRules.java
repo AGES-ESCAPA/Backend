@@ -1,9 +1,9 @@
 package com.escapa.backend.application.model;
 
-import com.escapa.backend.application.dto.ChangeLogEntry;
-
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.dto.ChangeLogEntry;
 
 /**
  * Regras de progressão de um curso (US-09): se exige avanço linear, se o prazo de

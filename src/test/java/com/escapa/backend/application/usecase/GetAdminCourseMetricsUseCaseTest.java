@@ -1,12 +1,8 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.CourseMetrics;
-import com.escapa.backend.application.model.CourseMetrics.CategoryShare;
-import com.escapa.backend.application.model.CourseMetrics.CourseRanking;
-import com.escapa.backend.application.model.Enrollment;
-import com.escapa.backend.domain.course.CourseStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,9 +10,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.model.CourseMetrics;
+import com.escapa.backend.application.model.CourseMetrics.CategoryShare;
+import com.escapa.backend.application.model.CourseMetrics.CourseRanking;
+import com.escapa.backend.application.model.Enrollment;
+import com.escapa.backend.domain.course.CourseStatus;
 
 class GetAdminCourseMetricsUseCaseTest {
 

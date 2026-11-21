@@ -1,19 +1,20 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.StudentCourseCurriculum;
-import com.escapa.backend.domain.content.ContentType;
-import com.escapa.backend.domain.content.LessonStatus;
-import com.escapa.backend.domain.entity.Content;
-import com.escapa.backend.domain.entity.Module;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.model.StudentCourseCurriculum;
+import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.content.LessonStatus;
+import com.escapa.backend.domain.entity.Content;
+import com.escapa.backend.domain.entity.Module;
 
 class LessonStatusCalculatorTest {
 

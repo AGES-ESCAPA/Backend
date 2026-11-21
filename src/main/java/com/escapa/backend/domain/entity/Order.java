@@ -1,22 +1,23 @@
 package com.escapa.backend.domain.entity;
 
-import com.escapa.backend.domain.order.InvalidOrderTransitionException;
-import com.escapa.backend.domain.order.OrderItemType;
-import com.escapa.backend.domain.order.OrderStatus;
-import com.escapa.backend.domain.order.OrderStatusChange;
-import com.escapa.backend.domain.order.OrderType;
-import com.escapa.backend.domain.order.PaymentMethod;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import com.escapa.backend.domain.order.InvalidOrderTransitionException;
+import com.escapa.backend.domain.order.OrderItemType;
+import com.escapa.backend.domain.order.OrderStatus;
+import com.escapa.backend.domain.order.OrderStatusChange;
+import com.escapa.backend.domain.order.OrderType;
+import com.escapa.backend.domain.order.PaymentMethod;
 
 /**
  * Compra de um curso ou de assentos corporativos.

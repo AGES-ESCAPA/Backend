@@ -1,7 +1,14 @@
 package com.escapa.backend.infrastructure.pdf;
 
-import com.escapa.backend.domain.certificate.CertificateGenerationException;
-import com.escapa.backend.domain.certificate.CertificateGenerationUnavailableException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.regex.Pattern;
+
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
@@ -18,14 +25,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.regex.Pattern;
+import com.escapa.backend.domain.certificate.CertificateGenerationException;
+import com.escapa.backend.domain.certificate.CertificateGenerationUnavailableException;
 
 /**
  * Imprime HTML em PDF com o Chromium do Playwright.

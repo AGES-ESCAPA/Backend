@@ -1,18 +1,19 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.domain.course.CourseNotFoundException;
-import com.escapa.backend.domain.user.UserNotFoundException;
-import com.escapa.backend.domain.course.CourseStatus;
-import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.domain.entity.User;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.domain.user.UserNotFoundException;
 
 class UpdateCourseUseCaseTest {
 
@@ -66,7 +67,7 @@ class UpdateCourseUseCaseTest {
                 new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
 
         final Course updated = useCase.execute(
-                course.getId(), "  Novo titulo  ", "Resumo", "Descricao", "   ", "video",
+                course.getId(), "  Novo titulo  ", "Resumo", "Descricao", "   ", " video ",
                 admin.getId(), "Turismo", "AVANCADO", 60, 90, 120.0,
                 List.of("Objetivo"), false, true);
 
@@ -84,6 +85,25 @@ class UpdateCourseUseCaseTest {
         assertEquals(List.of("Objetivo"), updated.getLearningObjectives());
         assertEquals(false, updated.getRequireSequentialProgress());
         assertEquals(true, updated.getEnforceDeadlineBlock());
+    }
+
+    @Test
+    void shouldClearBlankTeaser() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
+        final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
+        final Course course = courseRepository.save(new Course(
+                "Titulo", null, null, null, "https://example.com/old.mp4", null, null, null,
+                null, null, null, List.of(), true, false, admin));
+        final UpdateCourseUseCase useCase =
+                new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
+
+        final Course updated = useCase.execute(
+                course.getId(), null, null, null, null, "   ", null, null,
+                null, null, null, null, null, null, null);
+
+        assertNull(updated.getTeaserVideoUrl());
+        assertNull(courseRepository.findById(course.getId()).orElseThrow().getTeaserVideoUrl());
     }
 
     @Test

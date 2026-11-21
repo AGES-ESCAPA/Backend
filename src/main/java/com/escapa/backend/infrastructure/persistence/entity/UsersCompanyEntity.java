@@ -1,6 +1,5 @@
 package com.escapa.backend.infrastructure.persistence.entity;
 
-import com.escapa.backend.infrastructure.persistence.UserEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -12,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import com.escapa.backend.infrastructure.persistence.UserEntity;
 
 @Entity
 @Table(name = "users_company")

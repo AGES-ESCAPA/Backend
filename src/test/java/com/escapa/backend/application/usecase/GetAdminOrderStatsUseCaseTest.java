@@ -1,20 +1,21 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.OrderStats;
-import com.escapa.backend.application.model.OrderSummary;
-import com.escapa.backend.domain.order.OrderStatus;
-import com.escapa.backend.domain.order.OrderType;
-import com.escapa.backend.domain.order.PaymentMethod;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.model.OrderStats;
+import com.escapa.backend.application.model.OrderSummary;
+import com.escapa.backend.domain.order.OrderStatus;
+import com.escapa.backend.domain.order.OrderType;
+import com.escapa.backend.domain.order.PaymentMethod;
 
 class GetAdminOrderStatsUseCaseTest {
 

@@ -1,19 +1,20 @@
 package com.escapa.backend.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
 import com.escapa.backend.application.model.CourseRules;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CoursePendingDraft;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GetCourseRulesUseCaseTest {
 
@@ -69,6 +70,7 @@ class GetCourseRulesUseCaseTest {
         course.setPendingDraft(CoursePendingDraft.fromPublished(
                 course, List.of(prerequisite.getId(), missingId))
                 .withRules(false, true));
+        courseRepository.save(course);
 
         final GetCourseRulesUseCase useCase =
                 new GetCourseRulesUseCase(courseRepository, prerequisiteRepository, changeLogRepository);
@@ -89,6 +91,7 @@ class GetCourseRulesUseCaseTest {
         course.setPendingDraft(new CoursePendingDraft(
                 null, null, null, null, null, null, null, null, null, null, null,
                 null, null, null, null));
+        courseRepository.save(course);
         final GetCourseRulesUseCase useCase = new GetCourseRulesUseCase(
                 courseRepository, new InMemoryCoursePrerequisiteRepositoryPort(),
                 new InMemoryCourseChangeLogRepositoryPort());

@@ -1,10 +1,11 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.dto.PageResult;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.function.Function;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.escapa.backend.application.dto.PageResult;
 
 /**
  * Envelope genérico para respostas paginadas.

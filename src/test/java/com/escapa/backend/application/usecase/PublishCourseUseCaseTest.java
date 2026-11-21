@@ -1,5 +1,17 @@
 package com.escapa.backend.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.port.CurriculumReleasePort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CoursePendingDraft;
 import com.escapa.backend.domain.course.CourseStatus;
@@ -9,17 +21,6 @@ import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserNotFoundException;
-import com.escapa.backend.application.port.CurriculumReleasePort;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PublishCourseUseCaseTest {
 
@@ -41,6 +42,8 @@ class PublishCourseUseCaseTest {
         assertEquals(1, published.getMajorVersion());
         assertEquals(0, published.getMinorVersion());
         assertEquals(1, changeLogRepository.entriesFor(course.getId()).size());
+        assertEquals("Versão 1.0 publicada.",
+                changeLogRepository.entriesFor(course.getId()).get(0).description());
         assertTrue(notificationPort.notifiedCourseIds().isEmpty());
     }
 
@@ -214,7 +217,7 @@ class PublishCourseUseCaseTest {
     }
 
     @Test
-    void shouldResolveChangedDraftInstructorAndRejectUnknownInstructor() {
+    void shouldResolveChangedDraftInstructor() {
         final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
         final InMemoryUserRepositoryPort users = new InMemoryUserRepositoryPort();
         final User originalInstructor = users.save(new User("Original", "original@example.com", "hash", "ADMIN"));
@@ -233,13 +236,24 @@ class PublishCourseUseCaseTest {
         final Course published = useCase.execute(course.getId(), false, originalInstructor);
 
         assertEquals(nextInstructor.getId(), published.getInstructor().getId());
-        final Course invalidCourse = completeCourse(originalInstructor);
+    }
+
+    @Test
+    void shouldRejectUnknownDraftInstructor() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort users = new InMemoryUserRepositoryPort();
+        final User originalInstructor = users.save(new User("Original", "original@example.com", "hash", "ADMIN"));
+        final Course invalidCourse = courseRepository.save(completeCourse(originalInstructor));
         invalidCourse.setStatus(CourseStatus.PUBLISHED);
         invalidCourse.setMajorVersion(1);
         invalidCourse.setPendingDraft(CoursePendingDraft.fromPublished(invalidCourse, List.of())
                 .applyUpdate(null, null, null, null, null, UUID.randomUUID(),
                         null, null, null, null, null, null, null, null));
         courseRepository.save(invalidCourse);
+        final PublishCourseUseCase useCase = new PublishCourseUseCase(
+                courseRepository, new InMemoryCourseChangeLogRepositoryPort(), new InMemoryCourseNotificationPort(),
+                users, new InMemoryCoursePrerequisiteRepositoryPort());
+
         assertThrows(UserNotFoundException.class, () -> useCase.execute(
                 invalidCourse.getId(), false, originalInstructor));
     }
@@ -261,10 +275,10 @@ class PublishCourseUseCaseTest {
         final CourseValidationException exception = assertThrows(
                 CourseValidationException.class, () -> useCase.execute(course.getId(), false, null));
 
-        assertTrue(exception.getMissingFields().containsAll(List.of(
+        assertEquals(List.of(
                 "title", "description", "shortDescription", "instructorId", "category",
                 "level", "price", "durationTime", "deadline",
-                "modules (at least one module with content is required)")));
+                "modules (at least one module with content is required)"), exception.getMissingFields());
     }
 
     @Test

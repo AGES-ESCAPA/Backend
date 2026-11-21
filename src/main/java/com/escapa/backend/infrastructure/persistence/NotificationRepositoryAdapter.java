@@ -1,14 +1,15 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.model.UserNotification;
-import com.escapa.backend.application.port.NotificationRepositoryPort;
-import com.escapa.backend.infrastructure.persistence.entity.NotificationEntity;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.escapa.backend.application.model.UserNotification;
+import com.escapa.backend.application.port.NotificationRepositoryPort;
+import com.escapa.backend.infrastructure.persistence.entity.NotificationEntity;
 
 public class NotificationRepositoryAdapter implements NotificationRepositoryPort {
 

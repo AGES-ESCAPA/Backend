@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.stream.Stream;
 
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,9 +22,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.infrastructure.validation.RegistrationContactValidator;
-
-import jakarta.validation.Validation;
-import jakarta.validation.ValidatorFactory;
 
 class RegisterStudentUseCaseTest {
 

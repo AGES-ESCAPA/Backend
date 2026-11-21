@@ -1,14 +1,15 @@
 package com.escapa.backend.adapters.dto;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import com.escapa.backend.domain.entity.Order;
 import com.escapa.backend.domain.order.OrderItemType;
 import com.escapa.backend.domain.order.OrderStatus;
 import com.escapa.backend.domain.order.PaymentMethod;
-import io.swagger.v3.oas.annotations.media.Schema;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Schema(description = "A registered purchase")
 public record OrderResponse(

@@ -1,15 +1,16 @@
 package com.escapa.backend.domain.entity;
 
-import com.escapa.backend.domain.order.InvalidOrderTransitionException;
-import com.escapa.backend.domain.order.OrderStatus;
-import com.escapa.backend.domain.order.OrderStatusChange;
-import org.junit.jupiter.api.Test;
-
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.order.InvalidOrderTransitionException;
+import com.escapa.backend.domain.order.OrderStatus;
+import com.escapa.backend.domain.order.OrderStatusChange;
 
 /** Fluxo APPROVED -> CANCELLED -> REFUNDED do pedido (US-28). */
 class OrderTest {

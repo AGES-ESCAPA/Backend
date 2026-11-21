@@ -1,19 +1,21 @@
 package com.escapa.backend.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CoursePendingDraft;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UpdateProgressRulesUseCaseTest {
 
@@ -70,6 +72,8 @@ class UpdateProgressRulesUseCaseTest {
         assertFalse(updated.getRequireSequentialProgress());
         assertTrue(updated.getEnforceDeadlineBlock());
         assertEquals(1, changeLogRepository.entriesFor(course.getId()).size());
+        assertEquals("Alteração nas regras de progressão.",
+                changeLogRepository.entriesFor(course.getId()).get(0).description());
     }
 
     @Test
@@ -78,10 +82,12 @@ class UpdateProgressRulesUseCaseTest {
         final InMemoryCourseChangeLogRepositoryPort changeLogRepository = new InMemoryCourseChangeLogRepositoryPort();
         final Course course = course(adminUser());
         course.setStatus(CourseStatus.PUBLISHED);
-        course.setPendingDraft(new CoursePendingDraft(
+        final CoursePendingDraft draftOriginal = new CoursePendingDraft(
                 null, null, null, null, null, null, null, null, null, null, null,
-                null, false, true, List.of()));
+                null, false, true, List.of());
+        course.setPendingDraft(draftOriginal);
         courseRepository.save(course);
+        final int savesBeforeAct = courseRepository.saveCount();
         final UpdateProgressRulesUseCase useCase =
                 new UpdateProgressRulesUseCase(courseRepository, changeLogRepository,
                         new InMemoryCoursePrerequisiteRepositoryPort());
@@ -89,8 +95,8 @@ class UpdateProgressRulesUseCaseTest {
         useCase.execute(course.getId(), false, true, null);
 
         final Course stored = courseRepository.findById(course.getId()).orElseThrow();
-        assertEquals(false, stored.getPendingDraft().requireSequentialProgress());
-        assertEquals(true, stored.getPendingDraft().enforceDeadlineBlock());
+        assertEquals(savesBeforeAct, courseRepository.saveCount());
+        assertSame(draftOriginal, stored.getPendingDraft());
         assertTrue(changeLogRepository.entriesFor(course.getId()).isEmpty());
     }
 

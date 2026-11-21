@@ -1,6 +1,8 @@
 package com.escapa.backend.infrastructure.persistence.entity;
 
-import com.escapa.backend.domain.order.OrderStatus;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,8 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
+import com.escapa.backend.domain.order.OrderStatus;
 
 /** Uma mudança de status de um pedido, para o histórico do detalhe do pedido. */
 @Entity

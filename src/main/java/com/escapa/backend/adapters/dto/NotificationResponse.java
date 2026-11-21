@@ -1,9 +1,9 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.model.UserNotification;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.escapa.backend.application.model.UserNotification;
 
 public record NotificationResponse(
         UUID id,

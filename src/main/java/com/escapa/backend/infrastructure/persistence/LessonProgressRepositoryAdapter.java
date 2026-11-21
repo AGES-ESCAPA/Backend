@@ -1,14 +1,15 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.port.LessonProgressRepositoryPort;
-import com.escapa.backend.infrastructure.persistence.entity.UserContentProgressEntity;
-import com.escapa.backend.infrastructure.persistence.entity.UserContentProgressId;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.escapa.backend.application.port.LessonProgressRepositoryPort;
+import com.escapa.backend.infrastructure.persistence.entity.UserContentProgressEntity;
+import com.escapa.backend.infrastructure.persistence.entity.UserContentProgressId;
 
 @Repository
 public class LessonProgressRepositoryAdapter implements LessonProgressRepositoryPort {

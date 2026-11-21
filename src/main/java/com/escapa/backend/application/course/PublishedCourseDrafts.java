@@ -1,12 +1,12 @@
 package com.escapa.backend.application.course;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.domain.course.CoursePendingDraft;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
-
-import java.util.UUID;
 
 /**
  * Curso publicado e o rascunho ainda não publicado convivem no mesmo registro:

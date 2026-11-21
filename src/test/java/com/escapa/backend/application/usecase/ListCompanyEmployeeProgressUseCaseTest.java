@@ -1,5 +1,15 @@
 package com.escapa.backend.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CompanyEmployeeProgress;
 import com.escapa.backend.application.model.CompanyReportFigures;
@@ -7,15 +17,6 @@ import com.escapa.backend.application.model.CompanyReportPeriod;
 import com.escapa.backend.application.model.EmployeeProgressStatus;
 import com.escapa.backend.application.port.CompanyReportRepositoryPort;
 import com.escapa.backend.domain.company.CompanyNotFoundException;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ListCompanyEmployeeProgressUseCaseTest {
 

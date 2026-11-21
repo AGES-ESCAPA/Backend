@@ -1,11 +1,12 @@
 package com.escapa.backend.infrastructure.storage;
 
-import com.escapa.backend.application.port.FileStoragePort;
+import java.io.InputStream;
+
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 
-import java.io.InputStream;
+import com.escapa.backend.application.port.FileStoragePort;
 
 public class MinioFileStorageAdapter implements FileStoragePort {
 

@@ -1,11 +1,11 @@
 package com.escapa.backend.application.course;
 
+import java.util.Comparator;
+import java.util.List;
+
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Module;
-
-import java.util.Comparator;
-import java.util.List;
 
 /**
  * Em curso publicado, módulos e aulas têm duas leituras. O construtor vê o

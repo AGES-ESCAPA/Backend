@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.sql.SQLException;
 
+import jakarta.persistence.PersistenceException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,8 +18,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.TransactionSystemException;
 
 import com.escapa.backend.domain.registration.DuplicateRegistrationException;
-
-import jakarta.persistence.PersistenceException;
 
 class RegularUserConflictTranslationTest {
 

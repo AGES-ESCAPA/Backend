@@ -1,12 +1,12 @@
 package com.escapa.backend.application.port;
 
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CompanyEmployee;
-import com.escapa.backend.application.model.CompanyEmployeeCounts;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CompanyEmployee;
+import com.escapa.backend.application.model.CompanyEmployeeCounts;
 
 /**
  * Colaboradores vinculados a uma empresa em {@code users_company} (US-30). Toda consulta é sempre

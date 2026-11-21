@@ -1,17 +1,18 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import jakarta.persistence.EntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 import com.escapa.backend.application.dto.ChangeLogEntry;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.infrastructure.persistence.entity.CourseChangeLogEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import jakarta.persistence.EntityManager;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 public class CourseChangeLogRepositoryAdapter implements CourseChangeLogRepositoryPort {
 

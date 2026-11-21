@@ -1,10 +1,10 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.CompanySeatsPort;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import com.escapa.backend.application.port.CompanySeatsPort;
 
 /** Assentos de empresas em memória: o total comprado e quantos colaboradores os ocupam. */
 public final class FakeCompanySeatsPort implements CompanySeatsPort {

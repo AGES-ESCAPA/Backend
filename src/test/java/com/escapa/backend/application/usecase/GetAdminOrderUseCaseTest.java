@@ -1,5 +1,18 @@
 package com.escapa.backend.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import com.escapa.backend.application.model.OrderDetails;
 import com.escapa.backend.domain.order.OrderItemType;
 import com.escapa.backend.domain.order.OrderNotFoundException;
@@ -7,18 +20,6 @@ import com.escapa.backend.domain.order.OrderStatus;
 import com.escapa.backend.domain.order.OrderStatusChange;
 import com.escapa.backend.domain.order.OrderType;
 import com.escapa.backend.domain.order.PaymentMethod;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class GetAdminOrderUseCaseTest {
 

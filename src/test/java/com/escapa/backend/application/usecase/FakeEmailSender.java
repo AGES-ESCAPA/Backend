@@ -1,9 +1,9 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.EmailSenderPort;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.escapa.backend.application.port.EmailSenderPort;
 
 /** Guarda os e-mails enviados; {@link #failWith} faz o próximo envio falhar. */
 public final class FakeEmailSender implements EmailSenderPort {

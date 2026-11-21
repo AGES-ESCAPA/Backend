@@ -1,16 +1,17 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.escapa.backend.application.port.CurriculumReleasePort;
 import com.escapa.backend.domain.content.ContentPendingDraft;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 @Repository
 public class CurriculumReleaseAdapter implements CurriculumReleasePort {

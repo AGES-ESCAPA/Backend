@@ -1,12 +1,5 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.AccountInviteResponse;
-import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.dto.CreateInvitePasswordRequest;
-import com.escapa.backend.adapters.dto.LoginResponse;
-import com.escapa.backend.application.usecase.CreateInvitePasswordUseCase;
-import com.escapa.backend.application.usecase.GetAccountInviteUseCase;
-import com.escapa.backend.application.usecase.LoginOutput;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -17,6 +10,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.escapa.backend.adapters.dto.AccountInviteResponse;
+import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.CreateInvitePasswordRequest;
+import com.escapa.backend.adapters.dto.LoginResponse;
+import com.escapa.backend.application.usecase.CreateInvitePasswordUseCase;
+import com.escapa.backend.application.usecase.GetAccountInviteUseCase;
+import com.escapa.backend.application.usecase.LoginOutput;
 
 @RestController
 @RequestMapping("/api/v1/auth/invites")

@@ -1,14 +1,15 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.domain.content.ContentType;
-import com.escapa.backend.domain.entity.Content;
-import com.escapa.backend.domain.entity.Module;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.entity.Content;
+import com.escapa.backend.domain.entity.Module;
 
 class ModuleResponseTest {
 

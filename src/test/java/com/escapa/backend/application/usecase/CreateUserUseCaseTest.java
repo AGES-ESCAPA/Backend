@@ -1,14 +1,20 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.UserRepositoryPort;
-import com.escapa.backend.domain.entity.User;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.stream.Stream;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import com.escapa.backend.application.port.UserRepositoryPort;
+import com.escapa.backend.domain.entity.User;
 
 class CreateUserUseCaseTest {
 
@@ -51,22 +57,26 @@ class CreateUserUseCaseTest {
         );
     }
 
-    @Test
-    void shouldRejectMissingAndMalformedRequiredFields() {
-        assertThrows(IllegalArgumentException.class,
-                () -> useCase.execute(null, "maria@email.com", "password123", "STUDENT"));
-        assertThrows(IllegalArgumentException.class,
-                () -> useCase.execute("Maria", null, "password123", "STUDENT"));
-        assertThrows(IllegalArgumentException.class,
-                () -> useCase.execute("Maria", "   ", "password123", "STUDENT"));
-        assertThrows(IllegalArgumentException.class,
-                () -> useCase.execute("Maria", "invalid-email", "password123", "STUDENT"));
-        assertThrows(IllegalArgumentException.class,
-                () -> useCase.execute("Maria", "maria@email.com", null, "STUDENT"));
-        assertThrows(IllegalArgumentException.class,
-                () -> useCase.execute("Maria", "maria@email.com", "password123", null));
-        assertThrows(IllegalArgumentException.class,
-                () -> useCase.execute("Maria", "maria@email.com", "password123", "   "));
+    @ParameterizedTest
+    @MethodSource("missingAndMalformedRequiredFields")
+    void shouldRejectMissingAndMalformedRequiredFields(
+            String name, String email, String password, String userType, String expectedMessage) {
+        final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute(name, email, password, userType));
+
+        assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    private static Stream<Arguments> missingAndMalformedRequiredFields() {
+        final String shortPassword = "Password must be at least " + CreateUserUseCase.MIN_PASSWORD_LENGTH + " characters";
+        return Stream.of(
+                Arguments.of(null, "maria@email.com", "password123", "STUDENT", "Name is required"),
+                Arguments.of("Maria", null, "password123", "STUDENT", "Email is required"),
+                Arguments.of("Maria", "   ", "password123", "STUDENT", "Invalid email"),
+                Arguments.of("Maria", "invalid-email", "password123", "STUDENT", "Invalid email"),
+                Arguments.of("Maria", "maria@email.com", null, "STUDENT", shortPassword),
+                Arguments.of("Maria", "maria@email.com", "password123", null, "User type is required"),
+                Arguments.of("Maria", "maria@email.com", "password123", "   ", "User type is required"));
     }
 
     @Test

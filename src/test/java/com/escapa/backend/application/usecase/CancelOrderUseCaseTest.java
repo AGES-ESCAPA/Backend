@@ -1,5 +1,16 @@
 package com.escapa.backend.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
 import com.escapa.backend.domain.entity.Order;
 import com.escapa.backend.domain.order.InvalidOrderTransitionException;
 import com.escapa.backend.domain.order.OrderItemType;
@@ -8,16 +19,6 @@ import com.escapa.backend.domain.order.OrderStatus;
 import com.escapa.backend.domain.order.OrderStatusChange;
 import com.escapa.backend.domain.order.OrderType;
 import com.escapa.backend.domain.order.SeatsInUseException;
-import org.junit.jupiter.api.Test;
-
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CancelOrderUseCaseTest {
 

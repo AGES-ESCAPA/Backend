@@ -1,13 +1,14 @@
 package com.escapa.backend.adapters.dto.course;
 
-import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.domain.entity.User;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.domain.entity.User;
 
 class CourseResponseTest {
 

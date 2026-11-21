@@ -1,10 +1,10 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.model.OrderDetails;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.domain.order.OrderNotFoundException;
-
-import java.util.UUID;
 
 public class GetAdminOrderUseCase {
 

@@ -1,23 +1,24 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.model.CreateOrderCommand;
-import com.escapa.backend.application.usecase.CreateOrderUseCase;
-import com.escapa.backend.domain.course.CourseStatus;
-import com.escapa.backend.domain.order.OrderItemType;
-import com.escapa.backend.domain.order.PaymentMethod;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.escapa.backend.application.model.CreateOrderCommand;
+import com.escapa.backend.application.usecase.CreateOrderUseCase;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.order.OrderItemType;
+import com.escapa.backend.domain.order.PaymentMethod;
+import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 
 /** Matrícula dos colaboradores na compra de curso pela empresa (#87), contra o banco real. */
 class CompanyCourseEnrollmentIntegrationTest extends PostgresIntegrationTest {

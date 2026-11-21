@@ -1,6 +1,10 @@
 package com.escapa.backend.infrastructure.persistence.entity;
 
-import com.escapa.backend.infrastructure.persistence.UserEntity;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
@@ -10,10 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-import java.util.ArrayList;
-import java.util.List;
+import com.escapa.backend.infrastructure.persistence.UserEntity;
 
 @Entity
 @Table(name = "company")

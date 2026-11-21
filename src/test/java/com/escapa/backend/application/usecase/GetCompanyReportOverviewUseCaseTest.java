@@ -1,16 +1,7 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CompanyEmployeeProgress;
-import com.escapa.backend.application.model.CompanyReportFigures;
-import com.escapa.backend.application.model.CompanyReportFigures.JobTitleFigures;
-import com.escapa.backend.application.model.CompanyReportFigures.MonthFigures;
-import com.escapa.backend.application.model.CompanyReportOverview;
-import com.escapa.backend.application.model.CompanyReportPeriod;
-import com.escapa.backend.application.model.EmployeeProgressStatus;
-import com.escapa.backend.application.port.CompanyReportRepositoryPort;
-import com.escapa.backend.domain.company.CompanyNotFoundException;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -21,8 +12,18 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CompanyEmployeeProgress;
+import com.escapa.backend.application.model.CompanyReportFigures;
+import com.escapa.backend.application.model.CompanyReportFigures.JobTitleFigures;
+import com.escapa.backend.application.model.CompanyReportFigures.MonthFigures;
+import com.escapa.backend.application.model.CompanyReportOverview;
+import com.escapa.backend.application.model.CompanyReportPeriod;
+import com.escapa.backend.application.model.EmployeeProgressStatus;
+import com.escapa.backend.application.port.CompanyReportRepositoryPort;
+import com.escapa.backend.domain.company.CompanyNotFoundException;
 
 class GetCompanyReportOverviewUseCaseTest {
 

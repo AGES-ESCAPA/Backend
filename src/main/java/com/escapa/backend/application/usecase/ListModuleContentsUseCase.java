@@ -1,13 +1,13 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.List;
+import java.util.UUID;
+
 import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
-
-import java.util.List;
-import java.util.UUID;
 
 public class ListModuleContentsUseCase {
 

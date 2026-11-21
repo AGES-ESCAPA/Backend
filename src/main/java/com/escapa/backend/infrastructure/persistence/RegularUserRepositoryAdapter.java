@@ -4,14 +4,13 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import jakarta.persistence.EntityManager;
 import org.hibernate.exception.ConstraintViolationException;
 
 import com.escapa.backend.application.port.RegularUserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.infrastructure.persistence.entity.RegularUserEntity;
-
-import jakarta.persistence.EntityManager;
 
 public class RegularUserRepositoryAdapter implements RegularUserRepositoryPort {
 

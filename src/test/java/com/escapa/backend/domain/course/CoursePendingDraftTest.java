@@ -1,16 +1,17 @@
 package com.escapa.backend.domain.course;
 
-import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.domain.entity.User;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.domain.entity.User;
 
 class CoursePendingDraftTest {
 
@@ -71,7 +72,7 @@ class CoursePendingDraftTest {
         assertEquals("Novo resumo", updated.shortDescription());
         assertEquals("Nova descricao", updated.description());
         assertNull(updated.thumbnailUrl());
-        assertEquals(" video ", updated.teaserVideoUrl());
+        assertEquals("video", updated.teaserVideoUrl());
         assertEquals("Turismo", updated.category());
         assertEquals("AVANCADO", updated.level());
         assertEquals(60, updated.durationTime());
@@ -80,6 +81,15 @@ class CoursePendingDraftTest {
         assertEquals(List.of("Novo objetivo"), updated.learningObjectives());
         assertFalse(updated.requireSequentialProgress());
         assertTrue(updated.enforceDeadlineBlock());
+    }
+
+    @Test
+    void shouldTreatBlankTeaserAsAbsent() {
+        final CoursePendingDraft cleared = sampleDraft().applyUpdate(
+                null, null, null, null, "   ", null, null, null,
+                null, null, null, null, null, null);
+
+        assertNull(cleared.teaserVideoUrl());
     }
 
     @Test

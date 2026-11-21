@@ -1,13 +1,7 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.dto.PageResponse;
-import com.escapa.backend.adapters.dto.StudentCourseCardResponse;
-import com.escapa.backend.adapters.security.AuthenticationContext;
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.StudentCourseCard;
-import com.escapa.backend.application.usecase.ListStudentEnrollmentsUseCase;
-import com.escapa.backend.domain.course.EnrollmentStatus;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +10,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
+import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.PageResponse;
+import com.escapa.backend.adapters.dto.StudentCourseCardResponse;
+import com.escapa.backend.adapters.security.AuthenticationContext;
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.StudentCourseCard;
+import com.escapa.backend.application.usecase.ListStudentEnrollmentsUseCase;
+import com.escapa.backend.domain.course.EnrollmentStatus;
 
 @RestController
 @Tag(name = "Student - Enrollments", description = "Enrollments of the authenticated student")

@@ -1,21 +1,21 @@
 package com.escapa.backend.application.course;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
 import com.escapa.backend.domain.content.ContentPendingDraft;
 import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Module;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PublishedCurriculumTest {
 

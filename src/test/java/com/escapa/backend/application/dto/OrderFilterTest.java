@@ -1,8 +1,8 @@
 package com.escapa.backend.application.dto;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertNull;
+
+import org.junit.jupiter.api.Test;
 
 class OrderFilterTest {
 

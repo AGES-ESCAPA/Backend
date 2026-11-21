@@ -1,14 +1,5 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.dto.CertificateDetailsResponse;
-import com.escapa.backend.adapters.exception.ApiError;
-import com.escapa.backend.adapters.security.AuthenticatedUser;
-import com.escapa.backend.adapters.security.AuthenticationContext;
-import com.escapa.backend.application.model.CertificateFile;
-import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
-import com.escapa.backend.application.usecase.GetCertificateDetailsUseCase;
-import com.escapa.backend.domain.certificate.CertificateTheme;
 import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,6 +18,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.CertificateDetailsResponse;
+import com.escapa.backend.adapters.exception.ApiError;
+import com.escapa.backend.adapters.security.AuthenticatedUser;
+import com.escapa.backend.adapters.security.AuthenticationContext;
+import com.escapa.backend.application.model.CertificateFile;
+import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
+import com.escapa.backend.application.usecase.GetCertificateDetailsUseCase;
+import com.escapa.backend.domain.certificate.CertificateTheme;
 
 /**
  * A consulta por codigo de verificacao e publica. O download do PDF exige o token

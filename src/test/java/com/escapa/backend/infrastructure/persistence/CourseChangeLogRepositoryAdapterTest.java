@@ -1,19 +1,20 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.escapa.backend.application.dto.ChangeLogEntry;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Transactional
 class CourseChangeLogRepositoryAdapterTest extends PostgresIntegrationTest {

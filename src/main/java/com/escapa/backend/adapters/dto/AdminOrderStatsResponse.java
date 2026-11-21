@@ -1,8 +1,8 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.model.OrderStats;
-
 import java.math.BigDecimal;
+
+import com.escapa.backend.application.model.OrderStats;
 
 public record AdminOrderStatsResponse(
         long approvedCount,

@@ -1,15 +1,16 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.dto.ChangeLogEntry;
-import com.escapa.backend.application.model.CourseRules;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.dto.ChangeLogEntry;
+import com.escapa.backend.application.model.CourseRules;
 
 class CourseRulesResponseTest {
 

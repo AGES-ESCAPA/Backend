@@ -1,14 +1,15 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.domain.content.ContentResource;
-import com.escapa.backend.domain.content.ContentType;
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.util.List;
+import com.escapa.backend.domain.content.ContentResource;
+import com.escapa.backend.domain.content.ContentType;
 
 /**
  * Corpo de criação e edição de aula. Campos condicionais por tipo (url, durationMinutes,

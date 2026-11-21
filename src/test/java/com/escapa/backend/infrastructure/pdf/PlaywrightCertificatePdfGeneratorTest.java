@@ -1,10 +1,16 @@
 package com.escapa.backend.infrastructure.pdf;
 
-import com.escapa.backend.adapters.dto.CertificateDetailsResponse;
-import com.escapa.backend.application.model.CertificateDetails;
-import com.escapa.backend.application.model.CertificateView;
-import com.escapa.backend.application.model.FormattedCertificate;
-import com.escapa.backend.domain.certificate.CertificateTheme;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+import javax.imageio.ImageIO;
+
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -21,16 +27,11 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
-import javax.imageio.ImageIO;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.escapa.backend.adapters.dto.CertificateDetailsResponse;
+import com.escapa.backend.application.model.CertificateDetails;
+import com.escapa.backend.application.model.CertificateView;
+import com.escapa.backend.application.model.FormattedCertificate;
+import com.escapa.backend.domain.certificate.CertificateTheme;
 
 /**
  * Gera o PDF com o Chromium de verdade. Fica fora do `mvn verify` padrao pela

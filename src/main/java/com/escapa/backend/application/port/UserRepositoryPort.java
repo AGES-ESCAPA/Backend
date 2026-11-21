@@ -1,11 +1,11 @@
 package com.escapa.backend.application.port;
 
-import com.escapa.backend.application.model.StudentContact;
-import com.escapa.backend.domain.entity.User;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.escapa.backend.application.model.StudentContact;
+import com.escapa.backend.domain.entity.User;
 
 public interface UserRepositoryPort {
     User save(User user);

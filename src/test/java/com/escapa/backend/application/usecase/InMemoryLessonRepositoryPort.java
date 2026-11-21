@@ -1,12 +1,12 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.LessonDetails;
-import com.escapa.backend.application.port.LessonRepositoryPort;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.escapa.backend.application.model.LessonDetails;
+import com.escapa.backend.application.port.LessonRepositoryPort;
 
 public final class InMemoryLessonRepositoryPort implements LessonRepositoryPort {
     private final List<LessonDetails> lessons = new ArrayList<>();

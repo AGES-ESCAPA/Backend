@@ -1,35 +1,36 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.infrastructure.persistence.entity.AdminEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseMaterialEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import com.escapa.backend.domain.course.CourseStatus;
-import com.escapa.backend.domain.entity.Course;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Cobre a listagem pública paginada de cursos (US-01) e os detalhes

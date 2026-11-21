@@ -1,12 +1,12 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.CompanyCourseSummary;
-import com.escapa.backend.application.model.AcquiredCourse;
-import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.dto.CompanyCourseSummary;
+import com.escapa.backend.application.model.AcquiredCourse;
+import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
 
 /** Cursos que a empresa possui, em memória. */
 public final class FakeAcquiredCourses implements CompanyCourseRepositoryPort {
