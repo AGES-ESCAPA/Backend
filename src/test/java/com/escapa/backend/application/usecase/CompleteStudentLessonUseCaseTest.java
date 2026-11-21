@@ -1,5 +1,18 @@
 package com.escapa.backend.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.model.LessonDetails;
 import com.escapa.backend.application.model.LessonSupplement;
@@ -9,18 +22,6 @@ import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException.Reason;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Module;
-import org.junit.jupiter.api.Test;
-
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CompleteStudentLessonUseCaseTest {
 
@@ -52,6 +53,7 @@ class CompleteStudentLessonUseCaseTest {
                 "https://cdn.example.com/aula.mp4", 10, isFree, module.getContents().size() + 1, null, null,
                 null, null, false, false);
         module.getContents().add(content);
+        moduleRepository.save(module);
         lessonRepository.add(new LessonDetails(content, courseId, "Fundamentos", 1, enforceDeadlineBlock,
                 new LessonSupplement(List.of(), List.of())));
         return content;

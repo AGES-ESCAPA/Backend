@@ -1,9 +1,10 @@
 package com.escapa.backend.application.port;
 
-import com.escapa.backend.application.model.CompanyEngagement;
-import com.escapa.backend.application.model.EnrollmentCompletionCounts;
 import java.time.LocalDate;
 import java.util.List;
+
+import com.escapa.backend.application.model.CompanyEngagement;
+import com.escapa.backend.application.model.EnrollmentCompletionCounts;
 
 public interface AdminMetricsRepositoryPort {
     long countActiveStudents(LocalDate date);

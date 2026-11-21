@@ -1,10 +1,10 @@
 package com.escapa.backend.application.port;
 
-import com.escapa.backend.application.model.Enrollment;
-
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.escapa.backend.application.model.Enrollment;
 
 /**
  * Liberação de acesso que acompanha um pedido aprovado (US-27): matrícula do aluno em

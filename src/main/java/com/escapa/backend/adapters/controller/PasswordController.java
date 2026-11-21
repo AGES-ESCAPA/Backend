@@ -1,9 +1,7 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.dto.ChangePasswordRequest;
-import com.escapa.backend.adapters.security.AuthenticationContext;
-import com.escapa.backend.application.usecase.ChangePasswordUseCase;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -13,7 +11,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
+import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.ChangePasswordRequest;
+import com.escapa.backend.adapters.security.AuthenticationContext;
+import com.escapa.backend.application.usecase.ChangePasswordUseCase;
 
 /**
  * Troca de senha do usuario autenticado, para qualquer perfil.

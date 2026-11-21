@@ -1,10 +1,11 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.port.CompanyEmployeeUnlinkPort;
-import org.springframework.jdbc.core.simple.JdbcClient;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+
+import com.escapa.backend.application.port.CompanyEmployeeUnlinkPort;
 
 public class CompanyEmployeeUnlinkAdapter implements CompanyEmployeeUnlinkPort {
 

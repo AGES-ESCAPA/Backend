@@ -1,9 +1,9 @@
 package com.escapa.backend.application.model;
 
-import com.escapa.backend.domain.content.LessonStatus;
-
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.domain.content.LessonStatus;
 
 /** Grade de aulas de um curso para o aluno (US-13): modulos, aulas e o status de cada uma. */
 public record StudentCourseCurriculum(

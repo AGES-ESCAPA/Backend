@@ -2,11 +2,6 @@ package com.escapa.backend.infrastructure.security;
 
 import java.io.IOException;
 
-import com.escapa.backend.adapters.security.AuthenticatedUser;
-import com.escapa.backend.application.model.TokenClaims;
-import com.escapa.backend.application.port.TokenProviderPort;
-import com.escapa.backend.application.usecase.AuthorizeActiveUserUseCase;
-import com.escapa.backend.domain.user.InactiveUserException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +12,12 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.escapa.backend.adapters.security.AuthenticatedUser;
+import com.escapa.backend.application.model.TokenClaims;
+import com.escapa.backend.application.port.TokenProviderPort;
+import com.escapa.backend.application.usecase.AuthorizeActiveUserUseCase;
+import com.escapa.backend.domain.user.InactiveUserException;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

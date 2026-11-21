@@ -1,9 +1,5 @@
 package com.escapa.backend.infrastructure.pdf;
 
-import com.escapa.backend.domain.certificate.CertificateTheme;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -13,6 +9,11 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
+
+import com.escapa.backend.domain.certificate.CertificateTheme;
 
 /**
  * Fontes, logos e CSS do certificado, lidos do classpath uma unica vez no startup.

@@ -1,18 +1,5 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CourseEnrollmentCount;
-import com.escapa.backend.application.model.Enrollment;
-import com.escapa.backend.application.model.StudentCourseCard;
-import com.escapa.backend.application.port.EnrollmentRepositoryPort;
-import com.escapa.backend.domain.course.EnrollmentStatus;
-import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,6 +7,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CourseEnrollmentCount;
+import com.escapa.backend.application.model.Enrollment;
+import com.escapa.backend.application.model.StudentCourseCard;
+import com.escapa.backend.application.port.EnrollmentRepositoryPort;
+import com.escapa.backend.domain.course.EnrollmentStatus;
+import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
 
 @Repository
 public class EnrollmentRepositoryAdapter implements EnrollmentRepositoryPort {

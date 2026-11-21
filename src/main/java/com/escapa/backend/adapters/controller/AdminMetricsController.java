@@ -1,16 +1,17 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.AdminMetricsOverviewResponse;
-import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.security.AdminRequestGuard;
-import com.escapa.backend.adapters.security.AuthenticationContext;
-import com.escapa.backend.application.usecase.GetAdminMetricsOverviewUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.escapa.backend.adapters.dto.AdminMetricsOverviewResponse;
+import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.security.AdminRequestGuard;
+import com.escapa.backend.adapters.security.AuthenticationContext;
+import com.escapa.backend.application.usecase.GetAdminMetricsOverviewUseCase;
 
 @RestController
 @Tag(name = "Admin - Metrics", description = "Catalog intelligence and historical metrics for authenticated ADMIN users")

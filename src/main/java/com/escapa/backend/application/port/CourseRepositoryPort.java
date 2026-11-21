@@ -1,15 +1,15 @@
 package com.escapa.backend.application.port;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.dto.PublishedCourseFilters;
 import com.escapa.backend.application.model.CourseDetails;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Contrato de acesso ao repositório de cursos.

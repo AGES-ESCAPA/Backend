@@ -1,10 +1,11 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+
+import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
 
 @Repository
 public class ModulePrerequisiteRepositoryAdapter implements ModulePrerequisiteRepositoryPort {

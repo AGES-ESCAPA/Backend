@@ -1,9 +1,10 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.dto.ChangeLogEntry;
-import com.escapa.backend.application.dto.PageResult;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.dto.ChangeLogEntry;
+import com.escapa.backend.application.dto.PageResult;
 
 public record ChangeLogPageResponse(
         List<Entry> content,

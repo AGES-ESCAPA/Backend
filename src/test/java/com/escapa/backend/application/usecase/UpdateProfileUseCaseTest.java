@@ -1,17 +1,18 @@
 package com.escapa.backend.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
 import com.escapa.backend.application.model.UserProfile;
 import com.escapa.backend.domain.entity.Company;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.ProfileNotEditableException;
 import com.escapa.backend.domain.user.UserNotFoundException;
-import org.junit.jupiter.api.Test;
-
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class UpdateProfileUseCaseTest {
 

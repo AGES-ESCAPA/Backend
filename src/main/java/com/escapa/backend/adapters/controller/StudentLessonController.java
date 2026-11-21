@@ -1,14 +1,7 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.dto.StudentCourseCurriculumResponse;
-import com.escapa.backend.adapters.dto.StudentLessonResponse;
-import com.escapa.backend.adapters.security.AuthenticationContext;
-import com.escapa.backend.application.model.LessonDetails;
-import com.escapa.backend.application.model.StudentCourseCurriculum;
-import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
-import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
-import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +11,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
+import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.StudentCourseCurriculumResponse;
+import com.escapa.backend.adapters.dto.StudentLessonResponse;
+import com.escapa.backend.adapters.security.AuthenticationContext;
+import com.escapa.backend.application.model.LessonDetails;
+import com.escapa.backend.application.model.StudentCourseCurriculum;
+import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
+import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
+import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
 
 /**
  * Endpoints do aluno (US-11), identificado pelo token Bearer da requisicao.

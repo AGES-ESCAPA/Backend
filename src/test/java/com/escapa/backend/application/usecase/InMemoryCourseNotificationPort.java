@@ -1,10 +1,10 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.CourseNotificationPort;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.port.CourseNotificationPort;
 
 /**
  * Fake em memória de {@link CourseNotificationPort} para testes unitários.

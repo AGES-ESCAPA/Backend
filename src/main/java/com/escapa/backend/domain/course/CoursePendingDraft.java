@@ -1,10 +1,10 @@
 package com.escapa.backend.domain.course;
 
-import com.escapa.backend.domain.entity.Course;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.domain.entity.Course;
 
 /**
  * Alterações de um curso já publicado que ainda não devem aparecer para os alunos.
@@ -66,7 +66,7 @@ public record CoursePendingDraft(
                 shortDescription != null ? shortDescription : this.shortDescription,
                 description != null ? description : this.description,
                 thumbnailUrl != null ? CourseStrings.blankToNull(thumbnailUrl) : this.thumbnailUrl,
-                teaserVideoUrl != null ? teaserVideoUrl : this.teaserVideoUrl,
+                teaserVideoUrl != null ? CourseStrings.blankToNull(teaserVideoUrl) : this.teaserVideoUrl,
                 instructorId != null ? instructorId : this.instructorId,
                 category != null ? category : this.category,
                 level != null ? level : this.level,

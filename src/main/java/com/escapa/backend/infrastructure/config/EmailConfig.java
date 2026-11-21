@@ -1,13 +1,14 @@
 package com.escapa.backend.infrastructure.config;
 
-import com.escapa.backend.application.port.EmailSenderPort;
-import com.escapa.backend.application.port.EmailTemplatePort;
-import com.escapa.backend.infrastructure.email.ResourceEmailTemplateAdapter;
-import com.escapa.backend.infrastructure.email.SmtpEmailSenderAdapter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
+
+import com.escapa.backend.application.port.EmailSenderPort;
+import com.escapa.backend.application.port.EmailTemplatePort;
+import com.escapa.backend.infrastructure.email.ResourceEmailTemplateAdapter;
+import com.escapa.backend.infrastructure.email.SmtpEmailSenderAdapter;
 
 /** Beans do envio de e-mail (US-31). O JavaMailSender vem do Spring Boot, a partir de spring.mail.*. */
 @Configuration

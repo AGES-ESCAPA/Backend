@@ -1,14 +1,5 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.CertificateDetails;
-import com.escapa.backend.application.model.CertificateFile;
-import com.escapa.backend.application.model.CertificateView;
-import com.escapa.backend.application.model.FormattedCertificate;
-import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
-import com.escapa.backend.application.port.CertificateRepositoryPort;
-import com.escapa.backend.domain.certificate.CertificateAccessDeniedException;
-import com.escapa.backend.domain.certificate.CertificateTheme;
-
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Optional;
@@ -21,6 +12,15 @@ import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.escapa.backend.application.model.CertificateDetails;
+import com.escapa.backend.application.model.CertificateFile;
+import com.escapa.backend.application.model.CertificateView;
+import com.escapa.backend.application.model.FormattedCertificate;
+import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
+import com.escapa.backend.application.port.CertificateRepositoryPort;
+import com.escapa.backend.domain.certificate.CertificateAccessDeniedException;
+import com.escapa.backend.domain.certificate.CertificateTheme;
 
 /**
  * Devolve o PDF do certificado para um codigo de verificacao e um tema (US-19).

@@ -1,5 +1,10 @@
 package com.escapa.backend.application.usecase;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.content.ContentResource;
@@ -8,11 +13,6 @@ import com.escapa.backend.domain.content.ContentTypeRules;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 public class CreateContentUseCase {
 

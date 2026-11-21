@@ -1,15 +1,7 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CompanyEmployee;
-import com.escapa.backend.application.model.CompanyEmployeeCounts;
-import com.escapa.backend.application.model.CompanySeatsSummary;
-import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
-import com.escapa.backend.application.port.CompanySeatsPort;
-import com.escapa.backend.domain.company.CompanyNotFoundException;
-import com.escapa.backend.domain.user.UserStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,8 +10,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CompanyEmployee;
+import com.escapa.backend.application.model.CompanyEmployeeCounts;
+import com.escapa.backend.application.model.CompanySeatsSummary;
+import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
+import com.escapa.backend.application.port.CompanySeatsPort;
+import com.escapa.backend.domain.company.CompanyNotFoundException;
+import com.escapa.backend.domain.user.UserStatus;
 
 class GetCompanySeatsSummaryUseCaseTest {
 

@@ -1,10 +1,10 @@
 package com.escapa.backend.application.port;
 
-import com.escapa.backend.domain.entity.Company;
-import com.escapa.backend.domain.entity.User;
-
 import java.util.Optional;
 import java.util.UUID;
+
+import com.escapa.backend.domain.entity.Company;
+import com.escapa.backend.domain.entity.User;
 
 public interface CompanyRepositoryPort {
 

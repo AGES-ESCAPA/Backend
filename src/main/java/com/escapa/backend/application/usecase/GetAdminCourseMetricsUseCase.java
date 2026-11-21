@@ -1,17 +1,17 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.CourseEnrollmentCount;
-import com.escapa.backend.application.model.CourseMetrics;
-import com.escapa.backend.application.model.CourseMetrics.CategoryShare;
-import com.escapa.backend.application.model.CourseMetrics.CourseRanking;
-import com.escapa.backend.application.port.EnrollmentRepositoryPort;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.escapa.backend.application.model.CourseEnrollmentCount;
+import com.escapa.backend.application.model.CourseMetrics;
+import com.escapa.backend.application.model.CourseMetrics.CategoryShare;
+import com.escapa.backend.application.model.CourseMetrics.CourseRanking;
+import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 
 /**
  * Calcula as métricas históricas de matrículas por curso e por categoria (US-37).

@@ -1,15 +1,16 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.CertificateDetails;
-import com.escapa.backend.application.model.FormattedCertificate;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+
+import com.escapa.backend.application.model.CertificateDetails;
+import com.escapa.backend.application.model.FormattedCertificate;
 
 class FormattedCertificateTest {
 

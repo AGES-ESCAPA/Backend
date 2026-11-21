@@ -1,11 +1,13 @@
 package com.escapa.backend.adapters.dto.course;
 
-import com.escapa.backend.adapters.dto.FieldLimits;
+import java.util.List;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-import java.util.List;
-import java.util.UUID;
+
+import com.escapa.backend.adapters.dto.FieldLimits;
 
 @Schema(description = "Partial course update; omitted (null) fields are left unchanged")
 public record UpdateCourseRequest(

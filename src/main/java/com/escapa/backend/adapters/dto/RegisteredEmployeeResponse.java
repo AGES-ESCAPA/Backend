@@ -1,11 +1,12 @@
 package com.escapa.backend.adapters.dto;
 
+import java.util.UUID;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import com.escapa.backend.application.model.RegisteredEmployee;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserStatus;
-import io.swagger.v3.oas.annotations.media.Schema;
-
-import java.util.UUID;
 
 @Schema(description = "The employee just registered and whether the invite e-mail went out")
 public record RegisteredEmployeeResponse(

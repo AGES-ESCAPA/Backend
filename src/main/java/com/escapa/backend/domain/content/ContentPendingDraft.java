@@ -1,9 +1,9 @@
 package com.escapa.backend.domain.content;
 
-import com.escapa.backend.domain.entity.Content;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.escapa.backend.domain.entity.Content;
 
 /**
  * Edição de uma aula que os alunos já veem. As colunas publicadas permanecem

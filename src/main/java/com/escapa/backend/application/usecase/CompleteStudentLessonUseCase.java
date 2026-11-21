@@ -1,20 +1,20 @@
 package com.escapa.backend.application.usecase;
 
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.model.LessonDetails;
-import com.escapa.backend.domain.course.CourseStatus;
-import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.application.port.LessonProgressRepositoryPort;
 import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.content.ContentNotFoundException;
-
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.UUID;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Module;
 
 /**
  * Marca uma aula como concluida pelo aluno (US-15). Aplica a mesma regra de

@@ -13,5 +13,13 @@
         <module name="MethodLength">
             <property name="max" value="40"/>
         </module>
+        <module name="UnusedImports"/>
+        <module name="CustomImportOrder">
+            <property name="customImportOrderRules"
+                      value="STATIC###STANDARD_JAVA_PACKAGE###THIRD_PARTY_PACKAGE###SPECIAL_IMPORTS"/>
+            <property name="specialImportsRegExp" value="^com\.escapa\."/>
+            <property name="sortImportsInGroupAlphabetically" value="true"/>
+            <property name="separateLineBetweenGroups" value="true"/>
+        </module>
     </module>
 </module>

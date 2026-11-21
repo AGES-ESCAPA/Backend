@@ -1,5 +1,12 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.port.OrderAccessPort;
 import com.escapa.backend.domain.order.OrderValidationException;
@@ -9,12 +16,6 @@ import com.escapa.backend.infrastructure.persistence.entity.CompanyEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserCourseId;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
-
-import java.time.LocalDate;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Liberação de acesso de um pedido aprovado (US-27). Usa o {@link EntityManager} da transação do

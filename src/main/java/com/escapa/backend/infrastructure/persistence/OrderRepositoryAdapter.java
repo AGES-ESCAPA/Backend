@@ -1,5 +1,18 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.escapa.backend.application.dto.OrderFilter;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.OrderDetails;
@@ -7,7 +20,6 @@ import com.escapa.backend.application.model.OrderStats;
 import com.escapa.backend.application.model.OrderSummary;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.domain.entity.Order;
-import org.springframework.transaction.annotation.Transactional;
 import com.escapa.backend.domain.order.OrderItemType;
 import com.escapa.backend.domain.order.OrderStatus;
 import com.escapa.backend.domain.order.OrderStatusChange;
@@ -17,17 +29,6 @@ import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.OrderEntity;
 import com.escapa.backend.infrastructure.persistence.entity.OrderStatusHistoryEntity;
 import com.escapa.backend.infrastructure.persistence.entity.RegularUserEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
 
 public class OrderRepositoryAdapter implements OrderRepositoryPort {
 

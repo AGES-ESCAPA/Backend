@@ -1,15 +1,16 @@
 package com.escapa.backend.infrastructure.config;
 
-import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Clock;
 import java.time.ZoneId;
 import java.util.TimeZone;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
 
 class AppTimeZoneTest extends PostgresIntegrationTest {
 

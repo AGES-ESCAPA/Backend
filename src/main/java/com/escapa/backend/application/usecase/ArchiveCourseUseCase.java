@@ -1,14 +1,15 @@
 package com.escapa.backend.application.usecase;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class ArchiveCourseUseCase {
     private static final Logger LOGGER = LoggerFactory.getLogger(ArchiveCourseUseCase.class);

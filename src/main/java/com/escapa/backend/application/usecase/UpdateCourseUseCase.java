@@ -1,5 +1,9 @@
 package com.escapa.backend.application.usecase;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
 import com.escapa.backend.application.course.PublishedCourseDrafts;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
@@ -10,10 +14,6 @@ import com.escapa.backend.domain.course.CourseStrings;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserNotFoundException;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 public class UpdateCourseUseCase {
 
@@ -91,8 +91,9 @@ public class UpdateCourseUseCase {
         if (thumbnailUrl != null) {
             course.setThumbnailUrl(CourseStrings.blankToNull(thumbnailUrl));
         }
+        // null mantém o teaser atual; string vazia remove. O valor novo é trimado.
         if (teaserVideoUrl != null) {
-            course.setTeaserVideoUrl(teaserVideoUrl);
+            course.setTeaserVideoUrl(CourseStrings.blankToNull(teaserVideoUrl));
         }
     }
 

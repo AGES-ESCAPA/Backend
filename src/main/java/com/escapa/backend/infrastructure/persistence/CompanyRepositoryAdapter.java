@@ -1,12 +1,12 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import com.escapa.backend.application.port.CompanyRepositoryPort;
 import com.escapa.backend.domain.entity.Company;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.infrastructure.persistence.entity.CompanyEntity;
-
-import java.util.Optional;
-import java.util.UUID;
 
 public class CompanyRepositoryAdapter implements CompanyRepositoryPort {
 

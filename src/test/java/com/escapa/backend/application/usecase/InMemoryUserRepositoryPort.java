@@ -1,9 +1,5 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.StudentContact;
-import com.escapa.backend.application.port.UserRepositoryPort;
-import com.escapa.backend.domain.entity.User;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +8,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
+import com.escapa.backend.application.model.StudentContact;
+import com.escapa.backend.application.port.UserRepositoryPort;
+import com.escapa.backend.domain.entity.User;
 
 public final class InMemoryUserRepositoryPort implements UserRepositoryPort {
     private final List<User> users = new ArrayList<>();

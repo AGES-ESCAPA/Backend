@@ -1,14 +1,15 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.model.CertificateDetails;
-import com.escapa.backend.application.port.CertificateRepositoryPort;
-import com.escapa.backend.domain.certificate.CertificateTheme;
-import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository.CertificateDetailsView;
+import java.util.Optional;
+
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import com.escapa.backend.application.model.CertificateDetails;
+import com.escapa.backend.application.port.CertificateRepositoryPort;
+import com.escapa.backend.domain.certificate.CertificateTheme;
+import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository.CertificateDetailsView;
 
 @Repository
 public class CertificateRepositoryAdapter implements CertificateRepositoryPort {

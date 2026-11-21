@@ -1,10 +1,11 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.domain.user.UserStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import com.escapa.backend.domain.user.UserStatus;
 
 @Schema(description = "Data to edit an employee of the company")
 public record UpdateCompanyEmployeeRequest(

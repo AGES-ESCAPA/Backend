@@ -1,5 +1,12 @@
 package com.escapa.backend.application.usecase;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.escapa.backend.application.model.CompanySeatsSummary;
 import com.escapa.backend.application.port.CompanyEmployeeUnlinkPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
@@ -7,12 +14,6 @@ import com.escapa.backend.domain.company.CompanyEmployeeNotFoundException;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserNotFoundException;
 import com.escapa.backend.domain.user.UserStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.time.Clock;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Desvincula um colaborador desligado (US-33): remove o vínculo e libera a vaga, revoga as matrículas

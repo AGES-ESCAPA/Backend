@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.sql.SQLException;
 
+import jakarta.persistence.PersistenceException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,8 +18,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.TransactionSystemException;
 
 import com.escapa.backend.domain.registration.DuplicateRegistrationException;
-
-import jakarta.persistence.PersistenceException;
 
 class RegularUserConflictTranslationTest {
 
@@ -101,6 +100,18 @@ class RegularUserConflictTranslationTest {
 
         final RuntimeException translated = RegularUserRepositoryAdapter.translateConflict(
                 new TransactionSystemException("Could not commit JPA transaction", aborted));
+
+        assertInstanceOf(DuplicateRegistrationException.class, translated);
+        assertEquals("email already registered", translated.getMessage());
+    }
+
+    @Test
+    void shouldIdentifyConstraintInSuppressedException() {
+        final RuntimeException failure = new RuntimeException("Save failed");
+        failure.addSuppressed(new ConstraintViolationException(
+                "Insert failed", new SQLException("Duplicate", "23505"), "users_email_key"));
+
+        final RuntimeException translated = RegularUserRepositoryAdapter.translateConflict(failure);
 
         assertInstanceOf(DuplicateRegistrationException.class, translated);
         assertEquals("email already registered", translated.getMessage());

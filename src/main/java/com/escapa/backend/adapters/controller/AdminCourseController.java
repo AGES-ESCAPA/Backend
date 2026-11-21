@@ -1,10 +1,11 @@
 package com.escapa.backend.adapters.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,8 +46,6 @@ import com.escapa.backend.application.usecase.UpdateCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
-
-import jakarta.validation.Valid;
 
 @RestController
 @Tag(name = "Admin - Courses", description = "Course management for authenticated ADMIN users")

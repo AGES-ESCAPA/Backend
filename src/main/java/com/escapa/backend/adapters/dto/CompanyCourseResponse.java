@@ -1,9 +1,9 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.dto.CompanyCourseSummary;
-
 import java.time.LocalDate;
 import java.util.UUID;
+
+import com.escapa.backend.application.dto.CompanyCourseSummary;
 
 public record CompanyCourseResponse(
         UUID id,

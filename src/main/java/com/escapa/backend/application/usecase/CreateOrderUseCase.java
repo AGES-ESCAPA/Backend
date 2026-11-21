@@ -1,5 +1,13 @@
 package com.escapa.backend.application.usecase;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
 import com.escapa.backend.application.model.CreateOrderCommand;
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
@@ -17,14 +25,6 @@ import com.escapa.backend.domain.order.OrderType;
 import com.escapa.backend.domain.order.OrderValidationException;
 import com.escapa.backend.domain.order.PaymentMethod;
 import com.escapa.backend.domain.user.UserTypes;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Registra a compra simulada como aprovada e libera o acesso na mesma hora (US-27).

@@ -37,7 +37,7 @@ jobs:
 
       - name: Publish test report
         if: always()
-        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
+        uses: dorny/test-reporter@79b4b4400dc2354b89e9dd811ef9caa9bdd4f665 # main, retry do 404 transitório no check run
         with:
           name: Test Results
           path: target/surefire-reports/*.xml

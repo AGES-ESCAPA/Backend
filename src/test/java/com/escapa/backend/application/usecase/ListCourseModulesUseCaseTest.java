@@ -1,18 +1,19 @@
 package com.escapa.backend.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.Module;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ListCourseModulesUseCaseTest {
 
@@ -52,6 +53,7 @@ class ListCourseModulesUseCaseTest {
         module.getContents().add(content(ContentType.VIDEO, 90));
         module.getContents().add(content(ContentType.FILE, 60));
         module.getContents().add(content(ContentType.TEXT, null));
+        moduleRepository.save(module);
 
         final Module listed = useCase.execute(courseId).get(0);
 

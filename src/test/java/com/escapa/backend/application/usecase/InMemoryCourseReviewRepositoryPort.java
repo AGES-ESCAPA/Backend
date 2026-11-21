@@ -1,12 +1,12 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.CourseReviewRepositoryPort;
-
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import com.escapa.backend.application.port.CourseReviewRepositoryPort;
 
 public final class InMemoryCourseReviewRepositoryPort implements CourseReviewRepositoryPort {
     private record Key(UUID userId, UUID courseId) {

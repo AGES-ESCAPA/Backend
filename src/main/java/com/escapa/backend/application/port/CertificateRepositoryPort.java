@@ -1,9 +1,9 @@
 package com.escapa.backend.application.port;
 
+import java.util.Optional;
+
 import com.escapa.backend.application.model.CertificateDetails;
 import com.escapa.backend.domain.certificate.CertificateTheme;
-
-import java.util.Optional;
 
 public interface CertificateRepositoryPort {
 

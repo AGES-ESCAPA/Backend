@@ -1,9 +1,10 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.domain.entity.User;
-import com.escapa.backend.domain.user.UserStatus;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.domain.user.UserStatus;
 
 public record UserResponse(
         UUID id,

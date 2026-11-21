@@ -4,15 +4,15 @@ import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.UUID;
 
-import com.escapa.backend.application.port.ContactValidatorPort;
 import com.escapa.backend.application.port.CompanyRepositoryPort;
+import com.escapa.backend.application.port.ContactValidatorPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.company.CnpjValidator;
 import com.escapa.backend.domain.entity.Company;
-import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.user.UserTypes;
 
 public class RegisterCompanyUseCase {

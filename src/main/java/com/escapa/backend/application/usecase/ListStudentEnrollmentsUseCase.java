@@ -1,14 +1,14 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.StudentCourseCard;
 import com.escapa.backend.application.port.CourseReviewRepositoryPort;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.domain.course.EnrollmentStatus;
-
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 public class ListStudentEnrollmentsUseCase {
 

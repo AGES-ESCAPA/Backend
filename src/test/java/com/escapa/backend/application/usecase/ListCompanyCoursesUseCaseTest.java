@@ -1,16 +1,17 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.CompanyCourseSummary;
-import com.escapa.backend.application.model.AcquiredCourse;
-import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.dto.CompanyCourseSummary;
+import com.escapa.backend.application.model.AcquiredCourse;
+import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
 
 class ListCompanyCoursesUseCaseTest {
 

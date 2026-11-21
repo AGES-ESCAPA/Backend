@@ -1,12 +1,12 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.domain.entity.Order;
-import com.escapa.backend.domain.order.OrderStatus;
-import com.escapa.backend.domain.order.OrderStatusChange;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.domain.entity.Order;
+import com.escapa.backend.domain.order.OrderStatus;
+import com.escapa.backend.domain.order.OrderStatusChange;
 
 /** Pedido depois de uma ação de status: o novo status e o histórico em ordem cronológica. */
 public record OrderStatusResponse(UUID id, OrderStatus status, List<StatusChange> statusHistory) {

@@ -1,14 +1,15 @@
 package com.escapa.backend.infrastructure.email;
 
-import com.escapa.backend.application.port.EmailTemplatePort;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.web.util.HtmlUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.web.util.HtmlUtils;
+
+import com.escapa.backend.application.port.EmailTemplatePort;
 
 /**
  * Lê os templates de {@code src/main/resources/email/} e troca cada {@code {{chave}}}

@@ -1,11 +1,11 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.util.List;
+import java.util.UUID;
+
 import com.escapa.backend.application.dto.CompanyCourseSummary;
 import com.escapa.backend.application.model.AcquiredCourse;
 import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
-
-import java.util.List;
-import java.util.UUID;
 
 public class CompanyCourseRepositoryAdapter implements CompanyCourseRepositoryPort {
 

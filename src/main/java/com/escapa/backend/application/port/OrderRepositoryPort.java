@@ -1,15 +1,15 @@
 package com.escapa.backend.application.port;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import com.escapa.backend.application.dto.OrderFilter;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.OrderDetails;
 import com.escapa.backend.application.model.OrderStats;
 import com.escapa.backend.application.model.OrderSummary;
 import com.escapa.backend.domain.entity.Order;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Persistência de pedidos (US-26 / US-28). O pedido é salvo e lido junto com o histórico

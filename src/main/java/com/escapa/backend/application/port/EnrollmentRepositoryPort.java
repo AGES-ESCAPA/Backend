@@ -1,16 +1,16 @@
 package com.escapa.backend.application.port;
 
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CourseEnrollmentCount;
-import com.escapa.backend.application.model.Enrollment;
-import com.escapa.backend.application.model.StudentCourseCard;
-import com.escapa.backend.domain.course.EnrollmentStatus;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CourseEnrollmentCount;
+import com.escapa.backend.application.model.Enrollment;
+import com.escapa.backend.application.model.StudentCourseCard;
+import com.escapa.backend.domain.course.EnrollmentStatus;
 
 public interface EnrollmentRepositoryPort {
 

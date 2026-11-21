@@ -1,5 +1,18 @@
 package com.escapa.backend.infrastructure.security;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -7,18 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
-import com.escapa.backend.application.port.CertificateRepositoryPort;
-import com.escapa.backend.application.port.TokenProviderPort;
-import com.escapa.backend.domain.certificate.CertificateTheme;
-import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
-import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
-import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
-import com.escapa.backend.infrastructure.persistence.UserEntity;
-import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
-import com.escapa.backend.infrastructure.persistence.entity.UserCourseId;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,18 +34,18 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
+import com.escapa.backend.application.port.CertificateRepositoryPort;
+import com.escapa.backend.application.port.TokenProviderPort;
+import com.escapa.backend.domain.certificate.CertificateTheme;
+import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
+import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
+import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
+import com.escapa.backend.infrastructure.persistence.UserEntity;
+import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
+import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
+import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
+import com.escapa.backend.infrastructure.persistence.entity.UserCourseId;
 
 /**
  * Download do certificado com a cadeia real do Spring Security e o filtro JWT:

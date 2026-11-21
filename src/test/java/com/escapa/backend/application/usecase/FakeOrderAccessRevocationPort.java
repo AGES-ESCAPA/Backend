@@ -1,11 +1,11 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.OrderAccessRevocationPort;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.port.OrderAccessRevocationPort;
 
 /** Registra as revogações pedidas e pode ser configurado para falhar. */
 public final class FakeOrderAccessRevocationPort implements OrderAccessRevocationPort {

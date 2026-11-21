@@ -1,7 +1,8 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.dto.CourseSummary;
 import java.util.UUID;
+
+import com.escapa.backend.application.dto.CourseSummary;
 
 /**
  * DTO de resposta para cada curso na listagem pública.

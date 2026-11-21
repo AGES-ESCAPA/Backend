@@ -1,9 +1,9 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
-
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
 
 /** Ids dos cursos que a empresa já comprou, para o catálogo marcar o curso como adquirido. */
 public class ListCompanyCourseIdsUseCase {

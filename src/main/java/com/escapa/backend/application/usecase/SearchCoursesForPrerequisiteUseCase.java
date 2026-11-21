@@ -1,10 +1,10 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.CourseRepositoryPort;
-import com.escapa.backend.domain.entity.Course;
-
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.domain.entity.Course;
 
 public class SearchCoursesForPrerequisiteUseCase {
 

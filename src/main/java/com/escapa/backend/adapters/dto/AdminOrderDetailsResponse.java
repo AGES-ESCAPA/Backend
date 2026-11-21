@@ -1,16 +1,16 @@
 package com.escapa.backend.adapters.dto;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
 import com.escapa.backend.application.model.OrderDetails;
 import com.escapa.backend.domain.order.OrderItemType;
 import com.escapa.backend.domain.order.OrderStatus;
 import com.escapa.backend.domain.order.OrderStatusChange;
 import com.escapa.backend.domain.order.OrderType;
 import com.escapa.backend.domain.order.PaymentMethod;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 public record AdminOrderDetailsResponse(
         UUID id,

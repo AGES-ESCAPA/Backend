@@ -1,8 +1,8 @@
 package com.escapa.backend.application.model;
 
-import com.escapa.backend.domain.entity.Content;
-
 import java.util.UUID;
+
+import com.escapa.backend.domain.entity.Content;
 
 /**
  * Aula junto do contexto necessario ao player: dados do modulo (cabecalho

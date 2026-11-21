@@ -1,33 +1,31 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
-import com.escapa.backend.application.port.PasswordHasherPort;
-import com.escapa.backend.application.port.TokenProviderPort;
-import com.escapa.backend.application.usecase.FakePasswordHasher;
-import com.escapa.backend.application.usecase.LoginOutput;
-import com.escapa.backend.application.usecase.LoginUseCase;
-import com.escapa.backend.application.usecase.RegisterStudentUseCase;
-import com.escapa.backend.application.usecase.RegisterCompanyUseCase;
-import com.escapa.backend.domain.registration.DuplicateRegistrationException;
-import com.escapa.backend.domain.entity.User;
-import com.escapa.backend.domain.user.InactiveUserException;
-import com.escapa.backend.domain.user.InvalidCredentialsException;
-import com.escapa.backend.domain.user.PendingUserException;
-import com.escapa.backend.domain.user.UserStatus;
+import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.hamcrest.Matchers.nullValue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
+import com.escapa.backend.application.usecase.FakePasswordHasher;
+import com.escapa.backend.application.usecase.LoginOutput;
+import com.escapa.backend.application.usecase.LoginUseCase;
+import com.escapa.backend.application.usecase.RegisterCompanyUseCase;
+import com.escapa.backend.application.usecase.RegisterStudentUseCase;
+import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.domain.registration.DuplicateRegistrationException;
+import com.escapa.backend.domain.user.InactiveUserException;
+import com.escapa.backend.domain.user.InvalidCredentialsException;
+import com.escapa.backend.domain.user.PendingUserException;
+import com.escapa.backend.domain.user.UserStatus;
 
 class AuthControllerTest {
 

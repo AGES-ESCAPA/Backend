@@ -1,19 +1,20 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.model.CompanyEngagement;
-import com.escapa.backend.application.model.EnrollmentCompletionCounts;
-import com.escapa.backend.application.port.AdminMetricsRepositoryPort;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.transaction.annotation.Transactional;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.escapa.backend.application.model.CompanyEngagement;
+import com.escapa.backend.application.model.EnrollmentCompletionCounts;
+import com.escapa.backend.application.port.AdminMetricsRepositoryPort;
 
 @Transactional
 class AdminMetricsRepositoryAdapterTest extends PostgresIntegrationTest {

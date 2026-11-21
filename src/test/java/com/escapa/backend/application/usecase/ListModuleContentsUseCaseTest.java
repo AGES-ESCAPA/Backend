@@ -1,16 +1,17 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.domain.content.ContentType;
-import com.escapa.backend.domain.entity.Content;
-import com.escapa.backend.domain.module.ModuleNotFoundException;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.entity.Content;
+import com.escapa.backend.domain.module.ModuleNotFoundException;
 
 class ListModuleContentsUseCaseTest {
 

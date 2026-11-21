@@ -1,12 +1,9 @@
 package com.escapa.backend.infrastructure.config;
 
-import com.escapa.backend.application.usecase.CreateUserUseCase;
-import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
-import com.escapa.backend.application.usecase.ListUsersUseCase;
-import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
-import com.escapa.backend.application.usecase.PublishCourseUseCase;
-import com.escapa.backend.application.usecase.RegisterStudentUseCase;
-import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.support.AopUtils;
@@ -14,9 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.escapa.backend.application.usecase.CreateUserUseCase;
+import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
+import com.escapa.backend.application.usecase.ListUsersUseCase;
+import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
+import com.escapa.backend.application.usecase.PublishCourseUseCase;
+import com.escapa.backend.application.usecase.RegisterStudentUseCase;
+import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
 
 class UseCaseTransactionConfigTest extends PostgresIntegrationTest {
 

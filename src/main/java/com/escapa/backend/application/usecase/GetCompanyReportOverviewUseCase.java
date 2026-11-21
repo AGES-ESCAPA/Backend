@@ -1,15 +1,5 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.CompanyReportFigures;
-import com.escapa.backend.application.model.CompanyReportFigures.JobTitleFigures;
-import com.escapa.backend.application.model.CompanyReportFigures.MonthFigures;
-import com.escapa.backend.application.model.CompanyReportOverview;
-import com.escapa.backend.application.model.CompanyReportOverview.JobTitleCompletion;
-import com.escapa.backend.application.model.CompanyReportOverview.MonthlyHours;
-import com.escapa.backend.application.model.CompanyReportPeriod;
-import com.escapa.backend.application.port.CompanyReportRepositoryPort;
-import com.escapa.backend.domain.company.CompanyNotFoundException;
-
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +11,16 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import com.escapa.backend.application.model.CompanyReportFigures;
+import com.escapa.backend.application.model.CompanyReportFigures.JobTitleFigures;
+import com.escapa.backend.application.model.CompanyReportFigures.MonthFigures;
+import com.escapa.backend.application.model.CompanyReportOverview;
+import com.escapa.backend.application.model.CompanyReportOverview.JobTitleCompletion;
+import com.escapa.backend.application.model.CompanyReportOverview.MonthlyHours;
+import com.escapa.backend.application.model.CompanyReportPeriod;
+import com.escapa.backend.application.port.CompanyReportRepositoryPort;
+import com.escapa.backend.domain.company.CompanyNotFoundException;
 
 /**
  * Indicadores de conclusão e engajamento da equipe da empresa (US-35). O banco só conta; as taxas,

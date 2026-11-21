@@ -1,8 +1,8 @@
 package com.escapa.backend.adapters.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.util.UUID;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Result of resending the invite of a pending employee")
 public record ResentInviteResponse(

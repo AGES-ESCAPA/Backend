@@ -1,9 +1,11 @@
 package com.escapa.backend.infrastructure.persistence.entity;
 
-import com.escapa.backend.domain.order.OrderItemType;
-import com.escapa.backend.domain.order.OrderStatus;
-import com.escapa.backend.domain.order.OrderType;
-import com.escapa.backend.domain.order.PaymentMethod;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,11 +21,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import com.escapa.backend.domain.order.OrderItemType;
+import com.escapa.backend.domain.order.OrderStatus;
+import com.escapa.backend.domain.order.OrderType;
+import com.escapa.backend.domain.order.PaymentMethod;
 
 /** Pedido de compra. Sem nenhuma coluna de dados de cartão. */
 @Entity

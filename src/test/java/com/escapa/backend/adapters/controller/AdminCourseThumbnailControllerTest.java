@@ -1,13 +1,13 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
-import com.escapa.backend.adapters.security.AdminRequestGuard;
-import com.escapa.backend.adapters.security.AuthenticatedUser;
-import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
-import com.escapa.backend.application.usecase.InMemoryFileStoragePort;
-import com.escapa.backend.application.usecase.InMemoryUserRepositoryPort;
-import com.escapa.backend.application.usecase.UploadCourseThumbnailUseCase;
-import com.escapa.backend.domain.entity.User;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.startsWith;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.UUID;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,13 +18,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.UUID;
-
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.startsWith;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
+import com.escapa.backend.adapters.security.AdminRequestGuard;
+import com.escapa.backend.adapters.security.AuthenticatedUser;
+import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
+import com.escapa.backend.application.usecase.InMemoryFileStoragePort;
+import com.escapa.backend.application.usecase.InMemoryUserRepositoryPort;
+import com.escapa.backend.application.usecase.UploadCourseThumbnailUseCase;
+import com.escapa.backend.domain.entity.User;
 
 class AdminCourseThumbnailControllerTest {
 

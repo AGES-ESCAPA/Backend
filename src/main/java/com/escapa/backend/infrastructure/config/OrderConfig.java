@@ -1,13 +1,21 @@
 package com.escapa.backend.infrastructure.config;
 
+import java.math.BigDecimal;
+import java.time.Clock;
+
+import jakarta.persistence.EntityManager;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.OrderAccessPort;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.usecase.CreateOrderUseCase;
-import com.escapa.backend.application.usecase.GetSeatPriceUseCase;
 import com.escapa.backend.application.usecase.GetAdminOrderStatsUseCase;
 import com.escapa.backend.application.usecase.GetAdminOrderUseCase;
+import com.escapa.backend.application.usecase.GetSeatPriceUseCase;
 import com.escapa.backend.application.usecase.ListAdminOrdersUseCase;
 import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
@@ -17,13 +25,6 @@ import com.escapa.backend.infrastructure.persistence.OrderRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.RegularUserJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
-import jakarta.persistence.EntityManager;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import java.math.BigDecimal;
-import java.time.Clock;
 
 /** Beans dos pedidos: listagem e detalhe do admin (US-28) e criação com liberação de acesso (US-27). */
 @Configuration

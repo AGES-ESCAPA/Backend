@@ -1,12 +1,13 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.OrderRepositoryPort;
-import com.escapa.backend.domain.entity.Order;
-import com.escapa.backend.domain.order.OrderNotFoundException;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.UUID;
+import com.escapa.backend.application.port.OrderRepositoryPort;
+import com.escapa.backend.domain.entity.Order;
+import com.escapa.backend.domain.order.OrderNotFoundException;
 
 /**
  * Registra o reembolso de um pedido já cancelado. Só muda o status e o histórico: o

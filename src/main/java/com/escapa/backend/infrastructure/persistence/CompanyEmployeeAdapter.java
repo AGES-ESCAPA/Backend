@@ -1,5 +1,15 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
+
+import jakarta.persistence.EntityManager;
+import org.springframework.jdbc.core.simple.JdbcClient;
+
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CompanyEmployee;
 import com.escapa.backend.application.model.CompanyEmployeeCounts;
@@ -8,15 +18,6 @@ import com.escapa.backend.domain.user.UserStatus;
 import com.escapa.backend.infrastructure.persistence.entity.CompanyEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UsersCompanyEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UsersCompanyId;
-import jakarta.persistence.EntityManager;
-import org.springframework.jdbc.core.simple.JdbcClient;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Colaboradores de uma empresa lidos de {@code users_company}. Toda consulta filtra por

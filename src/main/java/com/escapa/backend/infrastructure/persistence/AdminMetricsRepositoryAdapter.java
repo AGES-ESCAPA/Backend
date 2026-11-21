@@ -1,12 +1,14 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.model.CompanyEngagement;
-import com.escapa.backend.application.model.EnrollmentCompletionCounts;
-import com.escapa.backend.application.port.AdminMetricsRepositoryPort;
-import org.springframework.jdbc.core.simple.JdbcClient;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+
+import com.escapa.backend.application.model.CompanyEngagement;
+import com.escapa.backend.application.model.EnrollmentCompletionCounts;
+import com.escapa.backend.application.port.AdminMetricsRepositoryPort;
 
 public class AdminMetricsRepositoryAdapter implements AdminMetricsRepositoryPort {
     private static final String ACTIVE_STUDENTS = """

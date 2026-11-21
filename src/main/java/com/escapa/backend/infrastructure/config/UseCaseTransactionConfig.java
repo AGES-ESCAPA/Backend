@@ -1,5 +1,7 @@
 package com.escapa.backend.infrastructure.config;
 
+import java.util.List;
+
 import org.springframework.aop.Advisor;
 import org.springframework.aop.aspectj.AspectJExpressionPointcut;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
@@ -9,8 +11,6 @@ import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.RuleBasedTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
-
-import java.util.List;
 
 /**
  * Define a fronteira transacional de cada caso de uso sem acoplar a camada {@code application}

@@ -1,16 +1,17 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.Enrollment;
-import com.escapa.backend.domain.course.CourseReviewNotAllowedException;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.model.Enrollment;
+import com.escapa.backend.domain.course.CourseReviewNotAllowedException;
 
 class RateCourseUseCaseTest {
 

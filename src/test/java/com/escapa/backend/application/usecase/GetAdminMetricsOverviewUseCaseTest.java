@@ -1,10 +1,6 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.AdminMetricsOverview;
-import com.escapa.backend.application.model.CompanyEngagement;
-import com.escapa.backend.application.model.EnrollmentCompletionCounts;
-import com.escapa.backend.application.port.AdminMetricsRepositoryPort;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -17,7 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.model.AdminMetricsOverview;
+import com.escapa.backend.application.model.CompanyEngagement;
+import com.escapa.backend.application.model.EnrollmentCompletionCounts;
+import com.escapa.backend.application.port.AdminMetricsRepositoryPort;
 
 class GetAdminMetricsOverviewUseCaseTest {
     private final FakeRepository repository = new FakeRepository();

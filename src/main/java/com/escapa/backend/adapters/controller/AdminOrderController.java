@@ -1,5 +1,18 @@
 package com.escapa.backend.adapters.controller;
 
+import java.time.LocalDate;
+import java.util.UUID;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.escapa.backend.adapters.dto.AdminOrderDetailsResponse;
 import com.escapa.backend.adapters.dto.AdminOrderListItemResponse;
 import com.escapa.backend.adapters.dto.AdminOrderStatsResponse;
@@ -16,18 +29,6 @@ import com.escapa.backend.application.usecase.GetAdminOrderUseCase;
 import com.escapa.backend.application.usecase.ListAdminOrdersUseCase;
 import com.escapa.backend.domain.order.OrderStatus;
 import com.escapa.backend.domain.order.OrderType;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDate;
-import java.util.UUID;
 
 @RestController
 @Tag(name = "Admin - Orders", description = "Order management for authenticated ADMIN users")

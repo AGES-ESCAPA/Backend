@@ -1,8 +1,8 @@
 package com.escapa.backend.adapters.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "Course that must be completed first")

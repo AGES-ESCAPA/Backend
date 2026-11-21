@@ -1,12 +1,12 @@
 package com.escapa.backend.application.model;
 
-import com.escapa.backend.domain.order.OrderStatus;
-import com.escapa.backend.domain.order.OrderType;
-import com.escapa.backend.domain.order.PaymentMethod;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.escapa.backend.domain.order.OrderStatus;
+import com.escapa.backend.domain.order.OrderType;
+import com.escapa.backend.domain.order.PaymentMethod;
 
 /**
  * Resumo de um pedido para a listagem da gestão de pedidos.

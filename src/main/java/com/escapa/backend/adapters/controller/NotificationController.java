@@ -1,11 +1,7 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.dto.NotificationListResponse;
-import com.escapa.backend.adapters.security.AuthenticationContext;
-import com.escapa.backend.application.usecase.ListUserNotificationsUseCase;
-import com.escapa.backend.application.usecase.MarkAllNotificationsAsReadUseCase;
-import com.escapa.backend.application.usecase.MarkNotificationAsReadUseCase;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +11,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
+import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.NotificationListResponse;
+import com.escapa.backend.adapters.security.AuthenticationContext;
+import com.escapa.backend.application.usecase.ListUserNotificationsUseCase;
+import com.escapa.backend.application.usecase.MarkAllNotificationsAsReadUseCase;
+import com.escapa.backend.application.usecase.MarkNotificationAsReadUseCase;
 
 /**
  * Notificacoes do usuario identificado pelo token Bearer da requisicao.

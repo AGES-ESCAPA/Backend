@@ -11,10 +11,10 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
+import com.escapa.backend.application.model.TokenClaims;
 import com.escapa.backend.application.port.FileStoragePort;
 import com.escapa.backend.application.port.RegularUserRepositoryPort;
 import com.escapa.backend.application.port.TokenProviderPort;
-import com.escapa.backend.application.model.TokenClaims;
 import com.escapa.backend.application.usecase.InMemoryFileStoragePort;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.infrastructure.security.JwtTokenProviderAdapter;

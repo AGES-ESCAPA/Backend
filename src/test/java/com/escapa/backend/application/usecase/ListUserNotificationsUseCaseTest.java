@@ -1,13 +1,14 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.UserNotification;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.model.UserNotification;
 
 class ListUserNotificationsUseCaseTest {
 

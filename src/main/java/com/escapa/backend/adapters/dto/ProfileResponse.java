@@ -1,9 +1,9 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.model.UserProfile;
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.escapa.backend.application.model.UserProfile;
 
 @Schema(description = "Profile data of the logged-in user, shaped by its profile "
         + "(STUDENT, EMPLOYEE, COMPANY or ADMIN)")

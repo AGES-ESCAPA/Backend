@@ -1,12 +1,12 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+
 import com.escapa.backend.domain.entity.Order;
 import com.escapa.backend.domain.order.OrderStatusChange;
 import com.escapa.backend.infrastructure.persistence.entity.OrderEntity;
 import com.escapa.backend.infrastructure.persistence.entity.OrderStatusHistoryEntity;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 
 final class OrderMapper {
 

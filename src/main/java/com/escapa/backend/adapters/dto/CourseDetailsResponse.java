@@ -1,8 +1,9 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.model.CourseDetails;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.model.CourseDetails;
 
 public record CourseDetailsResponse(
         UUID id,

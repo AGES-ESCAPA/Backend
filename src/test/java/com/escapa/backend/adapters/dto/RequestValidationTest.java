@@ -1,20 +1,21 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.adapters.dto.course.CreateCourseRequest;
-import com.escapa.backend.adapters.dto.course.UpdateCourseRequest;
-import com.escapa.backend.domain.content.ContentType;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.adapters.dto.course.CreateCourseRequest;
+import com.escapa.backend.adapters.dto.course.UpdateCourseRequest;
+import com.escapa.backend.domain.content.ContentType;
 
 class RequestValidationTest {
 

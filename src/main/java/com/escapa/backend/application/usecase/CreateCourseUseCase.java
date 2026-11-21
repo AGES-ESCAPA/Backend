@@ -1,16 +1,17 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.course.CourseStrings;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserNotFoundException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.util.List;
-import java.util.UUID;
 
 public class CreateCourseUseCase {
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateCourseUseCase.class);

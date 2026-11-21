@@ -1,13 +1,13 @@
 package com.escapa.backend.application.usecase;
 
+import java.time.LocalDate;
+import java.util.UUID;
+
 import com.escapa.backend.application.dto.OrderFilter;
 import com.escapa.backend.application.model.OrderStats;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.domain.order.OrderStatus;
 import com.escapa.backend.domain.order.OrderType;
-
-import java.time.LocalDate;
-import java.util.UUID;
 
 /** Totais da gestão de pedidos com os mesmos filtros da listagem, independentes da página exibida. */
 public class GetAdminOrderStatsUseCase {

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,20 @@ class RegularUserRepositoryAdapterTest extends PostgresIntegrationTest {
         assertTrue(regularUserRepositoryPort.existsByCpf(suffix));
         final RegularUserEntity profile = regularUserJpaRepository.findById(saved.getId()).orElseThrow();
         assertEquals("51999990000", profile.getPhone());
+    }
+
+    @Test
+    void shouldPreserveProvidedUserIdAndCreationTime() {
+        final UUID id = UUID.randomUUID();
+        final LocalDateTime createdAt = LocalDateTime.of(2026, 8, 15, 10, 30);
+        final User user = new User("Known Student", id + "@email.com", "hash", "STUDENT");
+        user.setId(id);
+        user.setCreatedAt(createdAt);
+
+        final User saved = regularUserRepositoryPort.save(user, "cpf-" + id, "51999990000");
+
+        assertEquals(id, saved.getId());
+        assertEquals(createdAt, saved.getCreatedAt());
     }
 
     @Test

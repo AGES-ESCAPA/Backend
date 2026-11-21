@@ -1,8 +1,9 @@
 package com.escapa.backend.infrastructure.security;
 
-import com.escapa.backend.application.port.PasswordHasherPort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import com.escapa.backend.application.port.PasswordHasherPort;
 
 @Component
 public class BCryptPasswordHasher implements PasswordHasherPort {

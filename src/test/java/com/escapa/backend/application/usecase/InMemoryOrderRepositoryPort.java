@@ -1,24 +1,24 @@
 package com.escapa.backend.application.usecase;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import com.escapa.backend.application.model.OrderDetails;
-import com.escapa.backend.application.model.OrderStats;
-import com.escapa.backend.application.model.OrderSummary;
-import com.escapa.backend.application.dto.OrderFilter;
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.port.OrderRepositoryPort;
-import com.escapa.backend.domain.entity.Order;
-import com.escapa.backend.domain.order.OrderStatus;
-
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
+
+import com.escapa.backend.application.dto.OrderFilter;
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.OrderDetails;
+import com.escapa.backend.application.model.OrderStats;
+import com.escapa.backend.application.model.OrderSummary;
+import com.escapa.backend.application.port.OrderRepositoryPort;
+import com.escapa.backend.domain.entity.Order;
+import com.escapa.backend.domain.order.OrderStatus;
 
 /**
  * Repositório de pedidos em memória. Guarda e devolve cópias, como um banco faria:

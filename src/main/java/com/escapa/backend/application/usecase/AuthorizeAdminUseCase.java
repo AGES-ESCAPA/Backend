@@ -1,10 +1,10 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.AdminAccessDeniedException;
-
-import java.util.UUID;
 
 /** Garante que o usuario identificado existe e e ADMIN, devolvendo-o para uso pelo chamador. */
 public class AuthorizeAdminUseCase {
