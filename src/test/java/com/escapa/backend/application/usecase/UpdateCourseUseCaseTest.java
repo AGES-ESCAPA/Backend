@@ -187,6 +187,49 @@ class UpdateCourseUseCaseTest {
     }
 
     @Test
+    void shouldKeepPublishedInstructorUntilTheDraftIsRepublished() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
+        final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
+        final User next = userRepository.save(new User("Instrutora Nova", "nova@escapa.com", "hash", "ADMIN"));
+        final Course course = courseRepository.save(new Course(
+                "Titulo", null, null, null, null, admin, null, null,
+                null, null, null, List.of(), true, false, admin));
+        course.setStatus(CourseStatus.PUBLISHED);
+        courseRepository.save(course);
+        final UpdateCourseUseCase useCase =
+                new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
+
+        final Course updated = useCase.execute(
+                course.getId(), null, null, null, null, null, next.getId(), null,
+                null, null, null, null, null, null, null);
+
+        assertEquals(next.getId(), updated.getInstructor().getId());
+        final Course published = courseRepository.findById(course.getId()).orElseThrow();
+        assertEquals(admin.getId(), published.getInstructor().getId());
+        assertEquals(next.getId(), published.getPendingDraft().instructorId());
+    }
+
+    @Test
+    void shouldRejectUnknownInstructorOnAPublishedCourse() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
+        final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
+        final Course course = courseRepository.save(new Course(
+                "Titulo", null, null, null, null, admin, null, null,
+                null, null, null, List.of(), true, false, admin));
+        course.setStatus(CourseStatus.PUBLISHED);
+        courseRepository.save(course);
+        final UpdateCourseUseCase useCase =
+                new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
+
+        assertThrows(UserNotFoundException.class, () -> useCase.execute(
+                course.getId(), null, null, null, null, null, UUID.randomUUID(), null,
+                null, null, null, null, null, null, null));
+        assertNull(courseRepository.findById(course.getId()).orElseThrow().getPendingDraft());
+    }
+
+    @Test
     void shouldNotBumpVersionWhenDraftCourseChanges() {
         final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
         final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
