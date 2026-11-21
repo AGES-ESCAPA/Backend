@@ -104,12 +104,6 @@ class StudentLessonControllerTest {
             }
         };
         final Clock clock = Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
-        final OpenStudentLessonUseCase useCase = new OpenStudentLessonUseCase(
-                lessonRepositoryPort,
-                lessonEnrollmentPort,
-                lessonId -> new LessonSupplement(List.of(), List.of()),
-                clock
-        );
         final CourseRepositoryPort courseRepositoryPort = new CourseRepositoryPort() {
             @Override
             public Course save(Course course) {
@@ -195,6 +189,17 @@ class StudentLessonControllerTest {
             }
         };
 
+        final OpenStudentLessonUseCase useCase = new OpenStudentLessonUseCase(
+                lessonRepositoryPort,
+                lessonEnrollmentPort,
+                lessonId -> new LessonSupplement(List.of(), List.of()),
+                courseRepositoryPort,
+                moduleRepositoryPort,
+                progressRepository,
+                moduleId -> List.of(),
+                clock
+        );
+
         final GetStudentCourseCurriculumUseCase curriculumUseCase = new GetStudentCourseCurriculumUseCase(
                 courseRepositoryPort,
                 moduleRepositoryPort,
@@ -230,8 +235,14 @@ class StudentLessonControllerTest {
         );
 
         final CompleteStudentLessonUseCase completeUseCase = new CompleteStudentLessonUseCase(
-                lessonRepositoryPort, progressRepository, moduleRepositoryPort,
-                new InMemoryEnrollmentProgressRepositoryPort(), lessonEnrollmentPort, clock);
+                lessonRepositoryPort,
+                progressRepository,
+                moduleRepositoryPort,
+                new InMemoryEnrollmentProgressRepositoryPort(),
+                lessonEnrollmentPort,
+                courseRepositoryPort,
+                moduleId -> List.of(),
+                clock);
 
         mockMvc = MockMvcBuilders.standaloneSetup(new StudentLessonController(useCase, curriculumUseCase, completeUseCase))
                 .setControllerAdvice(new GlobalExceptionHandler())

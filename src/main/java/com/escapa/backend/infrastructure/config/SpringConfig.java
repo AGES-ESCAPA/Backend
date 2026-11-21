@@ -665,9 +665,21 @@ public class SpringConfig {
     public OpenStudentLessonUseCase openStudentLessonUseCase(
             LessonSupplementRepositoryPort lessonSupplementRepositoryPort,
             LessonRepositoryPort lessonRepositoryPort,
-            EnrollmentRepositoryPort enrollmentRepositoryPort
+            EnrollmentRepositoryPort enrollmentRepositoryPort,
+            CourseRepositoryPort courseRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort,
+            LessonProgressRepositoryPort lessonProgressRepositoryPort,
+            ModulePrerequisiteRepositoryPort modulePrerequisiteRepositoryPort
     ) {
-        return new OpenStudentLessonUseCase(lessonRepositoryPort, enrollmentRepositoryPort, lessonSupplementRepositoryPort, Clock.systemDefaultZone());
+        return new OpenStudentLessonUseCase(
+                lessonRepositoryPort,
+                enrollmentRepositoryPort,
+                lessonSupplementRepositoryPort,
+                courseRepositoryPort,
+                moduleRepositoryPort,
+                lessonProgressRepositoryPort,
+                modulePrerequisiteRepositoryPort,
+                Clock.systemDefaultZone());
     }
 
     @Bean
@@ -693,7 +705,9 @@ public class SpringConfig {
             LessonProgressRepositoryPort lessonProgressRepositoryPort,
             ModuleRepositoryPort moduleRepositoryPort,
             EnrollmentProgressRepositoryPort enrollmentProgressRepositoryPort,
-            EnrollmentRepositoryPort enrollmentRepositoryPort
+            EnrollmentRepositoryPort enrollmentRepositoryPort,
+            CourseRepositoryPort courseRepositoryPort,
+            ModulePrerequisiteRepositoryPort modulePrerequisiteRepositoryPort
     ) {
         return new CompleteStudentLessonUseCase(
                 lessonRepositoryPort,
@@ -701,6 +715,8 @@ public class SpringConfig {
                 moduleRepositoryPort,
                 enrollmentProgressRepositoryPort,
                 enrollmentRepositoryPort,
+                courseRepositoryPort,
+                modulePrerequisiteRepositoryPort,
                 Clock.systemDefaultZone());
     }
 
