@@ -42,6 +42,7 @@ import com.escapa.backend.application.usecase.ListCourseCategoriesUseCase;
 import com.escapa.backend.application.usecase.PublishCourseUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
+import com.escapa.backend.application.usecase.UnarchiveCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.domain.entity.Course;
@@ -64,6 +65,7 @@ public class AdminCourseController {
     private final ListAdminCoursesUseCase listAdminCoursesUseCase;
     private final ListCourseCategoriesUseCase listCourseCategoriesUseCase;
     private final ArchiveCourseUseCase archiveCourseUseCase;
+    private final UnarchiveCourseUseCase unarchiveCourseUseCase;
     private final AdminRequestGuard adminRequestGuard;
 
     public AdminCourseController(
@@ -80,6 +82,7 @@ public class AdminCourseController {
             ListAdminCoursesUseCase listAdminCoursesUseCase,
             ListCourseCategoriesUseCase listCourseCategoriesUseCase,
             ArchiveCourseUseCase archiveCourseUseCase,
+            UnarchiveCourseUseCase unarchiveCourseUseCase,
             AdminRequestGuard adminRequestGuard) {
         this.getCourseRulesUseCase = getCourseRulesUseCase;
         this.updateProgressRulesUseCase = updateProgressRulesUseCase;
@@ -94,11 +97,12 @@ public class AdminCourseController {
         this.listAdminCoursesUseCase = listAdminCoursesUseCase;
         this.listCourseCategoriesUseCase = listCourseCategoriesUseCase;
         this.archiveCourseUseCase = archiveCourseUseCase;
+        this.unarchiveCourseUseCase = unarchiveCourseUseCase;
         this.adminRequestGuard = adminRequestGuard;
     }
 
     @GetMapping
-    @Operation(summary = "List non-archived courses")
+    @Operation(summary = "List all courses including archived")
     public ResponseEntity<ApiResponse<List<AdminCourseListItemResponse>>> list() {
         requireAdmin();
         final List<AdminCourseListItemResponse> courses = listAdminCoursesUseCase.execute().stream()
@@ -129,7 +133,7 @@ public class AdminCourseController {
         final Course course = createCourseUseCase.execute(
                 request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
                 request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
-                request.durationTime(), request.deadline(), request.price(),
+                request.featured(), request.durationTime(), request.deadline(), request.price(),
                 request.learningObjectives(), request.requireSequentialProgress(), request.enforceDeadlineBlock(),
                 admin.getId()
         );
@@ -143,6 +147,15 @@ public class AdminCourseController {
         requireAdmin();
         archiveCourseUseCase.execute(courseId);
         return ResponseEntity.ok(ApiResponse.success(null, "Course archived successfully"));
+    }
+
+    @PostMapping("/{courseId}/unarchive")
+    @Operation(summary = "Unarchive a course and restore it as published")
+    public ResponseEntity<ApiResponse<CourseResponse>> unarchive(@PathVariable UUID courseId) {
+        requireAdmin();
+        final Course course = unarchiveCourseUseCase.execute(courseId);
+        return ResponseEntity.ok(
+                ApiResponse.success(CourseResponse.from(course), "Course unarchived successfully"));
     }
 
     @GetMapping("/{courseId}/rules")
@@ -207,7 +220,7 @@ public class AdminCourseController {
         final Course course = updateCourseUseCase.execute(
                 courseId, request.title(), request.shortDescription(), request.description(), request.thumbnailUrl(),
                 request.teaserVideoUrl(), request.instructorId(), request.category(), request.level(),
-                request.durationTime(), request.deadline(), request.price(),
+                request.featured(), request.durationTime(), request.deadline(), request.price(),
                 request.learningObjectives(), request.requireSequentialProgress(), request.enforceDeadlineBlock()
         );
         return ResponseEntity.ok(ApiResponse.success(CourseResponse.from(course), "Course updated successfully"));

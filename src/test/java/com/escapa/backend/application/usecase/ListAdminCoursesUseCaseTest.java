@@ -42,14 +42,16 @@ class ListAdminCoursesUseCaseTest {
     }
 
     @Test
-    void shouldExcludeArchivedCourses() {
+    void shouldIncludeArchivedCourses() {
         saveCourse("Curso Publicado", CourseStatus.PUBLISHED);
         saveCourse("Curso Arquivado", CourseStatus.ARCHIVED);
 
         final List<Course> result = useCase.execute();
 
-        assertEquals(1, result.size());
-        assertEquals("Curso Publicado", result.get(0).getTitle());
+        assertEquals(2, result.size());
+        assertEquals("Curso Arquivado", result.get(0).getTitle());
+        assertEquals(CourseStatus.ARCHIVED, result.get(0).getStatus());
+        assertEquals("Curso Publicado", result.get(1).getTitle());
     }
 
     @Test

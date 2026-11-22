@@ -40,6 +40,7 @@ import com.escapa.backend.application.usecase.ListCourseCategoriesUseCase;
 import com.escapa.backend.application.usecase.PublishCourseUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
+import com.escapa.backend.application.usecase.UnarchiveCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.domain.course.CourseStatus;
@@ -82,6 +83,7 @@ class AdminCourseControllerTest {
                 new ListAdminCoursesUseCase(courseRepository),
                 new ListCourseCategoriesUseCase(courseRepository),
                 new ArchiveCourseUseCase(courseRepository),
+                new UnarchiveCourseUseCase(courseRepository),
                 new AdminRequestGuard(new AuthorizeAdminUseCase(userRepository))
         );
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
@@ -118,7 +120,7 @@ class AdminCourseControllerTest {
     }
 
     @Test
-    void shouldListNonArchivedCoursesSortedByTitle() throws Exception {
+    void shouldListAllCoursesIncludingArchivedSortedByTitle() throws Exception {
         saveCourse("beta", CourseStatus.DRAFT);
         saveCourse("Alfa", CourseStatus.PUBLISHED);
         saveCourse("Gama", CourseStatus.ARCHIVED);
@@ -126,9 +128,11 @@ class AdminCourseControllerTest {
         mockMvc.perform(get(COURSES_URL).header(USER_HEADER, adminId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data.length()").value(3))
                 .andExpect(jsonPath("$.data[0].title").value("Alfa"))
-                .andExpect(jsonPath("$.data[1].title").value("beta"));
+                .andExpect(jsonPath("$.data[1].title").value("beta"))
+                .andExpect(jsonPath("$.data[2].title").value("Gama"))
+                .andExpect(jsonPath("$.data[2].status").value("ARCHIVED"));
     }
 
     @Test
@@ -169,7 +173,21 @@ class AdminCourseControllerTest {
                 .andExpect(jsonPath("$.message").value("Course archived successfully"));
 
         mockMvc.perform(get(COURSES_URL).header(USER_HEADER, adminId))
-                .andExpect(jsonPath("$.data.length()").value(0));
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].status").value("ARCHIVED"));
+    }
+
+    @Test
+    void shouldUnarchiveACourseAsPublished() throws Exception {
+        final UUID courseId = saveCourse("Curso", CourseStatus.ARCHIVED);
+
+        mockMvc.perform(post(COURSES_URL + "/{id}/unarchive", courseId).header(USER_HEADER, adminId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Course unarchived successfully"))
+                .andExpect(jsonPath("$.data.status").value("PUBLISHED"));
+
+        mockMvc.perform(get(COURSES_URL).header(USER_HEADER, adminId))
+                .andExpect(jsonPath("$.data[0].status").value("PUBLISHED"));
     }
 
     @Test
