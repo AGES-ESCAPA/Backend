@@ -218,13 +218,16 @@ class CreateOrderUseCaseTest {
 
     @ParameterizedTest
     @EnumSource(value = PaymentMethod.class, names = {"PIX", "BOLETO"})
-    void shouldRefuseEveryPaymentMethodThatIsNotCard(PaymentMethod method) {
+    void shouldApprovePixAndBoletoTheSameWayAsCard(PaymentMethod method) {
         final Course course = givenCourse(CourseStatus.PUBLISHED, 100.0, 30);
 
-        assertThrows(OrderValidationException.class,
-                () -> useCase.execute(courseOrder("STUDENT", course.getId(), method, 1)));
+        final Order order = useCase.execute(courseOrder("STUDENT", course.getId(), method, 3));
 
-        assertNothingWasRegistered();
+        assertEquals(OrderStatus.APPROVED, order.getStatus());
+        assertEquals(method, order.getPaymentMethod());
+        assertEquals(1, order.getInstallments());
+        assertEquals(1, orders.saved.size());
+        assertEquals(1, access.studentEnrollments.size());
     }
 
     @Test

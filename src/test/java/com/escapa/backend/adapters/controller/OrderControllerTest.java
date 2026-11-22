@@ -244,12 +244,27 @@ class OrderControllerTest extends PostgresIntegrationTest {
     }
 
     @Test
-    void shouldRefuseAPaymentMethodOtherThanCard() throws Exception {
+    void shouldAcceptPixAndBoletoLikeCard() throws Exception {
         final UUID student = givenUser("STUDENT");
         final UUID course = givenCourse("PUBLISHED", 100.0, 30);
 
-        placeOrder(student, "STUDENT", courseBody(course, "PIX", 1)).andExpect(status().isBadRequest());
-        placeOrder(student, "STUDENT", courseBody(course, "BOLETO", 1)).andExpect(status().isBadRequest());
+        placeOrder(student, "STUDENT", courseBody(course, "PIX", 1))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.paymentMethod", is("PIX")))
+                .andExpect(jsonPath("$.data.status", is("APPROVED")));
+
+        final UUID otherStudent = givenUser("STUDENT");
+        placeOrder(otherStudent, "STUDENT", courseBody(course, "BOLETO", 1))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.paymentMethod", is("BOLETO")))
+                .andExpect(jsonPath("$.data.status", is("APPROVED")));
+    }
+
+    @Test
+    void shouldRefuseAnUnknownPaymentMethod() throws Exception {
+        final UUID student = givenUser("STUDENT");
+        final UUID course = givenCourse("PUBLISHED", 100.0, 30);
+
         placeOrder(student, "STUDENT", courseBody(course, "CASH", 1)).andExpect(status().isBadRequest());
 
         assertEquals(0, count("orders"));
