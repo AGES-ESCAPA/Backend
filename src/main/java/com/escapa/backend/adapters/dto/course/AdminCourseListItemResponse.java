@@ -12,7 +12,8 @@ public record AdminCourseListItemResponse(
         Double price,
         CourseStatus status,
         Integer majorVersion,
-        Integer minorVersion
+        Integer minorVersion,
+        String instructorName
 ) {
 
     public static AdminCourseListItemResponse from(Course course) {
@@ -25,6 +26,7 @@ public record AdminCourseListItemResponse(
                 course.getPrice(),
                 course.getStatus(),
                 major,
-                minor);
+                minor,
+                course.getInstructor() != null ? course.getInstructor().getName() : null);
     }
 }

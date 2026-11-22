@@ -4,12 +4,11 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.escapa.backend.application.port.CourseRepositoryPort;
-import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
 
 /**
- * Lista os cursos do painel administrativo: rascunhos e publicados,
- * sem os arquivados (o DELETE administrativo é um soft-delete).
+ * Lista os cursos do painel administrativo, incluindo arquivados
+ * (o DELETE administrativo é um soft-delete e continua filtrável no painel).
  */
 public class ListAdminCoursesUseCase {
 
@@ -20,7 +19,7 @@ public class ListAdminCoursesUseCase {
     }
 
     public List<Course> execute() {
-        return courseRepositoryPort.findAllExcludingStatus(CourseStatus.ARCHIVED).stream()
+        return courseRepositoryPort.findAllForListing().stream()
                 .sorted(Comparator.comparing(
                         Course::getTitle, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
                 .toList();

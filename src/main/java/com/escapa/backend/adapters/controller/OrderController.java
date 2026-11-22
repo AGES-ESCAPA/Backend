@@ -49,13 +49,12 @@ public class OrderController {
     @Operation(
             summary = "Place a purchase and release the access",
             description = "Registers the simulated purchase as APPROVED and releases the access in the same "
-                    + "transaction. A student buys a course; a company buys a course or seats. Only CARD is "
-                    + "accepted for now. The amount is calculated by the server.")
+                    + "transaction. A student buys a course; a company buys a course or seats. CARD, PIX and "
+                    + "BOLETO are accepted (simulated approval). The amount is calculated by the server.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Order approved"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400",
-                    description = "Invalid request, payment method other than CARD, course not published "
-                            + "or a profile that cannot buy the item"),
+                    description = "Invalid request, course not published or a profile that cannot buy the item"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Course not found"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409",
                     description = "The buyer already has active access to the course")

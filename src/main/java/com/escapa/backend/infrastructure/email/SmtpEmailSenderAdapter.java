@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -17,12 +18,17 @@ import com.escapa.backend.application.port.EmailSenderPort;
  * ({@code app.mail.test-mode}) ligado, marca a mensagem como teste: prefixo no assunto e
  * aviso no topo do HTML e do texto. O aviso fica só aqui, nunca nos templates, para não
  * vazar para produção. Desligado, a mensagem sai exatamente como o caso de uso montou.
+ *
+ * <p>Quando o HTML referencia {@code cid:escapa-logo} (layout visual da marca), anexa a
+ * logo inline a partir do classpath do certificado — o mesmo asset usado nos PDFs.
  */
 public class SmtpEmailSenderAdapter implements EmailSenderPort {
 
     static final String TEST_SUBJECT_PREFIX = "[TESTE] ";
     static final String TEST_NOTICE = "⚠️ Este é um e-mail de TESTE enviado pelo ambiente de desenvolvimento."
             + " Não é uma mensagem real.";
+    static final String LOGO_CONTENT_ID = "escapa-logo";
+    private static final String LOGO_CLASSPATH = "certificate/images/escapa-logo.png";
     private static final String TEST_NOTICE_HTML = "<div style=\"background:#fff3cd;color:#664d03;"
             + "border:1px solid #ffda6a;padding:12px;margin-bottom:16px;font-family:sans-serif;\">"
             + TEST_NOTICE + "</div>";
@@ -52,9 +58,13 @@ public class SmtpEmailSenderAdapter implements EmailSenderPort {
             helper.setFrom(from);
             helper.setTo(recipient(to));
             helper.setSubject(testMode ? TEST_SUBJECT_PREFIX + subject : subject);
+            final String html = testMode ? withHtmlNotice(htmlBody) : htmlBody;
             helper.setText(
                     testMode ? TEST_NOTICE + "\n\n" + textBody : textBody,
-                    testMode ? withHtmlNotice(htmlBody) : htmlBody);
+                    html);
+            if (html.contains("cid:" + LOGO_CONTENT_ID)) {
+                helper.addInline(LOGO_CONTENT_ID, new ClassPathResource(LOGO_CLASSPATH));
+            }
             mailSender.send(message);
         } catch (MessagingException | MailException e) {
             throw new EmailSendingException("Failed to send e-mail", e);

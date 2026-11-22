@@ -26,7 +26,7 @@ public record CreateOrderRequest(
         @Positive(message = "seatsQuantity must be greater than zero")
         Integer seatsQuantity,
 
-        @Schema(description = "Only CARD is accepted for now", example = "CARD")
+        @Schema(description = "Payment method (CARD, PIX or BOLETO)", example = "CARD")
         @NotNull(message = "paymentMethod is required")
         PaymentMethod paymentMethod,
 

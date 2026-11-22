@@ -49,7 +49,10 @@ import com.escapa.backend.domain.order.OrderValidationException;
 import com.escapa.backend.domain.order.SeatsInUseException;
 import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.user.AdminAccessDeniedException;
+import com.escapa.backend.domain.user.CannotDeactivateOwnAccountException;
 import com.escapa.backend.domain.user.CompanyEmployeeCannotDeactivateException;
+import com.escapa.backend.domain.user.EmailChangeTokenExpiredException;
+import com.escapa.backend.domain.user.EmailChangeTokenNotFoundException;
 import com.escapa.backend.domain.user.EmployeeNotPendingException;
 import com.escapa.backend.domain.user.InactiveUserException;
 import com.escapa.backend.domain.user.InvalidAvatarFileException;
@@ -106,6 +109,7 @@ public class GlobalExceptionHandler {
             CompanyNotFoundException.class,
             InviteNotFoundException.class,
             PasswordResetTokenNotFoundException.class,
+            EmailChangeTokenNotFoundException.class,
             CompanyEmployeeNotFoundException.class
     })
     public ResponseEntity<ApiError> handleNotFoundException(RuntimeException ex, HttpServletRequest request) {
@@ -114,6 +118,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             CompanyEmployeeCannotDeactivateException.class,
+            CannotDeactivateOwnAccountException.class,
             ProfileNotEditableException.class,
             PendingUserException.class
     })
@@ -129,7 +134,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             InviteExpiredException.class,
-            PasswordResetTokenExpiredException.class
+            PasswordResetTokenExpiredException.class,
+            EmailChangeTokenExpiredException.class
     })
     public ResponseEntity<ApiError> handleGoneException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.GONE, ex.getMessage(), request);

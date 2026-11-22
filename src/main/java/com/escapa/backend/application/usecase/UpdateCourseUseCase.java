@@ -36,11 +36,15 @@ public class UpdateCourseUseCase {
      */
     public Course execute(UUID id, String title, String shortDescription, String description, String thumbnailUrl,
                           String teaserVideoUrl, UUID instructorId, String category, String level,
-                          Integer durationTime, Integer deadline, Double price,
+                          Boolean featured, Integer durationTime, Integer deadline, Double price,
                           List<String> learningObjectives, Boolean requireSequentialProgress,
                           Boolean enforceDeadlineBlock) {
 
         final Course course = courseRepositoryPort.findById(id).orElseThrow(() -> new CourseNotFoundException(id));
+        // Destaque no catálogo vale na hora, inclusive em curso já publicado.
+        if (featured != null) {
+            course.setFeatured(featured);
+        }
         if (PublishedCourseDrafts.isPublished(course)) {
             return savePublishedDraft(course, title, shortDescription, description, thumbnailUrl, teaserVideoUrl,
                     instructorId, category, level, durationTime, deadline, price, learningObjectives,

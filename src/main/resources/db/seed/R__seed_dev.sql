@@ -24,6 +24,8 @@ TRUNCATE TABLE
     company_courses,
     user_courses,
     user_content_progress,
+    content_references,
+    content_concepts,
     module_prerequisites,
     content,
     modules,
@@ -45,7 +47,7 @@ CASCADE;
 INSERT INTO users (id, name, email, password_hash, role, status, created_at) VALUES
     ('a0000000-0000-4000-a000-000000000001', 'Barbara Diogo', 'barbara.diogo@escapa.com.br',
      '$2b$10$x1Lr6X2h7LbTZWbbZHsjIOZQUc2C3k7pWwVrNRbuU0L/RW4HytA5C', 'ADMIN', 'ACTIVE', '2026-01-10 09:00:00'),
-    ('a0000000-0000-4000-a000-000000000002', 'Thamires Magalhães', 'thamires.magalhaes@escapa.com.br',
+    ('a0000000-0000-4000-a000-000000000002', 'Thamiris Magalhães', 'thamiris.magalhaes@escapa.com.br',
      '$2b$10$x1Lr6X2h7LbTZWbbZHsjIOZQUc2C3k7pWwVrNRbuU0L/RW4HytA5C', 'ADMIN', 'ACTIVE', '2026-01-12 14:30:00'),
     ('b0000000-0000-4000-b000-000000000001', 'Mariana Costa', 'mariana.costa@email.com',
      '$2b$10$x1Lr6X2h7LbTZWbbZHsjIOZQUc2C3k7pWwVrNRbuU0L/RW4HytA5C', 'STUDENT', 'ACTIVE', '2026-02-03 10:15:00'),
@@ -104,7 +106,7 @@ INSERT INTO admins (user_id, department, headline, bio, avatar_url) VALUES
     ('a0000000-0000-4000-a000-000000000002', 'Marketing e Destinos',
      'Pesquisadora em Marketing de Luxo e Destinos — ESCAPA!',
      'Jornalista, Mestre em Comunicação pela Unisinos/RS e Doutora em Administração/Marketing pela ESPM/SP, Thamiris Magalhães possui um período de estágio doutoral na KEDGE Business School, em Bordeaux, onde se aprofundou em Marketing de Luxo. Com mais de 10 anos de docência, soma experiências em agências, jornais e universidades, além de ser autora de pesquisas de alto impacto publicadas em alguns dos maiores periódicos do mundo, como o Journal of Services Marketing e o Marketing Theory Journal.',
-     'http://localhost:9000/escapa-media/avatars/thamires-magalhaes.png');
+     'http://localhost:9000/escapa-media/avatars/thamiris-magalhaes.png');
 
 INSERT INTO regular_users (user_id, cpf, phone) VALUES
     ('b0000000-0000-4000-b000-000000000001', '39011122233', '+55 51 99120-3344'),
@@ -161,10 +163,10 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000002',
-     'Inovação', 'AVANCADO', 840, 365, 127,
+     'Inovação', 'AVANCADO', 584, 365, 127,
      '["Diagnosticar a competitividade de um destino","Desenhar produtos turísticos inovadores","Articular governança público-privada","Aplicar inteligência de mercado em destinos","Estruturar indicadores de inovação territorial","Construir um roadmap de destino competitivo"]',
-     TRUE, FALSE, 1, 0, 38, 3, 620,
-     94, 4.7,
+     TRUE, FALSE, 1, 0, 38, 3, 3,
+     1, 4.0,
      '2026-01-18 10:00:00', '2026-01-18 10:00:00'),
     ('e0000000-0000-4000-e000-000000000002',
      'Revenue Management para Hotelaria',
@@ -174,10 +176,10 @@ INSERT INTO courses (
      NULL,
      'ARCHIVED',
      'a0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000002',
-     'Marketing', 'AVANCADO', 1200, 365, 147,
+     'Marketing', 'AVANCADO', 769, 365, 147,
      '["Calcular RevPAR, ADR e occupancy com segurança","Montar uma grade tarifária por segmento","Prever demanda e ajustar preços no dia a dia","Equilibrar OTAs, site oficial e contratos","Definir limites de overbooking com dados de no-show","Implantar um ritual semanal de revenue na operação"]',
-     TRUE, FALSE, 1, 0, 52, 3, 1420,
-     201, 4.8,
+     TRUE, FALSE, 1, 0, 52, 3, 4,
+     1, 5.0,
      '2026-01-22 11:30:00', '2026-01-22 11:30:00'),
     ('e0000000-0000-4000-e000-000000000003',
      'Marketing Digital para Hospitalidade',
@@ -187,10 +189,10 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000002',
-     'Marketing', 'INTERMEDIARIO', 1080, 365, 117,
+     'Marketing', 'INTERMEDIARIO', 632, 365, 117,
      '["Construir a presença digital do meio de hospedagem","Produzir conteúdo que gera intenção de reserva","Operar mídia paga e presença em OTAs com critério","Montar um CRM simples para recompra","Medir CAC, ROAS e taxa de conversão do site","Integrar marketing e receita em um calendário único"]',
-     TRUE, FALSE, 1, 0, 44, 3, 1280,
-     183, 5,
+     TRUE, FALSE, 1, 0, 44, 3, 3,
+     1, 5.0,
      '2026-02-02 09:15:00', '2026-02-02 09:15:00'),
     ('e0000000-0000-4000-e000-000000000004',
      'Liderança em Hospitalidade de Luxo',
@@ -200,10 +202,10 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000001',
-     'Hospitalidade', 'AVANCADO', 1080, 365, 167,
+     'Hospitalidade', 'AVANCADO', 680, 365, 167,
      '["Traduzir a cultura do luxo em rotina de equipe","Liderar com presença de palco e escuta ativa","Construir padrões de serviço observáveis","Dar feedback em operações de alta pressão","Gerir crises sem perder a experiência do hóspede","Formar sucessores na linha de frente e na gerência"]',
-     TRUE, FALSE, 1, 0, 46, 3, 910,
-     128, 4.9,
+     TRUE, FALSE, 1, 0, 46, 3, 4,
+     1, 5.0,
      '2026-02-08 14:00:00', '2026-02-08 14:00:00'),
     ('e0000000-0000-4000-e000-000000000005',
      'IA Aplicada ao Turismo',
@@ -213,10 +215,10 @@ INSERT INTO courses (
      'https://vimeo.com/1226382615?share=copy&fl=sv&fe=ci',
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000001',
-     'Inteligência Artificial', 'INICIANTE', 720, 365, 97,
+     'Inteligência Artificial', 'INICIANTE', 260, 365, 97,
      '["Usar o ChatGPT para criar roteiros e atender clientes","Analisar dados de demanda e tendências de viagens","Implementar chatbots para atendimento 24/7","Automatizar processos repetitivos com IA generativa","Criar conteúdo de marketing com ferramentas de IA","Personalizar experiências com machine learning"]',
-     TRUE, FALSE, 1, 0, 15, 3, 1840,
-     247, 4.9,
+     TRUE, FALSE, 1, 0, 15, 3, 13,
+     2, 5.0,
      '2026-02-12 08:40:00', '2026-02-12 08:40:00'),
     ('e0000000-0000-4000-e000-000000000006',
      'Experiência Premium do Hóspede',
@@ -226,10 +228,10 @@ INSERT INTO courses (
      NULL,
      'PUBLISHED',
      'a0000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000001',
-     'Hospitalidade', 'INTERMEDIARIO', 600, 365, 87,
+     'Hospitalidade', 'INTERMEDIARIO', 392, 365, 87,
      '["Mapear a jornada completa do hóspede","Desenhar momentos memoráveis em cada etapa","Personalizar o serviço com dados e escuta","Treinar a linha de frente para antecipação","Medir satisfação além do NPS","Corrigir falhas sem quebrar a experiência"]',
-     TRUE, FALSE, 1, 0, 28, 3, 1050,
-     156, 4.9,
+     TRUE, FALSE, 1, 0, 28, 3, 12,
+     2, 4.5,
      '2026-02-16 16:20:00', '2026-02-16 16:20:00');
 
 INSERT INTO course_materials (id, course_id, title, file_url, file_type, file_size_bytes, "order", created_at) VALUES
@@ -1255,6 +1257,22 @@ INSERT INTO content (id, module_id, title, description, type, url, duration_minu
 UPDATE modules SET published_order = "order" WHERE published_order IS NULL;
 UPDATE content SET published_order = "order" WHERE published_order IS NULL;
 
+-- Seed de midia: teaser e todas as aulas VIDEO usam o Vimeo de IA Aplicada ao Turismo.
+UPDATE courses
+   SET teaser_video_url = 'https://vimeo.com/1226382615?share=copy&fl=sv&fe=ci';
+UPDATE content
+   SET url = 'https://vimeo.com/1226382615?share=copy&fl=sv&fe=ci'
+ WHERE type = 'VIDEO';
+
+-- Cursos em destaque na home/catalogo: IA, Marketing Digital e Experiencia Premium.
+UPDATE courses
+   SET featured = TRUE
+ WHERE id IN (
+       'e0000000-0000-4000-e000-000000000005',
+       'e0000000-0000-4000-e000-000000000003',
+       'e0000000-0000-4000-e000-000000000006'
+   );
+
 UPDATE content
    SET type = 'QUIZ',
        quiz_json = CASE id
@@ -1273,8 +1291,8 @@ INSERT INTO user_courses (
      '2026-02-20', '2027-02-20', 100, '2026-03-18', '2026-03-18 19:42:00',
      TRUE, 'ESC-2026-IA-0001', '2026-03-18 19:45:00'),
     ('b0000000-0000-4000-b000-000000000002', 'e0000000-0000-4000-e000-000000000005',
-     '2026-02-22', '2027-02-22', 45, NULL, '2026-04-20 21:05:00',
-     FALSE, NULL, NULL),
+     '2026-02-22', '2027-02-22', 100, '2026-04-20', '2026-04-20 21:05:00',
+     TRUE, 'ESC-2026-IA-0006', '2026-04-20 21:10:00'),
     ('b0000000-0000-4000-b000-000000000004', 'e0000000-0000-4000-e000-000000000005',
      '2026-03-01', '2027-03-01', 20, NULL, '2026-03-12 08:30:00',
      FALSE, NULL, NULL),
@@ -1282,8 +1300,8 @@ INSERT INTO user_courses (
      '2026-03-02', '2027-03-02', 100, '2026-04-10', '2026-04-10 20:10:00',
      TRUE, 'ESC-2026-INO-0002', '2026-04-10 20:15:00'),
     ('b0000000-0000-4000-b000-000000000006', 'e0000000-0000-4000-e000-000000000002',
-     '2026-03-05', '2027-03-05', 60, NULL, '2026-04-18 11:00:00',
-     FALSE, NULL, NULL),
+     '2026-03-05', '2027-03-05', 100, '2026-04-18', '2026-04-18 11:00:00',
+     TRUE, 'ESC-2026-REV-0007', '2026-04-18 11:05:00'),
     ('b0000000-0000-4000-b000-000000000007', 'e0000000-0000-4000-e000-000000000003',
      '2026-03-08', '2027-03-08', 100, '2026-04-22', '2026-04-22 16:40:00',
      TRUE, 'ESC-2026-MKT-0003', '2026-04-22 16:45:00'),
@@ -1291,8 +1309,8 @@ INSERT INTO user_courses (
      '2026-03-10', '2027-03-10', 30, NULL, '2026-03-28 09:15:00',
      FALSE, NULL, NULL),
     ('b0000000-0000-4000-b000-000000000009', 'e0000000-0000-4000-e000-000000000006',
-     '2026-03-12', '2027-03-12', 80, NULL, '2026-04-01 22:00:00',
-     FALSE, NULL, NULL),
+     '2026-03-12', '2027-03-12', 100, '2026-04-01', '2026-04-01 22:00:00',
+     TRUE, 'ESC-2026-EXP-0008', '2026-04-01 22:05:00'),
     ('b0000000-0000-4000-b000-000000000010', 'e0000000-0000-4000-e000-000000000006',
      '2026-03-14', '2027-03-14', 100, '2026-04-08', '2026-04-08 10:05:00',
      TRUE, 'ESC-2026-EXP-0004', '2026-04-08 10:10:00'),
@@ -1303,7 +1321,7 @@ INSERT INTO user_courses (
      '2026-03-18', '2027-03-18', 55, NULL, '2026-04-02 13:20:00',
      FALSE, NULL, NULL),
     ('c0000000-0000-4000-c000-000000000001', 'e0000000-0000-4000-e000-000000000005',
-     '2026-03-01', '2027-03-01', 10, NULL, '2026-03-03 08:30:00',
+     '2026-02-25', '2027-02-25', 10, NULL, '2026-03-03 08:30:00',
      FALSE, NULL, NULL),
     ('c0000000-0000-4000-c000-000000000002', 'e0000000-0000-4000-e000-000000000002',
      '2026-03-04', '2027-03-04', 70, NULL, '2026-04-11 18:00:00',
@@ -1320,12 +1338,6 @@ INSERT INTO user_courses (
     ('c0000000-0000-4000-c000-000000000006', 'e0000000-0000-4000-e000-000000000004',
      '2026-03-11', '2027-03-11', 5, NULL, NULL,
      FALSE, NULL, NULL);
-
-INSERT INTO user_content_progress (
-    user_id, content_id, completed_at
-) VALUES
-    ('c0000000-0000-4000-c000-000000000001', '02000000-0000-4000-9000-000000000181', '2026-03-03 08:30:00'),
-    ('c0000000-0000-4000-c000-000000000001', '02000000-0000-4000-9000-000000000182', '2026-03-03 08:35:00');
 
 INSERT INTO company_courses (company_id, course_id, data_inicio, data_expiracao) VALUES
     ('d0000000-0000-4000-d000-000000000001', 'e0000000-0000-4000-e000-000000000005', '2026-02-25', '2027-02-25'),
@@ -1397,39 +1409,40 @@ INSERT INTO order_status_history (id, order_id, status, changed_by, reason, crea
     ('06000000-0000-4000-9000-000000000004', '05000000-0000-4000-9000-000000000025', 'CANCELLED',
      'a0000000-0000-4000-a000-000000000002', 'Cancelado a pedido da empresa', '2026-03-07 17:00:00');
 
+-- Avaliacoes so de quem concluiu o curso (progress 100% + certificado).
 INSERT INTO course_reviews (id, course_id, user_id, rating, comment, created_at, updated_at) VALUES
     ('03000000-0000-4000-9000-000000000001', 'e0000000-0000-4000-e000-000000000005',
      'b0000000-0000-4000-b000-000000000001', 5,
      'Os prompts de roteiro já entraram na operação da agência.',
-     '2026-04-10 10:00:00', '2026-04-10 10:00:00'),
+     '2026-03-19 10:00:00', '2026-03-19 10:00:00'),
     ('03000000-0000-4000-9000-000000000002', 'e0000000-0000-4000-e000-000000000005',
      'b0000000-0000-4000-b000-000000000002', 5,
      'Didática clara mesmo para quem nunca tinha usado ChatGPT no trabalho.',
-     '2026-04-10 10:00:00', '2026-04-10 10:00:00'),
+     '2026-04-21 10:00:00', '2026-04-21 10:00:00'),
     ('03000000-0000-4000-9000-000000000003', 'e0000000-0000-4000-e000-000000000001',
      'b0000000-0000-4000-b000-000000000005', 4,
      'Excelente recorte de destinos; senti falta de um case do interior.',
-     '2026-04-10 10:00:00', '2026-04-10 10:00:00'),
+     '2026-04-11 10:00:00', '2026-04-11 10:00:00'),
     ('03000000-0000-4000-9000-000000000004', 'e0000000-0000-4000-e000-000000000002',
      'b0000000-0000-4000-b000-000000000006', 5,
      'A planilha de no-show virou ferramenta fixa da minha rotina.',
-     '2026-04-10 10:00:00', '2026-04-10 10:00:00'),
+     '2026-04-19 10:00:00', '2026-04-19 10:00:00'),
     ('03000000-0000-4000-9000-000000000005', 'e0000000-0000-4000-e000-000000000003',
      'b0000000-0000-4000-b000-000000000007', 5,
      'Sai do curso com calendário editorial e verba de mídia definidos.',
-     '2026-04-10 10:00:00', '2026-04-10 10:00:00'),
+     '2026-04-23 10:00:00', '2026-04-23 10:00:00'),
     ('03000000-0000-4000-9000-000000000006', 'e0000000-0000-4000-e000-000000000004',
      'c0000000-0000-4000-c000-000000000003', 5,
      'Mudou o briefing diário da equipe do resort.',
-     '2026-04-10 10:00:00', '2026-04-10 10:00:00'),
+     '2026-04-16 10:00:00', '2026-04-16 10:00:00'),
     ('03000000-0000-4000-9000-000000000007', 'e0000000-0000-4000-e000-000000000006',
      'b0000000-0000-4000-b000-000000000010', 5,
      'O mapa da jornada revelou falhas que a gente não via no lobby.',
-     '2026-04-10 10:00:00', '2026-04-10 10:00:00'),
+     '2026-04-09 10:00:00', '2026-04-09 10:00:00'),
     ('03000000-0000-4000-9000-000000000008', 'e0000000-0000-4000-e000-000000000006',
      'b0000000-0000-4000-b000-000000000009', 4,
      'Muito aplicável. Queria mais exemplos de hostel.',
-     '2026-04-10 10:00:00', '2026-04-10 10:00:00');
+     '2026-04-02 10:00:00', '2026-04-02 10:00:00');
 
 INSERT INTO notifications (id, user_id, type, title, message, course_id, is_read, read_at, created_at) VALUES
     ('04000000-0000-4000-9000-000000000001', 'b0000000-0000-4000-b000-000000000001',
@@ -1437,48 +1450,102 @@ INSERT INTO notifications (id, user_id, type, title, message, course_id, is_read
      'O certificado de "IA Aplicada ao Turismo" já pode ser baixado.',
      'e0000000-0000-4000-e000-000000000005', TRUE, '2026-03-18 20:00:00', '2026-03-18 19:45:00'),
     ('04000000-0000-4000-9000-000000000002', 'b0000000-0000-4000-b000-000000000002',
+     'CERTIFICATE_ISSUED', 'Seu certificado está pronto',
+     'O certificado de "IA Aplicada ao Turismo" já pode ser baixado.',
+     'e0000000-0000-4000-e000-000000000005', TRUE, '2026-04-20 21:30:00', '2026-04-20 21:10:00'),
+    ('04000000-0000-4000-9000-000000000003', 'b0000000-0000-4000-b000-000000000005',
+     'CERTIFICATE_ISSUED', 'Seu certificado está pronto',
+     'O certificado de "Inovação em Destinos Turísticos" já pode ser baixado.',
+     'e0000000-0000-4000-e000-000000000001', TRUE, '2026-04-10 20:30:00', '2026-04-10 20:15:00'),
+    ('04000000-0000-4000-9000-000000000004', 'b0000000-0000-4000-b000-000000000006',
+     'CERTIFICATE_ISSUED', 'Seu certificado está pronto',
+     'O certificado de "Revenue Management para Hotelaria" já pode ser baixado.',
+     'e0000000-0000-4000-e000-000000000002', FALSE, NULL, '2026-04-18 11:05:00'),
+    ('04000000-0000-4000-9000-000000000005', 'b0000000-0000-4000-b000-000000000007',
+     'CERTIFICATE_ISSUED', 'Seu certificado está pronto',
+     'O certificado de "Marketing Digital para Hospitalidade" já pode ser baixado.',
+     'e0000000-0000-4000-e000-000000000003', TRUE, '2026-04-22 17:00:00', '2026-04-22 16:45:00'),
+    ('04000000-0000-4000-9000-000000000006', 'b0000000-0000-4000-b000-000000000009',
+     'CERTIFICATE_ISSUED', 'Seu certificado está pronto',
+     'O certificado de "Experiência Premium do Hóspede" já pode ser baixado.',
+     'e0000000-0000-4000-e000-000000000006', FALSE, NULL, '2026-04-01 22:05:00'),
+    ('04000000-0000-4000-9000-000000000007', 'b0000000-0000-4000-b000-000000000010',
+     'CERTIFICATE_ISSUED', 'Seu certificado está pronto',
+     'O certificado de "Experiência Premium do Hóspede" já pode ser baixado.',
+     'e0000000-0000-4000-e000-000000000006', TRUE, '2026-04-08 10:30:00', '2026-04-08 10:10:00'),
+    ('04000000-0000-4000-9000-000000000008', 'c0000000-0000-4000-c000-000000000003',
+     'CERTIFICATE_ISSUED', 'Seu certificado está pronto',
+     'O certificado de "Liderança em Hospitalidade de Luxo" já pode ser baixado.',
+     'e0000000-0000-4000-e000-000000000004', TRUE, '2026-04-15 19:30:00', '2026-04-15 19:05:00'),
+    ('04000000-0000-4000-9000-000000000009', 'b0000000-0000-4000-b000-000000000002',
      'COURSE_UPDATED', 'Um curso que você faz foi atualizado',
      'O módulo "ChatGPT e Modelos de Linguagem" recebeu novos exemplos de prompts.',
      'e0000000-0000-4000-e000-000000000005', FALSE, NULL, '2026-03-20 17:25:00'),
-    ('04000000-0000-4000-9000-000000000003', 'c0000000-0000-4000-c000-000000000001',
+    ('04000000-0000-4000-9000-000000000010', 'c0000000-0000-4000-c000-000000000001',
      'COURSE_EXPIRING', 'Seu acesso expira em breve',
      'Faltam 30 dias para o fim do seu acesso a "IA Aplicada ao Turismo".',
-     'e0000000-0000-4000-e000-000000000005', FALSE, NULL, '2026-04-25 07:00:00'),
-    ('04000000-0000-4000-9000-000000000004', 'c0000000-0000-4000-c000-000000000002',
+     'e0000000-0000-4000-e000-000000000005', FALSE, NULL, '2027-01-26 07:00:00'),
+    ('04000000-0000-4000-9000-000000000011', 'c0000000-0000-4000-c000-000000000002',
      'COURSE_PUBLISHED', 'Novo curso disponível para você',
      'O Hotel Atlântico Palace liberou "Revenue Management para Hotelaria" para a sua equipe.',
      'e0000000-0000-4000-e000-000000000002', FALSE, NULL, '2026-03-04 09:00:00'),
-    ('04000000-0000-4000-9000-000000000005', 'b0000000-0000-4000-b000-000000000001',
+    ('04000000-0000-4000-9000-000000000012', 'b0000000-0000-4000-b000-000000000001',
      'GENERAL', 'Bem-vinda à Escapa!',
      'Complete seu perfil para receber recomendações de cursos.',
      NULL, TRUE, '2026-02-03 11:00:00', '2026-02-03 10:20:00');
 
 
--- User squad1
-INSERT INTO users (id, name, email, password_hash, role, status, created_at) VALUES 
-('b0000000-0000-4000-b000-000000000099', 'Squad 1', 'squad1@ages.com', '$2b$12$IL4.lPoBpkgdJN4.sm4cwOGMi9Aawu6tiTHEFyJKBih9aZG0abc5.', 'STUDENT', 'ACTIVE', '2026-09-23 18:00:00');
+-- User squad1 (mesma senha escapa@2026; pedidos batem com as matriculas)
+INSERT INTO users (id, name, email, password_hash, role, status, created_at) VALUES
+('b0000000-0000-4000-b000-000000000099', 'Squad 1', 'squad1@ages.com',
+ '$2b$10$x1Lr6X2h7LbTZWbbZHsjIOZQUc2C3k7pWwVrNRbuU0L/RW4HytA5C', 'STUDENT', 'ACTIVE', '2026-09-23 18:00:00');
 
-INSERT INTO regular_users (user_id, cpf, phone) VALUES 
+INSERT INTO regular_users (user_id, cpf, phone) VALUES
 ('b0000000-0000-4000-b000-000000000099', '12345678900', '+55 11 99999-9999');
 
 INSERT INTO user_courses (user_id, course_id, dt_inicio, dt_expiracao, progress, conclusion_date, last_access_date, certificate_issued, certificate_code, certificate_issued_at) VALUES
 ('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000001', '2026-09-01', '2027-09-01', 50, NULL, '2026-09-20 10:00:00', FALSE, NULL, NULL),
-('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000002', '2026-09-01', '2027-09-01', 0, NULL, '2026-09-20 10:00:00', FALSE, NULL, NULL);
-
--- Enrollments for each status for Squad 1
-INSERT INTO user_courses (user_id, course_id, dt_inicio, dt_expiracao, progress, conclusion_date, last_access_date, certificate_issued, certificate_code, certificate_issued_at) VALUES
+('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000002', '2026-09-01', '2027-09-01', 0, NULL, '2026-09-20 10:00:00', FALSE, NULL, NULL),
 ('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000003', '2026-12-01', '2027-12-01', 0, NULL, NULL, FALSE, NULL, NULL),
-('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000004', '2026-01-01', '2027-01-01', 100, '2026-05-01', '2026-05-01 10:00:00', TRUE, 'CERT-1234', '2026-05-01 10:00:00'),
+('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000004', '2026-01-01', '2027-01-01', 100, '2026-05-01', '2026-05-01 10:00:00', TRUE, 'ESC-2026-LUX-0099', '2026-05-01 10:00:00'),
 ('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000005', '2025-01-01', '2026-01-01', 20, NULL, '2025-06-01 10:00:00', FALSE, NULL, NULL);
+
+INSERT INTO orders (
+    id, buyer_user_id, company_id, type, item_type, course_id, seats_quantity,
+    amount, payment_method, installments, status, created_at
+) VALUES
+    ('05000000-0000-4000-9000-000000000029', 'b0000000-0000-4000-b000-000000000099', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000001', NULL, 127.00, 'CARD', 1, 'APPROVED', '2026-09-01 09:00:00'),
+    ('05000000-0000-4000-9000-000000000030', 'b0000000-0000-4000-b000-000000000099', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000002', NULL, 147.00, 'CARD', 1, 'APPROVED', '2026-09-01 09:05:00'),
+    ('05000000-0000-4000-9000-000000000031', 'b0000000-0000-4000-b000-000000000099', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000003', NULL, 117.00, 'CARD', 1, 'APPROVED', '2026-12-01 09:00:00'),
+    ('05000000-0000-4000-9000-000000000032', 'b0000000-0000-4000-b000-000000000099', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000004', NULL, 167.00, 'CARD', 1, 'APPROVED', '2026-01-01 09:00:00'),
+    ('05000000-0000-4000-9000-000000000033', 'b0000000-0000-4000-b000-000000000099', NULL, 'INDIVIDUAL', 'COURSE', 'e0000000-0000-4000-e000-000000000005', NULL, 97.00, 'CARD', 1, 'APPROVED', '2025-01-01 09:00:00');
+
+INSERT INTO order_status_history (id, order_id, status, changed_by, reason, created_at)
+SELECT md5(id::text || 'approved')::uuid, id, 'APPROVED', NULL, NULL, created_at
+FROM orders
+WHERE id IN (
+    '05000000-0000-4000-9000-000000000029',
+    '05000000-0000-4000-9000-000000000030',
+    '05000000-0000-4000-9000-000000000031',
+    '05000000-0000-4000-9000-000000000032',
+    '05000000-0000-4000-9000-000000000033'
+);
+
+INSERT INTO notifications (id, user_id, type, title, message, course_id, is_read, read_at, created_at) VALUES
+    ('04000000-0000-4000-9000-000000000013', 'b0000000-0000-4000-b000-000000000099',
+     'CERTIFICATE_ISSUED', 'Seu certificado está pronto',
+     'O certificado de "Liderança em Hospitalidade de Luxo" já pode ser baixado.',
+     'e0000000-0000-4000-e000-000000000004', TRUE, '2026-05-01 10:30:00', '2026-05-01 10:00:00');
+
 INSERT INTO content_concepts (content_id, name, "order") VALUES
     ('02000000-0000-4000-9000-000000000181', 'Machine Learning', 1),
     ('02000000-0000-4000-9000-000000000181', 'Redes Neurais', 2),
     ('02000000-0000-4000-9000-000000000182', 'Turismo 4.0', 1);
 
 INSERT INTO content_references (id, content_id, title, url, "order") VALUES
-    ('04000000-0000-4000-9000-000000000001', '02000000-0000-4000-9000-000000000181', 'Introdução à IA', 'https://example.com/ia', 1),
-    ('04000000-0000-4000-9000-000000000002', '02000000-0000-4000-9000-000000000181', 'História da IA', 'https://example.com/historia-ia', 2),
-    ('04000000-0000-4000-9000-000000000003', '02000000-0000-4000-9000-000000000182', 'O futuro do turismo', 'https://example.com/turismo-futuro', 1);
+    ('08000000-0000-4000-9000-000000000001', '02000000-0000-4000-9000-000000000181', 'Introdução à IA', 'https://example.com/ia', 1),
+    ('08000000-0000-4000-9000-000000000002', '02000000-0000-4000-9000-000000000181', 'História da IA', 'https://example.com/historia-ia', 2),
+    ('08000000-0000-4000-9000-000000000003', '02000000-0000-4000-9000-000000000182', 'O futuro do turismo', 'https://example.com/turismo-futuro', 1);
 
 
 -- -----------------------------------------------------------------------------
@@ -1551,57 +1618,118 @@ INSERT INTO user_courses (user_id, course_id, dt_inicio, dt_expiracao, progress,
     ('c0000000-0000-4000-c000-000000000001', 'e0000000-0000-4000-e000-000000000006', '2026-03-01', '2027-03-01', 10, NULL, FALSE);
 
 -- -----------------------------------------------------------------------------
--- Atividade da equipe da Pousada Vista Mar LTDA (US-35, #92): aulas concluidas,
--- acessos e certificados espalhados pelos ultimos 6 meses, para o Dashboard de
--- Engajamento ter dados. As datas sao relativas a execucao do seed. A ultima aula
--- de cada linha foi concluida ha end_days_ago dias (sempre >= 1, nunca no futuro) e
--- as anteriores a cada step_days dias. A duracao vem da propria aula (content).
+-- Progresso de aulas (individuais + Vista Mar): user_content_progress bate com
+-- user_courses.progress. Datas relativas a HOJE, sempre dentro da janela de
+-- 6 meses do dashboard (do 1o dia do mes atual-5 ate ontem). span_start_days_ago
+-- = aula mais antiga; span_end_days_ago = aula mais recente (nunca 0/futuro).
+-- Vista Mar cobre os 6 meses do grafico e deixa acessos nos ultimos 7 dias
+-- (engajamento semanal). So ACTIVE entram nas horas mensais.
 -- -----------------------------------------------------------------------------
-WITH plan (user_id, course_id, lessons, end_days_ago, step_days) AS (
+WITH window_bounds AS (
+    -- Mesma janela do GetCompanyReportOverviewUseCase: 1o dia do (mes atual - 5).
+    SELECT (localtimestamp::date
+                - (date_trunc('month', localtimestamp) - interval '5 months')::date)::int AS max_days_ago
+),
+plan (user_id, course_id, lessons, span_start_days_ago, span_end_days_ago) AS (
     VALUES
-        ('c0000000-0000-4000-c000-000000000001'::uuid, 'e0000000-0000-4000-e000-000000000005'::uuid, 15, 125, 2),
-        ('c0000000-0000-4000-c000-000000000001', 'e0000000-0000-4000-e000-000000000006', 3, 20, 3),
-        ('c0000000-0000-4000-c000-000000000007', 'e0000000-0000-4000-e000-000000000005', 15, 95, 5),
-        ('c0000000-0000-4000-c000-000000000007', 'e0000000-0000-4000-e000-000000000006', 28, 4, 2),
-        ('c0000000-0000-4000-c000-000000000008', 'e0000000-0000-4000-e000-000000000005', 15, 60, 3),
-        ('c0000000-0000-4000-c000-000000000008', 'e0000000-0000-4000-e000-000000000006', 10, 2, 4),
-        ('c0000000-0000-4000-c000-000000000009', 'e0000000-0000-4000-e000-000000000005', 8, 25, 6),
-        ('c0000000-0000-4000-c000-000000000009', 'e0000000-0000-4000-e000-000000000006', 5, 40, 7),
-        ('c0000000-0000-4000-c000-000000000010', 'e0000000-0000-4000-e000-000000000005', 15, 12, 2),
-        ('c0000000-0000-4000-c000-000000000010', 'e0000000-0000-4000-e000-000000000006', 28, 35, 2),
-        ('c0000000-0000-4000-c000-000000000011', 'e0000000-0000-4000-e000-000000000005', 6, 100, 5),
-        ('c0000000-0000-4000-c000-000000000011', 'e0000000-0000-4000-e000-000000000006', 3, 70, 10),
-        ('c0000000-0000-4000-c000-000000000014', 'e0000000-0000-4000-e000-000000000005', 4, 150, 5)
+        -- Individuais / outros colaboradores (aulas = floor(progress% * total))
+        ('b0000000-0000-4000-b000-000000000001'::uuid, 'e0000000-0000-4000-e000-000000000005'::uuid, 15, 120, 70),
+        ('b0000000-0000-4000-b000-000000000002', 'e0000000-0000-4000-e000-000000000005', 15, 90, 40),
+        ('b0000000-0000-4000-b000-000000000004', 'e0000000-0000-4000-e000-000000000005', 3, 55, 45),
+        ('b0000000-0000-4000-b000-000000000005', 'e0000000-0000-4000-e000-000000000001', 38, 150, 80),
+        ('b0000000-0000-4000-b000-000000000006', 'e0000000-0000-4000-e000-000000000002', 52, 140, 60),
+        ('b0000000-0000-4000-b000-000000000007', 'e0000000-0000-4000-e000-000000000003', 44, 110, 50),
+        ('b0000000-0000-4000-b000-000000000008', 'e0000000-0000-4000-e000-000000000004', 14, 100, 55),
+        ('b0000000-0000-4000-b000-000000000009', 'e0000000-0000-4000-e000-000000000006', 28, 95, 45),
+        ('b0000000-0000-4000-b000-000000000010', 'e0000000-0000-4000-e000-000000000006', 28, 85, 35),
+        ('b0000000-0000-4000-b000-000000000011', 'e0000000-0000-4000-e000-000000000002', 8, 70, 50),
+        ('b0000000-0000-4000-b000-000000000012', 'e0000000-0000-4000-e000-000000000003', 24, 80, 40),
+        ('c0000000-0000-4000-c000-000000000002', 'e0000000-0000-4000-e000-000000000002', 36, 100, 45),
+        ('c0000000-0000-4000-c000-000000000003', 'e0000000-0000-4000-e000-000000000004', 46, 110, 55),
+        ('c0000000-0000-4000-c000-000000000004', 'e0000000-0000-4000-e000-000000000006', 11, 75, 40),
+        ('c0000000-0000-4000-c000-000000000005', 'e0000000-0000-4000-e000-000000000001', 10, 90, 60),
+        ('c0000000-0000-4000-c000-000000000006', 'e0000000-0000-4000-e000-000000000004', 2, 50, 40),
+        ('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000001', 19, 60, 25),
+        ('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000004', 46, 150, 90),
+        ('b0000000-0000-4000-b000-000000000099', 'e0000000-0000-4000-e000-000000000005', 3, 160, 140),
+        -- Pousada Vista Mar: cobre os 6 meses do grafico (mes -5 ... mes atual)
+        -- Mes -5 / -4 (mais antigo) — Luciana ACTIVE entra nas horas mensais
+        ('c0000000-0000-4000-c000-000000000001', 'e0000000-0000-4000-e000-000000000005', 15, 170, 115),
+        ('c0000000-0000-4000-c000-000000000014', 'e0000000-0000-4000-e000-000000000005', 4, 165, 145),
+        -- Mes -4 / -3
+        ('c0000000-0000-4000-c000-000000000011', 'e0000000-0000-4000-e000-000000000005', 6, 140, 105),
+        ('c0000000-0000-4000-c000-000000000011', 'e0000000-0000-4000-e000-000000000006', 3, 130, 110),
+        ('c0000000-0000-4000-c000-000000000007', 'e0000000-0000-4000-e000-000000000005', 15, 120, 75),
+        -- Mes -3 / -2
+        ('c0000000-0000-4000-c000-000000000010', 'e0000000-0000-4000-e000-000000000006', 28, 100, 55),
+        ('c0000000-0000-4000-c000-000000000008', 'e0000000-0000-4000-e000-000000000005', 15, 85, 45),
+        -- Mes -2 / -1
+        ('c0000000-0000-4000-c000-000000000009', 'e0000000-0000-4000-e000-000000000006', 5, 70, 45),
+        ('c0000000-0000-4000-c000-000000000001', 'e0000000-0000-4000-e000-000000000006', 3, 55, 30),
+        ('c0000000-0000-4000-c000-000000000009', 'e0000000-0000-4000-e000-000000000005', 8, 45, 18),
+        -- Mes atual + ultima semana (engajamento semanal: last_access nos ultimos 7 dias)
+        ('c0000000-0000-4000-c000-000000000010', 'e0000000-0000-4000-e000-000000000005', 15, 35, 3),
+        ('c0000000-0000-4000-c000-000000000007', 'e0000000-0000-4000-e000-000000000006', 28, 40, 2),
+        ('c0000000-0000-4000-c000-000000000008', 'e0000000-0000-4000-e000-000000000006', 10, 25, 1)
 ),
 ordered AS (
     SELECT plan.*,
            lesson.id AS content_id,
            row_number() OVER (PARTITION BY plan.user_id, plan.course_id
-                              ORDER BY course_module."order", lesson."order") AS position
+                              ORDER BY course_module."order", lesson."order") AS position,
+           window_bounds.max_days_ago
       FROM plan
+      CROSS JOIN window_bounds
       JOIN modules course_module ON course_module.course_id = plan.course_id
       JOIN content lesson ON lesson.module_id = course_module.id
+),
+dated AS (
+    SELECT ordered.*,
+           greatest(
+               1,
+               least(
+                   max_days_ago,
+                   CASE
+                       WHEN lessons <= 1 THEN span_end_days_ago
+                       ELSE (
+                           span_end_days_ago
+                           + round(
+                               (lessons - position::numeric)
+                               / (lessons - 1)
+                               * (span_start_days_ago - span_end_days_ago)
+                           )::int
+                       )
+                   END
+               )
+           ) AS days_ago
+      FROM ordered
+     WHERE position <= lessons
 )
 INSERT INTO user_content_progress (user_id, content_id, completed_at)
 SELECT user_id,
        content_id,
        date_trunc('day', localtimestamp)
-           - make_interval(days => end_days_ago + (lessons - position::int) * step_days)
+           - make_interval(days => days_ago)
            + interval '14 hours'
            + make_interval(mins => position::int * 3)
-  FROM ordered
- WHERE position <= lessons
+  FROM dated
 ON CONFLICT (user_id, content_id) DO NOTHING;
 
--- Recalcula a matricula a partir das aulas concluidas (mesma regra da V16: arredonda para
--- baixo). Quem chegou a 100% recebe data de conclusao e certificado.
+-- Recalcula matriculas a partir das aulas concluidas (mesma regra da V16).
+-- Datas de conclusao/certificado seguem o completed_at (janela de 6 meses).
+-- Preserva so o certificate_code ja definido no INSERT.
 UPDATE user_courses enrollment
    SET progress = computed.percent,
        last_access_date = computed.last_completed_at + interval '10 minutes',
-       conclusion_date = CASE WHEN computed.percent = 100 THEN computed.last_completed_at::date END,
+       conclusion_date = CASE WHEN computed.percent = 100
+           THEN computed.last_completed_at::date END,
        certificate_issued = (computed.percent = 100),
        certificate_code = CASE WHEN computed.percent = 100
-           THEN 'CERT-VM-' || right(computed.user_id::text, 2) || '-' || right(computed.course_id::text, 1) END,
+           THEN COALESCE(
+               enrollment.certificate_code,
+               'ESC-SEED-' || upper(right(replace(computed.user_id::text, '-', ''), 4))
+                   || '-' || right(computed.course_id::text, 1)
+           ) END,
        certificate_issued_at = CASE WHEN computed.percent = 100
            THEN computed.last_completed_at + interval '1 hour' END
   FROM (
@@ -1612,8 +1740,6 @@ UPDATE user_courses enrollment
                   FROM user_content_progress progress
                   JOIN content lesson ON lesson.id = progress.content_id
                   JOIN modules course_module ON course_module.id = lesson.module_id
-                 WHERE progress.user_id IN (SELECT user_id FROM users_company
-                                            WHERE company_id = 'd0000000-0000-4000-d000-000000000001')
                  GROUP BY progress.user_id, course_module.course_id) done
           JOIN (SELECT course_module.course_id, count(*) AS lessons
                   FROM modules course_module
@@ -1622,6 +1748,110 @@ UPDATE user_courses enrollment
        ) computed
  WHERE enrollment.user_id = computed.user_id
    AND enrollment.course_id = computed.course_id;
+
+-- -----------------------------------------------------------------------------
+-- Metricas de admin (US-36): "Evolucao de Alunos Ativos" usa dt_inicio/dt_expiracao
+-- overlapping nos ultimos 6 meses. Cohortes entram em meses diferentes (relativo
+-- a HOJE) para a serie crescer. Matriculas so em curso ARCHIVED nao entram no
+-- grafico (filtro course.status = PUBLISHED).
+-- -----------------------------------------------------------------------------
+WITH cohort (user_id, months_ago) AS (
+    VALUES
+        -- So ACTIVE com curso PUBLISHED (ARCHIVED/PENDING nao entram no grafico admin).
+        -- Ativos desde o mes -5 (inicio da janela)
+        ('b0000000-0000-4000-b000-000000000001'::uuid, 5),
+        ('b0000000-0000-4000-b000-000000000002', 5),
+        ('c0000000-0000-4000-c000-000000000001', 5),
+        ('c0000000-0000-4000-c000-000000000007', 5),
+        -- Entraram no mes -4
+        ('b0000000-0000-4000-b000-000000000005', 4),
+        ('b0000000-0000-4000-b000-000000000004', 4),
+        ('c0000000-0000-4000-c000-000000000008', 4),
+        ('c0000000-0000-4000-c000-000000000011', 4),
+        -- Entraram no mes -3
+        ('b0000000-0000-4000-b000-000000000007', 3),
+        ('b0000000-0000-4000-b000-000000000009', 3),
+        ('c0000000-0000-4000-c000-000000000003', 3),
+        ('c0000000-0000-4000-c000-000000000009', 3),
+        -- Entraram no mes -2
+        ('b0000000-0000-4000-b000-000000000010', 2),
+        ('c0000000-0000-4000-c000-000000000005', 2),
+        ('c0000000-0000-4000-c000-000000000010', 2),
+        -- Entraram no mes -1
+        ('b0000000-0000-4000-b000-000000000012', 1),
+        ('c0000000-0000-4000-c000-000000000004', 1),
+        ('b0000000-0000-4000-b000-000000000099', 1),
+        ('b0000000-0000-4000-b000-000000000008', 1),
+        -- Entraram no mes atual (variacao vs mes anterior)
+        ('c0000000-0000-4000-c000-000000000006', 0)
+)
+UPDATE user_courses enrollment
+   SET dt_inicio = (
+           date_trunc('month', localtimestamp)
+           - make_interval(months => cohort.months_ago)
+           + make_interval(days => 2)
+       )::date,
+       dt_expiracao = (
+           date_trunc('month', localtimestamp)
+           - make_interval(months => cohort.months_ago)
+           + make_interval(days => 2)
+           + interval '365 days'
+       )::date
+  FROM cohort
+ WHERE enrollment.user_id = cohort.user_id
+   AND enrollment.course_id IN (
+       SELECT id FROM courses WHERE status = 'PUBLISHED'
+   );
+
+-- Cursos corporativos acompanham a entrada mais antiga da equipe na janela.
+UPDATE company_courses owned
+   SET data_inicio = adjusted.dt_inicio,
+       data_expiracao = adjusted.dt_expiracao
+  FROM (
+        SELECT link.company_id, enrollment.course_id,
+               min(enrollment.dt_inicio) AS dt_inicio,
+               max(enrollment.dt_expiracao) AS dt_expiracao
+          FROM users_company link
+          JOIN user_courses enrollment ON enrollment.user_id = link.user_id
+          JOIN courses course ON course.id = enrollment.course_id AND course.status = 'PUBLISHED'
+         GROUP BY link.company_id, enrollment.course_id
+       ) adjusted
+ WHERE owned.company_id = adjusted.company_id
+   AND owned.course_id = adjusted.course_id;
+
+-- Uma empresa parceira "nova" neste mes para o card vs mes anterior.
+UPDATE users
+   SET created_at = date_trunc('month', localtimestamp) + interval '4 days 10 hours'
+ WHERE id = 'd0000000-0000-4000-d000-000000000006';
+
+-- Contadores desnormalizados do curso = dados reais do seed.
+UPDATE courses c
+   SET duration_time = COALESCE((
+           SELECT sum(lesson.duration_minutes)
+             FROM modules course_module
+             JOIN content lesson ON lesson.module_id = course_module.id
+            WHERE course_module.course_id = c.id
+       ), 0),
+       lessons_count = (
+           SELECT count(*)
+             FROM modules course_module
+             JOIN content lesson ON lesson.module_id = course_module.id
+            WHERE course_module.course_id = c.id
+       ),
+       materials_count = (
+           SELECT count(*) FROM course_materials material WHERE material.course_id = c.id
+       ),
+       students_count = (
+           SELECT count(*) FROM user_courses enrollment WHERE enrollment.course_id = c.id
+       ),
+       reviews_count = (
+           SELECT count(*) FROM course_reviews review WHERE review.course_id = c.id
+       ),
+       rating_average = (
+           SELECT round(avg(review.rating)::numeric, 1)
+             FROM course_reviews review
+            WHERE review.course_id = c.id
+       );
 
 INSERT INTO account_invites (id, user_id, company_id, token_hash, expires_at, used_at, created_at) VALUES
     ('07000000-0000-4000-9000-000000000001', 'c0000000-0000-4000-c000-000000000001', 'd0000000-0000-4000-d000-000000000001',

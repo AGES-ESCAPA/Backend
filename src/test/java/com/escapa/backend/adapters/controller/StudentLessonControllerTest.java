@@ -127,13 +127,18 @@ class StudentLessonControllerTest {
             }
 
             @Override
+            public List<Course> findAllForListing() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
             public List<Course> searchByTitle(String title, UUID excludedCourseId) {
                 throw new UnsupportedOperationException();
             }
 
             @Override
             public PageResult<CourseSummary> findPublished(
-                    String title, String category, String level, int page, int size) {
+                    String title, String category, String level, Boolean featured, int page, int size) {
                 throw new UnsupportedOperationException();
             }
 

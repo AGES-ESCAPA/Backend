@@ -53,11 +53,12 @@ public class PublicCourseController {
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String level,
+            @RequestParam(required = false) Boolean featured,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
     ) {
         final PageResult<CourseSummary> result = listPublishedCoursesUseCase.execute(
-                title, category, level, page, size);
+                title, category, level, featured, page, size);
         return ResponseEntity.ok(PageResponse.of(result, CourseCardResponse::from));
     }
 

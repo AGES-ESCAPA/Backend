@@ -11,6 +11,7 @@ import com.escapa.backend.application.dto.CourseSummary;
 import com.escapa.backend.domain.course.CoursePendingDraft;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.Module;
+import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.infrastructure.persistence.ContentMapper;
 import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.UserMapper;
@@ -89,6 +90,7 @@ public final class CourseMapper {
     private static void mapEntityDetails(Course course, CourseEntity entity) {
         entity.setCategory(course.getCategory());
         entity.setLevel(course.getLevel());
+        entity.setFeatured(course.getFeatured() != null ? course.getFeatured() : false);
         entity.setDurationTime(course.getDurationTime());
         entity.setDeadline(course.getDeadline());
         entity.setPrice(course.getPrice());
@@ -153,7 +155,7 @@ public final class CourseMapper {
         return course;
     }
 
-    /** Curso apenas com os campos da listagem administrativa; sem instrutor, módulos ou aulas. */
+    /** Curso apenas com os campos da listagem administrativa; sem módulos ou aulas. */
     public static Course toListingDomain(CourseJpaRepository.ListingRow row) {
         final Course course = new Course();
         course.setId(row.getId());
@@ -163,6 +165,11 @@ public final class CourseMapper {
         course.setStatus(row.getStatus());
         course.setMajorVersion(row.getMajorVersion());
         course.setMinorVersion(row.getMinorVersion());
+        if (row.getInstructorName() != null && !row.getInstructorName().isBlank()) {
+            final User instructor = new User();
+            instructor.setName(row.getInstructorName());
+            course.setInstructor(instructor);
+        }
         return course;
     }
 
@@ -179,6 +186,7 @@ public final class CourseMapper {
     private static void mapDomainDetails(CourseEntity entity, Course course) {
         course.setCategory(entity.getCategory());
         course.setLevel(entity.getLevel());
+        course.setFeatured(entity.getFeatured() != null ? entity.getFeatured() : false);
         course.setDurationTime(entity.getDurationTime());
         course.setDeadline(entity.getDeadline());
         course.setPrice(entity.getPrice());

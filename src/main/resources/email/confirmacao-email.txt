@@ -1,0 +1,10 @@
+Olá, {{nome}}!
+
+Recebemos um pedido para alterar o e-mail da sua conta na Escapa! para {{novoEmail}}.
+
+Para confirmar a alteração, abra o link abaixo:
+{{link}}
+
+Se você não pediu essa alteração, ignore este e-mail. Seu endereço atual continua válido.
+
+Equipe Escapa!
