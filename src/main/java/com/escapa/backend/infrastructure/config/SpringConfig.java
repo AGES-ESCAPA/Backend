@@ -117,6 +117,7 @@ import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.application.usecase.UploadAvatarUseCase;
 import com.escapa.backend.application.usecase.UploadContentFileUseCase;
 import com.escapa.backend.application.usecase.UploadCourseThumbnailUseCase;
+import com.escapa.backend.infrastructure.persistence.AdminJpaRepository;
 import com.escapa.backend.infrastructure.persistence.AdminMetricsRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanyCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CompanyCourseRepositoryAdapter;
@@ -157,9 +158,11 @@ public class SpringConfig {
     public UserRepositoryPort userRepositoryPort(
             UserJpaRepository userJpaRepository,
             UsersCompanyJpaRepository usersCompanyJpaRepository,
-            RegularUserJpaRepository regularUserJpaRepository
+            RegularUserJpaRepository regularUserJpaRepository,
+            AdminJpaRepository adminJpaRepository
     ) {
-        return new UserRepositoryAdapter(userJpaRepository, usersCompanyJpaRepository, regularUserJpaRepository);
+        return new UserRepositoryAdapter(
+                userJpaRepository, usersCompanyJpaRepository, regularUserJpaRepository, adminJpaRepository);
     }
 
     @Bean

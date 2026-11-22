@@ -53,6 +53,11 @@ public class ProfileController {
 
         // Retorna HTTP 200 com os dados atualizados no corpo da resposta.
         return ResponseEntity.ok(ApiResponse.success(ProfileResponse.from(updateProfileUseCase.execute(
-                userId, request.name(), request.phone(), request.companyName()))));
+                userId,
+                request.name(),
+                request.phone(),
+                request.companyName(),
+                request.headline(),
+                request.bio()))));
     }
 }

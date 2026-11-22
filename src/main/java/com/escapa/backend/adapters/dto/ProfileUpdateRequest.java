@@ -17,6 +17,12 @@ public record ProfileUpdateRequest(
         String phone,
         @Size(max = FieldLimits.VARCHAR_MAX, message = "companyName " + FieldLimits.VARCHAR_MESSAGE)
         @Schema(description = "Legal name of the company. Required for COMPANY, ignored for STUDENT.")
-        String companyName
+        String companyName,
+        @Size(max = FieldLimits.VARCHAR_MAX, message = "headline " + FieldLimits.VARCHAR_MESSAGE)
+        @Schema(description = "Instructor title shown on courses. Used by ADMIN; ignored for other profiles.")
+        String headline,
+        @Size(max = FieldLimits.BIO_MAX, message = "bio " + FieldLimits.BIO_MESSAGE)
+        @Schema(description = "Instructor biography shown on courses. Used by ADMIN; ignored for other profiles.")
+        String bio
 ) {
 }

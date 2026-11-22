@@ -34,6 +34,11 @@ public class UpdateProfileUseCase {
 
     // Atualiza os dados básicos do perfil.
     public UserProfile execute(UUID userId, String name, String phone, String companyName) {
+        return execute(userId, name, phone, companyName, null, null);
+    }
+
+    public UserProfile execute(
+            UUID userId, String name, String phone, String companyName, String headline, String bio) {
         final User user = profileReader.requireUser(userId);
         final String profile = profileReader.resolveProfile(user);
 
@@ -47,6 +52,8 @@ public class UpdateProfileUseCase {
         final String normalizedCompanyName = UserTypes.COMPANY.equals(profile)
                 ? requireText(companyName, "companyName")
                 : null;
+        final String normalizedHeadline = UserTypes.ADMIN.equals(profile) ? normalizeOptionalText(headline) : null;
+        final String normalizedBio = UserTypes.ADMIN.equals(profile) ? normalizeOptionalText(bio) : null;
 
         // Copia os dados recebidos para a entidade de domínio antes de salvar.
         user.setName(normalizedName);
@@ -57,8 +64,17 @@ public class UpdateProfileUseCase {
             updateCompany(userId, normalizedCompanyName, normalizedPhone);
         } else if (UserTypes.STUDENT.equals(profile)) {
             userRepositoryPort.updateStudentPhone(userId, normalizedPhone);
+        } else if (UserTypes.ADMIN.equals(profile)) {
+            userRepositoryPort.updateAdminInstructorProfile(userId, normalizedHeadline, normalizedBio);
         }
         return profileReader.read(profileReader.requireUser(userId));
+    }
+
+    private static String normalizeOptionalText(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 
     private void updateCompany(UUID companyId, String companyName, String phone) {

@@ -405,5 +405,16 @@ class UnlinkCompanyEmployeeUseCaseTest {
         public void updateStudentPhone(UUID userId, String phone) {
             throw new UnsupportedOperationException();
         }
+
+        @Override
+        public Optional<com.escapa.backend.application.model.AdminInstructorProfile> findAdminInstructorProfile(
+                UUID userId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void updateAdminInstructorProfile(UUID userId, String headline, String bio) {
+            throw new UnsupportedOperationException();
+        }
     }
 }
