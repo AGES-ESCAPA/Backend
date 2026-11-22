@@ -256,7 +256,7 @@ class UpdateCourseUseCaseTest {
         final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
         final Course course = courseRepository.save(new Course(
                 "Titulo", null, null, null, null, null, null, null,
-                false, null, null, List.of(), true, false, admin));
+                false, null, null, null, List.of(), true, false, admin));
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
 
@@ -274,7 +274,7 @@ class UpdateCourseUseCaseTest {
         final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
         final Course course = courseRepository.save(new Course(
                 "Titulo Publicado", null, null, null, null, admin, null, null,
-                false, null, null, List.of(), true, false, admin));
+                false, null, null, null, List.of(), true, false, admin));
         course.setStatus(CourseStatus.PUBLISHED);
         courseRepository.save(course);
         final UpdateCourseUseCase useCase =
@@ -284,8 +284,8 @@ class UpdateCourseUseCaseTest {
                 course.getId(), "Titulo no rascunho", null, null, null, null, null, null, null, true, null, null, null, null, null, null);
 
         assertTrue(updated.getFeatured());
-        assertEquals("Titulo Publicado", updated.getTitle());
-        assertEquals("Titulo no rascunho", updated.getPendingDraft().title());
+        assertEquals("Titulo no rascunho", updated.getTitle());
+        assertEquals(CourseStatus.PUBLISHED, updated.getStatus());
 
         final Course published = courseRepository.findById(course.getId()).orElseThrow();
         assertTrue(published.getFeatured());
