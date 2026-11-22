@@ -27,6 +27,7 @@ import com.escapa.backend.application.port.CourseNotificationPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.CourseReviewRepositoryPort;
+import com.escapa.backend.application.port.EmailChangeTokenRepositoryPort;
 import com.escapa.backend.application.port.EmailSenderPort;
 import com.escapa.backend.application.port.EmailTemplatePort;
 import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
@@ -46,15 +47,19 @@ import com.escapa.backend.application.port.PasswordHasherPort;
 import com.escapa.backend.application.port.PasswordResetTokenRepositoryPort;
 import com.escapa.backend.application.port.RegularUserRepositoryPort;
 import com.escapa.backend.application.port.TokenProviderPort;
+import com.escapa.backend.application.port.UserProfileChangeLogRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.port.UsersCompanyRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
+import com.escapa.backend.application.usecase.AdminDeactivateUserUseCase;
+import com.escapa.backend.application.usecase.AdminUpdateUserUseCase;
 import com.escapa.backend.application.usecase.AssignEmployeeCourseUseCase;
 import com.escapa.backend.application.usecase.AuthorizeActiveUserUseCase;
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.application.usecase.CancelOrderUseCase;
 import com.escapa.backend.application.usecase.ChangePasswordUseCase;
 import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
+import com.escapa.backend.application.usecase.ConfirmEmailChangeUseCase;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateInvitePasswordUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
@@ -63,6 +68,7 @@ import com.escapa.backend.application.usecase.DeactivateAccountUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
+import com.escapa.backend.application.usecase.EmailChangeMailer;
 import com.escapa.backend.application.usecase.EmployeeInviteMailer;
 import com.escapa.backend.application.usecase.GetAccountInviteUseCase;
 import com.escapa.backend.application.usecase.GetAdminMetricsOverviewUseCase;
@@ -73,6 +79,7 @@ import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
+import com.escapa.backend.application.usecase.GetEmailChangeTokenUseCase;
 import com.escapa.backend.application.usecase.GetPasswordResetTokenUseCase;
 import com.escapa.backend.application.usecase.GetProfileUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
@@ -102,6 +109,7 @@ import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ReorderContentsUseCase;
 import com.escapa.backend.application.usecase.ReorderModulesUseCase;
+import com.escapa.backend.application.usecase.RequestAdminEmailChangeUseCase;
 import com.escapa.backend.application.usecase.RequestPasswordResetUseCase;
 import com.escapa.backend.application.usecase.ResendEmployeeInviteUseCase;
 import com.escapa.backend.application.usecase.ResetPasswordUseCase;
@@ -294,6 +302,78 @@ public class SpringConfig {
     @Bean
     public GetUserByIdUseCase getUserByIdUseCase(UserRepositoryPort userRepositoryPort) {
         return new GetUserByIdUseCase(userRepositoryPort);
+    }
+
+    @Bean
+    public AdminUpdateUserUseCase adminUpdateUserUseCase(
+            UserRepositoryPort userRepositoryPort,
+            CompanyRepositoryPort companyRepositoryPort,
+            UsersCompanyRepositoryPort usersCompanyRepositoryPort,
+            UserProfileChangeLogRepositoryPort userProfileChangeLogRepositoryPort) {
+        return new AdminUpdateUserUseCase(
+                userRepositoryPort,
+                companyRepositoryPort,
+                usersCompanyRepositoryPort,
+                userProfileChangeLogRepositoryPort);
+    }
+
+    @Bean
+    public AdminDeactivateUserUseCase adminDeactivateUserUseCase(
+            UserRepositoryPort userRepositoryPort,
+            AccountInviteRepositoryPort accountInviteRepositoryPort) {
+        return new AdminDeactivateUserUseCase(
+                userRepositoryPort, accountInviteRepositoryPort, Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public EmailChangeMailer emailChangeMailer(
+            EmailSenderPort emailSenderPort,
+            EmailTemplatePort emailTemplatePort,
+            @Value("${app.frontend-url}") String frontendUrl
+    ) {
+        return new EmailChangeMailer(emailSenderPort, emailTemplatePort, frontendUrl);
+    }
+
+    @Bean
+    public RequestAdminEmailChangeUseCase requestAdminEmailChangeUseCase(
+            UserRepositoryPort userRepositoryPort,
+            EmailChangeTokenRepositoryPort emailChangeTokenRepositoryPort,
+            ContactValidatorPort contactValidatorPort,
+            @Value("${app.email-change.expiration-hours}") long emailChangeExpirationHours
+    ) {
+        return new RequestAdminEmailChangeUseCase(
+                userRepositoryPort,
+                emailChangeTokenRepositoryPort,
+                contactValidatorPort,
+                Clock.systemDefaultZone(),
+                emailChangeExpirationHours);
+    }
+
+    @Bean
+    public GetEmailChangeTokenUseCase getEmailChangeTokenUseCase(
+            EmailChangeTokenRepositoryPort emailChangeTokenRepositoryPort,
+            UserRepositoryPort userRepositoryPort
+    ) {
+        return new GetEmailChangeTokenUseCase(
+                emailChangeTokenRepositoryPort, userRepositoryPort, Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public ConfirmEmailChangeUseCase confirmEmailChangeUseCase(
+            EmailChangeTokenRepositoryPort emailChangeTokenRepositoryPort,
+            UserRepositoryPort userRepositoryPort,
+            UserProfileChangeLogRepositoryPort userProfileChangeLogRepositoryPort
+    ) {
+        return new ConfirmEmailChangeUseCase(
+                emailChangeTokenRepositoryPort,
+                userRepositoryPort,
+                userProfileChangeLogRepositoryPort,
+                Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public Clock clock() {
+        return Clock.systemDefaultZone();
     }
 
     @Bean

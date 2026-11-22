@@ -39,6 +39,27 @@ class CourseMapperTest {
     }
 
     @Test
+    void shouldMapFeaturedFlagBothWaysAndDefaultToFalse() {
+        final CourseEntity entity = new CourseEntity();
+        entity.setFeatured(null);
+        assertEquals(false, CourseMapper.toDomain(entity).getFeatured());
+
+        entity.setFeatured(true);
+        final Course featured = CourseMapper.toDomain(entity);
+        assertEquals(true, featured.getFeatured());
+
+        final Course course = new Course();
+        course.setFeatured(true);
+        final CourseEntity target = new CourseEntity();
+        CourseMapper.applyToEntity(course, target);
+        assertEquals(true, target.getFeatured());
+
+        course.setFeatured(null);
+        CourseMapper.applyToEntity(course, target);
+        assertEquals(false, target.getFeatured());
+    }
+
+    @Test
     void shouldMapSummaryAndAdminListingFields() {
         final UUID courseId = UUID.randomUUID();
         final CourseEntity entity = new CourseEntity();
@@ -88,6 +109,11 @@ class CourseMapperTest {
             public Integer getMinorVersion() {
                 return 3;
             }
+
+            @Override
+            public String getInstructorName() {
+                return "Dra. Mariana";
+            }
         });
 
         assertEquals(courseId, summary.id());
@@ -97,6 +123,7 @@ class CourseMapperTest {
         assertEquals(CourseStatus.PUBLISHED, listing.getStatus());
         assertEquals(2, listing.getMajorVersion());
         assertEquals(3, listing.getMinorVersion());
+        assertEquals("Dra. Mariana", listing.getInstructor().getName());
     }
 
     @Test

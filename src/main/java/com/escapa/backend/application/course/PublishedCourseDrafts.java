@@ -47,6 +47,8 @@ public final class PublishedCourseDrafts {
         view.setMajorVersion(course.getMajorVersion());
         view.setMinorVersion(course.getMinorVersion());
         view.setModules(course.getModules());
+        // Destaque vale na hora no catálogo; não passa pelo rascunho pendente.
+        view.setFeatured(course.getFeatured());
         course.getPendingDraft().applyTo(view);
 
         final UUID instructorId = course.getPendingDraft().instructorId();

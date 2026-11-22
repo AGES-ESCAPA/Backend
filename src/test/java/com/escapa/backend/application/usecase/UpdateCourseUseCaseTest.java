@@ -1,8 +1,10 @@
 package com.escapa.backend.application.usecase;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,9 +30,7 @@ class UpdateCourseUseCaseTest {
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
 
-        final Course updated = useCase.execute(
-                course.getId(), "Titulo novo", null, null, null, null, null, null,
-                null, null, null, null, null, null, null);
+        final Course updated = useCase.execute(course.getId(), "Titulo novo", null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
         assertEquals("Titulo novo", updated.getTitle());
         assertEquals(admin.getId(), updated.getCreatedBy().getId());
@@ -48,9 +48,7 @@ class UpdateCourseUseCaseTest {
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
 
-        final Course updated = useCase.execute(
-                course.getId(), null, null, null, null, null, newInstructor.getId(), null,
-                null, null, null, null, null, null, null);
+        final Course updated = useCase.execute(course.getId(), null, null, null, null, null, newInstructor.getId(), null, null, null, null, null, null, null, null, null);
 
         assertEquals(newInstructor.getId(), updated.getInstructor().getId());
     }
@@ -66,10 +64,7 @@ class UpdateCourseUseCaseTest {
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
 
-        final Course updated = useCase.execute(
-                course.getId(), "  Novo titulo  ", "Resumo", "Descricao", "   ", " video ",
-                admin.getId(), "Turismo", "AVANCADO", 60, 90, 120.0,
-                List.of("Objetivo"), false, true);
+        final Course updated = useCase.execute(course.getId(), "  Novo titulo  ", "Resumo", "Descricao", "   ", " video ", admin.getId(), "Turismo", "AVANCADO", null, 60, 90, 120.0, List.of("Objetivo"), false, true);
 
         assertEquals("Novo titulo", updated.getTitle());
         assertEquals("Resumo", updated.getShortDescription());
@@ -98,9 +93,7 @@ class UpdateCourseUseCaseTest {
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
 
-        final Course updated = useCase.execute(
-                course.getId(), null, null, null, null, "   ", null, null,
-                null, null, null, null, null, null, null);
+        final Course updated = useCase.execute(course.getId(), null, null, null, null, "   ", null, null, null, null, null, null, null, null, null, null);
 
         assertNull(updated.getTeaserVideoUrl());
         assertNull(courseRepository.findById(course.getId()).orElseThrow().getTeaserVideoUrl());
@@ -117,14 +110,33 @@ class UpdateCourseUseCaseTest {
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
 
-        final Course unchanged = useCase.execute(
-                course.getId(), "   ", null, null, null, null, null, null,
-                null, null, null, null, null, null, null);
+        final Course unchanged = useCase.execute(course.getId(), "   ", null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
         assertEquals("Titulo original", unchanged.getTitle());
-        assertThrows(UserNotFoundException.class, () -> useCase.execute(
-                course.getId(), null, null, null, null, null, UUID.randomUUID(), null,
-                null, null, null, null, null, null, null));
+        assertThrows(UserNotFoundException.class, () -> useCase.execute(course.getId(), null, null, null, null, null, UUID.randomUUID(), null, null, null, null, null, null, null, null, null));
+    }
+
+    @Test
+    void shouldUpdateFeaturedFlagWhenProvided() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
+        final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
+        final Course course = courseRepository.save(new Course(
+                "Titulo", null, null, null, null, null, null, null, false,
+                null, null, null, List.of(), true, false, admin));
+        final UpdateCourseUseCase useCase =
+                new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
+
+        final Course featured = useCase.execute(
+                course.getId(), null, null, null, null, null, null, null, null, true, null, null, null, null, null, null);
+        final Course unchanged = useCase.execute(
+                course.getId(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        final Course unfeatured = useCase.execute(
+                course.getId(), null, null, null, null, null, null, null, null, false, null, null, null, null, null, null);
+
+        assertTrue(featured.getFeatured());
+        assertTrue(unchanged.getFeatured());
+        assertFalse(unfeatured.getFeatured());
     }
 
     @Test
@@ -134,9 +146,7 @@ class UpdateCourseUseCaseTest {
         final UpdateCourseUseCase useCase = new UpdateCourseUseCase(
                 courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
 
-        assertThrows(CourseNotFoundException.class, () -> useCase.execute(
-                UUID.randomUUID(), "Titulo", null, null, null, null, null, null,
-                null, null, null, null, null, null, null));
+        assertThrows(CourseNotFoundException.class, () -> useCase.execute(UUID.randomUUID(), "Titulo", null, null, null, null, null, null, null, null, null, null, null, null, null, null));
     }
 
     @Test
@@ -151,9 +161,7 @@ class UpdateCourseUseCaseTest {
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
 
-        assertThrows(IllegalArgumentException.class, () -> useCase.execute(
-                course.getId(), null, null, null, null, null, student.getId(), null,
-                null, null, null, null, null, null, null));
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(course.getId(), null, null, null, null, null, student.getId(), null, null, null, null, null, null, null, null, null));
     }
 
     @Test
@@ -170,9 +178,7 @@ class UpdateCourseUseCaseTest {
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
 
-        final Course updated = useCase.execute(
-                course.getId(), "Titulo revisado", null, null, null, null, null, null,
-                null, null, null, 250.0, null, null, null);
+        final Course updated = useCase.execute(course.getId(), "Titulo revisado", null, null, null, null, null, null, null, null, null, null, 250.0, null, null, null);
 
         assertEquals("Titulo revisado", updated.getTitle());
         assertEquals(250.0, updated.getPrice());
@@ -200,9 +206,7 @@ class UpdateCourseUseCaseTest {
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
 
-        final Course updated = useCase.execute(
-                course.getId(), null, null, null, null, null, next.getId(), null,
-                null, null, null, null, null, null, null);
+        final Course updated = useCase.execute(course.getId(), null, null, null, null, null, next.getId(), null, null, null, null, null, null, null, null, null);
 
         assertEquals(next.getId(), updated.getInstructor().getId());
         final Course published = courseRepository.findById(course.getId()).orElseThrow();
@@ -223,9 +227,7 @@ class UpdateCourseUseCaseTest {
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
 
-        assertThrows(UserNotFoundException.class, () -> useCase.execute(
-                course.getId(), null, null, null, null, null, UUID.randomUUID(), null,
-                null, null, null, null, null, null, null));
+        assertThrows(UserNotFoundException.class, () -> useCase.execute(course.getId(), null, null, null, null, null, UUID.randomUUID(), null, null, null, null, null, null, null, null, null));
         assertNull(courseRepository.findById(course.getId()).orElseThrow().getPendingDraft());
     }
 
@@ -240,12 +242,54 @@ class UpdateCourseUseCaseTest {
         final UpdateCourseUseCase useCase =
                 new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
 
-        final Course updated = useCase.execute(
-                course.getId(), "Titulo revisado", null, null, null, null, null, null,
-                null, null, null, null, null, null, null);
+        final Course updated = useCase.execute(course.getId(), "Titulo revisado", null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
         assertEquals("Titulo revisado", updated.getTitle());
         assertEquals(0, updated.getMinorVersion());
         assertNull(updated.getPendingDraft());
+    }
+
+    @Test
+    void shouldUpdateFeaturedOnDraftCourse() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
+        final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
+        final Course course = courseRepository.save(new Course(
+                "Titulo", null, null, null, null, null, null, null,
+                false, null, null, null, List.of(), true, false, admin));
+        final UpdateCourseUseCase useCase =
+                new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
+
+        final Course updated = useCase.execute(
+                course.getId(), null, null, null, null, null, null, null, null, true, null, null, null, null, null, null);
+
+        assertTrue(updated.getFeatured());
+        assertTrue(courseRepository.findById(course.getId()).orElseThrow().getFeatured());
+    }
+
+    @Test
+    void shouldApplyFeaturedImmediatelyOnPublishedCourse() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
+        final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
+        final Course course = courseRepository.save(new Course(
+                "Titulo Publicado", null, null, null, null, admin, null, null,
+                false, null, null, null, List.of(), true, false, admin));
+        course.setStatus(CourseStatus.PUBLISHED);
+        courseRepository.save(course);
+        final UpdateCourseUseCase useCase =
+                new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
+
+        final Course updated = useCase.execute(
+                course.getId(), "Titulo no rascunho", null, null, null, null, null, null, null, true, null, null, null, null, null, null);
+
+        assertTrue(updated.getFeatured());
+        assertEquals("Titulo no rascunho", updated.getTitle());
+        assertEquals(CourseStatus.PUBLISHED, updated.getStatus());
+
+        final Course published = courseRepository.findById(course.getId()).orElseThrow();
+        assertTrue(published.getFeatured());
+        assertEquals("Titulo Publicado", published.getTitle());
+        assertEquals("Titulo no rascunho", published.getPendingDraft().title());
     }
 }

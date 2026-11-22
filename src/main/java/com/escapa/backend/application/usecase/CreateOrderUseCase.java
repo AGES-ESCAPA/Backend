@@ -37,8 +37,8 @@ import com.escapa.backend.domain.user.UserTypes;
  * transação (US-31, #87), com as mesmas regras do cadastro de colaborador: quem já tem matrícula ativa
  * no curso fica como está, e uma matrícula revogada ou vencida é reativada mantendo o progresso.
  *
- * <p>Só o cartão é aceito por enquanto: PIX e BOLETO existem na coluna, mas aprovar na hora um
- * pedido marcado assim registraria um pagamento que nunca aconteceu.
+ * <p>Cartão, PIX e boleto seguem o mesmo fluxo simulado: o pedido é aprovado na hora e o acesso
+ * é liberado sem integração com gateway de pagamento.
  */
 public class CreateOrderUseCase {
 
@@ -83,8 +83,8 @@ public class CreateOrderUseCase {
         if (!isStudent(command) && !isCompany(command)) {
             throw new OrderValidationException("Only students and companies can place orders");
         }
-        if (command.paymentMethod() != PaymentMethod.CARD) {
-            throw new OrderValidationException("Only CARD is accepted as payment method for now");
+        if (command.paymentMethod() == null) {
+            throw new OrderValidationException("paymentMethod is required");
         }
         if (command.installments() != null && command.installments() < 1) {
             throw new OrderValidationException("installments must be at least 1");
@@ -179,8 +179,12 @@ public class CreateOrderUseCase {
         order.setCourseId(courseId);
         order.setSeatsQuantity(seatsQuantity);
         order.setAmount(amount);
-        order.setPaymentMethod(PaymentMethod.CARD);
-        order.setInstallments(command.installments() == null ? 1 : command.installments());
+        order.setPaymentMethod(command.paymentMethod());
+        // PIX e boleto não parcelam; o cartão usa as parcelas informadas (padrão 1).
+        order.setInstallments(
+                command.paymentMethod() == PaymentMethod.CARD && command.installments() != null
+                        ? command.installments()
+                        : 1);
         order.setCreatedAt(LocalDateTime.now(clock));
         order.changeStatus(OrderStatus.APPROVED, null, APPROVAL_REASON);
         return order;

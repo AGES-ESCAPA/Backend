@@ -28,7 +28,7 @@ class ListPublishedCoursesUseCaseTest {
 
     @Test
     void shouldReturnAllCoursesWhenNoFilters() {
-        final PageResult<CourseSummary> result = useCase.execute(null, null, null, null, null);
+        final PageResult<CourseSummary> result = useCase.execute(null, null, null, null, null, null);
 
         assertEquals(3, result.totalElements());
         assertEquals(3, result.content().size());
@@ -38,7 +38,7 @@ class ListPublishedCoursesUseCaseTest {
 
     @Test
     void shouldFilterByTitleCaseInsensitive() {
-        final PageResult<CourseSummary> result = useCase.execute("atendimento", null, null, null, null);
+        final PageResult<CourseSummary> result = useCase.execute("atendimento", null, null, null, null, null);
 
         assertEquals(1, result.totalElements());
         assertEquals("Atendimento de Excelência", result.content().get(0).title());
@@ -46,7 +46,7 @@ class ListPublishedCoursesUseCaseTest {
 
     @Test
     void shouldFilterByTitlePartialMatch() {
-        final PageResult<CourseSummary> result = useCase.execute("Turismo", null, null, null, null);
+        final PageResult<CourseSummary> result = useCase.execute("Turismo", null, null, null, null, null);
 
         assertEquals(1, result.totalElements());
         assertEquals("IA Aplicada ao Turismo", result.content().get(0).title());
@@ -54,7 +54,7 @@ class ListPublishedCoursesUseCaseTest {
 
     @Test
     void shouldFilterByCategory() {
-        final PageResult<CourseSummary> result = useCase.execute(null, "Hospitalidade", null, null, null);
+        final PageResult<CourseSummary> result = useCase.execute(null, "Hospitalidade", null, null, null, null);
 
         assertEquals(1, result.totalElements());
         assertEquals("Atendimento de Excelência", result.content().get(0).title());
@@ -62,14 +62,14 @@ class ListPublishedCoursesUseCaseTest {
 
     @Test
     void shouldFilterByLevel() {
-        final PageResult<CourseSummary> result = useCase.execute(null, null, "INICIANTE", null, null);
+        final PageResult<CourseSummary> result = useCase.execute(null, null, "INICIANTE", null, null, null);
 
         assertEquals(2, result.totalElements());
     }
 
     @Test
     void shouldReturnEmptyWhenNoMatch() {
-        final PageResult<CourseSummary> result = useCase.execute(null, "CategoriaInexistente", null, null, null);
+        final PageResult<CourseSummary> result = useCase.execute(null, "CategoriaInexistente", null, null, null, null);
 
         assertEquals(0, result.totalElements());
         assertTrue(result.content().isEmpty());
@@ -78,7 +78,7 @@ class ListPublishedCoursesUseCaseTest {
 
     @Test
     void shouldPaginateResults() {
-        final PageResult<CourseSummary> firstPage = useCase.execute(null, null, null, 0, 2);
+        final PageResult<CourseSummary> firstPage = useCase.execute(null, null, null, null, 0, 2);
 
         assertEquals(3, firstPage.totalElements());
         assertEquals(2, firstPage.content().size());
@@ -86,7 +86,7 @@ class ListPublishedCoursesUseCaseTest {
         assertEquals(2, firstPage.pageSize());
         assertEquals(2, firstPage.totalPages());
 
-        final PageResult<CourseSummary> secondPage = useCase.execute(null, null, null, 1, 2);
+        final PageResult<CourseSummary> secondPage = useCase.execute(null, null, null, null, 1, 2);
 
         assertEquals(1, secondPage.content().size());
         assertEquals(1, secondPage.pageNumber());
@@ -94,7 +94,7 @@ class ListPublishedCoursesUseCaseTest {
 
     @Test
     void shouldUseDefaultPageAndSizeWhenNull() {
-        final PageResult<CourseSummary> result = useCase.execute(null, null, null, null, null);
+        final PageResult<CourseSummary> result = useCase.execute(null, null, null, null, null, null);
 
         assertEquals(0, result.pageNumber());
         assertEquals(10, result.pageSize());
@@ -102,21 +102,21 @@ class ListPublishedCoursesUseCaseTest {
 
     @Test
     void shouldClampNegativePageToZero() {
-        final PageResult<CourseSummary> result = useCase.execute(null, null, null, -1, null);
+        final PageResult<CourseSummary> result = useCase.execute(null, null, null, null, -1, null);
 
         assertEquals(0, result.pageNumber());
     }
 
     @Test
     void shouldCapSizeAtMaximum() {
-        final PageResult<CourseSummary> result = useCase.execute(null, null, null, null, 500);
+        final PageResult<CourseSummary> result = useCase.execute(null, null, null, null, null, 500);
 
         assertEquals(100, result.pageSize());
     }
 
     @Test
     void shouldCombineFilters() {
-        final PageResult<CourseSummary> result = useCase.execute("IA", "Inteligência Artificial", "INICIANTE", null, null);
+        final PageResult<CourseSummary> result = useCase.execute("IA", "Inteligência Artificial", "INICIANTE", null, null, null);
 
         assertEquals(1, result.totalElements());
         assertEquals("IA Aplicada ao Turismo", result.content().get(0).title());

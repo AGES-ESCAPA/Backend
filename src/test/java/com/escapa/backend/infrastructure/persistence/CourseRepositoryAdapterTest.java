@@ -65,8 +65,7 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
         createCourse("Curso Rascunho", "Turismo", "INICIANTE", CourseStatus.DRAFT, instructor);
         createCourse("Curso Arquivado", "Turismo", "INICIANTE", CourseStatus.ARCHIVED, instructor);
 
-        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished(
-                null, null, null, 0, 10);
+        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished(null, null, null, null, 0, 10);
 
         assertEquals(1, result.totalElements());
         assertEquals("Curso Publicado", result.content().get(0).title());
@@ -168,8 +167,7 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
         createCourse("Gestão de Reservas", "Turismo", "INTERMEDIÁRIO",
                 CourseStatus.PUBLISHED, instructor);
 
-        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished(
-                "atendimento", null, null, 0, 10);
+        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished("atendimento", null, null, null, 0, 10);
 
         assertEquals(1, result.totalElements());
         assertEquals("Atendimento de Excelência", result.content().get(0).title());
@@ -181,8 +179,7 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
         createCourse("Curso A", "Hospitalidade", "INICIANTE", CourseStatus.PUBLISHED, instructor);
         createCourse("Curso B", "Turismo", "INICIANTE", CourseStatus.PUBLISHED, instructor);
 
-        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished(
-                null, "Hospitalidade", null, 0, 10);
+        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished(null, "Hospitalidade", null, null, 0, 10);
 
         assertEquals(1, result.totalElements());
         assertEquals("Curso A", result.content().get(0).title());
@@ -194,8 +191,7 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
         createCourse("Curso Ini", "Turismo", "INICIANTE", CourseStatus.PUBLISHED, instructor);
         createCourse("Curso Adv", "Turismo", "AVANÇADO", CourseStatus.PUBLISHED, instructor);
 
-        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished(
-                null, null, "INICIANTE", 0, 10);
+        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished(null, null, "INICIANTE", null, 0, 10);
 
         assertEquals(1, result.totalElements());
         assertEquals("Curso Ini", result.content().get(0).title());
@@ -208,15 +204,13 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
         createCourse("Curso 2", "Turismo", "INICIANTE", CourseStatus.PUBLISHED, instructor);
         createCourse("Curso 3", "Turismo", "INICIANTE", CourseStatus.PUBLISHED, instructor);
 
-        final PageResult<CourseSummary> firstPage = courseRepositoryPort.findPublished(
-                null, null, null, 0, 2);
+        final PageResult<CourseSummary> firstPage = courseRepositoryPort.findPublished(null, null, null, null, 0, 2);
 
         assertEquals(3, firstPage.totalElements());
         assertEquals(2, firstPage.content().size());
         assertEquals(2, firstPage.totalPages());
 
-        final PageResult<CourseSummary> secondPage = courseRepositoryPort.findPublished(
-                null, null, null, 1, 2);
+        final PageResult<CourseSummary> secondPage = courseRepositoryPort.findPublished(null, null, null, null, 1, 2);
 
         assertEquals(1, secondPage.content().size());
     }
@@ -227,16 +221,14 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
         createCourse("Curso com Instrutor", "Turismo", "INICIANTE",
                 CourseStatus.PUBLISHED, instructor);
 
-        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished(
-                null, null, null, 0, 10);
+        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished(null, null, null, null, 0, 10);
 
         assertEquals("Dra. Mariana", result.content().get(0).instructorName());
     }
 
     @Test
     void shouldReturnEmptyWhenNoPublishedCourses() {
-        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished(
-                null, null, null, 0, 10);
+        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished(null, null, null, null, 0, 10);
 
         assertTrue(result.content().isEmpty());
         assertEquals(0, result.totalElements());
@@ -252,8 +244,7 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
         course.setRatingAverage(4.5);
         courseJpaRepository.save(course);
 
-        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished(
-                null, null, null, 0, 10);
+        final PageResult<CourseSummary> result = courseRepositoryPort.findPublished(null, null, null, null, 0, 10);
 
         final CourseSummary summary = result.content().get(0);
         assertEquals(5, summary.lessonsCount());

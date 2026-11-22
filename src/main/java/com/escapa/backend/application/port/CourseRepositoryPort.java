@@ -32,6 +32,12 @@ public interface CourseRepositoryPort {
     List<Course> findAllExcludingStatus(CourseStatus excludedStatus);
 
     /**
+     * Lista todos os cursos (incluindo arquivados) apenas com os campos da listagem
+     * administrativa. Módulos e aulas não são carregados.
+     */
+    List<Course> findAllForListing();
+
+    /**
      * Busca cursos por título, excluindo um curso (tipicamente o próprio curso ao
      * escolher pré-requisitos). Usado pela busca de pré-requisitos (US-09).
      *
@@ -51,7 +57,8 @@ public interface CourseRepositoryPort {
      * @param size     tamanho da página
      * @return página de resumos de cursos publicados
      */
-    PageResult<CourseSummary> findPublished(String title, String category, String level, int page, int size);
+    PageResult<CourseSummary> findPublished(
+            String title, String category, String level, Boolean featured, int page, int size);
 
     /**
      * Categorias e níveis distintos dos cursos publicados, para os filtros da vitrine.

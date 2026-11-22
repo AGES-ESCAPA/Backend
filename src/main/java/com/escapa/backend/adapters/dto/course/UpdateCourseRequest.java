@@ -24,6 +24,7 @@ public record UpdateCourseRequest(
         String category,
         @Size(max = FieldLimits.VARCHAR_MAX, message = "level " + FieldLimits.VARCHAR_MESSAGE)
         String level,
+        Boolean featured,
         @PositiveOrZero(message = "durationTime must not be negative")
         Integer durationTime,
         @PositiveOrZero(message = "deadline must not be negative")

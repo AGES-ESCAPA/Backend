@@ -21,9 +21,9 @@ public class ListPublishedCoursesUseCase {
     }
 
     public PageResult<CourseSummary> execute(
-            String title, String category, String level, Integer page, Integer size) {
+            String title, String category, String level, Boolean featured, Integer page, Integer size) {
         final int safePage = (page != null && page >= 0) ? page : DEFAULT_PAGE;
         final int safeSize = (size != null && size > 0) ? Math.min(size, MAX_SIZE) : DEFAULT_SIZE;
-        return courseRepositoryPort.findPublished(title, category, level, safePage, safeSize);
+        return courseRepositoryPort.findPublished(title, category, level, featured, safePage, safeSize);
     }
 }

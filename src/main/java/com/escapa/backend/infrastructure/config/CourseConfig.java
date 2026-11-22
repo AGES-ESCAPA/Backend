@@ -19,6 +19,7 @@ import com.escapa.backend.application.usecase.GetAdminCourseUseCase;
 import com.escapa.backend.application.usecase.ListAdminCoursesUseCase;
 import com.escapa.backend.application.usecase.ListCourseCategoriesUseCase;
 import com.escapa.backend.application.usecase.PublishCourseUseCase;
+import com.escapa.backend.application.usecase.UnarchiveCourseUseCase;
 import com.escapa.backend.application.usecase.UpdateCourseUseCase;
 
 @Configuration
@@ -57,6 +58,11 @@ public class CourseConfig {
     @Bean
     public ArchiveCourseUseCase archiveCourseUseCase(CourseRepositoryPort courseRepositoryPort) {
         return new ArchiveCourseUseCase(courseRepositoryPort);
+    }
+
+    @Bean
+    public UnarchiveCourseUseCase unarchiveCourseUseCase(CourseRepositoryPort courseRepositoryPort) {
+        return new UnarchiveCourseUseCase(courseRepositoryPort);
     }
 
     @Bean
