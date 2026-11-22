@@ -275,4 +275,70 @@ class SubmitQuizUseCaseTest {
         assertEquals(50, enrollmentProgressRepository.progress(userId, courseId));
         assertNull(enrollmentProgressRepository.conclusionDate(userId, courseId));
     }
+
+    @Test
+    void shouldStillEnforceSequentialAccessOnFreeQuizWhenStudentIsEnrolled() {
+        final Content quiz = givenQuizLesson(70, true, defaultQuestions());
+        givenEnrollment();
+
+        final var result = useCase.execute(
+                userId, courseId, quiz.getId(),
+                List.of(new SubmitQuizUseCase.QuizAnswer(QUESTION_ID, CORRECT_OPTION_ID)));
+
+        assertTrue(result.passed());
+        assertEquals(TODAY.atStartOfDay(), progressRepository.completedAt(userId, quiz.getId()));
+    }
+
+    @Test
+    void shouldRejectNullAnswersAndPartialAnswerSets() {
+        final Content quiz = givenQuizLesson(70, false, twoQuestions());
+        givenEnrollment();
+
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(
+                userId, courseId, quiz.getId(), null));
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(
+                userId, courseId, quiz.getId(),
+                List.of(new SubmitQuizUseCase.QuizAnswer(QUESTION_ID, CORRECT_OPTION_ID))));
+    }
+
+    @Test
+    void shouldScoreZeroWhenNoOptionIsMarkedCorrect() {
+        final Content quiz = givenQuizLesson(70, false, List.of(new QuizQuestion(
+                QUESTION_ID,
+                "Sem gabarito",
+                List.of(
+                        new QuizOption(WRONG_OPTION_ID, "A", false),
+                        new QuizOption(CORRECT_OPTION_ID, "B", false)))));
+        givenEnrollment();
+
+        final var result = useCase.execute(
+                userId, courseId, quiz.getId(),
+                List.of(new SubmitQuizUseCase.QuizAnswer(QUESTION_ID, CORRECT_OPTION_ID)));
+
+        assertFalse(result.passed());
+        assertEquals(0, result.scorePercent());
+        assertEquals(0, result.correctCount());
+    }
+
+    @Test
+    void shouldCountCorrectAnswerWhenCorrectOptionIsNotFirst() {
+        final Content quiz = givenQuizLesson(70, false, List.of(new QuizQuestion(
+                QUESTION_ID,
+                "Ordem invertida",
+                List.of(
+                        new QuizOption(WRONG_OPTION_ID, "Errada", false),
+                        new QuizOption(CORRECT_OPTION_ID, "Correta", true)))));
+        givenEnrollment();
+        moduleRepository.findByCourseId(courseId).forEach(module -> {
+            module.setCoursePublished(true);
+            moduleRepository.save(module);
+        });
+
+        final var result = useCase.execute(
+                userId, courseId, quiz.getId(),
+                List.of(new SubmitQuizUseCase.QuizAnswer(QUESTION_ID, CORRECT_OPTION_ID)));
+
+        assertTrue(result.passed());
+        assertEquals(100, result.scorePercent());
+    }
 }
