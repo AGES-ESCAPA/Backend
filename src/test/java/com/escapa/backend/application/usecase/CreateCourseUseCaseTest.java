@@ -1,8 +1,10 @@
 package com.escapa.backend.application.usecase;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.UUID;
@@ -76,5 +78,21 @@ class CreateCourseUseCaseTest {
 
         assertThrows(UserNotFoundException.class, () -> useCase.execute(
                 "Curso", null, null, null, null, null, null, null, null, null, null, null, null, null, null, UUID.randomUUID()));
+    }
+
+    @Test
+    void shouldPersistFeaturedFlagAndDefaultToFalseWhenNull() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
+        final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
+        final CreateCourseUseCase useCase = new CreateCourseUseCase(courseRepository, userRepository);
+
+        final Course featured = useCase.execute(
+                "Curso Destaque", null, null, null, null, null, null, null, true, null, null, null, null, null, null, admin.getId());
+        final Course plain = useCase.execute(
+                "Curso Comum", null, null, null, null, null, null, null, null, null, null, null, null, null, null, admin.getId());
+
+        assertTrue(featured.getFeatured());
+        assertFalse(plain.getFeatured());
     }
 }

@@ -1,8 +1,10 @@
 package com.escapa.backend.application.usecase;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.UUID;
@@ -115,6 +117,29 @@ class UpdateCourseUseCaseTest {
     }
 
     @Test
+    void shouldUpdateFeaturedFlagWhenProvided() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
+        final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
+        final Course course = courseRepository.save(new Course(
+                "Titulo", null, null, null, null, null, null, null, false,
+                null, null, null, List.of(), true, false, admin));
+        final UpdateCourseUseCase useCase =
+                new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
+
+        final Course featured = useCase.execute(
+                course.getId(), null, null, null, null, null, null, null, null, true, null, null, null, null, null, null);
+        final Course unchanged = useCase.execute(
+                course.getId(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        final Course unfeatured = useCase.execute(
+                course.getId(), null, null, null, null, null, null, null, null, false, null, null, null, null, null, null);
+
+        assertTrue(featured.getFeatured());
+        assertTrue(unchanged.getFeatured());
+        assertFalse(unfeatured.getFeatured());
+    }
+
+    @Test
     void shouldThrowWhenCourseNotFound() {
         final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
         final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
@@ -222,5 +247,49 @@ class UpdateCourseUseCaseTest {
         assertEquals("Titulo revisado", updated.getTitle());
         assertEquals(0, updated.getMinorVersion());
         assertNull(updated.getPendingDraft());
+    }
+
+    @Test
+    void shouldUpdateFeaturedOnDraftCourse() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
+        final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
+        final Course course = courseRepository.save(new Course(
+                "Titulo", null, null, null, null, null, null, null,
+                false, null, null, List.of(), true, false, admin));
+        final UpdateCourseUseCase useCase =
+                new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
+
+        final Course updated = useCase.execute(
+                course.getId(), null, null, null, null, null, null, null, null, true, null, null, null, null, null, null);
+
+        assertTrue(updated.getFeatured());
+        assertTrue(courseRepository.findById(course.getId()).orElseThrow().getFeatured());
+    }
+
+    @Test
+    void shouldApplyFeaturedImmediatelyOnPublishedCourse() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final InMemoryUserRepositoryPort userRepository = new InMemoryUserRepositoryPort();
+        final User admin = userRepository.save(new User("Admin Um", "admin@escapa.com", "hash", "ADMIN"));
+        final Course course = courseRepository.save(new Course(
+                "Titulo Publicado", null, null, null, null, admin, null, null,
+                false, null, null, List.of(), true, false, admin));
+        course.setStatus(CourseStatus.PUBLISHED);
+        courseRepository.save(course);
+        final UpdateCourseUseCase useCase =
+                new UpdateCourseUseCase(courseRepository, userRepository, new InMemoryCoursePrerequisiteRepositoryPort());
+
+        final Course updated = useCase.execute(
+                course.getId(), "Titulo no rascunho", null, null, null, null, null, null, null, true, null, null, null, null, null, null);
+
+        assertTrue(updated.getFeatured());
+        assertEquals("Titulo Publicado", updated.getTitle());
+        assertEquals("Titulo no rascunho", updated.getPendingDraft().title());
+
+        final Course published = courseRepository.findById(course.getId()).orElseThrow();
+        assertTrue(published.getFeatured());
+        assertEquals("Titulo Publicado", published.getTitle());
+        assertEquals("Titulo no rascunho", published.getPendingDraft().title());
     }
 }

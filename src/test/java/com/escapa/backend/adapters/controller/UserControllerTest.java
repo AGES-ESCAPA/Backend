@@ -201,6 +201,20 @@ class UserControllerTest {
     }
 
     @Test
+    void shouldRequestEmailChangeAndExposePendingEmailOnDetail() throws Exception {
+        final User saved = userRepository.save(new User("Maria Silva", "maria@email.com", "hash", "STUDENT"));
+
+        mockMvc.perform(post(USERS_URL + "/{id}/email-change", saved.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"maria.nova@email.com\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("maria@email.com"))
+                .andExpect(jsonPath("$.data.pendingEmail").value("maria.nova@email.com"))
+                .andExpect(jsonPath("$.message").value(
+                        "Confirmation e-mail sent. The address will change after confirmation."));
+    }
+
+    @Test
     void shouldDeactivateAUser() throws Exception {
         final User saved = userRepository.save(new User("Maria Silva", "maria@email.com", "hash", "STUDENT"));
 

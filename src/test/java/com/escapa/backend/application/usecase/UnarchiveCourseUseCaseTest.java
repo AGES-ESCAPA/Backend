@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.User;
@@ -47,6 +48,11 @@ class UnarchiveCourseUseCaseTest {
 
         assertEquals("Only archived courses can be unarchived", error.getMessage());
         assertEquals(CourseStatus.PUBLISHED, repository.findById(published.getId()).orElseThrow().getStatus());
+    }
+
+    @Test
+    void shouldRejectUnarchiveWhenCourseDoesNotExist() {
+        assertThrows(CourseNotFoundException.class, () -> useCase.execute(UUID.randomUUID()));
     }
 
     private Course saveCourse(String title, CourseStatus status) {
