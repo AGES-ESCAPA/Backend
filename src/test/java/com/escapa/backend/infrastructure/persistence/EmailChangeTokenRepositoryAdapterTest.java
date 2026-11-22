@@ -3,6 +3,7 @@ package com.escapa.backend.infrastructure.persistence;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
@@ -125,18 +126,28 @@ class EmailChangeTokenRepositoryAdapterTest extends PostgresIntegrationTest {
     }
 
     @Test
-    void shouldInvalidateOpenTokens() {
+    void shouldInvalidateOpenTokensByExpiringThem() {
         givenUsers();
         final LocalDateTime now = LocalDateTime.now().withNano(0);
         final String openHash = EmailChangeToken.hashToken("open-" + UUID.randomUUID());
+        final String usedHash = EmailChangeToken.hashToken("used-" + UUID.randomUUID());
         emailChangeTokenRepositoryPort.save(
                 EmailChangeToken.issue(userId, "aberto@escapa.com", openHash, actorId, now, VALIDITY_HOURS));
+        final EmailChangeToken used = emailChangeTokenRepositoryPort.save(
+                EmailChangeToken.issue(userId, "usado@escapa.com", usedHash, actorId, now, VALIDITY_HOURS));
+        emailChangeTokenRepositoryPort.markAsUsed(used.getId(), now.plusMinutes(1));
 
         emailChangeTokenRepositoryPort.invalidateOpenTokens(userId, now.plusMinutes(10));
 
-        final EmailChangeToken reloaded = emailChangeTokenRepositoryPort.findByTokenHash(openHash).orElseThrow();
-        assertTrue(reloaded.isUsed());
+        final EmailChangeToken openReloaded =
+                emailChangeTokenRepositoryPort.findByTokenHash(openHash).orElseThrow();
+        assertTrue(openReloaded.isExpired(now.plusMinutes(10)));
+        assertNull(openReloaded.getUsedAt());
         assertTrue(emailChangeTokenRepositoryPort.findOpenByUserId(userId, now.plusMinutes(10)).isEmpty());
+
+        final EmailChangeToken usedReloaded =
+                emailChangeTokenRepositoryPort.findByTokenHash(usedHash).orElseThrow();
+        assertTrue(usedReloaded.isUsed());
     }
 
     @Test
