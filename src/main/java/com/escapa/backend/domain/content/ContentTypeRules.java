@@ -1,5 +1,7 @@
 package com.escapa.backend.domain.content;
 
+import java.util.List;
+
 import com.escapa.backend.domain.entity.Content;
 
 /**
@@ -20,6 +22,7 @@ public final class ContentTypeRules {
             case VIDEO -> validateVideo(content);
             case FILE -> requireUrl(content);
             case TEXT -> requireDescription(content);
+            case QUIZ -> validateQuiz(content);
             default -> throw new IllegalArgumentException("Unsupported content type: " + content.getType());
         }
         if (content.getResources() != null) {
@@ -65,6 +68,50 @@ public final class ContentTypeRules {
     private static void requireDescription(Content content) {
         if (isBlank(content.getDescription())) {
             throw new IllegalArgumentException("description is required for content type TEXT");
+        }
+    }
+
+    private static void validateQuiz(Content content) {
+        final List<QuizQuestion> questions = content.getQuizQuestions();
+        if (questions == null || questions.isEmpty()) {
+            throw new IllegalArgumentException("quizQuestions must contain at least one question for content type QUIZ");
+        }
+        for (final QuizQuestion question : questions) {
+            validateQuizQuestion(question);
+        }
+    }
+
+    private static void validateQuizQuestion(QuizQuestion question) {
+        if (question == null) {
+            throw new IllegalArgumentException("quizQuestions must not contain null items");
+        }
+        if (question.id() == null) {
+            throw new IllegalArgumentException("quizQuestions.id is required");
+        }
+        if (isBlank(question.prompt())) {
+            throw new IllegalArgumentException("quizQuestions.prompt is required");
+        }
+        final List<QuizOption> options = question.options();
+        if (options == null || options.size() < 2) {
+            throw new IllegalArgumentException("quizQuestions.options must contain at least two options");
+        }
+        int correctCount = 0;
+        for (final QuizOption option : options) {
+            if (option == null) {
+                throw new IllegalArgumentException("quizQuestions.options must not contain null items");
+            }
+            if (option.id() == null) {
+                throw new IllegalArgumentException("quizQuestions.options.id is required");
+            }
+            if (isBlank(option.text())) {
+                throw new IllegalArgumentException("quizQuestions.options.text is required");
+            }
+            if (option.correct()) {
+                correctCount++;
+            }
+        }
+        if (correctCount != 1) {
+            throw new IllegalArgumentException("quizQuestions.options must contain exactly one correct option");
         }
     }
 

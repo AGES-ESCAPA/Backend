@@ -103,6 +103,7 @@ public final class CourseMapper {
 
         entity.setRequireSequentialProgress(course.getRequireSequentialProgress());
         entity.setEnforceDeadlineBlock(course.getEnforceDeadlineBlock());
+        entity.setMinQuizPassPercentage(course.getMinQuizPassPercentage());
         entity.setCreatedAt(course.getCreatedAt());
         entity.setUpdatedAt(course.getUpdatedAt());
         entity.setPendingDraft(writeDraft(course.getPendingDraft()));
@@ -195,6 +196,7 @@ public final class CourseMapper {
 
         course.setRequireSequentialProgress(entity.getRequireSequentialProgress());
         course.setEnforceDeadlineBlock(entity.getEnforceDeadlineBlock());
+        course.setMinQuizPassPercentage(entity.getMinQuizPassPercentage());
         course.setCreatedAt(entity.getCreatedAt());
         course.setUpdatedAt(entity.getUpdatedAt());
         course.setMajorVersion(entity.getMajorVersion());

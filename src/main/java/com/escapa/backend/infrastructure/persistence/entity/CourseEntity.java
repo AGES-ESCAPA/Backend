@@ -23,6 +23,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.domain.Persistable;
 
+import com.escapa.backend.domain.course.CourseQuizRules;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.infrastructure.persistence.UserEntity;
 
@@ -96,6 +97,9 @@ public class CourseEntity implements Persistable<UUID> {
     /** Bloqueia o acesso ao conteudo depois que o prazo do curso expira. */
     @Column(name = "enforce_deadline_block", nullable = false)
     private Boolean enforceDeadlineBlock = false;
+
+    @Column(name = "min_quiz_pass_percentage", nullable = false)
+    private Integer minQuizPassPercentage = CourseQuizRules.DEFAULT_MIN_QUIZ_PASS_PERCENTAGE;
 
     @Column(name = "major_version", nullable = false)
     private Integer majorVersion = 0;

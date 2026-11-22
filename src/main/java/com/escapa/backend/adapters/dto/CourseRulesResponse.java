@@ -9,6 +9,7 @@ public record CourseRulesResponse(
     
     Boolean requireSequentialProgress,
     Boolean enforceDeadlineBlock,
+    Integer minQuizPassPercentage,
     String version,
     List<PrerequisiteResponse> prerequisites,
     List<ChangeLogResponse> changeLog
@@ -33,6 +34,7 @@ public record CourseRulesResponse(
         return new CourseRulesResponse(
                 rules.requireSequentialProgress(),
                 rules.enforceDeadlineBlock(),
+                rules.minQuizPassPercentage(),
                 rules.version(),
                 rules.prerequisites().stream()
                         .map(p -> new PrerequisiteResponse(p.courseId().toString(), p.courseTitle()))

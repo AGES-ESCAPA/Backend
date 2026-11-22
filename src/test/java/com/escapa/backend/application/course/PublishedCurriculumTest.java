@@ -24,7 +24,7 @@ class PublishedCurriculumTest {
         final Content editedContent = content("Publicado", 2, 1);
         final ContentPendingDraft draft = new ContentPendingDraft(
                 "Rascunho", "Descrição atualizada", ContentType.TEXT, null, 12, true,
-                List.of(new ContentResource("material", "link", "Leitura", "https://example.com")));
+                List.of(new ContentResource("material", "link", "Leitura", "https://example.com")), List.of());
         editedContent.setPendingDraft(draft);
         final Content newContent = content("Novo conteúdo", 1, null);
         final Content deletedContent = content("Removido", 3, 2);
@@ -68,7 +68,7 @@ class PublishedCurriculumTest {
     void shouldExposeOnlyThePublishedStudentCurriculumInPublishedOrder() {
         final Content visibleContent = content("Updated title", 9, 2);
         visibleContent.setPendingDraft(new ContentPendingDraft(
-                "Unpublished title", null, ContentType.TEXT, null, null, null, null));
+                "Unpublished title", null, ContentType.TEXT, null, null, null, null, List.of()));
         final Content unpublishedContent = content("Not published", 1, null);
         final Module laterModule = module("Later", 2, 2);
         laterModule.setContents(List.of(unpublishedContent, visibleContent));

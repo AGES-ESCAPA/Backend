@@ -163,6 +163,7 @@ public final class InMemoryCourseRepositoryPort implements CourseRepositoryPort 
                 ? new ArrayList<>() : new ArrayList<>(source.getLearningObjectives()));
         copy.setRequireSequentialProgress(source.getRequireSequentialProgress());
         copy.setEnforceDeadlineBlock(source.getEnforceDeadlineBlock());
+        copy.setMinQuizPassPercentage(source.getMinQuizPassPercentage());
         copy.setCreatedAt(source.getCreatedAt());
         copy.setUpdatedAt(source.getUpdatedAt());
         copy.setMajorVersion(source.getMajorVersion());

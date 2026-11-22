@@ -160,7 +160,11 @@ public class AdminCourseController {
     ) {
         final User admin = requireAdmin();
         updateProgressRulesUseCase.execute(
-                courseId, request.requireSequentialProgress(), request.enforceDeadlineBlock(), admin);
+                courseId,
+                request.requireSequentialProgress(),
+                request.enforceDeadlineBlock(),
+                request.minQuizPassPercentage(),
+                admin);
         return CourseRulesResponse.from(getCourseRulesUseCase.execute(courseId));
     }
 

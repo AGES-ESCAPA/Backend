@@ -15,6 +15,7 @@ import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Module;
 
@@ -64,6 +65,10 @@ public class CompleteStudentLessonUseCase {
         // 404 antes de 403: aula inexistente ou de outro curso nao revela nada sobre acesso.
         final LessonDetails lesson = lessonRepositoryPort.findByCourseIdAndId(courseId, lessonId)
                 .orElseThrow(() -> new ContentNotFoundException(lessonId));
+
+        if (lesson.content().getType() == ContentType.QUIZ) {
+            throw new IllegalArgumentException("Quiz lessons must be completed by submitting answers");
+        }
 
         final boolean isFree = Boolean.TRUE.equals(lesson.content().getIsFree());
         if (!isFree) {

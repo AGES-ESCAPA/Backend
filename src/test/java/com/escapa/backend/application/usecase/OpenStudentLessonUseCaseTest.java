@@ -63,8 +63,9 @@ class OpenStudentLessonUseCaseTest {
         final UUID moduleId = UUID.randomUUID();
         final Content content = new Content(
                 UUID.randomUUID(), moduleId, "Aula 2", "Descricao da aula", ContentType.VIDEO,
-                "https://cdn.example.com/aula-2.mp4", 12, isFree, 2, null, null, null, null, false, false);
-        lessonRepository.add(new LessonDetails(content, courseId, "Fundamentos", 1, enforceDeadlineBlock, new LessonSupplement(List.of(), List.of())));
+                "https://cdn.example.com/aula-2.mp4", 12, isFree, 2, null, null, null, null, null, false, false);
+        lessonRepository.add(new LessonDetails(content, courseId, "Fundamentos", 1, enforceDeadlineBlock, 70,
+                new LessonSupplement(List.of(), List.of())));
         return content;
     }
 
@@ -349,18 +350,18 @@ class OpenStudentLessonUseCaseTest {
         final Module module = moduleRepository.findById(moduleId).orElseThrow();
         final Content first = new Content(
                 UUID.randomUUID(), moduleId, "Aula 1", "Descricao", ContentType.VIDEO,
-                "https://cdn.example.com/aula-1.mp4", 10, false, 1, null, null, null, null, false, false);
+                "https://cdn.example.com/aula-1.mp4", 10, false, 1, null, null, null, null, null, false, false);
         final Content second = new Content(
                 UUID.randomUUID(), moduleId, "Aula 2", "Descricao", ContentType.VIDEO,
-                "https://cdn.example.com/aula-2.mp4", 10, false, 2, null, null, null, null, false, false);
+                "https://cdn.example.com/aula-2.mp4", 10, false, 2, null, null, null, null, null, false, false);
         module.getContents().add(first);
         module.getContents().add(second);
         moduleRepository.save(module);
 
         lessonRepository.add(new LessonDetails(
-                first, courseId, "Fundamentos", 1, false, new LessonSupplement(List.of(), List.of())));
+                first, courseId, "Fundamentos", 1, false, 70, new LessonSupplement(List.of(), List.of())));
         lessonRepository.add(new LessonDetails(
-                second, courseId, "Fundamentos", 1, false, new LessonSupplement(List.of(), List.of())));
+                second, courseId, "Fundamentos", 1, false, 70, new LessonSupplement(List.of(), List.of())));
         return List.of(first, second);
     }
 }

@@ -44,7 +44,7 @@ class ContentMapperTest {
                 "resource-1", ContentResource.TYPE_LINK, "Referência", "https://example.com");
         final ContentPendingDraft draft = new ContentPendingDraft(
                 "Título", "Descrição", ContentType.VIDEO, "https://video.example.com",
-                15, true, List.of(resource));
+                15, true, List.of(resource), List.of());
         final ContentEntity entity = new ContentEntity();
         entity.setId(UUID.randomUUID());
         final ModuleEntity module = new ModuleEntity();
@@ -84,7 +84,7 @@ class ContentMapperTest {
                 "resource-2", ContentResource.TYPE_FILE, "Arquivo", "https://example.com/file.pdf")));
         populated.setCreatedAt(createdAt);
         populated.setPendingDraft(new ContentPendingDraft(
-                "Título", null, ContentType.VIDEO, null, null, null, List.of()));
+                "Título", null, ContentType.VIDEO, null, null, null, List.of(), List.of()));
         final ContentEntity populatedEntity = new ContentEntity();
 
         ContentMapper.applyToEntity(populated, populatedEntity, null);

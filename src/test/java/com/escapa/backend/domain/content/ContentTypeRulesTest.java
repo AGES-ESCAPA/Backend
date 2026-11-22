@@ -6,9 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import com.escapa.backend.domain.content.QuizOption;
+import com.escapa.backend.domain.content.QuizQuestion;
 import com.escapa.backend.domain.entity.Content;
 
 class ContentTypeRulesTest {
@@ -65,6 +68,22 @@ class ContentTypeRulesTest {
 
         content.setResources(Arrays.asList((ContentResource) null));
         assertThrows(IllegalArgumentException.class, () -> ContentTypeRules.validate(content));
+    }
+
+    @Test
+    void shouldValidateQuizQuestions() {
+        final UUID questionId = UUID.randomUUID();
+        final UUID correctId = UUID.randomUUID();
+        final UUID wrongId = UUID.randomUUID();
+        final Content valid = content(ContentType.QUIZ, null, "Quiz", null);
+        valid.setQuizQuestions(List.of(new QuizQuestion(
+                questionId,
+                "Pergunta",
+                List.of(new QuizOption(correctId, "Correta", true), new QuizOption(wrongId, "Errada", false)))));
+        assertDoesNotThrow(() -> ContentTypeRules.validate(valid));
+
+        final Content withoutQuestions = content(ContentType.QUIZ, null, "Quiz", null);
+        assertThrows(IllegalArgumentException.class, () -> ContentTypeRules.validate(withoutQuestions));
     }
 
     @Test

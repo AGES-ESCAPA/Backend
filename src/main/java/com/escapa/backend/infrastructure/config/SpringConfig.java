@@ -104,6 +104,7 @@ import com.escapa.backend.application.usecase.RequestPasswordResetUseCase;
 import com.escapa.backend.application.usecase.ResendEmployeeInviteUseCase;
 import com.escapa.backend.application.usecase.ResetPasswordUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
+import com.escapa.backend.application.usecase.SubmitQuizUseCase;
 import com.escapa.backend.application.usecase.UnlinkCompanyEmployeeUseCase;
 import com.escapa.backend.application.usecase.UpdateCompanyEmployeeUseCase;
 import com.escapa.backend.application.usecase.UpdateContentUseCase;
@@ -759,6 +760,27 @@ public class SpringConfig {
             ModulePrerequisiteRepositoryPort modulePrerequisiteRepositoryPort
     ) {
         return new CompleteStudentLessonUseCase(
+                lessonRepositoryPort,
+                lessonProgressRepositoryPort,
+                moduleRepositoryPort,
+                enrollmentProgressRepositoryPort,
+                enrollmentRepositoryPort,
+                courseRepositoryPort,
+                modulePrerequisiteRepositoryPort,
+                Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public SubmitQuizUseCase submitQuizUseCase(
+            LessonRepositoryPort lessonRepositoryPort,
+            LessonProgressRepositoryPort lessonProgressRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort,
+            EnrollmentProgressRepositoryPort enrollmentProgressRepositoryPort,
+            EnrollmentRepositoryPort enrollmentRepositoryPort,
+            CourseRepositoryPort courseRepositoryPort,
+            ModulePrerequisiteRepositoryPort modulePrerequisiteRepositoryPort
+    ) {
+        return new SubmitQuizUseCase(
                 lessonRepositoryPort,
                 lessonProgressRepositoryPort,
                 moduleRepositoryPort,

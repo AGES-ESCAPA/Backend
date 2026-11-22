@@ -20,7 +20,7 @@ class CourseRulesResponseTest {
         final UUID changeId = UUID.randomUUID();
         final LocalDateTime changedAt = LocalDateTime.of(2026, 11, 17, 15, 30);
         final CourseRules rules = new CourseRules(
-                true, false, "2.3",
+                true, false, 70, "2.3",
                 List.of(new CourseRules.Prerequisite(prerequisiteId, "Curso anterior")),
                 List.of(
                         new ChangeLogEntry(changeId, "Regra alterada", "Admin", 2, 3, changedAt),

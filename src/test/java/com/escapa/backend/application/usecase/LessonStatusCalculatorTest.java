@@ -24,7 +24,7 @@ class LessonStatusCalculatorTest {
     private Content content(UUID moduleId, String title, int order) {
         return new Content(
                 UUID.randomUUID(), moduleId, title, "desc", ContentType.VIDEO,
-                "https://cdn.example.com/video.mp4", 10, false, order, null, null, null, null, false, false);
+                "https://cdn.example.com/video.mp4", 10, false, order, null, null, null, null, null, false, false);
     }
 
     private Function<UUID, List<UUID>> noPrerequisites() {

@@ -20,6 +20,8 @@ import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException.Reason;
+import com.escapa.backend.domain.content.QuizOption;
+import com.escapa.backend.domain.content.QuizQuestion;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.Module;
@@ -59,10 +61,10 @@ class CompleteStudentLessonUseCaseTest {
         final Content content = new Content(
                 UUID.randomUUID(), moduleId, "Aula", "Descricao", ContentType.VIDEO,
                 "https://cdn.example.com/aula.mp4", 10, isFree, module.getContents().size() + 1, null, null,
-                null, null, false, false);
+                null, null, null, false, false);
         module.getContents().add(content);
         moduleRepository.save(module);
-        lessonRepository.add(new LessonDetails(content, courseId, "Fundamentos", 1, enforceDeadlineBlock,
+        lessonRepository.add(new LessonDetails(content, courseId, "Fundamentos", 1, enforceDeadlineBlock, 70,
                 new LessonSupplement(List.of(), List.of())));
         return content;
     }
@@ -160,6 +162,38 @@ class CompleteStudentLessonUseCaseTest {
         assertThrows(
                 ContentNotFoundException.class,
                 () -> useCase.execute(userId, UUID.randomUUID(), lesson.getId()));
+    }
+
+    @Test
+    void shouldRejectQuizLessons() {
+        final UUID moduleId = moduleRepository.findByCourseId(courseId).stream()
+                .findFirst()
+                .map(Module::getId)
+                .orElseGet(() -> moduleRepository.createModule(courseId));
+        final Module module = moduleRepository.findById(moduleId).orElseThrow();
+        final Content quiz = new Content();
+        quiz.setId(UUID.randomUUID());
+        quiz.setModuleId(moduleId);
+        quiz.setTitle("Quiz");
+        quiz.setDescription("Desc");
+        quiz.setType(ContentType.QUIZ);
+        quiz.setQuizQuestions(List.of(new QuizQuestion(
+                UUID.randomUUID(),
+                "Pergunta",
+                List.of(
+                        new QuizOption(UUID.randomUUID(), "A", true),
+                        new QuizOption(UUID.randomUUID(), "B", false)))));
+        module.getContents().add(quiz);
+        moduleRepository.save(module);
+        lessonRepository.add(new LessonDetails(
+                quiz, courseId, "Fundamentos", 1, false, 70, new LessonSupplement(List.of(), List.of())));
+        givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
+
+        final IllegalArgumentException error = assertThrows(
+                IllegalArgumentException.class,
+                () -> useCase.execute(userId, courseId, quiz.getId()));
+
+        assertEquals("Quiz lessons must be completed by submitting answers", error.getMessage());
     }
 
     @Test

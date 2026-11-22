@@ -20,14 +20,14 @@ class ContentPendingDraftTest {
         final ContentResource resource = new ContentResource("resource-1", "link", "Guia", "https://example.com");
         final List<ContentResource> resources = new ArrayList<>(List.of(resource));
         final ContentPendingDraft draft = new ContentPendingDraft(
-                "Aula", "Descrição", ContentType.TEXT, null, null, null, resources);
+                "Aula", "Descrição", ContentType.TEXT, null, null, null, resources, List.of());
 
         resources.clear();
 
         assertEquals(List.of(resource), draft.resources());
         assertThrows(UnsupportedOperationException.class, () -> draft.resources().add(resource));
         assertEquals(List.of(), new ContentPendingDraft(
-                "Aula", null, ContentType.TEXT, null, null, null, null).resources());
+                "Aula", null, ContentType.TEXT, null, null, null, null, List.of()).resources());
     }
 
     @Test
@@ -35,7 +35,7 @@ class ContentPendingDraftTest {
         final Content content = content("Aula publicada", "Descrição", true);
         final ContentPendingDraft matchingDraft = ContentPendingDraft.from(content);
         final ContentPendingDraft changedDraft = new ContentPendingDraft(
-                "Aula revisada", "Descrição", ContentType.TEXT, null, null, true, List.of());
+                "Aula revisada", "Descrição", ContentType.TEXT, null, null, true, List.of(), List.of());
 
         assertFalse(matchingDraft.differsFrom(content));
         assertTrue(changedDraft.differsFrom(content));
@@ -49,7 +49,7 @@ class ContentPendingDraftTest {
                 UUID.randomUUID().toString(), ContentResource.TYPE_FILE, "Material", "https://example.com/file.pdf");
         final ContentPendingDraft draft = new ContentPendingDraft(
                 "Aula revisada", "Descrição nova", ContentType.FILE,
-                "https://example.com/video.mp4", 15, null, List.of(resource));
+                "https://example.com/video.mp4", 15, null, List.of(resource), List.of());
 
         draft.applyTo(content);
 

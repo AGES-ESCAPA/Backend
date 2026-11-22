@@ -1255,6 +1255,16 @@ INSERT INTO content (id, module_id, title, description, type, url, duration_minu
 UPDATE modules SET published_order = "order" WHERE published_order IS NULL;
 UPDATE content SET published_order = "order" WHERE published_order IS NULL;
 
+UPDATE content
+   SET type = 'QUIZ',
+       quiz_json = CASE id
+           WHEN '02000000-0000-4000-9000-000000000024' THEN
+               '[{"id":"03000000-0000-4000-9000-000000000001","prompt":"Qual prática fortalece a governança de um destino?","options":[{"id":"03000000-0000-4000-9000-000000000011","text":"Conselhos com representação pública e privada","correct":true},{"id":"03000000-0000-4000-9000-000000000012","text":"Centralizar decisões sem consulta","correct":false}]},{"id":"03000000-0000-4000-9000-000000000002","prompt":"DMOs atuam principalmente em:","options":[{"id":"03000000-0000-4000-9000-000000000021","text":"Promoção e articulação do destino","correct":true},{"id":"03000000-0000-4000-9000-000000000022","text":"Fiscalização de hotéis","correct":false}]}]'::json
+           ELSE
+               '[{"id":"03000000-0000-4000-9000-000000000099","prompt":"Confirme o entendimento desta aula.","options":[{"id":"03000000-0000-4000-9000-000000000091","text":"Sim, compreendi os conceitos principais","correct":true},{"id":"03000000-0000-4000-9000-000000000092","text":"Não, preciso rever o conteúdo","correct":false}]}]'::json
+       END
+ WHERE title LIKE 'Quiz:%';
+
 INSERT INTO user_courses (
     user_id, course_id, dt_inicio, dt_expiracao, progress, conclusion_date, last_access_date,
     certificate_issued, certificate_code, certificate_issued_at

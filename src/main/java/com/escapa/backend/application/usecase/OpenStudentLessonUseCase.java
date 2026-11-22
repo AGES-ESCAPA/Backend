@@ -89,6 +89,7 @@ public class OpenStudentLessonUseCase {
                 lesson.moduleTitle(),
                 lesson.moduleOrder(),
                 lesson.courseEnforcesDeadlineBlock(),
+                lesson.minQuizPassPercentage(),
                 supplement
         );
     }
