@@ -95,6 +95,10 @@ class ContentMapperTest {
         broken.setQuizJson("{invalid");
         assertTrue(ContentMapper.toDomain(broken).getQuizQuestions().isEmpty());
 
+        final ContentEntity blankQuiz = new ContentEntity();
+        blankQuiz.setQuizJson("  ");
+        assertTrue(ContentMapper.toDomain(blankQuiz).getQuizQuestions().isEmpty());
+
         final Content empty = new Content();
         empty.setQuizQuestions(List.of());
         final ContentEntity emptyEntity = new ContentEntity();

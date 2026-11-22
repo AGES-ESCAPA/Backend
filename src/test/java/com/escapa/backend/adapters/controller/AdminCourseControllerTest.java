@@ -184,6 +184,27 @@ class AdminCourseControllerTest {
     }
 
     @Test
+    void shouldUpdateProgressRulesIncludingMinQuizPassPercentage() throws Exception {
+        final UUID courseId = saveCourse("Curso", CourseStatus.DRAFT);
+
+        mockMvc.perform(put(COURSES_URL + "/{id}/progress-rules", courseId).header(USER_HEADER, adminId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "requireSequentialProgress": false,
+                                  "enforceDeadlineBlock": true,
+                                  "minQuizPassPercentage": 85
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.requireSequentialProgress").value(false))
+                .andExpect(jsonPath("$.enforceDeadlineBlock").value(true))
+                .andExpect(jsonPath("$.minQuizPassPercentage").value(85));
+
+        assertEquals(85, courseRepository.findById(courseId).orElseThrow().getMinQuizPassPercentage());
+    }
+
+    @Test
     void shouldRejectInvalidChangeLogPagination() throws Exception {
         final UUID courseId = saveCourse("Curso", CourseStatus.DRAFT);
 

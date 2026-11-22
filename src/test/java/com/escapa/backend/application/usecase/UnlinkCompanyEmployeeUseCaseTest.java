@@ -260,6 +260,22 @@ class UnlinkCompanyEmployeeUseCaseTest {
         }
 
         @Override
+        public boolean revokeCompanyCourseEnrollment(
+                UUID companyId, UUID employeeId, UUID courseId, LocalDateTime revokedAt) {
+            for (final Enrollment item : enrollments) {
+                final boolean match = item.userId().equals(employeeId)
+                        && item.courseId().equals(courseId)
+                        && item.revokedAt()[0] == null;
+                final boolean ofTheCompany = companyCourses.getOrDefault(companyId, Set.of()).contains(courseId);
+                if (match && ofTheCompany && !selfBought.contains(employeeId + ":" + courseId)) {
+                    item.revokedAt()[0] = revokedAt;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
         public int invalidatePendingInvites(UUID companyId, UUID employeeId, LocalDateTime now) {
             if (failOnInvalidatingInvites) {
                 throw new IllegalStateException("boom");

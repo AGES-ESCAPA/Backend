@@ -114,6 +114,21 @@ class UpdateProgressRulesUseCaseTest {
     }
 
     @Test
+    void shouldAcceptMinQuizPassPercentageBoundaries() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final Course course = courseRepository.save(course(adminUser()));
+        final UpdateProgressRulesUseCase useCase =
+                new UpdateProgressRulesUseCase(courseRepository, new InMemoryCourseChangeLogRepositoryPort(),
+                        new InMemoryCoursePrerequisiteRepositoryPort());
+
+        useCase.execute(course.getId(), true, false, 0, null);
+        assertEquals(0, courseRepository.findById(course.getId()).orElseThrow().getMinQuizPassPercentage());
+
+        useCase.execute(course.getId(), true, false, 100, null);
+        assertEquals(100, courseRepository.findById(course.getId()).orElseThrow().getMinQuizPassPercentage());
+    }
+
+    @Test
     void shouldRejectMinQuizPassPercentageOutsideValidRange() {
         final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
         final Course course = courseRepository.save(course(adminUser()));

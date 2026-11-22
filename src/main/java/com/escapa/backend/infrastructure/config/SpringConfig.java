@@ -49,6 +49,7 @@ import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.port.UsersCompanyRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
+import com.escapa.backend.application.usecase.AssignEmployeeCourseUseCase;
 import com.escapa.backend.application.usecase.AuthorizeActiveUserUseCase;
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.application.usecase.CancelOrderUseCase;
@@ -81,6 +82,7 @@ import com.escapa.backend.application.usecase.ListCompanyCoursesUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeeProgressUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeesUseCase;
 import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
+import com.escapa.backend.application.usecase.ListEmployeeCoursesUseCase;
 import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCourseFiltersUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
@@ -103,6 +105,7 @@ import com.escapa.backend.application.usecase.ReorderModulesUseCase;
 import com.escapa.backend.application.usecase.RequestPasswordResetUseCase;
 import com.escapa.backend.application.usecase.ResendEmployeeInviteUseCase;
 import com.escapa.backend.application.usecase.ResetPasswordUseCase;
+import com.escapa.backend.application.usecase.RevokeEmployeeCourseUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
 import com.escapa.backend.application.usecase.SubmitQuizUseCase;
 import com.escapa.backend.application.usecase.UnlinkCompanyEmployeeUseCase;
@@ -494,6 +497,33 @@ public class SpringConfig {
             GetCompanySeatsSummaryUseCase getCompanySeatsSummaryUseCase) {
         return new UnlinkCompanyEmployeeUseCase(
                 companyEmployeeUnlinkPort, userRepositoryPort, getCompanySeatsSummaryUseCase,
+                Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public ListEmployeeCoursesUseCase listEmployeeCoursesUseCase(
+            CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort,
+            CompanyCourseRepositoryPort companyCourseRepositoryPort) {
+        return new ListEmployeeCoursesUseCase(companyEmployeeRepositoryPort, companyCourseRepositoryPort);
+    }
+
+    @Bean
+    public AssignEmployeeCourseUseCase assignEmployeeCourseUseCase(
+            CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort,
+            CompanyCourseRepositoryPort companyCourseRepositoryPort,
+            OrderAccessPort orderAccessPort) {
+        return new AssignEmployeeCourseUseCase(
+                companyEmployeeRepositoryPort, companyCourseRepositoryPort, orderAccessPort,
+                Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public RevokeEmployeeCourseUseCase revokeEmployeeCourseUseCase(
+            CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort,
+            CompanyCourseRepositoryPort companyCourseRepositoryPort,
+            CompanyEmployeeUnlinkPort companyEmployeeUnlinkPort) {
+        return new RevokeEmployeeCourseUseCase(
+                companyEmployeeRepositoryPort, companyCourseRepositoryPort, companyEmployeeUnlinkPort,
                 Clock.systemDefaultZone());
     }
 
