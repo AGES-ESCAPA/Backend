@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import com.escapa.backend.domain.content.ContentPendingDraft;
 import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.content.QuizOption;
+import com.escapa.backend.domain.content.QuizQuestion;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
@@ -44,7 +46,7 @@ class ContentMapperTest {
                 "resource-1", ContentResource.TYPE_LINK, "Referência", "https://example.com");
         final ContentPendingDraft draft = new ContentPendingDraft(
                 "Título", "Descrição", ContentType.VIDEO, "https://video.example.com",
-                15, true, List.of(resource));
+                15, true, List.of(resource), List.of());
         final ContentEntity entity = new ContentEntity();
         entity.setId(UUID.randomUUID());
         final ModuleEntity module = new ModuleEntity();
@@ -68,6 +70,43 @@ class ContentMapperTest {
     }
 
     @Test
+    void shouldRoundTripQuizQuestionsAndIgnoreInvalidQuizJson() {
+        final UUID questionId = UUID.randomUUID();
+        final UUID correctId = UUID.randomUUID();
+        final UUID wrongId = UUID.randomUUID();
+        final List<QuizQuestion> questions = List.of(new QuizQuestion(
+                questionId,
+                "Pergunta",
+                List.of(new QuizOption(correctId, "Correta", true), new QuizOption(wrongId, "Errada", false))));
+        final Content content = new Content();
+        content.setTitle("Quiz");
+        content.setType(ContentType.QUIZ);
+        content.setQuizQuestions(questions);
+        final ContentEntity entity = new ContentEntity();
+
+        ContentMapper.applyToEntity(content, entity, null);
+        assertNotNull(entity.getQuizJson());
+        assertTrue(entity.getQuizJson().contains(questionId.toString()));
+
+        final Content restored = ContentMapper.toDomain(entity);
+        assertEquals(questions, restored.getQuizQuestions());
+
+        final ContentEntity broken = new ContentEntity();
+        broken.setQuizJson("{invalid");
+        assertTrue(ContentMapper.toDomain(broken).getQuizQuestions().isEmpty());
+
+        final ContentEntity blankQuiz = new ContentEntity();
+        blankQuiz.setQuizJson("  ");
+        assertTrue(ContentMapper.toDomain(blankQuiz).getQuizQuestions().isEmpty());
+
+        final Content empty = new Content();
+        empty.setQuizQuestions(List.of());
+        final ContentEntity emptyEntity = new ContentEntity();
+        ContentMapper.applyToEntity(empty, emptyEntity, null);
+        assertNull(emptyEntity.getQuizJson());
+    }
+
+    @Test
     void shouldMapNullableFreeFlagResourcesAndCreationTime() {
         final ContentEntity entity = new ContentEntity();
         final Content content = new Content();
@@ -84,7 +123,7 @@ class ContentMapperTest {
                 "resource-2", ContentResource.TYPE_FILE, "Arquivo", "https://example.com/file.pdf")));
         populated.setCreatedAt(createdAt);
         populated.setPendingDraft(new ContentPendingDraft(
-                "Título", null, ContentType.VIDEO, null, null, null, List.of()));
+                "Título", null, ContentType.VIDEO, null, null, null, List.of(), List.of()));
         final ContentEntity populatedEntity = new ContentEntity();
 
         ContentMapper.applyToEntity(populated, populatedEntity, null);

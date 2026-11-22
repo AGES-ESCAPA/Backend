@@ -31,6 +31,9 @@ public interface CompanyEmployeeRepositoryPort {
     /** Grava o cargo em {@code users_company.role}. */
     void updateJobTitle(UUID companyId, UUID userId, String jobTitle);
 
+    /** Cargos distintos já usados pela empresa (para reutilizar o mesmo rótulo). */
+    List<String> findJobTitles(UUID companyId);
+
     /** Colaboradores vinculados, de qualquer status, e quantos estão ativos. */
     CompanyEmployeeCounts countEmployees(UUID companyId);
 

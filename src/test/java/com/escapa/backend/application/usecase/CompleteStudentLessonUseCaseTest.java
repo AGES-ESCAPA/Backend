@@ -20,7 +20,10 @@ import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException.Reason;
+import com.escapa.backend.domain.content.QuizOption;
+import com.escapa.backend.domain.content.QuizQuestion;
 import com.escapa.backend.domain.entity.Content;
+import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.Module;
 
 class CompleteStudentLessonUseCaseTest {
@@ -31,13 +34,20 @@ class CompleteStudentLessonUseCaseTest {
     private final InMemoryEnrollmentRepositoryPort enrollmentRepository = new InMemoryEnrollmentRepositoryPort();
     private final InMemoryLessonProgressRepositoryPort progressRepository = new InMemoryLessonProgressRepositoryPort();
     private final InMemoryModuleRepositoryPort moduleRepository = new InMemoryModuleRepositoryPort();
+    private final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
     private final InMemoryEnrollmentProgressRepositoryPort enrollmentProgressRepository =
             new InMemoryEnrollmentProgressRepositoryPort();
     private final Clock clock = Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
 
     private final CompleteStudentLessonUseCase useCase = new CompleteStudentLessonUseCase(
-            lessonRepository, progressRepository, moduleRepository, enrollmentProgressRepository,
-            enrollmentRepository, clock);
+            lessonRepository,
+            progressRepository,
+            moduleRepository,
+            enrollmentProgressRepository,
+            enrollmentRepository,
+            courseRepository,
+            moduleId -> List.of(),
+            clock);
 
     private final UUID userId = UUID.randomUUID();
     private final UUID courseId = UUID.randomUUID();
@@ -51,10 +61,10 @@ class CompleteStudentLessonUseCaseTest {
         final Content content = new Content(
                 UUID.randomUUID(), moduleId, "Aula", "Descricao", ContentType.VIDEO,
                 "https://cdn.example.com/aula.mp4", 10, isFree, module.getContents().size() + 1, null, null,
-                null, null, false, false);
+                null, null, null, false, false);
         module.getContents().add(content);
         moduleRepository.save(module);
-        lessonRepository.add(new LessonDetails(content, courseId, "Fundamentos", 1, enforceDeadlineBlock,
+        lessonRepository.add(new LessonDetails(content, courseId, "Fundamentos", 1, enforceDeadlineBlock, 70,
                 new LessonSupplement(List.of(), List.of())));
         return content;
     }
@@ -152,5 +162,57 @@ class CompleteStudentLessonUseCaseTest {
         assertThrows(
                 ContentNotFoundException.class,
                 () -> useCase.execute(userId, UUID.randomUUID(), lesson.getId()));
+    }
+
+    @Test
+    void shouldRejectQuizLessons() {
+        final UUID moduleId = moduleRepository.findByCourseId(courseId).stream()
+                .findFirst()
+                .map(Module::getId)
+                .orElseGet(() -> moduleRepository.createModule(courseId));
+        final Module module = moduleRepository.findById(moduleId).orElseThrow();
+        final Content quiz = new Content();
+        quiz.setId(UUID.randomUUID());
+        quiz.setModuleId(moduleId);
+        quiz.setTitle("Quiz");
+        quiz.setDescription("Desc");
+        quiz.setType(ContentType.QUIZ);
+        quiz.setQuizQuestions(List.of(new QuizQuestion(
+                UUID.randomUUID(),
+                "Pergunta",
+                List.of(
+                        new QuizOption(UUID.randomUUID(), "A", true),
+                        new QuizOption(UUID.randomUUID(), "B", false)))));
+        module.getContents().add(quiz);
+        moduleRepository.save(module);
+        lessonRepository.add(new LessonDetails(
+                quiz, courseId, "Fundamentos", 1, false, 70, new LessonSupplement(List.of(), List.of())));
+        givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
+
+        final IllegalArgumentException error = assertThrows(
+                IllegalArgumentException.class,
+                () -> useCase.execute(userId, courseId, quiz.getId()));
+
+        assertEquals("Quiz lessons must be completed by submitting answers", error.getMessage());
+    }
+
+    @Test
+    void shouldDenyCompletingLockedLessonWhenSequentialProgressIsRequired() {
+        final Course course = new Course();
+        course.setId(courseId);
+        course.setRequireSequentialProgress(true);
+        courseRepository.save(course);
+
+        final Content first = givenLesson(false, false);
+        final Content second = givenLesson(false, false);
+        givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
+
+        final LessonAccessDeniedException error = assertThrows(
+                LessonAccessDeniedException.class,
+                () -> useCase.execute(userId, courseId, second.getId()));
+
+        assertEquals(Reason.SEQUENTIAL_PROGRESS_LOCKED, error.getReason());
+        assertNull(progressRepository.completedAt(userId, second.getId()));
+        assertNull(progressRepository.completedAt(userId, first.getId()));
     }
 }

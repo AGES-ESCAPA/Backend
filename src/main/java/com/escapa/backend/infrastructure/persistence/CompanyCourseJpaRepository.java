@@ -76,6 +76,36 @@ interface AcquiredCourseRow {
             + "join cc.course c where cc.id.companyId = :companyId and cc.revokedAt is null")
     List<AcquiredCourseRow> findAcquiredCourses(@Param("companyId") UUID companyId);
 
+    interface EmployeeCourseAssignmentRow {
+        UUID getCourseId();
+
+        String getTitle();
+
+        String getCategory();
+
+        boolean getAssigned();
+    }
+
+    @Query("""
+            select c.id as courseId,
+                   c.title as title,
+                   c.category as category,
+                   (select count(enrollment.id.userId)
+                      from UserCourseEntity enrollment
+                     where enrollment.id.userId = :employeeId
+                       and enrollment.id.courseId = c.id
+                       and enrollment.revokedAt is null) > 0 as assigned
+              from CompanyCourseEntity cc
+              join cc.course c
+             where cc.id.companyId = :companyId
+               and cc.revokedAt is null
+               and c.status = com.escapa.backend.domain.course.CourseStatus.PUBLISHED
+             order by c.title asc
+            """)
+    List<EmployeeCourseAssignmentRow> findEmployeeCourseAssignments(
+            @Param("companyId") UUID companyId,
+            @Param("employeeId") UUID employeeId);
+
     /** Revoga o curso da empresa, sem apagar o registro. */
     @Modifying
     @Query("update CompanyCourseEntity cc set cc.revokedAt = :revokedAt "

@@ -31,7 +31,7 @@ class UpdateProgressRulesUseCaseTest {
                 new UpdateProgressRulesUseCase(courseRepository, changeLogRepository,
                 new InMemoryCoursePrerequisiteRepositoryPort());
 
-        useCase.execute(course.getId(), false, true, admin);
+        useCase.execute(course.getId(), false, true, 70, admin);
 
         final Course updated = courseRepository.findById(course.getId()).orElseThrow();
         assertTrue(updated.getRequireSequentialProgress());
@@ -52,7 +52,7 @@ class UpdateProgressRulesUseCaseTest {
                 new UpdateProgressRulesUseCase(courseRepository, changeLogRepository,
                 new InMemoryCoursePrerequisiteRepositoryPort());
 
-        useCase.execute(course.getId(), true, false, admin);
+        useCase.execute(course.getId(), true, false, 70, admin);
 
         assertTrue(changeLogRepository.entriesFor(course.getId()).isEmpty());
     }
@@ -66,7 +66,7 @@ class UpdateProgressRulesUseCaseTest {
                 new UpdateProgressRulesUseCase(courseRepository, changeLogRepository,
                         new InMemoryCoursePrerequisiteRepositoryPort());
 
-        useCase.execute(course.getId(), false, true, null);
+        useCase.execute(course.getId(), false, true, 70, null);
 
         final Course updated = courseRepository.findById(course.getId()).orElseThrow();
         assertFalse(updated.getRequireSequentialProgress());
@@ -84,7 +84,7 @@ class UpdateProgressRulesUseCaseTest {
         course.setStatus(CourseStatus.PUBLISHED);
         final CoursePendingDraft draftOriginal = new CoursePendingDraft(
                 null, null, null, null, null, null, null, null, null, null, null,
-                null, false, true, List.of());
+                null, false, true, 70, List.of());
         course.setPendingDraft(draftOriginal);
         courseRepository.save(course);
         final int savesBeforeAct = courseRepository.saveCount();
@@ -92,12 +92,72 @@ class UpdateProgressRulesUseCaseTest {
                 new UpdateProgressRulesUseCase(courseRepository, changeLogRepository,
                         new InMemoryCoursePrerequisiteRepositoryPort());
 
-        useCase.execute(course.getId(), false, true, null);
+        useCase.execute(course.getId(), false, true, 70, null);
 
         final Course stored = courseRepository.findById(course.getId()).orElseThrow();
         assertEquals(savesBeforeAct, courseRepository.saveCount());
         assertSame(draftOriginal, stored.getPendingDraft());
         assertTrue(changeLogRepository.entriesFor(course.getId()).isEmpty());
+    }
+
+    @Test
+    void shouldPersistMinQuizPassPercentageOnDraftCourse() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final Course course = courseRepository.save(course(adminUser()));
+        final UpdateProgressRulesUseCase useCase =
+                new UpdateProgressRulesUseCase(courseRepository, new InMemoryCourseChangeLogRepositoryPort(),
+                        new InMemoryCoursePrerequisiteRepositoryPort());
+
+        useCase.execute(course.getId(), true, false, 85, null);
+
+        assertEquals(85, courseRepository.findById(course.getId()).orElseThrow().getMinQuizPassPercentage());
+    }
+
+    @Test
+    void shouldAcceptMinQuizPassPercentageBoundaries() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final Course course = courseRepository.save(course(adminUser()));
+        final UpdateProgressRulesUseCase useCase =
+                new UpdateProgressRulesUseCase(courseRepository, new InMemoryCourseChangeLogRepositoryPort(),
+                        new InMemoryCoursePrerequisiteRepositoryPort());
+
+        useCase.execute(course.getId(), true, false, 0, null);
+        assertEquals(0, courseRepository.findById(course.getId()).orElseThrow().getMinQuizPassPercentage());
+
+        useCase.execute(course.getId(), true, false, 100, null);
+        assertEquals(100, courseRepository.findById(course.getId()).orElseThrow().getMinQuizPassPercentage());
+    }
+
+    @Test
+    void shouldRejectMinQuizPassPercentageOutsideValidRange() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final Course course = courseRepository.save(course(adminUser()));
+        final UpdateProgressRulesUseCase useCase =
+                new UpdateProgressRulesUseCase(courseRepository, new InMemoryCourseChangeLogRepositoryPort(),
+                        new InMemoryCoursePrerequisiteRepositoryPort());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute(course.getId(), true, false, -1, null));
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute(course.getId(), true, false, 101, null));
+    }
+
+    @Test
+    void shouldPersistMinQuizPassPercentageOnPublishedCourseDraft() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final Course course = courseRepository.save(course(adminUser()));
+        course.setStatus(CourseStatus.PUBLISHED);
+        course.setMinQuizPassPercentage(70);
+        courseRepository.save(course);
+        final UpdateProgressRulesUseCase useCase =
+                new UpdateProgressRulesUseCase(courseRepository, new InMemoryCourseChangeLogRepositoryPort(),
+                        new InMemoryCoursePrerequisiteRepositoryPort());
+
+        useCase.execute(course.getId(), true, false, 85, null);
+
+        final Course updated = courseRepository.findById(course.getId()).orElseThrow();
+        assertEquals(70, updated.getMinQuizPassPercentage());
+        assertEquals(85, updated.getPendingDraft().minQuizPassPercentage());
     }
 
     @Test
@@ -108,7 +168,7 @@ class UpdateProgressRulesUseCaseTest {
                         new InMemoryCoursePrerequisiteRepositoryPort());
 
         assertThrows(CourseNotFoundException.class,
-                () -> useCase.execute(UUID.randomUUID(), true, false, null));
+                () -> useCase.execute(UUID.randomUUID(), true, false, 70, null));
     }
 
     private static User adminUser() {

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import com.escapa.backend.application.dto.CompanyCourseSummary;
 import com.escapa.backend.application.model.AcquiredCourse;
+import com.escapa.backend.application.model.EmployeeCourseAssignment;
 import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
 
 class ListCompanyCourseIdsUseCaseTest {
@@ -33,6 +34,11 @@ class ListCompanyCourseIdsUseCaseTest {
 
                     @Override
                     public List<AcquiredCourse> findAcquiredCourses(UUID id) {
+                        return List.of();
+                    }
+
+                    @Override
+                    public List<EmployeeCourseAssignment> findEmployeeCourseAssignments(UUID company, UUID employee) {
                         return List.of();
                     }
                 };
@@ -60,6 +66,11 @@ class ListCompanyCourseIdsUseCaseTest {
 
                     @Override
                     public List<AcquiredCourse> findAcquiredCourses(UUID id) {
+                        return List.of();
+                    }
+
+                    @Override
+                    public List<EmployeeCourseAssignment> findEmployeeCourseAssignments(UUID company, UUID employee) {
                         return List.of();
                     }
                 };

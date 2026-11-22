@@ -260,6 +260,22 @@ class UnlinkCompanyEmployeeUseCaseTest {
         }
 
         @Override
+        public boolean revokeCompanyCourseEnrollment(
+                UUID companyId, UUID employeeId, UUID courseId, LocalDateTime revokedAt) {
+            for (final Enrollment item : enrollments) {
+                final boolean match = item.userId().equals(employeeId)
+                        && item.courseId().equals(courseId)
+                        && item.revokedAt()[0] == null;
+                final boolean ofTheCompany = companyCourses.getOrDefault(companyId, Set.of()).contains(courseId);
+                if (match && ofTheCompany && !selfBought.contains(employeeId + ":" + courseId)) {
+                    item.revokedAt()[0] = revokedAt;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
         public int invalidatePendingInvites(UUID companyId, UUID employeeId, LocalDateTime now) {
             if (failOnInvalidatingInvites) {
                 throw new IllegalStateException("boom");
@@ -318,6 +334,11 @@ class UnlinkCompanyEmployeeUseCaseTest {
 
         @Override
         public void updateJobTitle(UUID companyId, UUID userId, String jobTitle) {
+            throw new UnsupportedOperationException("not used by the unlink");
+        }
+
+        @Override
+        public List<String> findJobTitles(UUID companyId) {
             throw new UnsupportedOperationException("not used by the unlink");
         }
 
@@ -382,6 +403,17 @@ class UnlinkCompanyEmployeeUseCaseTest {
 
         @Override
         public void updateStudentPhone(UUID userId, String phone) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Optional<com.escapa.backend.application.model.AdminInstructorProfile> findAdminInstructorProfile(
+                UUID userId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void updateAdminInstructorProfile(UUID userId, String headline, String bio) {
             throw new UnsupportedOperationException();
         }
     }

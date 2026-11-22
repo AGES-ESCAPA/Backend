@@ -6,24 +6,29 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
 
+import com.escapa.backend.application.model.AdminInstructorProfile;
 import com.escapa.backend.application.model.StudentContact;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.infrastructure.persistence.entity.AdminEntity;
 
 @Repository
 public class UserRepositoryAdapter implements UserRepositoryPort {
     private final UserJpaRepository userJpaRepository;
     private final UsersCompanyJpaRepository usersCompanyJpaRepository;
     private final RegularUserJpaRepository regularUserJpaRepository;
+    private final AdminJpaRepository adminJpaRepository;
 
     public UserRepositoryAdapter(
             UserJpaRepository userJpaRepository,
             UsersCompanyJpaRepository usersCompanyJpaRepository,
-            RegularUserJpaRepository regularUserJpaRepository
+            RegularUserJpaRepository regularUserJpaRepository,
+            AdminJpaRepository adminJpaRepository
     ) {
         this.userJpaRepository = userJpaRepository;
         this.usersCompanyJpaRepository = usersCompanyJpaRepository;
         this.regularUserJpaRepository = regularUserJpaRepository;
+        this.adminJpaRepository = adminJpaRepository;
     }
 
         @Override
@@ -83,5 +88,20 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public void updateStudentPhone(UUID userId, String phone) {
         regularUserJpaRepository.upsertPhone(userId, phone);
+    }
+
+    @Override
+    public Optional<AdminInstructorProfile> findAdminInstructorProfile(UUID userId) {
+        return adminJpaRepository.findById(userId)
+                .map(admin -> new AdminInstructorProfile(admin.getHeadline(), admin.getBio()));
+    }
+
+    @Override
+    public void updateAdminInstructorProfile(UUID userId, String headline, String bio) {
+        final AdminEntity admin = adminJpaRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("admin profile not found: " + userId));
+        admin.setHeadline(headline);
+        admin.setBio(bio);
+        adminJpaRepository.save(admin);
     }
 }

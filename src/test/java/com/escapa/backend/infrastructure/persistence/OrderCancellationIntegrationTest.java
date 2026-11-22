@@ -22,6 +22,7 @@ import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.CancelOrderUseCase;
 import com.escapa.backend.application.usecase.RefundOrderUseCase;
+import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Order;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.order.OrderItemType;
@@ -85,6 +86,7 @@ class OrderCancellationIntegrationTest extends PostgresIntegrationTest {
     private UUID givenCourse() {
         final CourseEntity course = new CourseEntity();
         course.setTitle("Curso " + UUID.randomUUID());
+        course.setStatus(CourseStatus.PUBLISHED);
         return courseJpaRepository.save(course).getId();
     }
 

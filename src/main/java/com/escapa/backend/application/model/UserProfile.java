@@ -9,6 +9,10 @@ public record UserProfile(
         String phone,
         String companyName,
         String cnpj,
-        String avatarUrl
+        String avatarUrl,
+        /** Título curto do instrutor nos cursos; só faz sentido para ADMIN. */
+        String headline,
+        /** Biografia do instrutor nos cursos; só faz sentido para ADMIN. */
+        String bio
 ) {
 }

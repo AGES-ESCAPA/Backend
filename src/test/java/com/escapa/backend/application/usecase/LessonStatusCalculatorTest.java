@@ -22,9 +22,13 @@ class LessonStatusCalculatorTest {
     private final UUID courseId = UUID.randomUUID();
 
     private Content content(UUID moduleId, String title, int order) {
+        return content(moduleId, title, order, false);
+    }
+
+    private Content content(UUID moduleId, String title, int order, boolean isFree) {
         return new Content(
                 UUID.randomUUID(), moduleId, title, "desc", ContentType.VIDEO,
-                "https://cdn.example.com/video.mp4", 10, false, order, null, null, null, null, false, false);
+                "https://cdn.example.com/video.mp4", 10, isFree, order, null, null, null, null, null, false, false);
     }
 
     private Function<UUID, List<UUID>> noPrerequisites() {
@@ -40,7 +44,7 @@ class LessonStatusCalculatorTest {
         m1.getContents().add(c2);
 
         final StudentCourseCurriculum result = calculator.calculate(
-                courseId, List.of(m1), List.of(c1.getId()), noPrerequisites(), true);
+                courseId, List.of(m1), List.of(c1.getId()), noPrerequisites(), true, true);
 
         final StudentCourseCurriculum.Lesson lesson1 = result.modules().get(0).lessons().get(0);
         final StudentCourseCurriculum.Lesson lesson2 = result.modules().get(0).lessons().get(1);
@@ -62,7 +66,7 @@ class LessonStatusCalculatorTest {
         m1.getContents().add(c3);
 
         final StudentCourseCurriculum result = calculator.calculate(
-                courseId, List.of(m1), List.of(c1.getId()), noPrerequisites(), true);
+                courseId, List.of(m1), List.of(c1.getId()), noPrerequisites(), true, true);
 
         final List<StudentCourseCurriculum.Lesson> lessons = result.modules().get(0).lessons();
         assertEquals(LessonStatus.COMPLETED, lessons.get(0).status());
@@ -77,7 +81,7 @@ class LessonStatusCalculatorTest {
         m1.getContents().add(c1);
 
         final StudentCourseCurriculum result = calculator.calculate(
-                courseId, List.of(m1), List.of(), noPrerequisites(), true);
+                courseId, List.of(m1), List.of(), noPrerequisites(), true, true);
 
         assertEquals(LessonStatus.AVAILABLE, result.modules().get(0).lessons().get(0).status());
     }
@@ -93,7 +97,7 @@ class LessonStatusCalculatorTest {
         m1.getContents().add(c3);
 
         final StudentCourseCurriculum result = calculator.calculate(
-                courseId, List.of(m1), List.of(), noPrerequisites(), false);
+                courseId, List.of(m1), List.of(), noPrerequisites(), false, true);
 
         final List<StudentCourseCurriculum.Lesson> lessons = result.modules().get(0).lessons();
         assertTrue(lessons.stream().allMatch(l -> l.status() == LessonStatus.AVAILABLE));
@@ -115,7 +119,7 @@ class LessonStatusCalculatorTest {
                 moduleId.equals(m2.getId()) ? List.of(m1.getId()) : List.of();
 
         final StudentCourseCurriculum result = calculator.calculate(
-                courseId, List.of(m1, m2), List.of(), prerequisites, false);
+                courseId, List.of(m1, m2), List.of(), prerequisites, false, true);
 
         assertFalse(result.modules().get(1).locked());
         assertTrue(result.modules().stream()
@@ -143,7 +147,7 @@ class LessonStatusCalculatorTest {
         // A aula imediatamente anterior está concluída, então só o pré-requisito
         // do módulo (ainda incompleto) pode bloquear o módulo seguinte.
         final StudentCourseCurriculum result = calculator.calculate(
-                courseId, List.of(m1, m2), List.of(c1b.getId()), prerequisites, true);
+                courseId, List.of(m1, m2), List.of(c1b.getId()), prerequisites, true, true);
 
         final StudentCourseCurriculum.Module module2Result = result.modules().get(1);
         assertTrue(module2Result.locked());
@@ -164,7 +168,7 @@ class LessonStatusCalculatorTest {
                 moduleId.equals(m2.getId()) ? List.of(m1.getId()) : List.of();
 
         final StudentCourseCurriculum result = calculator.calculate(
-                courseId, List.of(m1, m2), List.of(c1.getId()), prerequisites, false);
+                courseId, List.of(m1, m2), List.of(c1.getId()), prerequisites, false, true);
 
         final StudentCourseCurriculum.Module module2Result = result.modules().get(1);
         assertFalse(module2Result.locked());
@@ -184,7 +188,7 @@ class LessonStatusCalculatorTest {
         m2.getContents().add(c3);
 
         final StudentCourseCurriculum result = calculator.calculate(
-                courseId, List.of(m1, m2), List.of(), noPrerequisites(), false);
+                courseId, List.of(m1, m2), List.of(), noPrerequisites(), false, true);
 
         assertEquals("Modulo 1", result.modules().get(0).title());
         assertEquals("Modulo 2", result.modules().get(1).title());
@@ -205,7 +209,7 @@ class LessonStatusCalculatorTest {
         m2.getContents().add(c3);
 
         final StudentCourseCurriculum result = calculator.calculate(
-                courseId, List.of(m1, m2), List.of(c1.getId(), c3.getId()), noPrerequisites(), false);
+                courseId, List.of(m1, m2), List.of(c1.getId(), c3.getId()), noPrerequisites(), false, true);
 
         assertEquals(1, result.modules().get(0).completedLessons());
         assertEquals(2, result.modules().get(0).totalLessons());
@@ -213,5 +217,20 @@ class LessonStatusCalculatorTest {
         assertEquals(1, result.modules().get(1).totalLessons());
         assertEquals(2, result.completedLessons());
         assertEquals(3, result.totalLessons());
+    }
+
+    @Test
+    void withoutEnrollmentOnlyFreeLessonsAreAvailable() {
+        final Module m1 = new Module(UUID.randomUUID(), courseId, "Modulo 1", 1);
+        final Content free = content(m1.getId(), "Amostra", 1, true);
+        final Content paid = content(m1.getId(), "Paga", 2, false);
+        m1.getContents().add(free);
+        m1.getContents().add(paid);
+
+        final StudentCourseCurriculum result = calculator.calculate(
+                courseId, List.of(m1), List.of(), noPrerequisites(), true, false);
+
+        assertEquals(LessonStatus.AVAILABLE, result.modules().get(0).lessons().get(0).status());
+        assertEquals(LessonStatus.LOCKED, result.modules().get(0).lessons().get(1).status());
     }
 }

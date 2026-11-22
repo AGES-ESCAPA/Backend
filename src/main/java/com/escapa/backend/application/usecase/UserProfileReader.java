@@ -3,6 +3,7 @@ package com.escapa.backend.application.usecase;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.escapa.backend.application.model.AdminInstructorProfile;
 import com.escapa.backend.application.model.StudentContact;
 import com.escapa.backend.application.model.UserProfile;
 import com.escapa.backend.application.port.CompanyRepositoryPort;
@@ -43,9 +44,11 @@ final class UserProfileReader {
         return user.getUserType();
     }
 
-    // STUDENT e COMPANY podem editar o perfil; EMPLOYEE pode apenas consultá-lo.
+    // STUDENT, COMPANY e ADMIN podem editar o perfil; EMPLOYEE pode apenas consultá-lo.
     static boolean isEditable(String profile) {
-        return UserTypes.STUDENT.equals(profile) || UserTypes.COMPANY.equals(profile);
+        return UserTypes.STUDENT.equals(profile)
+                || UserTypes.COMPANY.equals(profile)
+                || UserTypes.ADMIN.equals(profile);
     }
 
     // Converte a entidade de domínio para o formato exposto pela API.
@@ -57,8 +60,23 @@ final class UserProfileReader {
         if (UserTypes.STUDENT.equals(profile) || EMPLOYEE.equals(profile)) {
             return studentProfile(user, profile);
         }
+        if (UserTypes.ADMIN.equals(profile)) {
+            final var instructor = userRepositoryPort.findAdminInstructorProfile(user.getId());
+            return new UserProfile(
+                    profile,
+                    true,
+                    user.getName(),
+                    user.getEmail(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    user.getAvatarUrl(),
+                    instructor.map(AdminInstructorProfile::headline).orElse(null),
+                    instructor.map(AdminInstructorProfile::bio).orElse(null));
+        }
         return new UserProfile(profile, false, user.getName(), user.getEmail(), null, null, null, null,
-                user.getAvatarUrl());
+                user.getAvatarUrl(), null, null);
     }
 
     private UserProfile companyProfile(User user) {
@@ -72,7 +90,9 @@ final class UserProfileReader {
                 company.map(Company::getPhone).orElse(null),
                 company.map(Company::getCompanyName).orElse(null),
                 company.map(Company::getCnpjId).orElse(null),
-                user.getAvatarUrl()
+                user.getAvatarUrl(),
+                null,
+                null
         );
     }
 
@@ -88,7 +108,9 @@ final class UserProfileReader {
                 contact.map(StudentContact::phone).orElse(null),
                 companyName,
                 null,
-                user.getAvatarUrl()
+                user.getAvatarUrl(),
+                null,
+                null
         );
     }
 

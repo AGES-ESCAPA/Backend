@@ -69,7 +69,7 @@ class GetCourseRulesUseCaseTest {
         final UUID missingId = UUID.randomUUID();
         course.setPendingDraft(CoursePendingDraft.fromPublished(
                 course, List.of(prerequisite.getId(), missingId))
-                .withRules(false, true));
+                .withRules(false, true, 80));
         courseRepository.save(course);
 
         final GetCourseRulesUseCase useCase =
@@ -79,6 +79,7 @@ class GetCourseRulesUseCaseTest {
 
         assertEquals(false, rules.requireSequentialProgress());
         assertEquals(true, rules.enforceDeadlineBlock());
+        assertEquals(80, rules.minQuizPassPercentage());
         assertEquals(1, rules.prerequisites().size());
         assertEquals(prerequisite.getId(), rules.prerequisites().get(0).courseId());
     }
@@ -90,7 +91,7 @@ class GetCourseRulesUseCaseTest {
         course.setStatus(CourseStatus.PUBLISHED);
         course.setPendingDraft(new CoursePendingDraft(
                 null, null, null, null, null, null, null, null, null, null, null,
-                null, null, null, null));
+                null, null, null, null, null));
         courseRepository.save(course);
         final GetCourseRulesUseCase useCase = new GetCourseRulesUseCase(
                 courseRepository, new InMemoryCoursePrerequisiteRepositoryPort(),

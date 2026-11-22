@@ -112,6 +112,6 @@ class CurriculumReleaseAdapterTest extends PostgresIntegrationTest {
     private ContentPendingDraft draft(String title) {
         return new ContentPendingDraft(
                 title, "Description", ContentType.VIDEO, "https://example.com/video.mp4",
-                10, false, List.of());
+                10, false, List.of(), List.of());
     }
 }

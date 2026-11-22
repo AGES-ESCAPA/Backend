@@ -44,23 +44,26 @@ class GetAdminCourseMetricsUseCaseTest {
     void shouldRankCoursesByEnrollmentsDescendingAndSetFirstAsMostAccessed() {
         final UUID courseA = UUID.fromString("e0000000-0000-4000-e000-000000000001");
         final UUID courseB = UUID.fromString("e0000000-0000-4000-e000-000000000002");
+        final UUID courseC = UUID.fromString("e0000000-0000-4000-e000-000000000003");
         enrollmentRepository.registerCourse(courseA, "Turismo de Aventura", "Hospitalidade", CourseStatus.PUBLISHED);
         enrollmentRepository.registerCourse(courseB, "IA no Turismo", "Inteligência Artificial", CourseStatus.ARCHIVED);
+        enrollmentRepository.registerCourse(courseC, "Marketing Digital", "Marketing", CourseStatus.PUBLISHED);
 
         enrollUsers(courseA, 4);
-        enrollUsers(courseB, 2);
+        enrollUsers(courseB, 6);
+        enrollUsers(courseC, 2);
 
         final CourseMetrics metrics = useCase.execute();
 
         assertEquals(new CourseRanking(courseA, "Turismo de Aventura", 4L), metrics.mostAccessedCourse());
         assertEquals(List.of(
                 new CourseRanking(courseA, "Turismo de Aventura", 4L),
-                new CourseRanking(courseB, "IA no Turismo", 2L)
+                new CourseRanking(courseC, "Marketing Digital", 2L)
         ), metrics.topCourses());
         assertEquals(2, metrics.categoriesCount());
         assertEquals(List.of(
                 new CategoryShare("Hospitalidade", new BigDecimal("66.67")),
-                new CategoryShare("Inteligência Artificial", new BigDecimal("33.33"))
+                new CategoryShare("Marketing", new BigDecimal("33.33"))
         ), metrics.enrollmentsByCategory());
     }
 
@@ -105,12 +108,14 @@ class GetAdminCourseMetricsUseCaseTest {
     }
 
     @Test
-    void shouldIgnoreRevokedEnrollmentsAndDraftCoursesWhileIncludingCollaboratorsAndExpired() {
+    void shouldIgnoreRevokedDraftAndArchivedCoursesWhileIncludingCollaboratorsAndExpired() {
         final UUID publishedCourse = UUID.fromString("e0000000-0000-4000-e000-000000000001");
         final UUID draftCourse = UUID.fromString("e0000000-0000-4000-e000-000000000002");
+        final UUID archivedCourse = UUID.fromString("e0000000-0000-4000-e000-000000000003");
 
         enrollmentRepository.registerCourse(publishedCourse, "Curso Publicado", "Gastronomia", CourseStatus.PUBLISHED);
         enrollmentRepository.registerCourse(draftCourse, "Curso Rascunho", "Eventos", CourseStatus.DRAFT);
+        enrollmentRepository.registerCourse(archivedCourse, "Curso Arquivado", "Hotelaria", CourseStatus.ARCHIVED);
 
         final LocalDate past = LocalDate.of(2025, 1, 10);
         enrollmentRepository.enroll(UUID.randomUUID(), publishedCourse, new Enrollment(past, past.plusDays(30)));
@@ -118,6 +123,7 @@ class GetAdminCourseMetricsUseCaseTest {
         enrollmentRepository.enroll(
                 UUID.randomUUID(), publishedCourse, new Enrollment(past, null), LocalDateTime.now());
         enrollmentRepository.enroll(UUID.randomUUID(), draftCourse, new Enrollment(past, null));
+        enrollmentRepository.enroll(UUID.randomUUID(), archivedCourse, new Enrollment(past, null));
 
         final CourseMetrics metrics = useCase.execute();
 

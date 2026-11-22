@@ -24,7 +24,11 @@ public record ProfileResponse(
         String companyName,
         String cnpj,
         @Schema(description = "Public URL of the profile photo; omitted when the user has none")
-        String avatarUrl
+        String avatarUrl,
+        @Schema(description = "Instructor title shown on courses; only for ADMIN")
+        String headline,
+        @Schema(description = "Instructor biography shown on courses; only for ADMIN")
+        String bio
 ) {
 
     public static ProfileResponse from(UserProfile profile) {
@@ -37,7 +41,9 @@ public record ProfileResponse(
                 profile.phone(),
                 profile.companyName(),
                 profile.cnpj(),
-                profile.avatarUrl()
+                profile.avatarUrl(),
+                profile.headline(),
+                profile.bio()
         );
     }
 }

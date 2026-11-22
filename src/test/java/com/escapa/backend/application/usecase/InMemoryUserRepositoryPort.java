@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import com.escapa.backend.application.model.AdminInstructorProfile;
 import com.escapa.backend.application.model.StudentContact;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.entity.User;
@@ -17,6 +18,7 @@ public final class InMemoryUserRepositoryPort implements UserRepositoryPort {
     private final List<User> users = new ArrayList<>();
     private final Set<UUID> companyLinkedUserIds = new HashSet<>();
     private final Map<UUID, StudentContact> studentContacts = new HashMap<>();
+    private final Map<UUID, AdminInstructorProfile> adminInstructorProfiles = new HashMap<>();
 
     @Override
     public User save(User user) {
@@ -62,7 +64,7 @@ public final class InMemoryUserRepositoryPort implements UserRepositoryPort {
         return companyLinkedUserIds.contains(userId);
     }
 
-    void linkUserToCompany(UUID userId) {
+    public void linkUserToCompany(UUID userId) {
         if (userId != null) {
             companyLinkedUserIds.add(userId);
         }
@@ -86,5 +88,19 @@ public final class InMemoryUserRepositoryPort implements UserRepositoryPort {
 
     public void saveStudentContact(UUID userId, String cpf, String phone) {
         studentContacts.put(userId, new StudentContact(cpf, phone));
+    }
+
+    @Override
+    public Optional<AdminInstructorProfile> findAdminInstructorProfile(UUID userId) {
+        return Optional.ofNullable(adminInstructorProfiles.get(userId));
+    }
+
+    @Override
+    public void updateAdminInstructorProfile(UUID userId, String headline, String bio) {
+        adminInstructorProfiles.put(userId, new AdminInstructorProfile(headline, bio));
+    }
+
+    public void saveAdminInstructorProfile(UUID userId, String headline, String bio) {
+        adminInstructorProfiles.put(userId, new AdminInstructorProfile(headline, bio));
     }
 }

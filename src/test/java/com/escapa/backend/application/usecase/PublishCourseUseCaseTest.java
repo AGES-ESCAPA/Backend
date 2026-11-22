@@ -294,7 +294,7 @@ class PublishCourseUseCaseTest {
         course.setPendingDraft(new CoursePendingDraft(
                 "Fundamentos de Design", "Resumo curto", "Descricao completa", null, null,
                 admin.getId(), "Design", "INICIANTE", 40, 365, 499.00,
-                List.of("Objetivo 1"), true, false, null));
+                List.of("Objetivo 1"), true, false, 70, null));
         courseRepository.save(course);
         final PublishCourseUseCase useCase = new PublishCourseUseCase(
                 courseRepository, new InMemoryCourseChangeLogRepositoryPort(),

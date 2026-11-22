@@ -24,7 +24,7 @@ class CourseMapperPendingDraftTest {
         course.setPendingDraft(new CoursePendingDraft(
                 "Rascunho", "resumo", "descricao", null, null, instructorId,
                 "Hotelaria", "INICIANTE", 12, 30, 99.0, List.of("objetivo"),
-                false, true, List.of(prerequisiteId)));
+                false, true, 70, List.of(prerequisiteId)));
 
         final CourseEntity entity = new CourseEntity();
         CourseMapper.applyToEntity(course, entity);

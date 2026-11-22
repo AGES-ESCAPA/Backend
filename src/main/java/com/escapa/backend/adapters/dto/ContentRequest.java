@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Size;
 
 import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.content.QuizQuestion;
 
 /**
  * Corpo de criação e edição de aula. Campos condicionais por tipo (url, durationMinutes,
@@ -27,11 +28,16 @@ public record ContentRequest(
         Integer durationMinutes,
         String description,
         Boolean isFree,
-        @Valid List<ContentResourceRequest> resources
+        @Valid List<ContentResourceRequest> resources,
+        List<QuizQuestion> quizQuestions
 ) {
     public List<ContentResource> resourcesToDomain() {
         return resources == null
                 ? List.of()
                 : resources.stream().map(ContentResourceRequest::toDomain).toList();
+    }
+
+    public List<QuizQuestion> quizQuestionsToDomain() {
+        return quizQuestions == null ? List.of() : List.copyOf(quizQuestions);
     }
 }

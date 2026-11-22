@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.escapa.backend.application.dto.CompanyCourseSummary;
 import com.escapa.backend.application.model.AcquiredCourse;
+import com.escapa.backend.application.model.EmployeeCourseAssignment;
 import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
 
 /** Cursos que a empresa possui, em memória. */
@@ -24,11 +25,18 @@ public final class FakeAcquiredCourses implements CompanyCourseRepositoryPort {
 
     @Override
     public List<UUID> findAcquiredCourseIds(UUID companyId) {
-        throw new UnsupportedOperationException();
+        return courses.stream().map(AcquiredCourse::courseId).toList();
     }
 
     @Override
     public List<CompanyCourseSummary> findActiveCourses(UUID companyId) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<EmployeeCourseAssignment> findEmployeeCourseAssignments(UUID companyId, UUID employeeId) {
+        return courses.stream()
+                .map(course -> new EmployeeCourseAssignment(course.courseId(), course.courseId().toString(), null, false))
+                .toList();
     }
 }

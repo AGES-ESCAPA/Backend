@@ -47,6 +47,15 @@ public final class FakeEmployeeLinks implements CompanyEmployeeRepositoryPort {
         jobTitles.put(key(companyId, userId), jobTitle);
     }
 
+    @Override
+    public List<String> findJobTitles(UUID companyId) {
+        return links.getOrDefault(companyId, Set.of()).stream()
+                .map(userId -> jobTitles.get(key(companyId, userId)))
+                .filter(title -> title != null && !title.isBlank())
+                .distinct()
+                .toList();
+    }
+
     String jobTitle(UUID companyId, UUID userId) {
         return jobTitles.get(key(companyId, userId));
     }

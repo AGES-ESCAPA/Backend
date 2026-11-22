@@ -53,6 +53,8 @@ public class GetCourseRulesUseCase {
                         ? draft.requireSequentialProgress() : course.getRequireSequentialProgress(),
                 draft != null && draft.enforceDeadlineBlock() != null
                         ? draft.enforceDeadlineBlock() : course.getEnforceDeadlineBlock(),
+                draft != null && draft.minQuizPassPercentage() != null
+                        ? draft.minQuizPassPercentage() : course.getMinQuizPassPercentage(),
                 course.getMajorVersion() + "." + course.getMinorVersion(),
                 prerequisites,
                 changeLog);

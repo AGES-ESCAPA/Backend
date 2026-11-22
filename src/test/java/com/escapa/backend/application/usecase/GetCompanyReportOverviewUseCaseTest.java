@@ -131,6 +131,21 @@ class GetCompanyReportOverviewUseCaseTest {
     }
 
     @Test
+    void completionByJobTitleMergesAliasesThatOnlyDifferByCaseOrAccents() {
+        port.figures = new CompanyReportFigures(5, 10, 5, 0, 0, 0, 0, 0, List.of(
+                new JobTitleFigures("RECEPCAO", 2, 0),
+                new JobTitleFigures("Recepção", 2, 2),
+                new JobTitleFigures("COZINHA", 1, 1)), List.of());
+
+        final List<CompanyReportOverview.JobTitleCompletion> byTitle = useCase().execute(COMPANY_ID).completionByJobTitle();
+
+        assertEquals(List.of("COZINHA", "Recepção"),
+                byTitle.stream().map(CompanyReportOverview.JobTitleCompletion::jobTitle).toList());
+        assertEquals(List.of(100.0, 50.0),
+                byTitle.stream().map(CompanyReportOverview.JobTitleCompletion::completionRate).toList());
+    }
+
+    @Test
     void monthlyHoursAlwaysHasSixMonthsOldestFirstWithZerosWhereThereIsNoData() {
         port.figures = new CompanyReportFigures(2, 4, 0, 0, 0, 0, 0, 0, List.of(), List.of(
                 new MonthFigures(YearMonth.of(2026, 9), 120),

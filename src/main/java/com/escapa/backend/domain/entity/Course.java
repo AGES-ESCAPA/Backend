@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import com.escapa.backend.domain.course.CoursePendingDraft;
+import com.escapa.backend.domain.course.CourseQuizRules;
 import com.escapa.backend.domain.course.CourseStatus;
 
 @Getter
@@ -37,6 +38,8 @@ public class Course {
     private List<String> learningObjectives = new ArrayList<>();
     private Boolean requireSequentialProgress = true;
     private Boolean enforceDeadlineBlock = false;
+    /** Percentual minimo de acertos em quizzes para concluir a aula (0-100). */
+    private Integer minQuizPassPercentage = CourseQuizRules.DEFAULT_MIN_QUIZ_PASS_PERCENTAGE;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Integer majorVersion = 0;

@@ -74,6 +74,10 @@ public class ContentEntity {
     @Column(name = "recursos", columnDefinition = "JSON")
     private String recursos;
 
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "quiz_json", columnDefinition = "JSON")
+    private String quizJson;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 }

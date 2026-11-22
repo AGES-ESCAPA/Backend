@@ -39,6 +39,8 @@ class AdminMetricsRepositoryAdapterTest extends PostgresIntegrationTest {
         enrollment(anotherStudent, published, null, TODAY.minusDays(1), null, null, null);
         enrollment(anotherStudent, archived, TODAY.plusDays(1), null, null, null, null);
         enrollment(anotherStudent, draft, null, null, null, null, null);
+        final UUID secondPublished = course("PUBLISHED");
+        enrollment(anotherStudent, secondPublished, TODAY.plusDays(1), null, null, null, null);
         enrollment(invalidIntervalStudent, published, TODAY.plusDays(2), TODAY.plusDays(1), null, null, null);
         enrollment(inactiveStudent, published, null, null, null, null, null);
 
@@ -75,7 +77,7 @@ class AdminMetricsRepositoryAdapterTest extends PostgresIntegrationTest {
         enrollment(student, draft, null, null, 100, null, null);
         enrollment(other, archived, null, null, 100, null, TODAY.atStartOfDay());
 
-        assertEquals(new EnrollmentCompletionCounts(3, 2), repository.countHistoricalCompletion());
+        assertEquals(new EnrollmentCompletionCounts(2, 2), repository.countHistoricalCompletion());
     }
 
     @Test

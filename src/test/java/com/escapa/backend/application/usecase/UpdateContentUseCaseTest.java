@@ -18,6 +18,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.content.QuizOption;
+import com.escapa.backend.domain.content.QuizQuestion;
 import com.escapa.backend.domain.entity.Content;
 
 class UpdateContentUseCaseTest {
@@ -166,5 +168,43 @@ class UpdateContentUseCaseTest {
                 () -> useCase.execute(created.getId(), "Agora e texto", ContentType.TEXT, null, null, null, false)
         );
         assertTrue(lessonNotificationPort.notifiedLessonIds().isEmpty());
+    }
+
+    @Test
+    void shouldUpdateQuizQuestions() {
+        final Content created = givenVideoContent();
+        final List<QuizQuestion> questions = List.of(new QuizQuestion(
+                UUID.randomUUID(),
+                "Nova pergunta",
+                List.of(
+                        new QuizOption(UUID.randomUUID(), "Sim", true),
+                        new QuizOption(UUID.randomUUID(), "Não", false))));
+
+        final Content updated = useCase.execute(
+                created.getId(), "Quiz revisado", ContentType.QUIZ, null, null, "Descricao", false,
+                List.of(), questions);
+
+        assertEquals(ContentType.QUIZ, updated.getType());
+        assertEquals(questions, updated.getQuizQuestions());
+        assertEquals(List.of(created.getId()), lessonNotificationPort.notifiedLessonIds());
+    }
+
+    @Test
+    void shouldClearQuizQuestionsWhenNullIsProvided() {
+        final Content created = createUseCase.execute(
+                moduleId, "Quiz", ContentType.QUIZ, null, null, "Avaliação", false,
+                List.of(), List.of(new QuizQuestion(
+                        UUID.randomUUID(),
+                        "Pergunta",
+                        List.of(
+                                new QuizOption(UUID.randomUUID(), "A", true),
+                                new QuizOption(UUID.randomUUID(), "B", false)))));
+        assertFalse(created.getQuizQuestions().isEmpty());
+
+        final Content updated = useCase.execute(
+                created.getId(), "Agora é texto", ContentType.TEXT, null, null, "Conteúdo", false,
+                null, null);
+
+        assertTrue(updated.getQuizQuestions().isEmpty());
     }
 }

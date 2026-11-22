@@ -25,6 +25,7 @@ public record CoursePendingDraft(
         List<String> learningObjectives,
         Boolean requireSequentialProgress,
         Boolean enforceDeadlineBlock,
+        Integer minQuizPassPercentage,
         List<UUID> prerequisiteIds) {
 
     public static CoursePendingDraft fromPublished(Course course, List<UUID> prerequisiteIds) {
@@ -43,6 +44,7 @@ public record CoursePendingDraft(
                 copyStrings(course.getLearningObjectives()),
                 course.getRequireSequentialProgress(),
                 course.getEnforceDeadlineBlock(),
+                course.getMinQuizPassPercentage(),
                 copyIds(prerequisiteIds));
     }
 
@@ -76,11 +78,15 @@ public record CoursePendingDraft(
                 learningObjectives != null ? copyStrings(learningObjectives) : copyStrings(this.learningObjectives),
                 requireSequentialProgress != null ? requireSequentialProgress : this.requireSequentialProgress,
                 enforceDeadlineBlock != null ? enforceDeadlineBlock : this.enforceDeadlineBlock,
+                this.minQuizPassPercentage,
                 copyIds(this.prerequisiteIds));
     }
 
-    public CoursePendingDraft withRules(boolean requireSequentialProgress, boolean enforceDeadlineBlock) {
-        return copy(requireSequentialProgress, enforceDeadlineBlock, copyIds(prerequisiteIds));
+    public CoursePendingDraft withRules(
+            boolean requireSequentialProgress,
+            boolean enforceDeadlineBlock,
+            int minQuizPassPercentage) {
+        return copy(requireSequentialProgress, enforceDeadlineBlock, minQuizPassPercentage, copyIds(prerequisiteIds));
     }
 
     public boolean containsPrerequisite(UUID prerequisiteId) {
@@ -90,13 +96,13 @@ public record CoursePendingDraft(
     public CoursePendingDraft withPrerequisite(UUID prerequisiteId) {
         final List<UUID> ids = new ArrayList<>(copyIds(prerequisiteIds));
         ids.add(prerequisiteId);
-        return copy(requireSequentialProgress, enforceDeadlineBlock, List.copyOf(ids));
+        return copy(requireSequentialProgress, enforceDeadlineBlock, minQuizPassPercentage, List.copyOf(ids));
     }
 
     public CoursePendingDraft withoutPrerequisite(UUID prerequisiteId) {
         final List<UUID> ids = new ArrayList<>(copyIds(prerequisiteIds));
         ids.remove(prerequisiteId);
-        return copy(requireSequentialProgress, enforceDeadlineBlock, List.copyOf(ids));
+        return copy(requireSequentialProgress, enforceDeadlineBlock, minQuizPassPercentage, List.copyOf(ids));
     }
 
     public void applyTo(Course course) {
@@ -117,11 +123,15 @@ public record CoursePendingDraft(
         if (enforceDeadlineBlock != null) {
             course.setEnforceDeadlineBlock(enforceDeadlineBlock);
         }
+        if (minQuizPassPercentage != null) {
+            course.setMinQuizPassPercentage(minQuizPassPercentage);
+        }
     }
 
     private CoursePendingDraft copy(
             Boolean requireSequentialProgress,
             Boolean enforceDeadlineBlock,
+            Integer minQuizPassPercentage,
             List<UUID> prerequisiteIds) {
         return new CoursePendingDraft(
                 title,
@@ -138,6 +148,7 @@ public record CoursePendingDraft(
                 copyStrings(learningObjectives),
                 requireSequentialProgress,
                 enforceDeadlineBlock,
+                minQuizPassPercentage,
                 prerequisiteIds);
     }
 

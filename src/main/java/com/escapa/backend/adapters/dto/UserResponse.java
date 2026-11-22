@@ -16,12 +16,17 @@ public record UserResponse(
 ) {
 
     public static UserResponse from(User user) {
+        return from(user, user.getUserType());
+    }
+
+    /** {@code userType} já resolvido (ex.: STUDENT vinculado à empresa → EMPLOYEE). */
+    public static UserResponse from(User user, String userType) {
         final UserStatus status = user.getStatus() != null ? user.getStatus() : UserStatus.ACTIVE;
         return new UserResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getUserType(),
+                userType,
                 status.name(),
                 user.getCreatedAt()
         );

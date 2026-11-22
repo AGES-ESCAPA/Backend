@@ -55,7 +55,7 @@ public class UserController {
     @Operation(summary = "List users")
     public ResponseEntity<ApiResponse<List<UserResponse>>> list() {
         final List<UserResponse> users = listUsersUseCase.execute().stream()
-                .map(UserResponse::from)
+                .map(user -> UserResponse.from(user, listUsersUseCase.resolveProfile(user)))
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(users));
     }
@@ -64,6 +64,7 @@ public class UserController {
     @Operation(summary = "Get a user by id")
     public ResponseEntity<ApiResponse<UserResponse>> getById(@PathVariable UUID id) {
         final User user = getUserByIdUseCase.execute(id);
-        return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
+        return ResponseEntity.ok(ApiResponse.success(
+                UserResponse.from(user, listUsersUseCase.resolveProfile(user))));
     }
 }

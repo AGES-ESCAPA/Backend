@@ -13,6 +13,7 @@ import com.escapa.backend.application.dto.ChangeLogEntry;
 public record CourseRules(
         Boolean requireSequentialProgress,
         Boolean enforceDeadlineBlock,
+        Integer minQuizPassPercentage,
         String version,
         List<Prerequisite> prerequisites,
         List<ChangeLogEntry> recentChangeLog

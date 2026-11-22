@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.escapa.backend.application.model.AdminInstructorProfile;
 import com.escapa.backend.application.model.StudentContact;
 import com.escapa.backend.domain.entity.User;
 
@@ -19,4 +20,8 @@ public interface UserRepositoryPort {
     Optional<StudentContact> findStudentContact(UUID userId);
 
     void updateStudentPhone(UUID userId, String phone);
+
+    Optional<AdminInstructorProfile> findAdminInstructorProfile(UUID userId);
+
+    void updateAdminInstructorProfile(UUID userId, String headline, String bio);
 }

@@ -14,6 +14,7 @@ public record LessonDetails(
         String moduleTitle,
         Integer moduleOrder,
         boolean courseEnforcesDeadlineBlock,
+        int minQuizPassPercentage,
         LessonSupplement supplement
 ) {
 }
