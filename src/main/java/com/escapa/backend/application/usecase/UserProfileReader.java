@@ -43,9 +43,11 @@ final class UserProfileReader {
         return user.getUserType();
     }
 
-    // STUDENT e COMPANY podem editar o perfil; EMPLOYEE pode apenas consultá-lo.
+    // STUDENT, COMPANY e ADMIN podem editar o perfil; EMPLOYEE pode apenas consultá-lo.
     static boolean isEditable(String profile) {
-        return UserTypes.STUDENT.equals(profile) || UserTypes.COMPANY.equals(profile);
+        return UserTypes.STUDENT.equals(profile)
+                || UserTypes.COMPANY.equals(profile)
+                || UserTypes.ADMIN.equals(profile);
     }
 
     // Converte a entidade de domínio para o formato exposto pela API.
@@ -56,6 +58,10 @@ final class UserProfileReader {
         }
         if (UserTypes.STUDENT.equals(profile) || EMPLOYEE.equals(profile)) {
             return studentProfile(user, profile);
+        }
+        if (UserTypes.ADMIN.equals(profile)) {
+            return new UserProfile(profile, true, user.getName(), user.getEmail(), null, null, null, null,
+                    user.getAvatarUrl());
         }
         return new UserProfile(profile, false, user.getName(), user.getEmail(), null, null, null, null,
                 user.getAvatarUrl());

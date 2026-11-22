@@ -43,7 +43,7 @@ public class UpdateProfileUseCase {
         }
 
         final String normalizedName = requireText(name, "name");
-        final String normalizedPhone = normalizePhone(phone);
+        final String normalizedPhone = UserTypes.ADMIN.equals(profile) ? null : normalizePhone(phone);
         final String normalizedCompanyName = UserTypes.COMPANY.equals(profile)
                 ? requireText(companyName, "companyName")
                 : null;
@@ -55,7 +55,7 @@ public class UpdateProfileUseCase {
         userRepositoryPort.save(user);
         if (UserTypes.COMPANY.equals(profile)) {
             updateCompany(userId, normalizedCompanyName, normalizedPhone);
-        } else {
+        } else if (UserTypes.STUDENT.equals(profile)) {
             userRepositoryPort.updateStudentPhone(userId, normalizedPhone);
         }
         return profileReader.read(profileReader.requireUser(userId));

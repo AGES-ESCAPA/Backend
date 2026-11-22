@@ -3,6 +3,7 @@ package com.escapa.backend.application.usecase;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.UUID;
 
@@ -107,11 +108,16 @@ class UpdateProfileUseCaseTest {
     }
 
     @Test
-    void shouldForbidAdminFromEditing() {
+    void shouldUpdateAdminNameWithoutPhone() {
         final User admin = userRepository.save(new User("Barbara Diogo", "barbara@escapa.com.br", "hash", "ADMIN"));
 
-        assertThrows(ProfileNotEditableException.class,
-                () -> useCase.execute(admin.getId(), "Outro Nome", null, null));
+        final UserProfile updated = useCase.execute(admin.getId(), "Barbara Admin", "51999999999", null);
+
+        assertEquals("ADMIN", updated.profile());
+        assertTrue(updated.editable());
+        assertEquals("Barbara Admin", updated.name());
+        assertNull(updated.phone());
+        assertEquals("Barbara Admin", userRepository.findById(admin.getId()).orElseThrow().getName());
     }
 
     @Test

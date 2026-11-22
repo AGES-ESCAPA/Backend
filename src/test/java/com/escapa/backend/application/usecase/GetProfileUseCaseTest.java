@@ -114,14 +114,16 @@ class GetProfileUseCaseTest {
     }
 
     @Test
-    void shouldReturnAdminProfileAsReadOnly() {
+    void shouldReturnAdminProfileAsEditable() {
         final User admin = userRepository.save(new User("Barbara Diogo", "barbara@escapa.com.br", "hash", "ADMIN"));
 
         final UserProfile profile = useCase.execute(admin.getId());
 
         assertEquals("ADMIN", profile.profile());
-        assertFalse(profile.editable());
+        assertTrue(profile.editable());
         assertEquals("Barbara Diogo", profile.name());
+        assertNull(profile.cpf());
+        assertNull(profile.phone());
     }
 
     @Test
