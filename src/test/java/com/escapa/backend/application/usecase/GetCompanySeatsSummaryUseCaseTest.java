@@ -88,11 +88,11 @@ class GetCompanySeatsSummaryUseCaseTest {
     }
 
     @Test
-    void shouldReportNoSeatsForACompanyThatNeverBoughtAny() {
+    void shouldRaiseContractedSeatsToAtLeastTheOccupiedCount() {
         fake.seatsTotal.put(companyA, 0);
         givenEmployees(companyA, 1, 0, 0);
 
-        assertEquals(new CompanySeatsSummary(0, 1, 0, 1, 1), useCase.execute(companyA));
+        assertEquals(new CompanySeatsSummary(1, 1, 0, 1, 1), useCase.execute(companyA));
     }
 
     @Test
@@ -102,6 +102,7 @@ class GetCompanySeatsSummaryUseCaseTest {
 
         final CompanySeatsSummary summary = useCase.execute(companyA);
 
+        assertEquals(4, summary.seatsTotal());
         assertEquals(0, summary.seatsAvailable());
         assertEquals(4, summary.seatsUsed());
     }

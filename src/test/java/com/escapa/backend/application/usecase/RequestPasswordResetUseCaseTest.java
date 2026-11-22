@@ -1,20 +1,17 @@
 package com.escapa.backend.application.usecase;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import com.escapa.backend.application.port.PasswordResetTokenRepositoryPort;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.PasswordResetToken;
 import com.escapa.backend.domain.user.UserStatus;
@@ -50,6 +47,19 @@ class RequestPasswordResetUseCaseTest {
     }
 
     @Test
+    void shouldInvalidatePreviousOpenTokensWhenIssuingANewOne() {
+        final User user = userRepository.save(new User(
+                null, "Ana", "ana@escapa.com", "hash", UserTypes.STUDENT, null,
+                UserStatus.ACTIVE, LocalDateTime.now(CLOCK)));
+        final PasswordResetToken previous = tokenRepository.save(PasswordResetToken.issue(
+                user.getId(), PasswordResetToken.hashToken("antigo"), LocalDateTime.now(CLOCK), 2));
+
+        useCase.execute("ana@escapa.com");
+
+        assertTrue(tokenRepository.findByTokenHash(previous.getTokenHash()).orElseThrow().isUsed());
+    }
+
+    @Test
     void shouldReturnEmptyForUnknownEmail() {
         assertTrue(useCase.execute("nobody@escapa.com").isEmpty());
     }
@@ -63,44 +73,18 @@ class RequestPasswordResetUseCaseTest {
         assertTrue(useCase.execute("ana@escapa.com").isEmpty());
     }
 
-    private static final class InMemoryPasswordResetTokenRepositoryPort
-            implements PasswordResetTokenRepositoryPort {
+    @Test
+    void shouldReturnEmptyForPendingUser() {
+        userRepository.save(new User(
+                null, "Ana", "ana@escapa.com", "hash", UserTypes.STUDENT, null,
+                UserStatus.PENDING, LocalDateTime.now(CLOCK)));
 
-        private final Map<UUID, PasswordResetToken> byId = new HashMap<>();
-        private final Map<String, UUID> idByHash = new HashMap<>();
+        assertTrue(useCase.execute("ana@escapa.com").isEmpty());
+    }
 
-        @Override
-        public PasswordResetToken save(PasswordResetToken token) {
-            final UUID id = token.getId() != null ? token.getId() : UUID.randomUUID();
-            final PasswordResetToken stored = new PasswordResetToken(
-                    id, token.getUserId(), token.getTokenHash(), token.getExpiresAt(),
-                    token.getUsedAt(), token.getCreatedAt());
-            byId.put(id, stored);
-            idByHash.put(stored.getTokenHash(), id);
-            return stored;
-        }
-
-        @Override
-        public Optional<PasswordResetToken> findByTokenHash(String tokenHash) {
-            final UUID id = idByHash.get(tokenHash);
-            return id == null ? Optional.empty() : Optional.ofNullable(byId.get(id));
-        }
-
-        @Override
-        public boolean markAsUsed(UUID tokenId, LocalDateTime usedAt) {
-            final PasswordResetToken current = byId.get(tokenId);
-            if (current == null || current.isUsed()) {
-                return false;
-            }
-            current.markAsUsed(usedAt);
-            return true;
-        }
-
-        @Override
-        public void invalidateOpenTokens(UUID userId, LocalDateTime now) {
-            byId.values().stream()
-                    .filter(token -> token.getUserId().equals(userId) && !token.isUsed())
-                    .forEach(token -> token.markAsUsed(now));
-        }
+    @Test
+    void shouldRejectBlankEmail() {
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute("  "));
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(null));
     }
 }

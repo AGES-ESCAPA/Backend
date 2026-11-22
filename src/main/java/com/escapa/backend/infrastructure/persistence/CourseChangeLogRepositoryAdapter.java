@@ -26,7 +26,9 @@ public class CourseChangeLogRepositoryAdapter implements CourseChangeLogReposito
 
     @Override
     public List<ChangeLogEntry> findRecentByCourseId(UUID courseId, int limit) {
-        return repository.findByCourseIdOrderByCreatedAtDesc(courseId, PageRequest.of(0, limit))
+        return repository
+                .findByCourseIdOrderByCreatedAtDescMajorVersionDescMinorVersionDesc(
+                        courseId, PageRequest.of(0, limit))
                 .getContent().stream()
                 .map(CourseChangeLogRepositoryAdapter::toEntry)
                 .toList();
@@ -35,7 +37,8 @@ public class CourseChangeLogRepositoryAdapter implements CourseChangeLogReposito
     @Override
     public PageResult<ChangeLogEntry> findPageByCourseId(UUID courseId, int page, int size) {
         final Page<CourseChangeLogEntity> result =
-                repository.findByCourseIdOrderByCreatedAtDesc(courseId, PageRequest.of(page, size));
+                repository.findByCourseIdOrderByCreatedAtDescMajorVersionDescMinorVersionDesc(
+                        courseId, PageRequest.of(page, size));
         final List<ChangeLogEntry> content = result.getContent().stream()
                 .map(CourseChangeLogRepositoryAdapter::toEntry)
                 .toList();

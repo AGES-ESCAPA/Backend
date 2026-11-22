@@ -189,7 +189,7 @@ class CompanyEmployeeControllerTest extends PostgresIntegrationTest {
         }
 
         getAs(companyB, "COMPANY", SEATS)
-                .andExpect(jsonPath("$.data.seatsTotal", is(3)))
+                .andExpect(jsonPath("$.data.seatsTotal", is(4)))
                 .andExpect(jsonPath("$.data.seatsUsed", is(4)))
                 .andExpect(jsonPath("$.data.seatsAvailable", is(0)));
     }
