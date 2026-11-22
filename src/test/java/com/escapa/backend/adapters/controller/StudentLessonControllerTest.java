@@ -409,11 +409,32 @@ class StudentLessonControllerTest {
     }
 
     @Test
-    void shouldReturn403WhenNotEnrolledInCurriculum() throws Exception {
+    void shouldReturn403WhenNotEnrolledInCurriculumWithoutFreeLessons() throws Exception {
         curriculumCourse = Optional.of(givenCourse());
+        curriculumModules = List.of(givenModuleWithLesson());
 
         mockMvc.perform(get(CURRICULUM_URL, courseId))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldReturnCurriculumPreviewWhenNotEnrolledButCourseHasFreeLessons() throws Exception {
+        curriculumCourse = Optional.of(givenCourse());
+        final Module module = new Module(UUID.randomUUID(), courseId, "Modulo 1", 1);
+        final Content free = new Content(
+                UUID.randomUUID(), module.getId(), "Amostra", "desc", ContentType.VIDEO,
+                "https://cdn.example.com/free.mp4", 10, true, 1, null, null, null, null, null, false, false);
+        final Content paid = new Content(
+                UUID.randomUUID(), module.getId(), "Paga", "desc", ContentType.VIDEO,
+                "https://cdn.example.com/paid.mp4", 10, false, 2, null, null, null, null, null, false, false);
+        module.getContents().add(free);
+        module.getContents().add(paid);
+        curriculumModules = List.of(module);
+
+        mockMvc.perform(get(CURRICULUM_URL, courseId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.modules[0].lessons[0].status").value("AVAILABLE"))
+                .andExpect(jsonPath("$.data.modules[0].lessons[1].status").value("LOCKED"));
     }
 
     @Test

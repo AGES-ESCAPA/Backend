@@ -27,13 +27,15 @@ public class LessonStatusCalculator {
      * @param completedContentIds        ids das aulas que o aluno ja concluiu neste curso
      * @param prerequisiteModuleIdsFinder devolve os ids dos modulos pre-requisito de um modulo
      * @param requireSequentialProgress  se o curso exige concluir o modulo anterior antes do proximo
+     * @param enrolled                   se o aluno tem matricula; sem ela so aulas {@code isFree} ficam AVAILABLE
      */
     public StudentCourseCurriculum calculate(
             UUID courseId,
             List<Module> modules,
             List<UUID> completedContentIds,
             Function<UUID, List<UUID>> prerequisiteModuleIdsFinder,
-            boolean requireSequentialProgress
+            boolean requireSequentialProgress,
+            boolean enrolled
     ) {
         final Set<UUID> completed = new HashSet<>(completedContentIds);
         final List<Content> orderedLessons = flattenOrderedLessons(modules);
@@ -43,36 +45,49 @@ public class LessonStatusCalculator {
         int courseTotalCount = 0;
 
         for (final Module module : modules) {
-            final boolean hasPendingPrerequisite = hasPendingPrerequisite(
-                    module, completed, modules, prerequisiteModuleIdsFinder);
-
-            final List<StudentCourseCurriculum.Lesson> lessonResults = new ArrayList<>();
-            int moduleCompletedCount = 0;
-
-            for (final Content lesson : module.getContents()) {
-                final LessonStatus status = resolveStatus(
-                        lesson, completed, orderedLessons, hasPendingPrerequisite, requireSequentialProgress);
-                if (status == LessonStatus.COMPLETED) {
-                    moduleCompletedCount++;
-                }
-                lessonResults.add(new StudentCourseCurriculum.Lesson(
-                        lesson.getId(), lesson.getTitle(), lesson.getOrder(),
-                        lesson.getType() != null ? lesson.getType().name() : null,
-                        lesson.getDurationMinutes(), status));
-            }
-
-            final boolean moduleLocked = !lessonResults.isEmpty() && lessonResults.stream()
-                    .allMatch(l -> l.status() == LessonStatus.LOCKED);
-
-            moduleResults.add(new StudentCourseCurriculum.Module(
-                    module.getId(), module.getTitle(), module.getOrder(), moduleLocked,
-                    moduleCompletedCount, lessonResults.size(), lessonResults));
-
-            courseCompletedCount += moduleCompletedCount;
-            courseTotalCount += lessonResults.size();
+            final StudentCourseCurriculum.Module moduleResult = buildModule(
+                    module, completed, orderedLessons, modules, prerequisiteModuleIdsFinder,
+                    requireSequentialProgress, enrolled);
+            moduleResults.add(moduleResult);
+            courseCompletedCount += moduleResult.completedLessons();
+            courseTotalCount += moduleResult.totalLessons();
         }
 
         return new StudentCourseCurriculum(courseId, courseCompletedCount, courseTotalCount, moduleResults);
+    }
+
+    private StudentCourseCurriculum.Module buildModule(
+            Module module,
+            Set<UUID> completed,
+            List<Content> orderedLessons,
+            List<Module> modules,
+            Function<UUID, List<UUID>> prerequisiteModuleIdsFinder,
+            boolean requireSequentialProgress,
+            boolean enrolled
+    ) {
+        final boolean hasPendingPrerequisite = hasPendingPrerequisite(
+                module, completed, modules, prerequisiteModuleIdsFinder);
+        final List<StudentCourseCurriculum.Lesson> lessonResults = new ArrayList<>();
+        int moduleCompletedCount = 0;
+
+        for (final Content lesson : module.getContents()) {
+            final LessonStatus status = resolveStatus(
+                    lesson, completed, orderedLessons, hasPendingPrerequisite,
+                    requireSequentialProgress, enrolled);
+            if (status == LessonStatus.COMPLETED) {
+                moduleCompletedCount++;
+            }
+            lessonResults.add(new StudentCourseCurriculum.Lesson(
+                    lesson.getId(), lesson.getTitle(), lesson.getOrder(),
+                    lesson.getType() != null ? lesson.getType().name() : null,
+                    lesson.getDurationMinutes(), status));
+        }
+
+        final boolean moduleLocked = !lessonResults.isEmpty() && lessonResults.stream()
+                .allMatch(l -> l.status() == LessonStatus.LOCKED);
+        return new StudentCourseCurriculum.Module(
+                module.getId(), module.getTitle(), module.getOrder(), moduleLocked,
+                moduleCompletedCount, lessonResults.size(), lessonResults);
     }
 
     private LessonStatus resolveStatus(
@@ -80,10 +95,16 @@ public class LessonStatusCalculator {
             Set<UUID> completed,
             List<Content> orderedLessons,
             boolean modulePrerequisitePending,
-            boolean requireSequentialProgress
+            boolean requireSequentialProgress,
+            boolean enrolled
     ) {
         if (completed.contains(lesson.getId())) {
             return LessonStatus.COMPLETED;
+        }
+        final boolean isFree = Boolean.TRUE.equals(lesson.getIsFree());
+        // Sem matricula: amostra gratuita liberada; o restante permanece bloqueado.
+        if (!enrolled) {
+            return isFree ? LessonStatus.AVAILABLE : LessonStatus.LOCKED;
         }
         if (requireSequentialProgress && modulePrerequisitePending) {
             return LessonStatus.LOCKED;

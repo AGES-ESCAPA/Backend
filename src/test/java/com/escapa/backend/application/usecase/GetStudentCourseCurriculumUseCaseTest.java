@@ -190,11 +190,34 @@ private CourseRepositoryPort stubCourseRepositoryPort() {
     }
 
     @Test
-    void shouldDenyWhenNotEnrolled() {
+    void shouldDenyWhenNotEnrolledAndCourseHasNoFreeLessons() {
         course = givenCourse(false);
+        modules = List.of(givenModuleWithLesson());
         final LessonAccessDeniedException ex = assertThrows(
                 LessonAccessDeniedException.class, () -> buildUseCase().execute(userId, courseId));
         assertEquals(Reason.NOT_ENROLLED, ex.getReason());
+    }
+
+    @Test
+    void shouldAllowPreviewOfFreeLessonsWithoutEnrollment() {
+        course = givenCourse(false);
+        final Module module = new Module(UUID.randomUUID(), courseId, "Modulo 1", 1);
+        final Content free = new Content(
+                UUID.randomUUID(), module.getId(), "Amostra", "desc", ContentType.VIDEO,
+                "https://cdn.example.com/free.mp4", 10, true, 1, null, null, null, null, null, false, false);
+        final Content paid = new Content(
+                UUID.randomUUID(), module.getId(), "Paga", "desc", ContentType.VIDEO,
+                "https://cdn.example.com/paid.mp4", 10, false, 2, null, null, null, null, null, false, false);
+        module.getContents().add(free);
+        module.getContents().add(paid);
+        modules = List.of(module);
+
+        final StudentCourseCurriculum result = buildUseCase().execute(userId, courseId);
+
+        assertEquals(com.escapa.backend.domain.content.LessonStatus.AVAILABLE,
+                result.modules().get(0).lessons().get(0).status());
+        assertEquals(com.escapa.backend.domain.content.LessonStatus.LOCKED,
+                result.modules().get(0).lessons().get(1).status());
     }
 
     @Test

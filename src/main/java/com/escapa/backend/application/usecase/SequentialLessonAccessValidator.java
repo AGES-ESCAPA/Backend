@@ -56,6 +56,7 @@ public class SequentialLessonAccessValidator {
                 modules,
                 completedLessonIds,
                 modulePrerequisiteRepositoryPort::findPrerequisiteModuleIds,
+                true,
                 true);
 
         final LessonStatus status = curriculum.modules().stream()
