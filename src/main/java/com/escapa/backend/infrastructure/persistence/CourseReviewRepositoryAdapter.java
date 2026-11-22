@@ -1,13 +1,14 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.port.CourseReviewRepositoryPort;
-import org.springframework.jdbc.core.simple.JdbcClient;
-
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+
+import com.escapa.backend.application.port.CourseReviewRepositoryPort;
 
 public class CourseReviewRepositoryAdapter implements CourseReviewRepositoryPort {
 

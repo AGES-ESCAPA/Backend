@@ -1,11 +1,11 @@
 package com.escapa.backend.adapters.dto;
 
+import java.util.List;
+import java.util.UUID;
+
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Module;
-
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Modulo com agregados derivados dos conteudos carregados. Os conteudos vem

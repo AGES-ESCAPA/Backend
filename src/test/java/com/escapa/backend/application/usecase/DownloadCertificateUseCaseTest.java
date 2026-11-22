@@ -1,12 +1,10 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.CertificateDetails;
-import com.escapa.backend.application.model.CertificateFile;
-import com.escapa.backend.domain.certificate.CertificateGenerationException;
-import com.escapa.backend.domain.certificate.CertificateAccessDeniedException;
-import com.escapa.backend.domain.certificate.CertificateNotFoundException;
-import com.escapa.backend.domain.certificate.CertificateTheme;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -20,11 +18,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.model.CertificateDetails;
+import com.escapa.backend.application.model.CertificateFile;
+import com.escapa.backend.domain.certificate.CertificateAccessDeniedException;
+import com.escapa.backend.domain.certificate.CertificateGenerationException;
+import com.escapa.backend.domain.certificate.CertificateNotFoundException;
+import com.escapa.backend.domain.certificate.CertificateTheme;
 
 class DownloadCertificateUseCaseTest {
 

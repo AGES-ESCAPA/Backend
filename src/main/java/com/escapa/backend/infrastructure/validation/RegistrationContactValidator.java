@@ -1,12 +1,11 @@
 package com.escapa.backend.infrastructure.validation;
 
-import org.springframework.stereotype.Component;
-
-import com.escapa.backend.application.port.ContactValidatorPort;
-
 import jakarta.validation.Validator;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.stereotype.Component;
+
+import com.escapa.backend.application.port.ContactValidatorPort;
 
 @Component
 public class RegistrationContactValidator implements ContactValidatorPort {

@@ -1,10 +1,11 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.model.CompanyEmployee;
-import com.escapa.backend.domain.user.UserStatus;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.UUID;
+import com.escapa.backend.application.model.CompanyEmployee;
+import com.escapa.backend.domain.user.UserStatus;
 
 @Schema(description = "An employee linked to the company")
 public record CompanyEmployeeResponse(

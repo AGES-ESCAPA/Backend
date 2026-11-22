@@ -1,9 +1,9 @@
 package com.escapa.backend.domain.content;
 
-import com.escapa.backend.domain.entity.Content;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.escapa.backend.domain.entity.Content;
 
 /**
  * Edição de uma aula que os alunos já veem. As colunas publicadas permanecem
@@ -16,10 +16,12 @@ public record ContentPendingDraft(
         String url,
         Integer durationMinutes,
         Boolean isFree,
-        List<ContentResource> resources) {
+        List<ContentResource> resources,
+        List<QuizQuestion> quizQuestions) {
 
     public ContentPendingDraft {
         resources = resources == null ? List.of() : List.copyOf(resources);
+        quizQuestions = quizQuestions == null ? List.of() : List.copyOf(quizQuestions);
     }
 
     public static ContentPendingDraft from(Content content) {
@@ -30,7 +32,8 @@ public record ContentPendingDraft(
                 content.getUrl(),
                 content.getDurationMinutes(),
                 content.getIsFree(),
-                content.getResources());
+                content.getResources(),
+                content.getQuizQuestions());
     }
 
     public boolean differsFrom(Content published) {
@@ -45,5 +48,6 @@ public record ContentPendingDraft(
         content.setDurationMinutes(durationMinutes);
         content.setIsFree(isFree != null && isFree);
         content.setResources(new ArrayList<>(resources));
+        content.setQuizQuestions(new ArrayList<>(quizQuestions));
     }
 }

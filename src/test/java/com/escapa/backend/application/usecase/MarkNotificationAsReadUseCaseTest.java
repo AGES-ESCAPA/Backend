@@ -1,8 +1,8 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.UserNotification;
-import com.escapa.backend.domain.notification.NotificationNotFoundException;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -10,9 +10,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.model.UserNotification;
+import com.escapa.backend.domain.notification.NotificationNotFoundException;
 
 class MarkNotificationAsReadUseCaseTest {
 

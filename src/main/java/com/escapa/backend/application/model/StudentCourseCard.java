@@ -1,8 +1,8 @@
 package com.escapa.backend.application.model;
 
-import com.escapa.backend.domain.course.EnrollmentStatus;
-
 import java.util.UUID;
+
+import com.escapa.backend.domain.course.EnrollmentStatus;
 
 /**
  * Modelo de leitura (Read Model) que consolida os dados de um curso

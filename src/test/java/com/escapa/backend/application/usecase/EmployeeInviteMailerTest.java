@@ -1,12 +1,12 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.EmailTemplatePort;
-import org.junit.jupiter.api.Test;
-
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.port.EmailTemplatePort;
 
 class EmployeeInviteMailerTest {
 

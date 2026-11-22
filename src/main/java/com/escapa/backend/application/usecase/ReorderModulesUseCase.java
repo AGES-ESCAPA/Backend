@@ -1,15 +1,15 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.entity.Module;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 public class ReorderModulesUseCase {
 

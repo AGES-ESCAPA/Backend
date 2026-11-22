@@ -1,14 +1,15 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.domain.user.UserStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
+
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.CompanyEmployeeCannotDeactivateException;
 import com.escapa.backend.domain.user.InvalidCurrentPasswordException;
 import com.escapa.backend.domain.user.UserAlreadyInactiveException;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import com.escapa.backend.domain.user.UserStatus;
 
 class DeactivateAccountUseCaseTest {
 

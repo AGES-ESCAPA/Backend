@@ -1,16 +1,17 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.domain.course.CourseNotFoundException;
-import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.domain.entity.Module;
-import org.junit.jupiter.api.Test;
-
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.domain.entity.Module;
 
 class CreateModuleUseCaseTest {
 

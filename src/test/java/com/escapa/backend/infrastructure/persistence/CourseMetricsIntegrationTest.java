@@ -1,5 +1,29 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.http.HttpHeaders;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.web.servlet.MockMvc;
+
 import com.escapa.backend.application.model.CourseEnrollmentCount;
 import com.escapa.backend.application.model.CourseMetrics;
 import com.escapa.backend.application.model.CourseMetrics.CategoryShare;
@@ -13,29 +37,6 @@ import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.UserCourseId;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.http.HttpHeaders;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.web.servlet.MockMvc;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
 class CourseMetricsIntegrationTest extends PostgresIntegrationTest {
@@ -78,7 +79,7 @@ class CourseMetricsIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
-    void shouldCountOnlyNonRevokedEnrollmentsOfNonDraftCoursesFromUserCourses() {
+    void shouldCountOnlyNonRevokedEnrollmentsOfPublishedCoursesFromUserCourses() {
         final CourseEntity publishedCourse = givenCourse("Turismo de Aventura", "Hospitalidade", CourseStatus.PUBLISHED);
         final CourseEntity archivedCourse = givenCourse("IA no Turismo", "Inteligência Artificial", CourseStatus.ARCHIVED);
         final CourseEntity draftCourse = givenCourse("Curso Rascunho", "Hospitalidade", CourseStatus.DRAFT);
@@ -99,9 +100,9 @@ class CourseMetricsIntegrationTest extends PostgresIntegrationTest {
         final Map<UUID, Long> enrollmentsByCourse = counts.stream()
                 .collect(Collectors.toMap(CourseEnrollmentCount::courseId, CourseEnrollmentCount::enrollments));
 
-        assertEquals(2, counts.size());
+        assertEquals(1, counts.size());
         assertEquals(2L, enrollmentsByCourse.get(publishedCourse.getId()));
-        assertEquals(1L, enrollmentsByCourse.get(archivedCourse.getId()));
+        assertNull(enrollmentsByCourse.get(archivedCourse.getId()));
         assertNull(enrollmentsByCourse.get(draftCourse.getId()));
         assertNull(enrollmentsByCourse.get(emptyCourse.getId()));
 
@@ -109,10 +110,9 @@ class CourseMetricsIntegrationTest extends PostgresIntegrationTest {
         assertEquals(
                 new CourseRanking(publishedCourse.getId(), "Turismo de Aventura", 2L),
                 metrics.mostAccessedCourse());
-        assertEquals(2, metrics.categoriesCount());
+        assertEquals(1, metrics.categoriesCount());
         assertEquals(List.of(
-                new CategoryShare("Hospitalidade", new BigDecimal("66.67")),
-                new CategoryShare("Inteligência Artificial", new BigDecimal("33.33"))
+                new CategoryShare("Hospitalidade", new BigDecimal("100.00"))
         ), metrics.enrollmentsByCategory());
     }
 

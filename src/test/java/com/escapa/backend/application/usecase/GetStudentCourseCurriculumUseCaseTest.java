@@ -1,21 +1,7 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.CourseSummary;
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.dto.PublishedCourseFilters;
-import com.escapa.backend.application.model.CourseDetails;
-import com.escapa.backend.application.model.Enrollment;
-import com.escapa.backend.application.model.StudentCourseCurriculum;
-import com.escapa.backend.application.port.ModuleRepositoryPort;
-import com.escapa.backend.application.port.CourseRepositoryPort;
-import com.escapa.backend.domain.content.ContentType;
-import com.escapa.backend.domain.content.LessonAccessDeniedException;
-import com.escapa.backend.domain.content.LessonAccessDeniedException.Reason;
-import com.escapa.backend.domain.course.CourseNotFoundException;
-import com.escapa.backend.domain.entity.Content;
-import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.domain.entity.Module;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -24,8 +10,23 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.dto.CourseSummary;
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.dto.PublishedCourseFilters;
+import com.escapa.backend.application.model.CourseDetails;
+import com.escapa.backend.application.model.Enrollment;
+import com.escapa.backend.application.model.StudentCourseCurriculum;
+import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.application.port.ModuleRepositoryPort;
+import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.content.LessonAccessDeniedException;
+import com.escapa.backend.domain.content.LessonAccessDeniedException.Reason;
+import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.entity.Content;
+import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.domain.entity.Module;
 
 class GetStudentCourseCurriculumUseCaseTest {
 
@@ -177,7 +178,7 @@ private CourseRepositoryPort stubCourseRepositoryPort() {
         final Module module = new Module(UUID.randomUUID(), courseId, "Modulo 1", 1);
         final Content content = new Content(
                 UUID.randomUUID(), module.getId(), "Aula 1", "desc", ContentType.VIDEO,
-                "https://cdn.example.com/video.mp4", 10, false, 1, null, null, null, null, false, false);
+                "https://cdn.example.com/video.mp4", 10, false, 1, null, null, null, null, null, false, false);
         module.getContents().add(content);
         return module;
     }
@@ -189,11 +190,34 @@ private CourseRepositoryPort stubCourseRepositoryPort() {
     }
 
     @Test
-    void shouldDenyWhenNotEnrolled() {
+    void shouldDenyWhenNotEnrolledAndCourseHasNoFreeLessons() {
         course = givenCourse(false);
+        modules = List.of(givenModuleWithLesson());
         final LessonAccessDeniedException ex = assertThrows(
                 LessonAccessDeniedException.class, () -> buildUseCase().execute(userId, courseId));
         assertEquals(Reason.NOT_ENROLLED, ex.getReason());
+    }
+
+    @Test
+    void shouldAllowPreviewOfFreeLessonsWithoutEnrollment() {
+        course = givenCourse(false);
+        final Module module = new Module(UUID.randomUUID(), courseId, "Modulo 1", 1);
+        final Content free = new Content(
+                UUID.randomUUID(), module.getId(), "Amostra", "desc", ContentType.VIDEO,
+                "https://cdn.example.com/free.mp4", 10, true, 1, null, null, null, null, null, false, false);
+        final Content paid = new Content(
+                UUID.randomUUID(), module.getId(), "Paga", "desc", ContentType.VIDEO,
+                "https://cdn.example.com/paid.mp4", 10, false, 2, null, null, null, null, null, false, false);
+        module.getContents().add(free);
+        module.getContents().add(paid);
+        modules = List.of(module);
+
+        final StudentCourseCurriculum result = buildUseCase().execute(userId, courseId);
+
+        assertEquals(com.escapa.backend.domain.content.LessonStatus.AVAILABLE,
+                result.modules().get(0).lessons().get(0).status());
+        assertEquals(com.escapa.backend.domain.content.LessonStatus.LOCKED,
+                result.modules().get(0).lessons().get(1).status());
     }
 
     @Test

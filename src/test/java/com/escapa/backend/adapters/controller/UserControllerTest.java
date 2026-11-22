@@ -1,5 +1,18 @@
 package com.escapa.backend.adapters.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
 import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
 import com.escapa.backend.application.usecase.FakePasswordHasher;
@@ -7,18 +20,6 @@ import com.escapa.backend.application.usecase.GetUserByIdUseCase;
 import com.escapa.backend.application.usecase.InMemoryUserRepositoryPort;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
 import com.escapa.backend.domain.entity.User;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.util.UUID;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /** Mapeamento HTTP do cadastro e da consulta de usuários. */
 class UserControllerTest {
@@ -80,11 +81,26 @@ class UserControllerTest {
         mockMvc.perform(get(USERS_URL))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].status").value("ACTIVE"));
+                .andExpect(jsonPath("$.data[0].status").value("ACTIVE"))
+                .andExpect(jsonPath("$.data[0].userType").value("STUDENT"));
         mockMvc.perform(get(USERS_URL + "/{id}", saved.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.name").value("Maria Silva"))
                 .andExpect(jsonPath("$.data.status").value("ACTIVE"));
+    }
+
+    @Test
+    void shouldListACompanyLinkedStudentAsEmployee() throws Exception {
+        final User linked = userRepository.save(
+                new User("Luciana Prado", "luciana@vistamar.com.br", "hash", "STUDENT"));
+        userRepository.linkUserToCompany(linked.getId());
+
+        mockMvc.perform(get(USERS_URL))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].userType").value("EMPLOYEE"));
+        mockMvc.perform(get(USERS_URL + "/{id}", linked.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.userType").value("EMPLOYEE"));
     }
 
     @Test

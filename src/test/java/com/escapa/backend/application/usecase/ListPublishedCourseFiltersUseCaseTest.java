@@ -1,13 +1,14 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.CourseSummary;
-import com.escapa.backend.application.dto.PublishedCourseFilters;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.dto.CourseSummary;
+import com.escapa.backend.application.dto.PublishedCourseFilters;
 
 class ListPublishedCourseFiltersUseCaseTest {
 

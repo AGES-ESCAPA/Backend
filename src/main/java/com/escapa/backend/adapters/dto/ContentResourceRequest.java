@@ -1,8 +1,9 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.domain.content.ContentResource;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
+
+import com.escapa.backend.domain.content.ContentResource;
 
 /** Material complementar; obrigatoriedade e formato validados em ContentTypeRules. */
 @Schema(description = "Supplementary lesson material: an external link or a file already uploaded to storage")

@@ -1,11 +1,11 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CompanyEmployee;
 import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
 import com.escapa.backend.domain.company.CompanyNotFoundException;
-
-import java.util.UUID;
 
 /**
  * Lista os colaboradores vinculados à empresa (US-30), paginados e ordenados por nome, com busca

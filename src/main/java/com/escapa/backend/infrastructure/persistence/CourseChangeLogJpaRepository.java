@@ -11,7 +11,7 @@ import com.escapa.backend.infrastructure.persistence.entity.CourseChangeLogEntit
 public interface CourseChangeLogJpaRepository
         extends JpaRepository<CourseChangeLogEntity, UUID> {
 
-    Page<CourseChangeLogEntity> findByCourseIdOrderByCreatedAtDesc(
+    Page<CourseChangeLogEntity> findByCourseIdOrderByCreatedAtDescMajorVersionDescMinorVersionDesc(
             UUID courseId,
             Pageable pageable
     );

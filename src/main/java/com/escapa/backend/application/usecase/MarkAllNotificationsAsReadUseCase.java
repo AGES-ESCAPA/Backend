@@ -1,10 +1,10 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.NotificationRepositoryPort;
-
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.escapa.backend.application.port.NotificationRepositoryPort;
 
 public class MarkAllNotificationsAsReadUseCase {
 

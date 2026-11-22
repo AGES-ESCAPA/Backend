@@ -1,13 +1,5 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CourseEnrollmentCount;
-import com.escapa.backend.application.model.Enrollment;
-import com.escapa.backend.application.model.StudentCourseCard;
-import com.escapa.backend.application.port.EnrollmentRepositoryPort;
-import com.escapa.backend.domain.course.CourseStatus;
-import com.escapa.backend.domain.course.EnrollmentStatus;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,6 +11,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CourseEnrollmentCount;
+import com.escapa.backend.application.model.Enrollment;
+import com.escapa.backend.application.model.StudentCourseCard;
+import com.escapa.backend.application.port.EnrollmentRepositoryPort;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.course.EnrollmentStatus;
 
 public final class InMemoryEnrollmentRepositoryPort implements EnrollmentRepositoryPort {
     private record Key(UUID userId, UUID courseId) {
@@ -117,7 +117,7 @@ public final class InMemoryEnrollmentRepositoryPort implements EnrollmentReposit
                 continue;
             }
             final CourseRecord course = courses.get(key.courseId());
-            if (course == null || course.status() == CourseStatus.DRAFT) {
+            if (course == null || course.status() != CourseStatus.PUBLISHED) {
                 continue;
             }
             countsByCourse.merge(course.courseId(), 1L, Long::sum);

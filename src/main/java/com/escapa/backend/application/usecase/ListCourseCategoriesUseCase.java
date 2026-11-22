@@ -1,12 +1,12 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.CourseRepositoryPort;
-
 import java.text.Collator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import com.escapa.backend.application.port.CourseRepositoryPort;
 
 /**
  * Lista as categorias já cadastradas em cursos, sem duplicar variações que

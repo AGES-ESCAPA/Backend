@@ -1,19 +1,24 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.domain.content.ContentResource;
-import com.escapa.backend.domain.content.ContentType;
-import com.escapa.backend.domain.entity.Content;
-import com.escapa.backend.domain.module.ModuleNotFoundException;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.content.ContentResource;
+import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.content.QuizOption;
+import com.escapa.backend.domain.content.QuizQuestion;
+import com.escapa.backend.domain.entity.Content;
+import com.escapa.backend.domain.entity.Module;
+import com.escapa.backend.domain.module.ModuleNotFoundException;
 
 class CreateContentUseCaseTest {
 
@@ -130,6 +135,28 @@ class CreateContentUseCaseTest {
     }
 
     @Test
+    void shouldRejectNullModuleId() {
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute(null, "Aula", ContentType.TEXT, null, null, "Texto", false));
+    }
+
+    @Test
+    void shouldKeepNewPublishedContentUnreleasedAndAcceptNullResources() {
+        final Module publishedModule = moduleRepository.findById(moduleId).orElseThrow();
+        publishedModule.setCoursePublished(true);
+        moduleRepository.save(publishedModule);
+
+        final Content content = useCase.execute(
+                moduleId, "Aula nova", ContentType.TEXT, null, null, "Texto", null, null);
+
+        assertEquals(1, content.getOrder());
+        assertNull(content.getPublishedOrder());
+        assertTrue(content.isCoursePublished());
+        assertTrue(content.getResources().isEmpty());
+        assertFalse(content.getIsFree());
+    }
+
+    @Test
     void shouldRejectBlankTitle() {
         assertThrows(
                 IllegalArgumentException.class,
@@ -142,5 +169,32 @@ class CreateContentUseCaseTest {
         final Content content = useCase.execute(moduleId, "Aula", ContentType.TEXT, null, null, "Texto", null);
 
         assertFalse(content.getIsFree());
+    }
+
+    @Test
+    void shouldCreateQuizContentWithQuestions() {
+        final UUID questionId = UUID.randomUUID();
+        final List<QuizQuestion> questions = List.of(new QuizQuestion(
+                questionId,
+                "Pergunta",
+                List.of(
+                        new QuizOption(UUID.randomUUID(), "A", true),
+                        new QuizOption(UUID.randomUUID(), "B", false))));
+
+        final Content content = useCase.execute(
+                moduleId, "Quiz introdutório", ContentType.QUIZ, null, null, "Avaliação", false,
+                List.of(), questions);
+
+        assertEquals(ContentType.QUIZ, content.getType());
+        assertEquals(questions, content.getQuizQuestions());
+    }
+
+    @Test
+    void shouldTreatNullResourcesAndQuizQuestionsAsEmptyLists() {
+        final Content content = useCase.execute(
+                moduleId, "Resumo", ContentType.TEXT, null, null, "Texto", false, null, null);
+
+        assertTrue(content.getResources().isEmpty());
+        assertTrue(content.getQuizQuestions().isEmpty());
     }
 }

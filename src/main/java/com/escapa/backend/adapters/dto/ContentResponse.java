@@ -1,12 +1,13 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.domain.content.ContentResource;
-import com.escapa.backend.domain.content.ContentType;
-import com.escapa.backend.domain.entity.Content;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.domain.content.ContentResource;
+import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.content.QuizQuestion;
+import com.escapa.backend.domain.entity.Content;
 
 public record ContentResponse(
         UUID id,
@@ -19,6 +20,7 @@ public record ContentResponse(
         Boolean isFree,
         Integer order,
         List<ContentResource> resources,
+        List<QuizQuestion> quizQuestions,
         LocalDateTime createdAt
 ) {
     public static ContentResponse from(Content content) {
@@ -33,6 +35,7 @@ public record ContentResponse(
                 content.getIsFree(),
                 content.getOrder(),
                 content.getResources(),
+                content.getQuizQuestions(),
                 content.getCreatedAt()
         );
     }

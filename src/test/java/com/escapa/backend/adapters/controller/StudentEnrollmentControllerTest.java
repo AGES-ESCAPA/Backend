@@ -1,15 +1,16 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.domain.course.CourseStatus;
-import com.escapa.backend.application.port.TokenProviderPort;
-import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
-import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
-import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
-import com.escapa.backend.infrastructure.persistence.entity.UserCourseId;
-import com.escapa.backend.infrastructure.persistence.UserEntity;
-import com.escapa.backend.infrastructure.persistence.entity.AdminEntity;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,18 +21,17 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.UUID;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import com.escapa.backend.application.port.TokenProviderPort;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
+import com.escapa.backend.infrastructure.persistence.UserCourseJpaRepository;
+import com.escapa.backend.infrastructure.persistence.UserEntity;
+import com.escapa.backend.infrastructure.persistence.UserJpaRepository;
+import com.escapa.backend.infrastructure.persistence.entity.AdminEntity;
+import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
+import com.escapa.backend.infrastructure.persistence.entity.UserCourseEntity;
+import com.escapa.backend.infrastructure.persistence.entity.UserCourseId;
 
 @SpringBootTest
 @AutoConfigureMockMvc

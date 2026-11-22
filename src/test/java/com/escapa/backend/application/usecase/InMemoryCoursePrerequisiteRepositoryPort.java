@@ -1,10 +1,10 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 
 /**
  * Fake em memória de {@link CoursePrerequisiteRepositoryPort} para testes unitários.

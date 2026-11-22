@@ -1,7 +1,24 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.application.port.TokenProviderPort;
-import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,22 +30,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.escapa.backend.application.port.TokenProviderPort;
+import com.escapa.backend.infrastructure.persistence.PostgresIntegrationTest;
 
 /** GET /api/v1/company/seats e /employees de ponta a ponta, com a consulta SQL real no Postgres. */
 @SpringBootTest
@@ -188,7 +191,7 @@ class CompanyEmployeeControllerTest extends PostgresIntegrationTest {
         }
 
         getAs(companyB, "COMPANY", SEATS)
-                .andExpect(jsonPath("$.data.seatsTotal", is(3)))
+                .andExpect(jsonPath("$.data.seatsTotal", is(4)))
                 .andExpect(jsonPath("$.data.seatsUsed", is(4)))
                 .andExpect(jsonPath("$.data.seatsAvailable", is(0)));
     }
@@ -518,5 +521,68 @@ class CompanyEmployeeControllerTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.data.content", empty()));
         getAs(companyA, "COMPANY", SEATS + "?companyId=" + companyB)
                 .andExpect(jsonPath("$.data.seatsTotal", is(10)));
+    }
+
+    @Test
+    void shouldListCompanyCoursesWithAssignmentFlagForAnEmployee() throws Exception {
+        final UUID employee = givenEmployee(companyA, "Ana", "ana.courses@vistamar.com.br", "Recepção", "ACTIVE");
+        final UUID assigned = givenCourse();
+        final UUID notAssigned = givenCourse();
+        final UUID draft = UUID.randomUUID();
+        jdbcTemplate.update("insert into courses (id, title, status, category) values (?, 'Rascunho', 'DRAFT', 'Ops')",
+                draft);
+        courseIds.add(draft);
+        ownCourse(companyA, assigned, false);
+        ownCourse(companyA, notAssigned, false);
+        ownCourse(companyA, draft, false);
+        enroll(employee, assigned, false);
+
+        getAs(companyA, "COMPANY", EMPLOYEES + "/" + employee + "/courses")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", hasSize(2)))
+                .andExpect(jsonPath("$.data[?(@.courseId == '" + assigned + "')].assigned", contains(true)))
+                .andExpect(jsonPath("$.data[?(@.courseId == '" + notAssigned + "')].assigned", contains(false)));
+    }
+
+    @Test
+    void shouldAssignAndRevokeACompanyCourseForAnEmployee() throws Exception {
+        final UUID employee = givenEmployee(companyA, "Bruno", "bruno.courses@vistamar.com.br", "Recepção", "ACTIVE");
+        final UUID course = givenCourse();
+        ownCourse(companyA, course, false);
+
+        mockMvc.perform(post(EMPLOYEES + "/" + employee + "/courses/" + course)
+                        .header("Authorization", bearer(companyA, "COMPANY")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)));
+
+        getAs(companyA, "COMPANY", EMPLOYEES + "/" + employee + "/courses")
+                .andExpect(jsonPath("$.data[0].assigned", is(true)));
+
+        mockMvc.perform(delete(EMPLOYEES + "/" + employee + "/courses/" + course)
+                        .header("Authorization", bearer(companyA, "COMPANY")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Acesso ao curso removido")));
+
+        getAs(companyA, "COMPANY", EMPLOYEES + "/" + employee + "/courses")
+                .andExpect(jsonPath("$.data[0].assigned", is(false)));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenListingCoursesOfAnEmployeeFromAnotherCompany() throws Exception {
+        final UUID outsider = givenEmployee(companyB, "Outro", "outro@atlantico.com.br", "Recepção", "ACTIVE");
+
+        getAs(companyA, "COMPANY", EMPLOYEES + "/" + outsider + "/courses")
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenAssigningACourseTheCompanyDoesNotOwn() throws Exception {
+        final UUID employee = givenEmployee(companyA, "Carla", "carla.courses@vistamar.com.br", "Recepção", "ACTIVE");
+        final UUID foreignCourse = givenCourse();
+        ownCourse(companyB, foreignCourse, false);
+
+        mockMvc.perform(post(EMPLOYEES + "/" + employee + "/courses/" + foreignCourse)
+                        .header("Authorization", bearer(companyA, "COMPANY")))
+                .andExpect(status().isNotFound());
     }
 }

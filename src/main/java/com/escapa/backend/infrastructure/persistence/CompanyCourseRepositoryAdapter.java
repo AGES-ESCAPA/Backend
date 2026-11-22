@@ -1,11 +1,12 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.dto.CompanyCourseSummary;
-import com.escapa.backend.application.model.AcquiredCourse;
-import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
-
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.dto.CompanyCourseSummary;
+import com.escapa.backend.application.model.AcquiredCourse;
+import com.escapa.backend.application.model.EmployeeCourseAssignment;
+import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
 
 public class CompanyCourseRepositoryAdapter implements CompanyCourseRepositoryPort {
 
@@ -43,6 +44,17 @@ public class CompanyCourseRepositoryAdapter implements CompanyCourseRepositoryPo
                         row.getRating(),
                         row.getAcquiredAt(),
                         row.getEmployeesWithAccess()))
+                .toList();
+    }
+
+    @Override
+    public List<EmployeeCourseAssignment> findEmployeeCourseAssignments(UUID companyId, UUID employeeId) {
+        return companyCourseJpaRepository.findEmployeeCourseAssignments(companyId, employeeId).stream()
+                .map(row -> new EmployeeCourseAssignment(
+                        row.getCourseId(),
+                        row.getTitle(),
+                        row.getCategory(),
+                        row.getAssigned()))
                 .toList();
     }
 }

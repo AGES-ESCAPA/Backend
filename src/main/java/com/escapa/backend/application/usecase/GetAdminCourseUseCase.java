@@ -1,11 +1,11 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.course.PublishedCourseDrafts;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.domain.course.CourseNotFoundException;
 import com.escapa.backend.domain.entity.Course;
-
-import java.util.UUID;
 
 /**
  * Busca um curso pelo id para o painel administrativo (edição no Construtor

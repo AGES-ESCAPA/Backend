@@ -2,6 +2,9 @@ package com.escapa.backend.adapters.controller;
 
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,10 +18,6 @@ import com.escapa.backend.adapters.dto.ProfileUpdateRequest;
 import com.escapa.backend.adapters.security.AuthenticationContext;
 import com.escapa.backend.application.usecase.GetProfileUseCase;
 import com.escapa.backend.application.usecase.UpdateProfileUseCase;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 
 @RestController
 @Tag(name = "Me - Profile", description = "Profile data of the authenticated user")
@@ -54,6 +53,11 @@ public class ProfileController {
 
         // Retorna HTTP 200 com os dados atualizados no corpo da resposta.
         return ResponseEntity.ok(ApiResponse.success(ProfileResponse.from(updateProfileUseCase.execute(
-                userId, request.name(), request.phone(), request.companyName()))));
+                userId,
+                request.name(),
+                request.phone(),
+                request.companyName(),
+                request.headline(),
+                request.bio()))));
     }
 }

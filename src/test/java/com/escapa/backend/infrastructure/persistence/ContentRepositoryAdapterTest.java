@@ -1,20 +1,22 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.escapa.backend.application.port.ContentRepositoryPort;
+import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ContentRepositoryAdapterTest extends PostgresIntegrationTest {
 
@@ -90,6 +92,35 @@ class ContentRepositoryAdapterTest extends PostgresIntegrationTest {
         givenContent(moduleId, "Aula 2");
 
         assertEquals(3, contentRepositoryPort.nextOrder(moduleId));
+    }
+
+    @Test
+    void shouldUpdateExistingContentAndRejectAnUnknownId() {
+        final UUID moduleId = givenModule();
+        final Content content = givenContent(moduleId, "Aula original");
+        content.setTitle("Aula revisada");
+
+        final Content updated = contentRepositoryPort.save(content);
+
+        assertEquals("Aula revisada", updated.getTitle());
+        final Content unknown = new Content();
+        unknown.setId(UUID.randomUUID());
+        unknown.setModuleId(moduleId);
+        unknown.setTitle("Aula desconhecida");
+        unknown.setType(ContentType.TEXT);
+        unknown.setOrder(1);
+        org.junit.jupiter.api.Assertions.assertThrows(
+                ContentNotFoundException.class, () -> contentRepositoryPort.save(unknown));
+    }
+
+    @Test
+    void shouldLeaveContentUnchangedWhenReorderingAnEmptyList() {
+        final UUID moduleId = givenModule();
+        final Content content = givenContent(moduleId, "Aula original");
+
+        contentRepositoryPort.reorder(moduleId, List.of());
+
+        assertEquals(1, contentRepositoryPort.findById(content.getId()).orElseThrow().getOrder());
     }
 
     @Test

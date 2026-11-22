@@ -1,15 +1,16 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.CourseDetails;
-import com.escapa.backend.application.port.CourseRepositoryPort;
-import com.escapa.backend.domain.course.CourseNotFoundException;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.model.CourseDetails;
+import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.domain.course.CourseNotFoundException;
 
 class GetCourseDetailsUseCaseTest {
 

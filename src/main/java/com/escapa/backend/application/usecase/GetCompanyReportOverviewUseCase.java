@@ -1,5 +1,19 @@
 package com.escapa.backend.application.usecase;
 
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.temporal.IsoFields;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import com.escapa.backend.application.model.CompanyReportFigures;
 import com.escapa.backend.application.model.CompanyReportFigures.JobTitleFigures;
 import com.escapa.backend.application.model.CompanyReportFigures.MonthFigures;
@@ -9,18 +23,7 @@ import com.escapa.backend.application.model.CompanyReportOverview.MonthlyHours;
 import com.escapa.backend.application.model.CompanyReportPeriod;
 import com.escapa.backend.application.port.CompanyReportRepositoryPort;
 import com.escapa.backend.domain.company.CompanyNotFoundException;
-
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.YearMonth;
-import java.time.temporal.IsoFields;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import com.escapa.backend.domain.company.JobTitleNormalizer;
 
 /**
  * Indicadores de conclusão e engajamento da equipe da empresa (US-35). O banco só conta; as taxas,
@@ -86,10 +89,35 @@ public class GetCompanyReportOverviewUseCase {
     }
 
     private static List<JobTitleCompletion> byJobTitle(CompanyReportFigures figures) {
-        return figures.byJobTitle().stream()
-                .sorted(Comparator.comparing(JobTitleFigures::jobTitle))
-                .map(title -> new JobTitleCompletion(title.jobTitle(), rate(title.completed(), title.enrollments())))
+        final Map<String, MergedJobTitle> merged = new LinkedHashMap<>();
+        for (final JobTitleFigures row : figures.byJobTitle()) {
+            final String groupKey = JobTitleNormalizer.key(row.jobTitle());
+            final MergedJobTitle current = merged.get(groupKey);
+            if (current == null) {
+                merged.put(groupKey, new MergedJobTitle(row.jobTitle(), row.enrollments(), row.completed()));
+                continue;
+            }
+            current.label = JobTitleNormalizer.preferLabel(current.label, row.jobTitle());
+            current.enrollments += row.enrollments();
+            current.completed += row.completed();
+        }
+        final List<MergedJobTitle> titles = new ArrayList<>(merged.values());
+        titles.sort(Comparator.comparing(title -> title.label, String.CASE_INSENSITIVE_ORDER));
+        return titles.stream()
+                .map(title -> new JobTitleCompletion(title.label, rate(title.completed, title.enrollments)))
                 .toList();
+    }
+
+    private static final class MergedJobTitle {
+        private String label;
+        private long enrollments;
+        private long completed;
+
+        private MergedJobTitle(String label, long enrollments, long completed) {
+            this.label = label;
+            this.enrollments = enrollments;
+            this.completed = completed;
+        }
     }
 
     private static List<MonthlyHours> monthlyHours(CompanyReportFigures figures, CompanyReportPeriod period) {

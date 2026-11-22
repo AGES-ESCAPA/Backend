@@ -1,17 +1,7 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.Enrollment;
-import com.escapa.backend.application.model.LessonConcept;
-import com.escapa.backend.application.model.LessonDetails;
-import com.escapa.backend.application.model.LessonReference;
-import com.escapa.backend.application.model.LessonSupplement;
-import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
-import com.escapa.backend.domain.content.ContentNotFoundException;
-import com.escapa.backend.domain.content.ContentType;
-import com.escapa.backend.domain.content.LessonAccessDeniedException;
-import com.escapa.backend.domain.content.LessonAccessDeniedException.Reason;
-import com.escapa.backend.domain.entity.Content;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -24,8 +14,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.model.Enrollment;
+import com.escapa.backend.application.model.LessonConcept;
+import com.escapa.backend.application.model.LessonDetails;
+import com.escapa.backend.application.model.LessonReference;
+import com.escapa.backend.application.model.LessonSupplement;
+import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
+import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.content.LessonAccessDeniedException;
+import com.escapa.backend.domain.content.LessonAccessDeniedException.Reason;
+import com.escapa.backend.domain.entity.Content;
+import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.domain.entity.Module;
 
 class OpenStudentLessonUseCaseTest {
 
@@ -33,15 +36,25 @@ class OpenStudentLessonUseCaseTest {
 
     private final InMemoryLessonRepositoryPort lessonRepository = new InMemoryLessonRepositoryPort();
     private final InMemoryEnrollmentRepositoryPort enrollmentRepository = new InMemoryEnrollmentRepositoryPort();
-    
+    private final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+    private final InMemoryModuleRepositoryPort moduleRepository = new InMemoryModuleRepositoryPort();
+    private final InMemoryLessonProgressRepositoryPort progressRepository = new InMemoryLessonProgressRepositoryPort();
+
     private final Map<UUID, LessonSupplement> supplementsDb = new HashMap<>();
-    private final LessonSupplementRepositoryPort lessonSupplementRepository = lessonId -> 
+    private final LessonSupplementRepositoryPort lessonSupplementRepository = lessonId ->
             supplementsDb.getOrDefault(lessonId, new LessonSupplement(List.of(), List.of()));
 
     private final Clock clock = Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
-    
-    private final OpenStudentLessonUseCase useCase =
-            new OpenStudentLessonUseCase(lessonRepository, enrollmentRepository, lessonSupplementRepository, clock);
+
+    private final OpenStudentLessonUseCase useCase = new OpenStudentLessonUseCase(
+            lessonRepository,
+            enrollmentRepository,
+            lessonSupplementRepository,
+            courseRepository,
+            moduleRepository,
+            progressRepository,
+            moduleId -> List.of(),
+            clock);
 
     private final UUID userId = UUID.randomUUID();
     private final UUID courseId = UUID.randomUUID();
@@ -50,8 +63,9 @@ class OpenStudentLessonUseCaseTest {
         final UUID moduleId = UUID.randomUUID();
         final Content content = new Content(
                 UUID.randomUUID(), moduleId, "Aula 2", "Descricao da aula", ContentType.VIDEO,
-                "https://cdn.example.com/aula-2.mp4", 12, isFree, 2, null, null, null, null, false, false);
-        lessonRepository.add(new LessonDetails(content, courseId, "Fundamentos", 1, enforceDeadlineBlock, new LessonSupplement(List.of(), List.of())));
+                "https://cdn.example.com/aula-2.mp4", 12, isFree, 2, null, null, null, null, null, false, false);
+        lessonRepository.add(new LessonDetails(content, courseId, "Fundamentos", 1, enforceDeadlineBlock, 70,
+                new LessonSupplement(List.of(), List.of())));
         return content;
     }
 
@@ -305,5 +319,49 @@ class OpenStudentLessonUseCaseTest {
         assertEquals(lesson.getId(), result.content().getId());
         assertEquals(0, result.supplement().concepts().size());
         assertEquals(0, result.supplement().references().size());
+    }
+
+    @Test
+    void shouldDenyLockedLessonWhenSequentialProgressIsRequired() {
+        final Content second = givenSequentialLessons().get(1);
+        givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
+
+        assertEquals(Reason.SEQUENTIAL_PROGRESS_LOCKED, assertDenied(second.getId()).getReason());
+    }
+
+    @Test
+    void shouldAllowNextLessonAfterPreviousIsCompletedWithSequentialProgress() {
+        final List<Content> lessons = givenSequentialLessons();
+        givenEnrollment(TODAY.minusDays(10), TODAY.plusDays(90));
+        progressRepository.markCompleted(userId, lessons.get(0).getId(), TODAY.atStartOfDay());
+
+        final LessonDetails result = useCase.execute(userId, courseId, lessons.get(1).getId());
+
+        assertEquals(lessons.get(1).getId(), result.content().getId());
+    }
+
+    private List<Content> givenSequentialLessons() {
+        final Course course = new Course();
+        course.setId(courseId);
+        course.setRequireSequentialProgress(true);
+        courseRepository.save(course);
+
+        final UUID moduleId = moduleRepository.createModule(courseId);
+        final Module module = moduleRepository.findById(moduleId).orElseThrow();
+        final Content first = new Content(
+                UUID.randomUUID(), moduleId, "Aula 1", "Descricao", ContentType.VIDEO,
+                "https://cdn.example.com/aula-1.mp4", 10, false, 1, null, null, null, null, null, false, false);
+        final Content second = new Content(
+                UUID.randomUUID(), moduleId, "Aula 2", "Descricao", ContentType.VIDEO,
+                "https://cdn.example.com/aula-2.mp4", 10, false, 2, null, null, null, null, null, false, false);
+        module.getContents().add(first);
+        module.getContents().add(second);
+        moduleRepository.save(module);
+
+        lessonRepository.add(new LessonDetails(
+                first, courseId, "Fundamentos", 1, false, 70, new LessonSupplement(List.of(), List.of())));
+        lessonRepository.add(new LessonDetails(
+                second, courseId, "Fundamentos", 1, false, 70, new LessonSupplement(List.of(), List.of())));
+        return List.of(first, second);
     }
 }

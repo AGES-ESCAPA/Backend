@@ -1,10 +1,8 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.dto.CompanyCourseResponse;
-import com.escapa.backend.adapters.security.AuthenticationContext;
-import com.escapa.backend.application.usecase.ListCompanyCourseIdsUseCase;
-import com.escapa.backend.application.usecase.ListCompanyCoursesUseCase;
+import java.util.List;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +10,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.UUID;
+import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.CompanyCourseResponse;
+import com.escapa.backend.adapters.security.AuthenticationContext;
+import com.escapa.backend.application.usecase.ListCompanyCourseIdsUseCase;
+import com.escapa.backend.application.usecase.ListCompanyCoursesUseCase;
 
 @RestController
 @Tag(name = "Company - Courses", description = "Courses purchased by the authenticated company")

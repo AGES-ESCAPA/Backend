@@ -1,28 +1,8 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.dto.CompanyEmployeeResponse;
-import com.escapa.backend.adapters.dto.CompanySeatsResponse;
-import com.escapa.backend.adapters.dto.CreateCompanyEmployeeRequest;
-import com.escapa.backend.adapters.dto.PageResponse;
-import com.escapa.backend.adapters.dto.RegisteredEmployeeResponse;
-import com.escapa.backend.adapters.dto.ResentInviteResponse;
-import com.escapa.backend.adapters.dto.UpdateCompanyEmployeeRequest;
-import com.escapa.backend.adapters.dto.UpdatedEmployeeResponse;
-import com.escapa.backend.adapters.security.AuthenticationContext;
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CompanyEmployee;
-import com.escapa.backend.application.model.IssuedEmployeeInvite;
-import com.escapa.backend.application.model.RegisteredEmployee;
-import com.escapa.backend.application.model.UpdatedEmployee;
-import com.escapa.backend.application.usecase.EmployeeInviteMailer;
-import com.escapa.backend.application.usecase.GetCompanySeatsSummaryUseCase;
-import com.escapa.backend.application.usecase.ListCompanyEmployeesUseCase;
-import com.escapa.backend.application.usecase.RegisterCompanyEmployeeUseCase;
-import com.escapa.backend.application.usecase.ResendEmployeeInviteUseCase;
-import com.escapa.backend.application.usecase.UnlinkCompanyEmployeeUseCase;
-import com.escapa.backend.application.usecase.UpdateCompanyEmployeeUseCase;
-import com.escapa.backend.application.usecase.UpdateCompanyEmployeeUseCase.EmployeeChanges;
+import java.util.List;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -38,7 +18,33 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
+import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.CompanyEmployeeResponse;
+import com.escapa.backend.adapters.dto.CompanySeatsResponse;
+import com.escapa.backend.adapters.dto.CreateCompanyEmployeeRequest;
+import com.escapa.backend.adapters.dto.EmployeeCourseAssignmentResponse;
+import com.escapa.backend.adapters.dto.PageResponse;
+import com.escapa.backend.adapters.dto.RegisteredEmployeeResponse;
+import com.escapa.backend.adapters.dto.ResentInviteResponse;
+import com.escapa.backend.adapters.dto.UpdateCompanyEmployeeRequest;
+import com.escapa.backend.adapters.dto.UpdatedEmployeeResponse;
+import com.escapa.backend.adapters.security.AuthenticationContext;
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CompanyEmployee;
+import com.escapa.backend.application.model.IssuedEmployeeInvite;
+import com.escapa.backend.application.model.RegisteredEmployee;
+import com.escapa.backend.application.model.UpdatedEmployee;
+import com.escapa.backend.application.usecase.AssignEmployeeCourseUseCase;
+import com.escapa.backend.application.usecase.EmployeeInviteMailer;
+import com.escapa.backend.application.usecase.GetCompanySeatsSummaryUseCase;
+import com.escapa.backend.application.usecase.ListCompanyEmployeesUseCase;
+import com.escapa.backend.application.usecase.ListEmployeeCoursesUseCase;
+import com.escapa.backend.application.usecase.RegisterCompanyEmployeeUseCase;
+import com.escapa.backend.application.usecase.ResendEmployeeInviteUseCase;
+import com.escapa.backend.application.usecase.RevokeEmployeeCourseUseCase;
+import com.escapa.backend.application.usecase.UnlinkCompanyEmployeeUseCase;
+import com.escapa.backend.application.usecase.UpdateCompanyEmployeeUseCase;
+import com.escapa.backend.application.usecase.UpdateCompanyEmployeeUseCase.EmployeeChanges;
 
 /**
  * Gestão de Colaboradores da empresa autenticada (US-30). A empresa é sempre a do token
@@ -56,6 +62,9 @@ public class CompanyEmployeeController {
     private final EmployeeInviteMailer employeeInviteMailer;
     private final UnlinkCompanyEmployeeUseCase unlinkCompanyEmployeeUseCase;
     private final UpdateCompanyEmployeeUseCase updateCompanyEmployeeUseCase;
+    private final ListEmployeeCoursesUseCase listEmployeeCoursesUseCase;
+    private final AssignEmployeeCourseUseCase assignEmployeeCourseUseCase;
+    private final RevokeEmployeeCourseUseCase revokeEmployeeCourseUseCase;
 
     public CompanyEmployeeController(
             GetCompanySeatsSummaryUseCase getCompanySeatsSummaryUseCase,
@@ -64,7 +73,10 @@ public class CompanyEmployeeController {
             ResendEmployeeInviteUseCase resendEmployeeInviteUseCase,
             EmployeeInviteMailer employeeInviteMailer,
             UnlinkCompanyEmployeeUseCase unlinkCompanyEmployeeUseCase,
-            UpdateCompanyEmployeeUseCase updateCompanyEmployeeUseCase
+            UpdateCompanyEmployeeUseCase updateCompanyEmployeeUseCase,
+            ListEmployeeCoursesUseCase listEmployeeCoursesUseCase,
+            AssignEmployeeCourseUseCase assignEmployeeCourseUseCase,
+            RevokeEmployeeCourseUseCase revokeEmployeeCourseUseCase
     ) {
         this.getCompanySeatsSummaryUseCase = getCompanySeatsSummaryUseCase;
         this.listCompanyEmployeesUseCase = listCompanyEmployeesUseCase;
@@ -73,6 +85,9 @@ public class CompanyEmployeeController {
         this.employeeInviteMailer = employeeInviteMailer;
         this.unlinkCompanyEmployeeUseCase = unlinkCompanyEmployeeUseCase;
         this.updateCompanyEmployeeUseCase = updateCompanyEmployeeUseCase;
+        this.listEmployeeCoursesUseCase = listEmployeeCoursesUseCase;
+        this.assignEmployeeCourseUseCase = assignEmployeeCourseUseCase;
+        this.revokeEmployeeCourseUseCase = revokeEmployeeCourseUseCase;
     }
 
     @GetMapping("/seats")
@@ -176,5 +191,50 @@ public class CompanyEmployeeController {
         final UUID companyId = AuthenticationContext.requireUser().id();
         return ResponseEntity.ok(ApiResponse.success(
                 CompanySeatsResponse.from(unlinkCompanyEmployeeUseCase.execute(companyId, id))));
+    }
+
+    @GetMapping("/employees/{id}/courses")
+    @Operation(
+            summary = "List the company courses released to an employee",
+            description = "Returns every published course owned by the company with a flag saying whether the "
+                    + "employee currently has an active enrollment. An employee of another company returns 404.")
+    public ResponseEntity<ApiResponse<List<EmployeeCourseAssignmentResponse>>> listEmployeeCourses(
+            @PathVariable UUID id
+    ) {
+        final UUID companyId = AuthenticationContext.requireUser().id();
+        final List<EmployeeCourseAssignmentResponse> courses = listEmployeeCoursesUseCase.execute(companyId, id)
+                .stream()
+                .map(EmployeeCourseAssignmentResponse::from)
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success(courses));
+    }
+
+    @PostMapping("/employees/{id}/courses/{courseId}")
+    @Operation(
+            summary = "Release a company course to an employee",
+            description = "Enrolls (or reactivates) the employee in a course owned by the company. A course the "
+                    + "company does not own, or an employee of another company, returns 404.")
+    public ResponseEntity<ApiResponse<Void>> assignEmployeeCourse(
+            @PathVariable UUID id,
+            @PathVariable UUID courseId
+    ) {
+        final UUID companyId = AuthenticationContext.requireUser().id();
+        assignEmployeeCourseUseCase.execute(companyId, id, courseId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Curso liberado para o colaborador"));
+    }
+
+    @DeleteMapping("/employees/{id}/courses/{courseId}")
+    @Operation(
+            summary = "Revoke a company course from an employee",
+            description = "Revokes the corporate enrollment. Courses the employee bought individually stay "
+                    + "available. Progress and certificates are kept. Returns 404 for another company's "
+                    + "employee or a course the company does not own.")
+    public ResponseEntity<ApiResponse<Void>> revokeEmployeeCourse(
+            @PathVariable UUID id,
+            @PathVariable UUID courseId
+    ) {
+        final UUID companyId = AuthenticationContext.requireUser().id();
+        revokeEmployeeCourseUseCase.execute(companyId, id, courseId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Acesso ao curso removido"));
     }
 }

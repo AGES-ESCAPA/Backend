@@ -1,13 +1,13 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.Enrollment;
-import com.escapa.backend.application.port.OrderAccessPort;
-
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.escapa.backend.application.model.Enrollment;
+import com.escapa.backend.application.port.OrderAccessPort;
 
 /** Registra as matrículas gravadas por userId/courseId; o resto da porta não é usado fora de pedidos. */
 public final class RecordingOrderAccessPort implements OrderAccessPort {

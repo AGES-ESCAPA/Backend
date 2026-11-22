@@ -8,7 +8,8 @@ public class LessonAccessDeniedException extends RuntimeException {
     public enum Reason {
         NOT_ENROLLED("user is not enrolled in the course"),
         ENROLLMENT_NOT_STARTED("enrollment has not started yet"),
-        ACCESS_EXPIRED("access period has expired");
+        ACCESS_EXPIRED("access period has expired"),
+        SEQUENTIAL_PROGRESS_LOCKED("previous lessons or modules must be completed first");
 
         private final String description;
 

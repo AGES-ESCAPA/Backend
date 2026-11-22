@@ -1,13 +1,13 @@
 package com.escapa.backend.domain.user;
 
-import com.escapa.backend.domain.entity.User;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.entity.User;
 
 class UserDomainTest {
 

@@ -2,35 +2,33 @@ package com.escapa.backend.infrastructure.config;
 
 import java.time.Clock;
 
-import com.escapa.backend.application.usecase.RegisterCompanyEmployeeUseCase;
-import com.escapa.backend.application.usecase.ResendEmployeeInviteUseCase;
-import com.escapa.backend.application.usecase.EmployeeInviteMailer;
-import com.escapa.backend.application.port.OrderAccessPort;
-import com.escapa.backend.application.port.EmailSenderPort;
-import com.escapa.backend.application.port.EmailTemplatePort;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.minio.MinioClient;
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 import com.escapa.backend.application.port.AccountInviteRepositoryPort;
-import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
 import com.escapa.backend.application.port.AdminMetricsRepositoryPort;
+import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
-import com.escapa.backend.application.port.ContactValidatorPort;
 import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
-import com.escapa.backend.application.port.CompanyRepositoryPort;
-import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
 import com.escapa.backend.application.port.CompanyEmployeeUnlinkPort;
 import com.escapa.backend.application.port.CompanyReportRepositoryPort;
+import com.escapa.backend.application.port.CompanyRepositoryPort;
 import com.escapa.backend.application.port.CompanySeatsPort;
+import com.escapa.backend.application.port.ContactValidatorPort;
+import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.application.port.CourseNotificationPort;
 import com.escapa.backend.application.port.CoursePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.CourseRepositoryPort;
 import com.escapa.backend.application.port.CourseReviewRepositoryPort;
+import com.escapa.backend.application.port.EmailSenderPort;
+import com.escapa.backend.application.port.EmailTemplatePort;
 import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.application.port.FileStoragePort;
@@ -41,64 +39,77 @@ import com.escapa.backend.application.port.LessonSupplementRepositoryPort;
 import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.port.NotificationRepositoryPort;
+import com.escapa.backend.application.port.OrderAccessPort;
 import com.escapa.backend.application.port.OrderAccessRevocationPort;
 import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.PasswordHasherPort;
+import com.escapa.backend.application.port.PasswordResetTokenRepositoryPort;
 import com.escapa.backend.application.port.RegularUserRepositoryPort;
 import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.port.UsersCompanyRepositoryPort;
 import com.escapa.backend.application.usecase.AddCoursePrerequisiteUseCase;
+import com.escapa.backend.application.usecase.AssignEmployeeCourseUseCase;
 import com.escapa.backend.application.usecase.AuthorizeActiveUserUseCase;
 import com.escapa.backend.application.usecase.AuthorizeAdminUseCase;
 import com.escapa.backend.application.usecase.CancelOrderUseCase;
 import com.escapa.backend.application.usecase.ChangePasswordUseCase;
-import com.escapa.backend.application.usecase.ListCompanyCoursesUseCase;
 import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.CreateContentUseCase;
 import com.escapa.backend.application.usecase.CreateInvitePasswordUseCase;
 import com.escapa.backend.application.usecase.CreateModuleUseCase;
-import com.escapa.backend.application.usecase.GetAccountInviteUseCase;
 import com.escapa.backend.application.usecase.CreateUserUseCase;
-import com.escapa.backend.application.usecase.LoginUseCase;
-import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import com.escapa.backend.application.usecase.DeactivateAccountUseCase;
 import com.escapa.backend.application.usecase.DeleteContentUseCase;
 import com.escapa.backend.application.usecase.DeleteModuleUseCase;
 import com.escapa.backend.application.usecase.DownloadCertificateUseCase;
-import com.escapa.backend.application.usecase.GetCertificateDetailsUseCase;
+import com.escapa.backend.application.usecase.EmployeeInviteMailer;
+import com.escapa.backend.application.usecase.GetAccountInviteUseCase;
 import com.escapa.backend.application.usecase.GetAdminMetricsOverviewUseCase;
-import com.escapa.backend.application.usecase.GetContentUseCase;
+import com.escapa.backend.application.usecase.GetCertificateDetailsUseCase;
 import com.escapa.backend.application.usecase.GetCompanyReportOverviewUseCase;
 import com.escapa.backend.application.usecase.GetCompanySeatsSummaryUseCase;
+import com.escapa.backend.application.usecase.GetContentUseCase;
 import com.escapa.backend.application.usecase.GetCourseChangeLogUseCase;
 import com.escapa.backend.application.usecase.GetCourseDetailsUseCase;
 import com.escapa.backend.application.usecase.GetCourseRulesUseCase;
+import com.escapa.backend.application.usecase.GetPasswordResetTokenUseCase;
 import com.escapa.backend.application.usecase.GetProfileUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
 import com.escapa.backend.application.usecase.GetUserByIdUseCase;
+import com.escapa.backend.application.usecase.ListCompanyCourseIdsUseCase;
+import com.escapa.backend.application.usecase.ListCompanyCoursesUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeeProgressUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeesUseCase;
-import com.escapa.backend.application.usecase.UnlinkCompanyEmployeeUseCase;
-import com.escapa.backend.application.usecase.UpdateCompanyEmployeeUseCase;
-import com.escapa.backend.application.usecase.ListCompanyCourseIdsUseCase;
 import com.escapa.backend.application.usecase.ListCourseModulesUseCase;
+import com.escapa.backend.application.usecase.ListEmployeeCoursesUseCase;
 import com.escapa.backend.application.usecase.ListModuleContentsUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCourseFiltersUseCase;
 import com.escapa.backend.application.usecase.ListPublishedCoursesUseCase;
 import com.escapa.backend.application.usecase.ListStudentEnrollmentsUseCase;
 import com.escapa.backend.application.usecase.ListUserNotificationsUseCase;
 import com.escapa.backend.application.usecase.ListUsersUseCase;
+import com.escapa.backend.application.usecase.LoginUseCase;
 import com.escapa.backend.application.usecase.MarkAllNotificationsAsReadUseCase;
 import com.escapa.backend.application.usecase.MarkNotificationAsReadUseCase;
 import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
+import com.escapa.backend.application.usecase.PasswordResetMailer;
 import com.escapa.backend.application.usecase.RateCourseUseCase;
 import com.escapa.backend.application.usecase.RefundOrderUseCase;
+import com.escapa.backend.application.usecase.RegisterCompanyEmployeeUseCase;
 import com.escapa.backend.application.usecase.RegisterCompanyUseCase;
+import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import com.escapa.backend.application.usecase.RemoveCoursePrerequisiteUseCase;
 import com.escapa.backend.application.usecase.ReorderContentsUseCase;
 import com.escapa.backend.application.usecase.ReorderModulesUseCase;
+import com.escapa.backend.application.usecase.RequestPasswordResetUseCase;
+import com.escapa.backend.application.usecase.ResendEmployeeInviteUseCase;
+import com.escapa.backend.application.usecase.ResetPasswordUseCase;
+import com.escapa.backend.application.usecase.RevokeEmployeeCourseUseCase;
 import com.escapa.backend.application.usecase.SearchCoursesForPrerequisiteUseCase;
+import com.escapa.backend.application.usecase.SubmitQuizUseCase;
+import com.escapa.backend.application.usecase.UnlinkCompanyEmployeeUseCase;
+import com.escapa.backend.application.usecase.UpdateCompanyEmployeeUseCase;
 import com.escapa.backend.application.usecase.UpdateContentUseCase;
 import com.escapa.backend.application.usecase.UpdateModuleUseCase;
 import com.escapa.backend.application.usecase.UpdateProfileUseCase;
@@ -106,14 +117,15 @@ import com.escapa.backend.application.usecase.UpdateProgressRulesUseCase;
 import com.escapa.backend.application.usecase.UploadAvatarUseCase;
 import com.escapa.backend.application.usecase.UploadContentFileUseCase;
 import com.escapa.backend.application.usecase.UploadCourseThumbnailUseCase;
+import com.escapa.backend.infrastructure.persistence.AdminJpaRepository;
+import com.escapa.backend.infrastructure.persistence.AdminMetricsRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanyCourseJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CompanyCourseRepositoryAdapter;
-import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
-import com.escapa.backend.infrastructure.persistence.CompanyRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanyEmployeeAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanyEmployeeUnlinkAdapter;
+import com.escapa.backend.infrastructure.persistence.CompanyJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CompanyReportAdapter;
-import com.escapa.backend.infrastructure.persistence.AdminMetricsRepositoryAdapter;
+import com.escapa.backend.infrastructure.persistence.CompanyRepositoryAdapter;
 import com.escapa.backend.infrastructure.persistence.CompanySeatsAdapter;
 import com.escapa.backend.infrastructure.persistence.ContentJpaRepository;
 import com.escapa.backend.infrastructure.persistence.CourseChangeLogJpaRepository;
@@ -138,10 +150,6 @@ import com.escapa.backend.infrastructure.persistence.UsersCompanyRepositoryAdapt
 import com.escapa.backend.infrastructure.persistence.course.CourseRepositoryAdapter;
 import com.escapa.backend.infrastructure.storage.MinioClientFactory;
 import com.escapa.backend.infrastructure.storage.MinioFileStorageAdapter;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.minio.MinioClient;
-import jakarta.persistence.EntityManager;
 
 @Configuration
 public class SpringConfig {
@@ -150,9 +158,11 @@ public class SpringConfig {
     public UserRepositoryPort userRepositoryPort(
             UserJpaRepository userJpaRepository,
             UsersCompanyJpaRepository usersCompanyJpaRepository,
-            RegularUserJpaRepository regularUserJpaRepository
+            RegularUserJpaRepository regularUserJpaRepository,
+            AdminJpaRepository adminJpaRepository
     ) {
-        return new UserRepositoryAdapter(userJpaRepository, usersCompanyJpaRepository, regularUserJpaRepository);
+        return new UserRepositoryAdapter(
+                userJpaRepository, usersCompanyJpaRepository, regularUserJpaRepository, adminJpaRepository);
     }
 
     @Bean
@@ -429,6 +439,50 @@ public class SpringConfig {
     }
 
     @Bean
+    public PasswordResetMailer passwordResetMailer(
+            EmailSenderPort emailSenderPort,
+            EmailTemplatePort emailTemplatePort,
+            @Value("${app.frontend-url}") String frontendUrl
+    ) {
+        return new PasswordResetMailer(emailSenderPort, emailTemplatePort, frontendUrl);
+    }
+
+    @Bean
+    public RequestPasswordResetUseCase requestPasswordResetUseCase(
+            UserRepositoryPort userRepositoryPort,
+            PasswordResetTokenRepositoryPort passwordResetTokenRepositoryPort,
+            @Value("${app.password-reset.expiration-hours}") long passwordResetExpirationHours
+    ) {
+        return new RequestPasswordResetUseCase(
+                userRepositoryPort,
+                passwordResetTokenRepositoryPort,
+                Clock.systemDefaultZone(),
+                passwordResetExpirationHours);
+    }
+
+    @Bean
+    public GetPasswordResetTokenUseCase getPasswordResetTokenUseCase(
+            PasswordResetTokenRepositoryPort passwordResetTokenRepositoryPort,
+            UserRepositoryPort userRepositoryPort
+    ) {
+        return new GetPasswordResetTokenUseCase(
+                passwordResetTokenRepositoryPort, userRepositoryPort, Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public ResetPasswordUseCase resetPasswordUseCase(
+            PasswordResetTokenRepositoryPort passwordResetTokenRepositoryPort,
+            UserRepositoryPort userRepositoryPort,
+            PasswordHasherPort passwordHasherPort
+    ) {
+        return new ResetPasswordUseCase(
+                passwordResetTokenRepositoryPort,
+                userRepositoryPort,
+                passwordHasherPort,
+                Clock.systemDefaultZone());
+    }
+
+    @Bean
     public ListCompanyEmployeesUseCase listCompanyEmployeesUseCase(
             CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort) {
         return new ListCompanyEmployeesUseCase(companyEmployeeRepositoryPort);
@@ -446,6 +500,33 @@ public class SpringConfig {
             GetCompanySeatsSummaryUseCase getCompanySeatsSummaryUseCase) {
         return new UnlinkCompanyEmployeeUseCase(
                 companyEmployeeUnlinkPort, userRepositoryPort, getCompanySeatsSummaryUseCase,
+                Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public ListEmployeeCoursesUseCase listEmployeeCoursesUseCase(
+            CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort,
+            CompanyCourseRepositoryPort companyCourseRepositoryPort) {
+        return new ListEmployeeCoursesUseCase(companyEmployeeRepositoryPort, companyCourseRepositoryPort);
+    }
+
+    @Bean
+    public AssignEmployeeCourseUseCase assignEmployeeCourseUseCase(
+            CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort,
+            CompanyCourseRepositoryPort companyCourseRepositoryPort,
+            OrderAccessPort orderAccessPort) {
+        return new AssignEmployeeCourseUseCase(
+                companyEmployeeRepositoryPort, companyCourseRepositoryPort, orderAccessPort,
+                Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public RevokeEmployeeCourseUseCase revokeEmployeeCourseUseCase(
+            CompanyEmployeeRepositoryPort companyEmployeeRepositoryPort,
+            CompanyCourseRepositoryPort companyCourseRepositoryPort,
+            CompanyEmployeeUnlinkPort companyEmployeeUnlinkPort) {
+        return new RevokeEmployeeCourseUseCase(
+                companyEmployeeRepositoryPort, companyCourseRepositoryPort, companyEmployeeUnlinkPort,
                 Clock.systemDefaultZone());
     }
 
@@ -667,9 +748,21 @@ public class SpringConfig {
     public OpenStudentLessonUseCase openStudentLessonUseCase(
             LessonSupplementRepositoryPort lessonSupplementRepositoryPort,
             LessonRepositoryPort lessonRepositoryPort,
-            EnrollmentRepositoryPort enrollmentRepositoryPort
+            EnrollmentRepositoryPort enrollmentRepositoryPort,
+            CourseRepositoryPort courseRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort,
+            LessonProgressRepositoryPort lessonProgressRepositoryPort,
+            ModulePrerequisiteRepositoryPort modulePrerequisiteRepositoryPort
     ) {
-        return new OpenStudentLessonUseCase(lessonRepositoryPort, enrollmentRepositoryPort, lessonSupplementRepositoryPort, Clock.systemDefaultZone());
+        return new OpenStudentLessonUseCase(
+                lessonRepositoryPort,
+                enrollmentRepositoryPort,
+                lessonSupplementRepositoryPort,
+                courseRepositoryPort,
+                moduleRepositoryPort,
+                lessonProgressRepositoryPort,
+                modulePrerequisiteRepositoryPort,
+                Clock.systemDefaultZone());
     }
 
     @Bean
@@ -695,7 +788,9 @@ public class SpringConfig {
             LessonProgressRepositoryPort lessonProgressRepositoryPort,
             ModuleRepositoryPort moduleRepositoryPort,
             EnrollmentProgressRepositoryPort enrollmentProgressRepositoryPort,
-            EnrollmentRepositoryPort enrollmentRepositoryPort
+            EnrollmentRepositoryPort enrollmentRepositoryPort,
+            CourseRepositoryPort courseRepositoryPort,
+            ModulePrerequisiteRepositoryPort modulePrerequisiteRepositoryPort
     ) {
         return new CompleteStudentLessonUseCase(
                 lessonRepositoryPort,
@@ -703,6 +798,29 @@ public class SpringConfig {
                 moduleRepositoryPort,
                 enrollmentProgressRepositoryPort,
                 enrollmentRepositoryPort,
+                courseRepositoryPort,
+                modulePrerequisiteRepositoryPort,
+                Clock.systemDefaultZone());
+    }
+
+    @Bean
+    public SubmitQuizUseCase submitQuizUseCase(
+            LessonRepositoryPort lessonRepositoryPort,
+            LessonProgressRepositoryPort lessonProgressRepositoryPort,
+            ModuleRepositoryPort moduleRepositoryPort,
+            EnrollmentProgressRepositoryPort enrollmentProgressRepositoryPort,
+            EnrollmentRepositoryPort enrollmentRepositoryPort,
+            CourseRepositoryPort courseRepositoryPort,
+            ModulePrerequisiteRepositoryPort modulePrerequisiteRepositoryPort
+    ) {
+        return new SubmitQuizUseCase(
+                lessonRepositoryPort,
+                lessonProgressRepositoryPort,
+                moduleRepositoryPort,
+                enrollmentProgressRepositoryPort,
+                enrollmentRepositoryPort,
+                courseRepositoryPort,
+                modulePrerequisiteRepositoryPort,
                 Clock.systemDefaultZone());
     }
 

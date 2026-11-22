@@ -130,10 +130,10 @@ INSERT INTO regular_users (user_id, cpf, phone) VALUES
 INSERT INTO company (id, company_name, cnpj_id, company_email, matricula, seats_total, phone) VALUES
     ('d0000000-0000-4000-d000-000000000001', 'Pousada Vista Mar LTDA', '12345678000191', 'rh@vistamar.com.br', 2048, 10, '51999990001'),
     ('d0000000-0000-4000-d000-000000000002', 'Hotel Atlântico Palace LTDA', '22333444000102', 'rh@atlanticopalace.com.br', 3102, 20, '51999990002'),
-    ('d0000000-0000-4000-d000-000000000003', 'Resort Costa Dourada S.A.', '33444555000113', 'pessoas@costadourada.com.br', 4410, 0, '51999990003'),
-    ('d0000000-0000-4000-d000-000000000004', 'Hostel Centro Histórico ME', '44555666000124', 'admin@hostelcentro.com.br', 1507, 0, '51999990004'),
+    ('d0000000-0000-4000-d000-000000000003', 'Resort Costa Dourada S.A.', '33444555000113', 'pessoas@costadourada.com.br', 4410, 5, '51999990003'),
+    ('d0000000-0000-4000-d000-000000000004', 'Hostel Centro Histórico ME', '44555666000124', 'admin@hostelcentro.com.br', 1507, 3, '51999990004'),
     ('d0000000-0000-4000-d000-000000000005', 'Destinos do Sul Operadora de Turismo LTDA', '55666777000135', 'comercial@destinosdosul.com.br', 8821, 15, '51999990005'),
-    ('d0000000-0000-4000-d000-000000000006', 'Spa & Wellness Gramado LTDA', '66777888000146', 'rh@spagramado.com.br', 6734, 0, '51999990006');
+    ('d0000000-0000-4000-d000-000000000006', 'Spa & Wellness Gramado LTDA', '66777888000146', 'rh@spagramado.com.br', 6734, 5, '51999990006');
     
 INSERT INTO users_company (user_id, company_id, role) VALUES
     ('c0000000-0000-4000-c000-000000000001', 'd0000000-0000-4000-d000-000000000001', 'Recepção'),
@@ -172,7 +172,7 @@ INSERT INTO courses (
      'Estratégias avançadas de precificação e gestão de receita para meios de hospedagem',
      'http://localhost:9000/escapa-media/courses/revenue-management-hotelaria.png',
      NULL,
-     'PUBLISHED',
+     'ARCHIVED',
      'a0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000002',
      'Marketing', 'AVANCADO', 1200, 365, 147,
      '["Calcular RevPAR, ADR e occupancy com segurança","Montar uma grade tarifária por segmento","Prever demanda e ajustar preços no dia a dia","Equilibrar OTAs, site oficial e contratos","Definir limites de overbooking com dados de no-show","Implantar um ritual semanal de revenue na operação"]',
@@ -1255,6 +1255,16 @@ INSERT INTO content (id, module_id, title, description, type, url, duration_minu
 UPDATE modules SET published_order = "order" WHERE published_order IS NULL;
 UPDATE content SET published_order = "order" WHERE published_order IS NULL;
 
+UPDATE content
+   SET type = 'QUIZ',
+       quiz_json = CASE id
+           WHEN '02000000-0000-4000-9000-000000000024' THEN
+               '[{"id":"03000000-0000-4000-9000-000000000001","prompt":"Qual prática fortalece a governança de um destino?","options":[{"id":"03000000-0000-4000-9000-000000000011","text":"Conselhos com representação pública e privada","correct":true},{"id":"03000000-0000-4000-9000-000000000012","text":"Centralizar decisões sem consulta","correct":false}]},{"id":"03000000-0000-4000-9000-000000000002","prompt":"DMOs atuam principalmente em:","options":[{"id":"03000000-0000-4000-9000-000000000021","text":"Promoção e articulação do destino","correct":true},{"id":"03000000-0000-4000-9000-000000000022","text":"Fiscalização de hotéis","correct":false}]}]'::json
+           ELSE
+               '[{"id":"03000000-0000-4000-9000-000000000099","prompt":"Confirme o entendimento desta aula.","options":[{"id":"03000000-0000-4000-9000-000000000091","text":"Sim, compreendi os conceitos principais","correct":true},{"id":"03000000-0000-4000-9000-000000000092","text":"Não, preciso rever o conteúdo","correct":false}]}]'::json
+       END
+ WHERE title LIKE 'Quiz:%';
+
 INSERT INTO user_courses (
     user_id, course_id, dt_inicio, dt_expiracao, progress, conclusion_date, last_access_date,
     certificate_issued, certificate_code, certificate_issued_at
@@ -1360,12 +1370,16 @@ INSERT INTO orders (
     ('05000000-0000-4000-9000-000000000018', 'c0000000-0000-4000-c000-000000000004', 'd0000000-0000-4000-d000-000000000004', 'CORPORATE', 'COURSE', 'e0000000-0000-4000-e000-000000000006', NULL, 87.00, 'CARD', 1, 'APPROVED', '2026-03-08 09:20:00'),
     ('05000000-0000-4000-9000-000000000019', 'c0000000-0000-4000-c000-000000000005', 'd0000000-0000-4000-d000-000000000005', 'CORPORATE', 'COURSE', 'e0000000-0000-4000-e000-000000000001', NULL, 127.00, 'CARD', 1, 'APPROVED', '2026-03-09 17:35:00'),
     ('05000000-0000-4000-9000-000000000020', 'c0000000-0000-4000-c000-000000000006', 'd0000000-0000-4000-d000-000000000006', 'CORPORATE', 'COURSE', 'e0000000-0000-4000-e000-000000000004', NULL, 167.00, 'CARD', 1, 'APPROVED', '2026-03-11 12:45:00'),
-    -- Corporativos de assentos: APPROVED (soma em company.seats_total), REFUNDED e CANCELLED
+    -- Corporativos de assentos: APPROVED (soma em company.seats_total); 024/025 ficam REFUNDED/CANCELLED
+    -- só como exemplo de fluxo admin (não entram no seats_total).
     ('05000000-0000-4000-9000-000000000021', 'c0000000-0000-4000-c000-000000000001', 'd0000000-0000-4000-d000-000000000001', 'CORPORATE', 'SEATS', NULL, 10, 790.00, 'CARD', 1, 'APPROVED', '2026-02-24 15:00:00'),
     ('05000000-0000-4000-9000-000000000022', 'c0000000-0000-4000-c000-000000000002', 'd0000000-0000-4000-d000-000000000002', 'CORPORATE', 'SEATS', NULL, 20, 1580.00, 'CARD', 2, 'APPROVED', '2026-03-03 10:30:00'),
     ('05000000-0000-4000-9000-000000000023', 'c0000000-0000-4000-c000-000000000005', 'd0000000-0000-4000-d000-000000000005', 'CORPORATE', 'SEATS', NULL, 15, 1185.00, 'CARD', 3, 'APPROVED', '2026-03-09 09:10:00'),
     ('05000000-0000-4000-9000-000000000024', 'c0000000-0000-4000-c000-000000000003', 'd0000000-0000-4000-d000-000000000003', 'CORPORATE', 'SEATS', NULL, 5, 395.00, 'CARD', 1, 'REFUNDED', '2026-03-05 16:20:00'),
-    ('05000000-0000-4000-9000-000000000025', 'c0000000-0000-4000-c000-000000000004', 'd0000000-0000-4000-d000-000000000004', 'CORPORATE', 'SEATS', NULL, 3, 237.00, 'CARD', 1, 'CANCELLED', '2026-03-07 13:50:00');
+    ('05000000-0000-4000-9000-000000000025', 'c0000000-0000-4000-c000-000000000004', 'd0000000-0000-4000-d000-000000000004', 'CORPORATE', 'SEATS', NULL, 3, 237.00, 'CARD', 1, 'CANCELLED', '2026-03-07 13:50:00'),
+    ('05000000-0000-4000-9000-000000000026', 'c0000000-0000-4000-c000-000000000003', 'd0000000-0000-4000-d000-000000000003', 'CORPORATE', 'SEATS', NULL, 5, 395.00, 'CARD', 1, 'APPROVED', '2026-03-06 09:00:00'),
+    ('05000000-0000-4000-9000-000000000027', 'c0000000-0000-4000-c000-000000000004', 'd0000000-0000-4000-d000-000000000004', 'CORPORATE', 'SEATS', NULL, 3, 237.00, 'CARD', 1, 'APPROVED', '2026-03-08 10:00:00'),
+    ('05000000-0000-4000-9000-000000000028', 'c0000000-0000-4000-c000-000000000006', 'd0000000-0000-4000-d000-000000000006', 'CORPORATE', 'SEATS', NULL, 5, 395.00, 'CARD', 1, 'APPROVED', '2026-03-10 11:00:00');
 
 -- Todo pedido nasce APPROVED (pagamento no cartão aprovado na hora, sem autor).
 INSERT INTO order_status_history (id, order_id, status, changed_by, reason, created_at)

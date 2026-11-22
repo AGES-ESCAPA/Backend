@@ -19,6 +19,13 @@ public interface CompanyEmployeeUnlinkPort {
      */
     int revokeCompanyCourseEnrollments(UUID companyId, UUID employeeId, LocalDateTime revokedAt);
 
+    /**
+     * Revoga a matrícula do colaborador em um único curso da empresa. Compra individual aprovada
+     * não é revogada. Devolve {@code true} se uma matrícula foi revogada.
+     */
+    boolean revokeCompanyCourseEnrollment(
+            UUID companyId, UUID employeeId, UUID courseId, LocalDateTime revokedAt);
+
     /** Expira os convites em aberto do colaborador nessa empresa. Devolve quantos foram invalidados. */
     int invalidatePendingInvites(UUID companyId, UUID employeeId, LocalDateTime now);
 }

@@ -1,15 +1,7 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CompanyEmployee;
-import com.escapa.backend.application.model.CompanyEmployeeCounts;
-import com.escapa.backend.application.model.CompanySeatsSummary;
-import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
-import com.escapa.backend.application.port.CompanySeatsPort;
-import com.escapa.backend.domain.company.CompanyNotFoundException;
-import com.escapa.backend.domain.user.UserStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,8 +10,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CompanyEmployee;
+import com.escapa.backend.application.model.CompanyEmployeeCounts;
+import com.escapa.backend.application.model.CompanySeatsSummary;
+import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
+import com.escapa.backend.application.port.CompanySeatsPort;
+import com.escapa.backend.domain.company.CompanyNotFoundException;
+import com.escapa.backend.domain.user.UserStatus;
 
 class GetCompanySeatsSummaryUseCaseTest {
 
@@ -87,11 +88,11 @@ class GetCompanySeatsSummaryUseCaseTest {
     }
 
     @Test
-    void shouldReportNoSeatsForACompanyThatNeverBoughtAny() {
+    void shouldRaiseContractedSeatsToAtLeastTheOccupiedCount() {
         fake.seatsTotal.put(companyA, 0);
         givenEmployees(companyA, 1, 0, 0);
 
-        assertEquals(new CompanySeatsSummary(0, 1, 0, 1, 1), useCase.execute(companyA));
+        assertEquals(new CompanySeatsSummary(1, 1, 0, 1, 1), useCase.execute(companyA));
     }
 
     @Test
@@ -101,6 +102,7 @@ class GetCompanySeatsSummaryUseCaseTest {
 
         final CompanySeatsSummary summary = useCase.execute(companyA);
 
+        assertEquals(4, summary.seatsTotal());
         assertEquals(0, summary.seatsAvailable());
         assertEquals(4, summary.seatsUsed());
     }
@@ -187,6 +189,11 @@ class GetCompanySeatsSummaryUseCaseTest {
 
         @Override
         public void updateJobTitle(UUID companyId, UUID userId, String jobTitle) {
+            throw new UnsupportedOperationException("not used by the seats summary");
+        }
+
+        @Override
+        public List<String> findJobTitles(UUID companyId) {
             throw new UnsupportedOperationException("not used by the seats summary");
         }
 

@@ -1,8 +1,8 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.usecase.ListUserNotificationsUseCase;
-
 import java.util.List;
+
+import com.escapa.backend.application.usecase.ListUserNotificationsUseCase;
 
 public record NotificationListResponse(List<NotificationResponse> notifications, long unreadCount) {
 

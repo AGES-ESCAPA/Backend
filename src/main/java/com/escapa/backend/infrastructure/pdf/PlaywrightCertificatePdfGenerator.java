@@ -1,16 +1,17 @@
 package com.escapa.backend.infrastructure.pdf;
 
-import com.escapa.backend.application.model.FormattedCertificate;
-import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
-import com.escapa.backend.domain.certificate.CertificateGenerationException;
-import com.escapa.backend.domain.certificate.CertificateTheme;
+import java.util.Locale;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.exceptions.TemplateProcessingException;
 
-import java.util.Locale;
+import com.escapa.backend.application.model.FormattedCertificate;
+import com.escapa.backend.application.port.CertificatePdfGeneratorPort;
+import com.escapa.backend.domain.certificate.CertificateGenerationException;
+import com.escapa.backend.domain.certificate.CertificateTheme;
 
 /**
  * PDF do certificado fiel a tela (US-18): o template Thymeleaf

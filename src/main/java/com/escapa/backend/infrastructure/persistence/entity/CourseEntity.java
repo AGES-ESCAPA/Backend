@@ -1,7 +1,10 @@
 package com.escapa.backend.infrastructure.persistence.entity;
 
-import com.escapa.backend.infrastructure.persistence.UserEntity;
-import com.escapa.backend.domain.course.CourseStatus;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,13 +21,11 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 import org.springframework.data.domain.Persistable;
+
+import com.escapa.backend.domain.course.CourseQuizRules;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.infrastructure.persistence.UserEntity;
 
 @Entity
 @Table(name = "courses")
@@ -96,6 +97,9 @@ public class CourseEntity implements Persistable<UUID> {
     /** Bloqueia o acesso ao conteudo depois que o prazo do curso expira. */
     @Column(name = "enforce_deadline_block", nullable = false)
     private Boolean enforceDeadlineBlock = false;
+
+    @Column(name = "min_quiz_pass_percentage", nullable = false)
+    private Integer minQuizPassPercentage = CourseQuizRules.DEFAULT_MIN_QUIZ_PASS_PERCENTAGE;
 
     @Column(name = "major_version", nullable = false)
     private Integer majorVersion = 0;

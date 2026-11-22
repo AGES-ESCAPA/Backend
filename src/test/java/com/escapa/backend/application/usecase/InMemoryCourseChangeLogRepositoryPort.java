@@ -1,9 +1,5 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.ChangeLogEntry;
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -12,6 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.escapa.backend.application.dto.ChangeLogEntry;
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 
 /**
  * Fake em memória de {@link CourseChangeLogRepositoryPort} para testes unitários.

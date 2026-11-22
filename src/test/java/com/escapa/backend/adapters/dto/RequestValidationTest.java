@@ -1,20 +1,21 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.adapters.dto.course.CreateCourseRequest;
-import com.escapa.backend.adapters.dto.course.UpdateCourseRequest;
-import com.escapa.backend.domain.content.ContentType;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.adapters.dto.course.CreateCourseRequest;
+import com.escapa.backend.adapters.dto.course.UpdateCourseRequest;
+import com.escapa.backend.domain.content.ContentType;
 
 class RequestValidationTest {
 
@@ -57,13 +58,13 @@ class RequestValidationTest {
         assertEquals(Set.of("title is required"), messages(validator.validate(new ModuleRequest(" "))));
         assertEquals(
                 Set.of("title is required", "type is required"),
-                messages(validator.validate(new ContentRequest("", null, null, null, null, null, null)))
+                messages(validator.validate(new ContentRequest("", null, null, null, null, null, null, null)))
         );
     }
 
     @Test
     void shouldRejectOversizedContentUrl() {
-        final ContentRequest request = new ContentRequest("Aula", ContentType.VIDEO, TOO_LONG, 5, null, false, null);
+        final ContentRequest request = new ContentRequest("Aula", ContentType.VIDEO, TOO_LONG, 5, null, false, null, null);
 
         assertEquals(Set.of("url must have at most 255 characters"), messages(validator.validate(request)));
     }
@@ -71,7 +72,7 @@ class RequestValidationTest {
     @Test
     void shouldRejectOversizedResourceUrl() {
         final ContentRequest request = new ContentRequest("Aula", ContentType.TEXT, null, null, "Texto", false,
-                List.of(new ContentResourceRequest("r1", "link", "Artigo", TOO_LONG)));
+                List.of(new ContentResourceRequest("r1", "link", "Artigo", TOO_LONG)), null);
 
         assertEquals(Set.of("resources.url must have at most 255 characters"), messages(validator.validate(request)));
     }

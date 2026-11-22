@@ -1,16 +1,19 @@
 package com.escapa.backend.adapters.controller;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,8 +26,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
-import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.model.TokenClaims;
+import com.escapa.backend.application.port.TokenProviderPort;
 import com.escapa.backend.application.usecase.FakePasswordHasher;
 import com.escapa.backend.application.usecase.InMemoryRegularUserRepositoryPort;
 import com.escapa.backend.application.usecase.InMemoryUserRepositoryPort;
@@ -32,10 +35,6 @@ import com.escapa.backend.application.usecase.LoginUseCase;
 import com.escapa.backend.application.usecase.RegisterStudentUseCase;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.infrastructure.validation.RegistrationContactValidator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import jakarta.validation.Validation;
-import jakarta.validation.ValidatorFactory;
 
 class RegisterStudentControllerTest {
 

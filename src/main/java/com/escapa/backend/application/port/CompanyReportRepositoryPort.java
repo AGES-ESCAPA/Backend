@@ -1,12 +1,12 @@
 package com.escapa.backend.application.port;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.model.CompanyEmployeeProgress;
 import com.escapa.backend.application.model.CompanyReportFigures;
 import com.escapa.backend.application.model.CompanyReportPeriod;
 import com.escapa.backend.application.model.EmployeeProgressStatus;
-
-import java.util.UUID;
 
 /**
  * Leituras do relatório de progresso da equipe (US-35). Toda consulta é de uma única empresa e conta

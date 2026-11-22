@@ -1,5 +1,20 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+
 import com.escapa.backend.application.port.CompanySeatsPort;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.application.port.OrderAccessRevocationPort;
@@ -7,6 +22,7 @@ import com.escapa.backend.application.port.OrderRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.application.usecase.CancelOrderUseCase;
 import com.escapa.backend.application.usecase.RefundOrderUseCase;
+import com.escapa.backend.domain.course.CourseStatus;
 import com.escapa.backend.domain.entity.Order;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.order.OrderItemType;
@@ -15,20 +31,6 @@ import com.escapa.backend.domain.order.OrderType;
 import com.escapa.backend.domain.order.PaymentMethod;
 import com.escapa.backend.domain.order.SeatsInUseException;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Cancelamento e reembolso de pedidos contra o banco real (US-28). */
 class OrderCancellationIntegrationTest extends PostgresIntegrationTest {
@@ -84,6 +86,7 @@ class OrderCancellationIntegrationTest extends PostgresIntegrationTest {
     private UUID givenCourse() {
         final CourseEntity course = new CourseEntity();
         course.setTitle("Curso " + UUID.randomUUID());
+        course.setStatus(CourseStatus.PUBLISHED);
         return courseJpaRepository.save(course).getId();
     }
 

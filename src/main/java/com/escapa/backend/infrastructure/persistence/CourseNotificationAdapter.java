@@ -1,12 +1,12 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.port.CourseNotificationPort;
-import com.escapa.backend.infrastructure.persistence.entity.NotificationEntity;
-import com.escapa.backend.infrastructure.persistence.entity.enums.NotificationType;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.escapa.backend.application.port.CourseNotificationPort;
+import com.escapa.backend.infrastructure.persistence.entity.NotificationEntity;
+import com.escapa.backend.infrastructure.persistence.entity.enums.NotificationType;
 
 public class CourseNotificationAdapter implements CourseNotificationPort {
 

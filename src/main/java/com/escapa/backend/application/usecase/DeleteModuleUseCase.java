@@ -1,11 +1,11 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
-
-import java.util.UUID;
 
 /**
  * Em curso publicado, o módulo some do construtor e continua visível para o

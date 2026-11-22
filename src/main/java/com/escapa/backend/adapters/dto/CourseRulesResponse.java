@@ -1,12 +1,15 @@
 package com.escapa.backend.adapters.dto;
-import com.escapa.backend.application.model.CourseRules;
+
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.model.CourseRules;
 
 public record CourseRulesResponse(    
     
     Boolean requireSequentialProgress,
     Boolean enforceDeadlineBlock,
+    Integer minQuizPassPercentage,
     String version,
     List<PrerequisiteResponse> prerequisites,
     List<ChangeLogResponse> changeLog
@@ -31,6 +34,7 @@ public record CourseRulesResponse(
         return new CourseRulesResponse(
                 rules.requireSequentialProgress(),
                 rules.enforceDeadlineBlock(),
+                rules.minQuizPassPercentage(),
                 rules.version(),
                 rules.prerequisites().stream()
                         .map(p -> new PrerequisiteResponse(p.courseId().toString(), p.courseTitle()))

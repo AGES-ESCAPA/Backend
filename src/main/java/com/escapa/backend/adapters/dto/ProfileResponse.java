@@ -1,9 +1,9 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.model.UserProfile;
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.escapa.backend.application.model.UserProfile;
 
 @Schema(description = "Profile data of the logged-in user, shaped by its profile "
         + "(STUDENT, EMPLOYEE, COMPANY or ADMIN)")
@@ -24,7 +24,11 @@ public record ProfileResponse(
         String companyName,
         String cnpj,
         @Schema(description = "Public URL of the profile photo; omitted when the user has none")
-        String avatarUrl
+        String avatarUrl,
+        @Schema(description = "Instructor title shown on courses; only for ADMIN")
+        String headline,
+        @Schema(description = "Instructor biography shown on courses; only for ADMIN")
+        String bio
 ) {
 
     public static ProfileResponse from(UserProfile profile) {
@@ -37,7 +41,9 @@ public record ProfileResponse(
                 profile.phone(),
                 profile.companyName(),
                 profile.cnpj(),
-                profile.avatarUrl()
+                profile.avatarUrl(),
+                profile.headline(),
+                profile.bio()
         );
     }
 }

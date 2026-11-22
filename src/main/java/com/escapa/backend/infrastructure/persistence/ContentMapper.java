@@ -1,17 +1,19 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.domain.content.ContentPendingDraft;
-import com.escapa.backend.domain.content.ContentResource;
-import com.escapa.backend.domain.entity.Content;
-import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
-import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import com.escapa.backend.domain.content.ContentPendingDraft;
+import com.escapa.backend.domain.content.ContentResource;
+import com.escapa.backend.domain.content.QuizQuestion;
+import com.escapa.backend.domain.entity.Content;
+import com.escapa.backend.infrastructure.persistence.entity.ContentEntity;
+import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
 
 public final class ContentMapper {
 
@@ -35,6 +37,7 @@ public final class ContentMapper {
         content.setIsFree(entity.getIsFree());
         content.setOrder(entity.getOrder());
         content.setResources(readResources(entity.getRecursos()));
+        content.setQuizQuestions(readQuizQuestions(entity.getQuizJson()));
         content.setCreatedAt(entity.getCreatedAt());
         content.setPublishedOrder(entity.getPublishedOrder());
         content.setPendingDraft(readPendingDraft(entity.getPendingDraft()));
@@ -55,6 +58,7 @@ public final class ContentMapper {
         entity.setPendingDraft(writePendingDraft(content.getPendingDraft()));
         entity.setPendingDeletion(content.isPendingDeletion());
         entity.setRecursos(writeResources(content.getResources()));
+        entity.setQuizJson(writeQuizQuestions(content.getQuizQuestions()));
         if (entity.getCreatedAt() == null) {
             final LocalDateTime createdAt =
                     content.getCreatedAt() != null ? content.getCreatedAt() : LocalDateTime.now();
@@ -103,6 +107,28 @@ public final class ContentMapper {
             return OBJECT_MAPPER.writeValueAsString(resources);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Failed to serialize content resources", e);
+        }
+    }
+
+    private static List<QuizQuestion> readQuizQuestions(String json) {
+        if (json == null || json.isBlank()) {
+            return new ArrayList<>();
+        }
+        try {
+            return new ArrayList<>(OBJECT_MAPPER.readValue(json, new TypeReference<List<QuizQuestion>>() { }));
+        } catch (JsonProcessingException e) {
+            return new ArrayList<>();
+        }
+    }
+
+    private static String writeQuizQuestions(List<QuizQuestion> questions) {
+        if (questions == null || questions.isEmpty()) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.writeValueAsString(questions);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize quiz questions", e);
         }
     }
 }

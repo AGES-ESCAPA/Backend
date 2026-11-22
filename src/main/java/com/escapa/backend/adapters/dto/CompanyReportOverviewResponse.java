@@ -1,9 +1,10 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.model.CompanyReportOverview;
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.List;
+import com.escapa.backend.application.model.CompanyReportOverview;
 
 @Schema(description = "Completion and engagement indicators of the company team")
 public record CompanyReportOverviewResponse(

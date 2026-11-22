@@ -1,17 +1,19 @@
 package com.escapa.backend.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
 import com.escapa.backend.application.model.UserProfile;
 import com.escapa.backend.domain.entity.Company;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.ProfileNotEditableException;
 import com.escapa.backend.domain.user.UserNotFoundException;
-import org.junit.jupiter.api.Test;
-
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class UpdateProfileUseCaseTest {
 
@@ -106,11 +108,26 @@ class UpdateProfileUseCaseTest {
     }
 
     @Test
-    void shouldForbidAdminFromEditing() {
+    void shouldUpdateAdminNameAndInstructorDescription() {
         final User admin = userRepository.save(new User("Barbara Diogo", "barbara@escapa.com.br", "hash", "ADMIN"));
+        userRepository.saveAdminInstructorProfile(
+                admin.getId(), "Headline antiga", "Bio antiga");
 
-        assertThrows(ProfileNotEditableException.class,
-                () -> useCase.execute(admin.getId(), "Outro Nome", null, null));
+        final UserProfile updated = useCase.execute(
+                admin.getId(),
+                "Barbara Admin",
+                "51999999999",
+                null,
+                "Pesquisadora em Gestão de Turismo",
+                "Quase 15 anos de experiência no setor.");
+
+        assertEquals("ADMIN", updated.profile());
+        assertTrue(updated.editable());
+        assertEquals("Barbara Admin", updated.name());
+        assertNull(updated.phone());
+        assertEquals("Pesquisadora em Gestão de Turismo", updated.headline());
+        assertEquals("Quase 15 anos de experiência no setor.", updated.bio());
+        assertEquals("Barbara Admin", userRepository.findById(admin.getId()).orElseThrow().getName());
     }
 
     @Test

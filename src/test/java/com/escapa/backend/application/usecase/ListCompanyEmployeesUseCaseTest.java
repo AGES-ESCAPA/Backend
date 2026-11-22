@@ -1,15 +1,9 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CompanyEmployee;
-import com.escapa.backend.application.model.CompanyEmployeeCounts;
-import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
-import com.escapa.backend.domain.company.CompanyNotFoundException;
-import com.escapa.backend.domain.user.UserStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -18,14 +12,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CompanyEmployee;
+import com.escapa.backend.application.model.CompanyEmployeeCounts;
+import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
+import com.escapa.backend.domain.company.CompanyNotFoundException;
+import com.escapa.backend.domain.user.UserStatus;
 
 class ListCompanyEmployeesUseCaseTest {
 
@@ -250,6 +251,11 @@ class ListCompanyEmployeesUseCaseTest {
 
         @Override
         public void updateJobTitle(UUID companyId, UUID userId, String jobTitle) {
+            throw new UnsupportedOperationException("not used by the employees list");
+        }
+
+        @Override
+        public List<String> findJobTitles(UUID companyId) {
             throw new UnsupportedOperationException("not used by the employees list");
         }
 

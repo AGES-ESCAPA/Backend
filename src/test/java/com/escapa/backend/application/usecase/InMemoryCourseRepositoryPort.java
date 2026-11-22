@@ -1,13 +1,5 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.CourseSummary;
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.dto.PublishedCourseFilters;
-import com.escapa.backend.application.model.CourseDetails;
-import com.escapa.backend.application.port.CourseRepositoryPort;
-import com.escapa.backend.domain.course.CourseStatus;
-import com.escapa.backend.domain.entity.Course;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,16 +8,29 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.escapa.backend.application.dto.CourseSummary;
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.dto.PublishedCourseFilters;
+import com.escapa.backend.application.model.CourseDetails;
+import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Content;
+import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.domain.entity.Module;
+
 /**
  * Fake em memória de {@link CourseRepositoryPort} para testes unitários.
  * Simula filtragem e paginação (US-01), busca de detalhes (US-04) e o
  * CRUD administrativo (US-05) sem banco de dados.
+ * Grava e devolve cópias: alterar o curso lido não muda o que está salvo até {@link #save}.
  */
 public final class InMemoryCourseRepositoryPort implements CourseRepositoryPort {
 
     private final List<CourseSummary> courses = new ArrayList<>();
     private final Map<UUID, CourseDetails> detailsById = new HashMap<>();
     private final Map<UUID, Course> coursesById = new HashMap<>();
+    private final List<Course> savedSnapshots = new ArrayList<>();
+    private int saveCount;
 
     public void addCourse(CourseSummary course) {
         courses.add(course);
@@ -41,16 +46,28 @@ public final class InMemoryCourseRepositoryPort implements CourseRepositoryPort 
 
     @Override
     public Course save(Course course) {
+        saveCount++;
         if (course.getId() == null) {
             course.setId(UUID.randomUUID());
         }
-        coursesById.put(course.getId(), course);
-        return course;
+        final Course stored = copyOf(course);
+        coursesById.put(stored.getId(), stored);
+        savedSnapshots.add(copyOf(stored));
+        return copyOf(stored);
+    }
+
+    public int saveCount() {
+        return saveCount;
+    }
+
+    public List<Course> savedSnapshots() {
+        return savedSnapshots.stream().map(InMemoryCourseRepositoryPort::copyOf).toList();
     }
 
     @Override
     public Optional<Course> findById(UUID id) {
-        return Optional.ofNullable(coursesById.get(id));
+        final Course stored = coursesById.get(id);
+        return stored == null ? Optional.empty() : Optional.of(copyOf(stored));
     }
 
     @Override
@@ -62,6 +79,7 @@ public final class InMemoryCourseRepositoryPort implements CourseRepositoryPort 
     public List<Course> findAllExcludingStatus(CourseStatus excludedStatus) {
         return coursesById.values().stream()
                 .filter(course -> course.getStatus() != excludedStatus)
+                .map(InMemoryCourseRepositoryPort::copyOf)
                 .toList();
     }
 
@@ -71,6 +89,7 @@ public final class InMemoryCourseRepositoryPort implements CourseRepositoryPort 
         return coursesById.values().stream()
                 .filter(c -> !c.getId().equals(excludedCourseId))
                 .filter(c -> c.getTitle() != null && c.getTitle().toLowerCase(Locale.ROOT).contains(normalized))
+                .map(InMemoryCourseRepositoryPort::copyOf)
                 .toList();
     }
 
@@ -122,5 +141,68 @@ public final class InMemoryCourseRepositoryPort implements CourseRepositoryPort 
     @Override
     public Optional<CourseDetails> findDetailsById(UUID id) {
         return Optional.ofNullable(detailsById.get(id));
+    }
+
+    private static Course copyOf(Course source) {
+        final Course copy = new Course();
+        copy.setId(source.getId());
+        copy.setTitle(source.getTitle());
+        copy.setDescription(source.getDescription());
+        copy.setShortDescription(source.getShortDescription());
+        copy.setThumbnailUrl(source.getThumbnailUrl());
+        copy.setTeaserVideoUrl(source.getTeaserVideoUrl());
+        copy.setStatus(source.getStatus());
+        copy.setCreatedBy(source.getCreatedBy());
+        copy.setInstructor(source.getInstructor());
+        copy.setCategory(source.getCategory());
+        copy.setLevel(source.getLevel());
+        copy.setDurationTime(source.getDurationTime());
+        copy.setDeadline(source.getDeadline());
+        copy.setPrice(source.getPrice());
+        copy.setLearningObjectives(source.getLearningObjectives() == null
+                ? new ArrayList<>() : new ArrayList<>(source.getLearningObjectives()));
+        copy.setRequireSequentialProgress(source.getRequireSequentialProgress());
+        copy.setEnforceDeadlineBlock(source.getEnforceDeadlineBlock());
+        copy.setMinQuizPassPercentage(source.getMinQuizPassPercentage());
+        copy.setCreatedAt(source.getCreatedAt());
+        copy.setUpdatedAt(source.getUpdatedAt());
+        copy.setMajorVersion(source.getMajorVersion());
+        copy.setMinorVersion(source.getMinorVersion());
+        copy.setPendingDraft(source.getPendingDraft());
+        copy.setModules(copyModules(source.getModules(), copy));
+        return copy;
+    }
+
+    private static List<Module> copyModules(List<Module> modules, Course course) {
+        final List<Module> copies = new ArrayList<>();
+        if (modules == null) {
+            return copies;
+        }
+        for (final Module module : modules) {
+            final Module copy = new Module();
+            copy.setId(module.getId());
+            copy.setCourseId(module.getCourseId() != null ? module.getCourseId() : course.getId());
+            copy.setCourse(course);
+            copy.setTitle(module.getTitle());
+            copy.setOrder(module.getOrder());
+            copy.setPublishedOrder(module.getPublishedOrder());
+            copy.setPendingTitle(module.getPendingTitle());
+            copy.setPendingDeletion(module.isPendingDeletion());
+            copy.setCoursePublished(module.isCoursePublished());
+            copy.setContents(copyContents(module.getContents()));
+            copies.add(copy);
+        }
+        return copies;
+    }
+
+    private static List<Content> copyContents(List<Content> contents) {
+        final List<Content> copies = new ArrayList<>();
+        if (contents == null) {
+            return copies;
+        }
+        for (final Content content : contents) {
+            copies.add(content.copy());
+        }
+        return copies;
     }
 }

@@ -1,10 +1,11 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.port.CompanySeatsPort;
-import com.escapa.backend.domain.company.CompanyNotFoundException;
+import java.util.UUID;
+
 import org.springframework.jdbc.core.simple.JdbcClient;
 
-import java.util.UUID;
+import com.escapa.backend.application.port.CompanySeatsPort;
+import com.escapa.backend.domain.company.CompanyNotFoundException;
 
 public class CompanySeatsAdapter implements CompanySeatsPort {
 

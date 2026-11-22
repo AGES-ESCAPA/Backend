@@ -1,18 +1,26 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.domain.content.ContentNotFoundException;
-import com.escapa.backend.domain.content.ContentResource;
-import com.escapa.backend.domain.content.ContentType;
-import com.escapa.backend.domain.entity.Content;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Stream;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.content.ContentResource;
+import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.content.QuizOption;
+import com.escapa.backend.domain.content.QuizQuestion;
+import com.escapa.backend.domain.entity.Content;
 
 class UpdateContentUseCaseTest {
 
@@ -118,6 +126,39 @@ class UpdateContentUseCaseTest {
         assertTrue(lessonNotificationPort.notifiedLessonIds().isEmpty());
     }
 
+    @ParameterizedTest
+    @MethodSource("missingIdAndBlankTitle")
+    void shouldRejectMissingIdAndBlankTitle(UUID id, String title, String expectedMessage) {
+        final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> useCase.execute(
+                id, title, ContentType.VIDEO, "https://vimeo.com/1", 10, "Descricao", false));
+
+        assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    private static Stream<Arguments> missingIdAndBlankTitle() {
+        return Stream.of(
+                Arguments.of(null, "Aula", "id is required"),
+                Arguments.of(UUID.randomUUID(), "  ", "title is required"));
+    }
+
+    @Test
+    void shouldKeepPublishedContentInDraftWhenResourcesAreNull() {
+        final Content content = givenVideoContent();
+        content.setCoursePublished(true);
+        content.setPublishedOrder(1);
+        contentRepository.save(content);
+
+        final Content updated = useCase.execute(
+                content.getId(), "Aula revisada", ContentType.VIDEO,
+                "https://vimeo.com/2", 20, "Nova descricao", null, null);
+
+        assertEquals("Aula original", contentRepository.findById(content.getId()).orElseThrow().getTitle());
+        assertEquals("Aula revisada", updated.getPendingDraft().title());
+        assertEquals(List.of(), updated.getPendingDraft().resources());
+        assertFalse(updated.getPendingDraft().isFree());
+        assertTrue(lessonNotificationPort.notifiedLessonIds().isEmpty());
+    }
+
     @Test
     void shouldNotNotifyWhenTheUpdateIsInvalid() {
         final Content created = givenVideoContent();
@@ -127,5 +168,43 @@ class UpdateContentUseCaseTest {
                 () -> useCase.execute(created.getId(), "Agora e texto", ContentType.TEXT, null, null, null, false)
         );
         assertTrue(lessonNotificationPort.notifiedLessonIds().isEmpty());
+    }
+
+    @Test
+    void shouldUpdateQuizQuestions() {
+        final Content created = givenVideoContent();
+        final List<QuizQuestion> questions = List.of(new QuizQuestion(
+                UUID.randomUUID(),
+                "Nova pergunta",
+                List.of(
+                        new QuizOption(UUID.randomUUID(), "Sim", true),
+                        new QuizOption(UUID.randomUUID(), "Não", false))));
+
+        final Content updated = useCase.execute(
+                created.getId(), "Quiz revisado", ContentType.QUIZ, null, null, "Descricao", false,
+                List.of(), questions);
+
+        assertEquals(ContentType.QUIZ, updated.getType());
+        assertEquals(questions, updated.getQuizQuestions());
+        assertEquals(List.of(created.getId()), lessonNotificationPort.notifiedLessonIds());
+    }
+
+    @Test
+    void shouldClearQuizQuestionsWhenNullIsProvided() {
+        final Content created = createUseCase.execute(
+                moduleId, "Quiz", ContentType.QUIZ, null, null, "Avaliação", false,
+                List.of(), List.of(new QuizQuestion(
+                        UUID.randomUUID(),
+                        "Pergunta",
+                        List.of(
+                                new QuizOption(UUID.randomUUID(), "A", true),
+                                new QuizOption(UUID.randomUUID(), "B", false)))));
+        assertFalse(created.getQuizQuestions().isEmpty());
+
+        final Content updated = useCase.execute(
+                created.getId(), "Agora é texto", ContentType.TEXT, null, null, "Conteúdo", false,
+                null, null);
+
+        assertTrue(updated.getQuizQuestions().isEmpty());
     }
 }

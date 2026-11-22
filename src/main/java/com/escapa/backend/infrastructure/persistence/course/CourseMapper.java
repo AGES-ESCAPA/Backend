@@ -1,21 +1,21 @@
 package com.escapa.backend.infrastructure.persistence.course;
 
-import com.escapa.backend.application.dto.CourseSummary;
-import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
-import com.escapa.backend.domain.entity.Module;
-import com.escapa.backend.infrastructure.persistence.ContentMapper;
-import com.escapa.backend.infrastructure.persistence.UserMapper;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import com.escapa.backend.domain.course.CoursePendingDraft;
-import com.escapa.backend.domain.course.CourseStatus;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.escapa.backend.application.dto.CourseSummary;
+import com.escapa.backend.domain.course.CoursePendingDraft;
+import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.domain.entity.Module;
+import com.escapa.backend.infrastructure.persistence.ContentMapper;
+import com.escapa.backend.infrastructure.persistence.CourseJpaRepository;
+import com.escapa.backend.infrastructure.persistence.UserMapper;
+import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
+import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
 
 /**
  * Conversor estático entre {@link CourseEntity} (JPA) e as representações de
@@ -103,6 +103,7 @@ public final class CourseMapper {
 
         entity.setRequireSequentialProgress(course.getRequireSequentialProgress());
         entity.setEnforceDeadlineBlock(course.getEnforceDeadlineBlock());
+        entity.setMinQuizPassPercentage(course.getMinQuizPassPercentage());
         entity.setCreatedAt(course.getCreatedAt());
         entity.setUpdatedAt(course.getUpdatedAt());
         entity.setPendingDraft(writeDraft(course.getPendingDraft()));
@@ -195,6 +196,7 @@ public final class CourseMapper {
 
         course.setRequireSequentialProgress(entity.getRequireSequentialProgress());
         course.setEnforceDeadlineBlock(entity.getEnforceDeadlineBlock());
+        course.setMinQuizPassPercentage(entity.getMinQuizPassPercentage());
         course.setCreatedAt(entity.getCreatedAt());
         course.setUpdatedAt(entity.getUpdatedAt());
         course.setMajorVersion(entity.getMajorVersion());

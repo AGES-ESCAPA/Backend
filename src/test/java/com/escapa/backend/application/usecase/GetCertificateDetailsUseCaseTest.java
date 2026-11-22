@@ -1,18 +1,19 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.CertificateDetails;
-import com.escapa.backend.application.model.CertificateView;
-import com.escapa.backend.domain.certificate.CertificateNotFoundException;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.LocalDate;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.model.CertificateDetails;
+import com.escapa.backend.application.model.CertificateView;
+import com.escapa.backend.domain.certificate.CertificateNotFoundException;
 
 class GetCertificateDetailsUseCaseTest {
 

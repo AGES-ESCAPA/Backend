@@ -1,11 +1,11 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.course.PublishedCurriculum;
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.domain.content.ContentNotFoundException;
 import com.escapa.backend.domain.entity.Content;
-
-import java.util.UUID;
 
 /**
  * Em curso publicado, a aula some do construtor e continua visível para o aluno

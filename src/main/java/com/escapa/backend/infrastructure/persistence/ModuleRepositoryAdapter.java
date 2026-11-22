@@ -1,16 +1,17 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 import com.escapa.backend.infrastructure.persistence.entity.ModuleEntity;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 public class ModuleRepositoryAdapter implements ModuleRepositoryPort {

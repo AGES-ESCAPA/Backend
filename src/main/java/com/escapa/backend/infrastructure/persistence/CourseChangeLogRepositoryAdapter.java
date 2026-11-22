@@ -1,17 +1,18 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import jakarta.persistence.EntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 import com.escapa.backend.application.dto.ChangeLogEntry;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
 import com.escapa.backend.infrastructure.persistence.entity.CourseChangeLogEntity;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import jakarta.persistence.EntityManager;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 public class CourseChangeLogRepositoryAdapter implements CourseChangeLogRepositoryPort {
 
@@ -25,7 +26,9 @@ public class CourseChangeLogRepositoryAdapter implements CourseChangeLogReposito
 
     @Override
     public List<ChangeLogEntry> findRecentByCourseId(UUID courseId, int limit) {
-        return repository.findByCourseIdOrderByCreatedAtDesc(courseId, PageRequest.of(0, limit))
+        return repository
+                .findByCourseIdOrderByCreatedAtDescMajorVersionDescMinorVersionDesc(
+                        courseId, PageRequest.of(0, limit))
                 .getContent().stream()
                 .map(CourseChangeLogRepositoryAdapter::toEntry)
                 .toList();
@@ -34,7 +37,8 @@ public class CourseChangeLogRepositoryAdapter implements CourseChangeLogReposito
     @Override
     public PageResult<ChangeLogEntry> findPageByCourseId(UUID courseId, int page, int size) {
         final Page<CourseChangeLogEntity> result =
-                repository.findByCourseIdOrderByCreatedAtDesc(courseId, PageRequest.of(page, size));
+                repository.findByCourseIdOrderByCreatedAtDescMajorVersionDescMinorVersionDesc(
+                        courseId, PageRequest.of(page, size));
         final List<ChangeLogEntry> content = result.getContent().stream()
                 .map(CourseChangeLogRepositoryAdapter::toEntry)
                 .toList();

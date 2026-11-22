@@ -1,12 +1,15 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
-import com.escapa.backend.adapters.security.AuthenticatedUser;
-import com.escapa.backend.application.model.UserNotification;
-import com.escapa.backend.application.usecase.InMemoryNotificationRepositoryPort;
-import com.escapa.backend.application.usecase.ListUserNotificationsUseCase;
-import com.escapa.backend.application.usecase.MarkAllNotificationsAsReadUseCase;
-import com.escapa.backend.application.usecase.MarkNotificationAsReadUseCase;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,15 +19,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
+import com.escapa.backend.adapters.security.AuthenticatedUser;
+import com.escapa.backend.application.model.UserNotification;
+import com.escapa.backend.application.usecase.InMemoryNotificationRepositoryPort;
+import com.escapa.backend.application.usecase.ListUserNotificationsUseCase;
+import com.escapa.backend.application.usecase.MarkAllNotificationsAsReadUseCase;
+import com.escapa.backend.application.usecase.MarkNotificationAsReadUseCase;
 
 class NotificationControllerTest {
 

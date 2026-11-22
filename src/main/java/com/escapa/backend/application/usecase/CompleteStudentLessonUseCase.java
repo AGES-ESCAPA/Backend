@@ -1,26 +1,30 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.course.PublishedCurriculum;
-import com.escapa.backend.application.model.LessonDetails;
-import com.escapa.backend.domain.course.CourseStatus;
-import com.escapa.backend.domain.entity.Module;
-import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
-import com.escapa.backend.application.port.EnrollmentRepositoryPort;
-import com.escapa.backend.application.port.LessonProgressRepositoryPort;
-import com.escapa.backend.application.port.LessonRepositoryPort;
-import com.escapa.backend.application.port.ModuleRepositoryPort;
-import com.escapa.backend.domain.content.ContentNotFoundException;
-
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.escapa.backend.application.course.PublishedCurriculum;
+import com.escapa.backend.application.model.LessonDetails;
+import com.escapa.backend.application.port.CourseRepositoryPort;
+import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
+import com.escapa.backend.application.port.EnrollmentRepositoryPort;
+import com.escapa.backend.application.port.LessonProgressRepositoryPort;
+import com.escapa.backend.application.port.LessonRepositoryPort;
+import com.escapa.backend.application.port.ModulePrerequisiteRepositoryPort;
+import com.escapa.backend.application.port.ModuleRepositoryPort;
+import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Module;
+
 /**
  * Marca uma aula como concluida pelo aluno (US-15). Aplica a mesma regra de
- * acesso da API de conteudo da aula (US-11) e e idempotente: concluir de novo
- * uma aula ja concluida nao altera a data original. Em seguida recalcula o
- * percentual da matricula, com a mesma contagem de aulas da grade (US-13).
+ * acesso da API de conteudo da aula (US-11), inclusive progressao sequencial
+ * (US-13), e e idempotente: concluir de novo uma aula ja concluida nao altera a
+ * data original. Em seguida recalcula o percentual da matricula, com a mesma
+ * contagem de aulas da grade (US-13).
  */
 public class CompleteStudentLessonUseCase {
 
@@ -28,7 +32,9 @@ public class CompleteStudentLessonUseCase {
     private final LessonProgressRepositoryPort lessonProgressRepositoryPort;
     private final ModuleRepositoryPort moduleRepositoryPort;
     private final EnrollmentProgressRepositoryPort enrollmentProgressRepositoryPort;
+    private final EnrollmentRepositoryPort enrollmentRepositoryPort;
     private final EnrollmentAccessValidator enrollmentAccessValidator;
+    private final SequentialLessonAccessValidator sequentialLessonAccessValidator;
     private final Clock clock;
 
     public CompleteStudentLessonUseCase(
@@ -37,13 +43,21 @@ public class CompleteStudentLessonUseCase {
             ModuleRepositoryPort moduleRepositoryPort,
             EnrollmentProgressRepositoryPort enrollmentProgressRepositoryPort,
             EnrollmentRepositoryPort enrollmentRepositoryPort,
+            CourseRepositoryPort courseRepositoryPort,
+            ModulePrerequisiteRepositoryPort modulePrerequisiteRepositoryPort,
             Clock clock
     ) {
         this.lessonRepositoryPort = lessonRepositoryPort;
         this.lessonProgressRepositoryPort = lessonProgressRepositoryPort;
         this.moduleRepositoryPort = moduleRepositoryPort;
         this.enrollmentProgressRepositoryPort = enrollmentProgressRepositoryPort;
+        this.enrollmentRepositoryPort = enrollmentRepositoryPort;
         this.enrollmentAccessValidator = new EnrollmentAccessValidator(enrollmentRepositoryPort, clock);
+        this.sequentialLessonAccessValidator = new SequentialLessonAccessValidator(
+                courseRepositoryPort,
+                moduleRepositoryPort,
+                lessonProgressRepositoryPort,
+                modulePrerequisiteRepositoryPort);
         this.clock = clock;
     }
 
@@ -52,9 +66,17 @@ public class CompleteStudentLessonUseCase {
         final LessonDetails lesson = lessonRepositoryPort.findByCourseIdAndId(courseId, lessonId)
                 .orElseThrow(() -> new ContentNotFoundException(lessonId));
 
-        if (!Boolean.TRUE.equals(lesson.content().getIsFree())) {
+        if (lesson.content().getType() == ContentType.QUIZ) {
+            throw new IllegalArgumentException("Quiz lessons must be completed by submitting answers");
+        }
+
+        final boolean isFree = Boolean.TRUE.equals(lesson.content().getIsFree());
+        if (!isFree) {
             enrollmentAccessValidator.requireActiveEnrollment(
                     userId, lesson.courseId(), lesson.courseEnforcesDeadlineBlock(), lesson.content().getId());
+            sequentialLessonAccessValidator.requireUnlocked(userId, courseId, lessonId);
+        } else if (enrollmentRepositoryPort.findByUserIdAndCourseId(userId, courseId).isPresent()) {
+            sequentialLessonAccessValidator.requireUnlocked(userId, courseId, lessonId);
         }
 
         lessonProgressRepositoryPort.markCompleted(userId, lessonId, LocalDateTime.now(clock));

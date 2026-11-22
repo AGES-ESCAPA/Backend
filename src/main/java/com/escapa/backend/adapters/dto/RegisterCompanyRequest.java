@@ -1,10 +1,11 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.usecase.CreateUserUseCase;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
+import com.escapa.backend.application.usecase.CreateUserUseCase;
 
 @Schema(description = "Company registration payload")
 public record RegisterCompanyRequest(

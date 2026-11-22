@@ -1,14 +1,15 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.StudentCourseCard;
-import com.escapa.backend.domain.course.EnrollmentStatus;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.StudentCourseCard;
+import com.escapa.backend.domain.course.EnrollmentStatus;
 
 class ListStudentEnrollmentsUseCaseTest {
 

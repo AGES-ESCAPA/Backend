@@ -1,7 +1,8 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.dto.PublishedCourseFilters;
 import java.util.List;
+
+import com.escapa.backend.application.dto.PublishedCourseFilters;
 
 /** Opções de filtro da vitrine pública. */
 public record CourseFiltersResponse(List<String> categories, List<String> levels) {

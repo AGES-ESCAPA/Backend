@@ -1,18 +1,19 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.course.PublishedCurriculum;
-import com.escapa.backend.application.port.ContentRepositoryPort;
-import com.escapa.backend.application.port.LessonNotificationPort;
-import com.escapa.backend.domain.content.ContentPendingDraft;
-import com.escapa.backend.domain.content.ContentNotFoundException;
-import com.escapa.backend.domain.content.ContentResource;
-import com.escapa.backend.domain.content.ContentType;
-import com.escapa.backend.domain.content.ContentTypeRules;
-import com.escapa.backend.domain.entity.Content;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.course.PublishedCurriculum;
+import com.escapa.backend.application.port.ContentRepositoryPort;
+import com.escapa.backend.application.port.LessonNotificationPort;
+import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.content.ContentPendingDraft;
+import com.escapa.backend.domain.content.ContentResource;
+import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.content.ContentTypeRules;
+import com.escapa.backend.domain.content.QuizQuestion;
+import com.escapa.backend.domain.entity.Content;
 
 /**
  * Edita uma aula. Em curso publicado, a versão que o aluno lê só muda na
@@ -40,7 +41,7 @@ public class UpdateContentUseCase {
             String description,
             Boolean isFree
     ) {
-        return execute(id, title, type, url, durationMinutes, description, isFree, List.of());
+        return execute(id, title, type, url, durationMinutes, description, isFree, List.of(), List.of());
     }
 
     public Content execute(
@@ -53,6 +54,20 @@ public class UpdateContentUseCase {
             Boolean isFree,
             List<ContentResource> resources
     ) {
+        return execute(id, title, type, url, durationMinutes, description, isFree, resources, List.of());
+    }
+
+    public Content execute(
+            UUID id,
+            String title,
+            ContentType type,
+            String url,
+            Integer durationMinutes,
+            String description,
+            Boolean isFree,
+            List<ContentResource> resources,
+            List<QuizQuestion> quizQuestions
+    ) {
         if (id == null) {
             throw new IllegalArgumentException("id is required");
         }
@@ -64,7 +79,7 @@ public class UpdateContentUseCase {
                 .orElseThrow(() -> new ContentNotFoundException(id));
         final EditableFields before = EditableFields.of(content);
         final Content prospective = prospective(content, title, type, url, durationMinutes, description, isFree,
-                resources);
+                resources, quizQuestions);
         ContentTypeRules.validate(prospective);
 
         if (content.isHeldForPublish()) {
@@ -88,7 +103,8 @@ public class UpdateContentUseCase {
             Integer durationMinutes,
             String description,
             Boolean isFree,
-            List<ContentResource> resources
+            List<ContentResource> resources,
+            List<QuizQuestion> quizQuestions
     ) {
         final Content next = current.copy();
         next.setTitle(title.trim());
@@ -98,6 +114,7 @@ public class UpdateContentUseCase {
         next.setDescription(description);
         next.setIsFree(isFree != null && isFree);
         next.setResources(resources == null ? new ArrayList<>() : new ArrayList<>(resources));
+        next.setQuizQuestions(quizQuestions == null ? new ArrayList<>() : new ArrayList<>(quizQuestions));
         next.setPendingDraft(null);
         return next;
     }
@@ -110,6 +127,7 @@ public class UpdateContentUseCase {
         content.setDescription(prospective.getDescription());
         content.setIsFree(prospective.getIsFree());
         content.setResources(prospective.getResources());
+        content.setQuizQuestions(prospective.getQuizQuestions());
         content.setPendingDraft(null);
     }
 
@@ -120,7 +138,8 @@ public class UpdateContentUseCase {
             Integer durationMinutes,
             String description,
             Boolean isFree,
-            List<ContentResource> resources
+            List<ContentResource> resources,
+            List<QuizQuestion> quizQuestions
     ) {
         static EditableFields of(Content content) {
             return new EditableFields(
@@ -130,7 +149,8 @@ public class UpdateContentUseCase {
                     content.getDurationMinutes(),
                     content.getDescription(),
                     content.getIsFree(),
-                    content.getResources() == null ? List.of() : List.copyOf(content.getResources()));
+                    content.getResources() == null ? List.of() : List.copyOf(content.getResources()),
+                    content.getQuizQuestions() == null ? List.of() : List.copyOf(content.getQuizQuestions()));
         }
     }
 }

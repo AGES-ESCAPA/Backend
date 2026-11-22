@@ -1,6 +1,8 @@
 package com.escapa.backend.infrastructure.persistence.entity;
 
-import com.escapa.backend.infrastructure.persistence.UserEntity;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,8 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
+import com.escapa.backend.infrastructure.persistence.UserEntity;
 
 /** Avaliacao de 1 a 5 estrelas que um usuario da a um curso. Uma avaliacao por usuario por curso. */
 @Entity

@@ -1,19 +1,11 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CompanyEmployee;
-import com.escapa.backend.application.model.CompanyEmployeeCounts;
-import com.escapa.backend.application.model.CompanySeatsSummary;
-import com.escapa.backend.application.model.StudentContact;
-import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
-import com.escapa.backend.application.port.CompanyEmployeeUnlinkPort;
-import com.escapa.backend.application.port.CompanySeatsPort;
-import com.escapa.backend.application.port.UserRepositoryPort;
-import com.escapa.backend.domain.company.CompanyEmployeeNotFoundException;
-import com.escapa.backend.domain.entity.User;
-import com.escapa.backend.domain.user.UserStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -28,12 +20,21 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CompanyEmployee;
+import com.escapa.backend.application.model.CompanyEmployeeCounts;
+import com.escapa.backend.application.model.CompanySeatsSummary;
+import com.escapa.backend.application.model.StudentContact;
+import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
+import com.escapa.backend.application.port.CompanyEmployeeUnlinkPort;
+import com.escapa.backend.application.port.CompanySeatsPort;
+import com.escapa.backend.application.port.UserRepositoryPort;
+import com.escapa.backend.domain.company.CompanyEmployeeNotFoundException;
+import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.domain.user.UserStatus;
 
 class UnlinkCompanyEmployeeUseCaseTest {
 
@@ -259,6 +260,22 @@ class UnlinkCompanyEmployeeUseCaseTest {
         }
 
         @Override
+        public boolean revokeCompanyCourseEnrollment(
+                UUID companyId, UUID employeeId, UUID courseId, LocalDateTime revokedAt) {
+            for (final Enrollment item : enrollments) {
+                final boolean match = item.userId().equals(employeeId)
+                        && item.courseId().equals(courseId)
+                        && item.revokedAt()[0] == null;
+                final boolean ofTheCompany = companyCourses.getOrDefault(companyId, Set.of()).contains(courseId);
+                if (match && ofTheCompany && !selfBought.contains(employeeId + ":" + courseId)) {
+                    item.revokedAt()[0] = revokedAt;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
         public int invalidatePendingInvites(UUID companyId, UUID employeeId, LocalDateTime now) {
             if (failOnInvalidatingInvites) {
                 throw new IllegalStateException("boom");
@@ -317,6 +334,11 @@ class UnlinkCompanyEmployeeUseCaseTest {
 
         @Override
         public void updateJobTitle(UUID companyId, UUID userId, String jobTitle) {
+            throw new UnsupportedOperationException("not used by the unlink");
+        }
+
+        @Override
+        public List<String> findJobTitles(UUID companyId) {
             throw new UnsupportedOperationException("not used by the unlink");
         }
 
@@ -381,6 +403,17 @@ class UnlinkCompanyEmployeeUseCaseTest {
 
         @Override
         public void updateStudentPhone(UUID userId, String phone) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Optional<com.escapa.backend.application.model.AdminInstructorProfile> findAdminInstructorProfile(
+                UUID userId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void updateAdminInstructorProfile(UUID userId, String headline, String bio) {
             throw new UnsupportedOperationException();
         }
     }

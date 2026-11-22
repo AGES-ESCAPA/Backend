@@ -1,6 +1,8 @@
 package com.escapa.backend.infrastructure.persistence.entity;
 
-import com.escapa.backend.domain.content.ContentType;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,8 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
+import com.escapa.backend.domain.content.ContentType;
 
 @Entity
 @Table(name = "content")
@@ -72,6 +73,10 @@ public class ContentEntity {
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     @Column(name = "recursos", columnDefinition = "JSON")
     private String recursos;
+
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "quiz_json", columnDefinition = "JSON")
+    private String quizJson;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

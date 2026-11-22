@@ -3,6 +3,7 @@ package com.escapa.backend.application.usecase;
 import java.util.Locale;
 
 import com.escapa.backend.application.port.ContactValidatorPort;
+import com.escapa.backend.domain.company.JobTitleNormalizer;
 
 /**
  * Validação dos dados de um colaborador, a mesma no cadastro (US-31) e na edição (US-32). Devolve os
@@ -21,7 +22,7 @@ class EmployeeDataValidator {
     }
 
     String requireJobTitle(String jobTitle) {
-        return requireText(jobTitle, "Job title", "jobTitle");
+        return JobTitleNormalizer.display(requireText(jobTitle, "Job title", "jobTitle"));
     }
 
     String requireValidEmail(String email) {

@@ -1,17 +1,19 @@
 package com.escapa.backend.domain.entity;
 
-import com.escapa.backend.domain.course.CoursePendingDraft;
-import com.escapa.backend.domain.course.CourseStatus;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import com.escapa.backend.domain.course.CoursePendingDraft;
+import com.escapa.backend.domain.course.CourseQuizRules;
+import com.escapa.backend.domain.course.CourseStatus;
 
 @Getter
 @Setter
@@ -36,6 +38,8 @@ public class Course {
     private List<String> learningObjectives = new ArrayList<>();
     private Boolean requireSequentialProgress = true;
     private Boolean enforceDeadlineBlock = false;
+    /** Percentual minimo de acertos em quizzes para concluir a aula (0-100). */
+    private Integer minQuizPassPercentage = CourseQuizRules.DEFAULT_MIN_QUIZ_PASS_PERCENTAGE;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Integer majorVersion = 0;

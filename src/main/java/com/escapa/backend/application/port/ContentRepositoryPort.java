@@ -1,10 +1,10 @@
 package com.escapa.backend.application.port;
 
-import com.escapa.backend.domain.entity.Content;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.escapa.backend.domain.entity.Content;
 
 public interface ContentRepositoryPort {
     Content save(Content content);

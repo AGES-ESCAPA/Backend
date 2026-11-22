@@ -1,5 +1,28 @@
 package com.escapa.backend.adapters.controller;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
 import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
 import com.escapa.backend.adapters.security.AuthenticatedUser;
 import com.escapa.backend.application.dto.CourseSummary;
@@ -15,35 +38,14 @@ import com.escapa.backend.application.port.LessonRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
-import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
 import com.escapa.backend.application.usecase.InMemoryEnrollmentProgressRepositoryPort;
 import com.escapa.backend.application.usecase.InMemoryLessonProgressRepositoryPort;
+import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
+import com.escapa.backend.application.usecase.SubmitQuizUseCase;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.Module;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /** Mapeamento HTTP da US-11 (aula) e da US-13 (grade de aulas). */
 class StudentLessonControllerTest {
@@ -103,12 +105,6 @@ class StudentLessonControllerTest {
             }
         };
         final Clock clock = Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
-        final OpenStudentLessonUseCase useCase = new OpenStudentLessonUseCase(
-                lessonRepositoryPort,
-                lessonEnrollmentPort,
-                lessonId -> new LessonSupplement(List.of(), List.of()),
-                clock
-        );
         final CourseRepositoryPort courseRepositoryPort = new CourseRepositoryPort() {
             @Override
             public Course save(Course course) {
@@ -194,6 +190,17 @@ class StudentLessonControllerTest {
             }
         };
 
+        final OpenStudentLessonUseCase useCase = new OpenStudentLessonUseCase(
+                lessonRepositoryPort,
+                lessonEnrollmentPort,
+                lessonId -> new LessonSupplement(List.of(), List.of()),
+                courseRepositoryPort,
+                moduleRepositoryPort,
+                progressRepository,
+                moduleId -> List.of(),
+                clock
+        );
+
         final GetStudentCourseCurriculumUseCase curriculumUseCase = new GetStudentCourseCurriculumUseCase(
                 courseRepositoryPort,
                 moduleRepositoryPort,
@@ -229,10 +236,27 @@ class StudentLessonControllerTest {
         );
 
         final CompleteStudentLessonUseCase completeUseCase = new CompleteStudentLessonUseCase(
-                lessonRepositoryPort, progressRepository, moduleRepositoryPort,
-                new InMemoryEnrollmentProgressRepositoryPort(), lessonEnrollmentPort, clock);
+                lessonRepositoryPort,
+                progressRepository,
+                moduleRepositoryPort,
+                new InMemoryEnrollmentProgressRepositoryPort(),
+                lessonEnrollmentPort,
+                courseRepositoryPort,
+                moduleId -> List.of(),
+                clock);
 
-        mockMvc = MockMvcBuilders.standaloneSetup(new StudentLessonController(useCase, curriculumUseCase, completeUseCase))
+        final SubmitQuizUseCase submitQuizUseCase = new SubmitQuizUseCase(
+                lessonRepositoryPort,
+                progressRepository,
+                moduleRepositoryPort,
+                new InMemoryEnrollmentProgressRepositoryPort(),
+                lessonEnrollmentPort,
+                courseRepositoryPort,
+                moduleId -> List.of(),
+                clock);
+
+        mockMvc = MockMvcBuilders.standaloneSetup(
+                        new StudentLessonController(useCase, curriculumUseCase, completeUseCase, submitQuizUseCase))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
         authenticate();
@@ -252,8 +276,8 @@ class StudentLessonControllerTest {
     private LessonDetails lesson(UUID id, boolean isFree) {
         final Content content = new Content(
                 id, moduleId, "Aula 2", "Descricao da aula", ContentType.VIDEO,
-                "https://cdn.example.com/aula-2.mp4", 12, isFree, 2, null, null, null, null, false, false);
-        return new LessonDetails(content, courseId, "Fundamentos", 1, true,
+                "https://cdn.example.com/aula-2.mp4", 12, isFree, 2, null, null, null, null, null, false, false);
+        return new LessonDetails(content, courseId, "Fundamentos", 1, true, 70,
                 new LessonSupplement(List.of(), List.of()));
     }
 
@@ -270,7 +294,7 @@ class StudentLessonControllerTest {
         final Module module = new Module(UUID.randomUUID(), courseId, "Modulo 1", 1);
         final Content content = new Content(
                 UUID.randomUUID(), module.getId(), "Aula 1", "Descricao", ContentType.VIDEO,
-                "https://cdn.example.com/aula-1.mp4", 10, false, 1, null, null, null, null, false, false);
+                "https://cdn.example.com/aula-1.mp4", 10, false, 1, null, null, null, null, null, false, false);
         module.getContents().add(content);
         return module;
     }
@@ -385,11 +409,32 @@ class StudentLessonControllerTest {
     }
 
     @Test
-    void shouldReturn403WhenNotEnrolledInCurriculum() throws Exception {
+    void shouldReturn403WhenNotEnrolledInCurriculumWithoutFreeLessons() throws Exception {
         curriculumCourse = Optional.of(givenCourse());
+        curriculumModules = List.of(givenModuleWithLesson());
 
         mockMvc.perform(get(CURRICULUM_URL, courseId))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldReturnCurriculumPreviewWhenNotEnrolledButCourseHasFreeLessons() throws Exception {
+        curriculumCourse = Optional.of(givenCourse());
+        final Module module = new Module(UUID.randomUUID(), courseId, "Modulo 1", 1);
+        final Content free = new Content(
+                UUID.randomUUID(), module.getId(), "Amostra", "desc", ContentType.VIDEO,
+                "https://cdn.example.com/free.mp4", 10, true, 1, null, null, null, null, null, false, false);
+        final Content paid = new Content(
+                UUID.randomUUID(), module.getId(), "Paga", "desc", ContentType.VIDEO,
+                "https://cdn.example.com/paid.mp4", 10, false, 2, null, null, null, null, null, false, false);
+        module.getContents().add(free);
+        module.getContents().add(paid);
+        curriculumModules = List.of(module);
+
+        mockMvc.perform(get(CURRICULUM_URL, courseId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.modules[0].lessons[0].status").value("AVAILABLE"))
+                .andExpect(jsonPath("$.data.modules[0].lessons[1].status").value("LOCKED"));
     }
 
     @Test

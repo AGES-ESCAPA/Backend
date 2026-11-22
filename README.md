@@ -14,6 +14,7 @@ O backend foi pensado para servir o frontend e manter o domínio isolado de deta
 - [Pré-requisitos](#-pré-requisitos)
 - [Instalação e Setup](#-instalação-e-setup)
 - [Comandos Disponíveis (Maven)](#-comandos-disponíveis-maven)
+- [Testes Automatizados: como criar, executar e medir a cobertura](#-testes-automatizados-como-criar-executar-e-medir-a-cobertura)
 - [Fluxo de Validação de Tarefas (Evite falhas na CI)](#-fluxo-de-validação-de-tarefas-evite-falhas-na-ci)
 - [Padrão de Commits](#-padrão-de-commits)
 - [Estratégia de Branches](#-estratégia-de-branches)
@@ -182,11 +183,103 @@ A API ficará disponível em: `http://localhost:8080`
 
 > 📊 Após rodar os testes, o relatório de cobertura do Jacoco fica em `target/site/jacoco/index.html`.
 
+> 🪟 No Windows, o perfil `windows-clean-generated-output` remove o atributo somente leitura dos
+> artefatos em `target` antes da fase `clean`. Isso permite que `mvn clean verify` também funcione
+> quando diretórios gerados são marcados como somente leitura por uma pasta sincronizada, como o OneDrive.
+
 > 🖨️ Os testes `@Tag("pdf")` ficam fora do `mvn test`/`mvn verify` padrão. Para rodá-los, instale o Chromium do Playwright uma vez (algumas centenas de MB):
 > ```bash
 > mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install chromium"
 > ```
 > Eles salvam o PDF e uma imagem dele, nos temas claro e escuro, em `target/certificate-preview/`. A CI publica essa pasta como o artefato `certificate-preview`.
+
+---
+
+## 🧪 Testes Automatizados: como criar, executar e medir a cobertura
+
+Os testes usam **JUnit 5**, **Spring Test / MockMvc** e **Testcontainers**. A suíte unitária
+roda sem banco; os testes de persistência e integração inicializam o PostgreSQL compartilhado
+por `PostgresIntegrationTest` e, por isso, precisam do Docker em execução. Os testes marcados
+com `@Tag("pdf")` são separados: exercitam o Chromium real e ficam fora do `mvn test` padrão.
+
+### 1. Onde criar o teste
+
+Crie o arquivo em `src/test/java`, no mesmo pacote da classe testada, com o sufixo `Test`:
+
+```text
+src/main/java/com/escapa/backend/application/usecase/CreateUserUseCase.java
+src/test/java/com/escapa/backend/application/usecase/CreateUserUseCaseTest.java
+```
+
+Use os testes existentes como referência para a camada: casos de uso em
+`application/usecase`, controllers em `adapters/controller`, regras puras em `domain` e
+persistência em `infrastructure/persistence`.
+
+### 2. Como implementar
+
+- **Casos de uso:** teste o comportamento e as regras usando os fakes `InMemory*Port`
+  compartilhados em `src/test/java/com/escapa/backend/application/usecase`. Não use Mockito
+  para simular portas que já têm fake. Verifique valores, exceções e estado resultante.
+- **Controllers:** use `MockMvcBuilders.standaloneSetup(controller)` com
+  `GlobalExceptionHandler`. Cubra resposta de sucesso, validação, status de erro e autorização
+  (401/403 quando aplicável), conferindo também os campos relevantes do JSON.
+- **Persistência, entidades JPA e migrations:** estenda `PostgresIntegrationTest` para reutilizar
+  o PostgreSQL Testcontainers compartilhado. Não inicie um container por classe. Verifique o
+  dado persistido/consultado e a compatibilidade das migrations com o schema.
+- **Domínio e funções puras:** passe entradas representativas e de borda; confirme regras,
+  transições e valores, não apenas que a execução terminou sem exceção.
+- **Limpeza:** restaure estado compartilhado entre testes e evite depender da ordem de execução.
+  Use dados isolados por teste e não altere serviços externos reais.
+
+Exemplo de teste de caso de uso: veja
+[`CreateUserUseCaseTest`](./src/test/java/com/escapa/backend/application/usecase/CreateUserUseCaseTest.java).
+Para controller e persistência, consulte
+[`UserControllerTest`](./src/test/java/com/escapa/backend/adapters/controller/UserControllerTest.java)
+e
+[`CourseRepositoryAdapterTest`](./src/test/java/com/escapa/backend/infrastructure/persistence/CourseRepositoryAdapterTest.java).
+
+### 3. Asserts que validam de verdade
+
+- O nome do teste deve corresponder ao comportamento verificado.
+- Para testar ausência, prepare primeiro um cenário em que o elemento/dado apareceria se o
+  comportamento estivesse incorreto.
+- Prefira comparar valores exatos e estado observável a `assertNotNull`, `assertTrue` genérico
+  ou uma verificação que só repita o próprio nome do teste.
+- Cubra caminhos de sucesso, erro, vazio e limites relevantes; não crie outro teste que apenas
+  repita o mesmo cenário com um nome diferente.
+- Uma exceção esperada deve verificar o tipo e, quando fizer parte do contrato, a mensagem e os
+  efeitos colaterais (por exemplo, nenhum dado salvo).
+- Ao revisar um teste, pergunte: ele falharia se a implementação deixasse de cumprir exatamente
+  o comportamento descrito?
+
+### 4. Como executar
+
+```bash
+mvn test                                      # suíte padrão; requer Docker para integrações
+mvn clean verify                              # validação completa igual ao job principal da CI
+mvn "-Dtest=CreateUserUseCaseTest" test       # uma classe
+mvn "-Dtest=CreateUserUseCaseTest#shouldCreateUserWithNormalizedData" test
+mvn test -Dsurefire.excludedGroups= -Dgroups=pdf  # testes PDF com Chromium instalado
+```
+
+Os testes `@Tag("pdf")` são executados em um job separado na CI. Instale o Chromium compatível
+com a versão do Playwright definida no `pom.xml` antes de executá-los localmente.
+
+### 5. Como medir a cobertura
+
+```bash
+mvn clean test
+```
+
+O JaCoCo imprime o resumo no terminal e gera `target/site/jacoco/index.html`. Abra o relatório
+para consultar cobertura por pacote/classe e as linhas/branches não exercitados. As metas mínimas
+do projeto são **mais de 92% de cobertura agregada de linhas** e **mais de 90% de cobertura de
+branches**. Uma linha executada pode ter caminhos condicionais ainda não cobertos.
+
+O relatório mede código de produção compilado em `src/main/java`; os próprios testes não entram
+no cálculo. `mvn test` exclui os testes PDF com Chromium, portanto o relatório desse comando não
+inclui a execução desses testes. Use `mvn clean test` para evitar misturar dados de cobertura
+anteriores.
 
 ---
 

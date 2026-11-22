@@ -1,12 +1,13 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.domain.order.OrderItemType;
-import com.escapa.backend.domain.order.PaymentMethod;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-import java.util.UUID;
+import com.escapa.backend.domain.order.OrderItemType;
+import com.escapa.backend.domain.order.PaymentMethod;
 
 /**
  * Corpo de {@code POST /api/v1/orders}. Não tem valor nem dados de cartão: o valor é calculado no

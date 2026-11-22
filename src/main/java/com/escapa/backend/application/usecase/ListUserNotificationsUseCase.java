@@ -1,10 +1,10 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.model.UserNotification;
-import com.escapa.backend.application.port.NotificationRepositoryPort;
-
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.model.UserNotification;
+import com.escapa.backend.application.port.NotificationRepositoryPort;
 
 /** Lista as notificações mais recentes do usuário autenticado e quantas ainda não foram lidas. */
 public class ListUserNotificationsUseCase {

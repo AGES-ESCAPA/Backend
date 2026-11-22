@@ -1,5 +1,15 @@
 package com.escapa.backend.application.usecase;
 
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.escapa.backend.application.course.CoursePrerequisiteCycles;
 import com.escapa.backend.application.course.PublishedCourseDrafts;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
@@ -18,15 +28,6 @@ import com.escapa.backend.domain.entity.Course;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.user.UserNotFoundException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 public class PublishCourseUseCase {
     private static final Logger LOGGER = LoggerFactory.getLogger(PublishCourseUseCase.class);

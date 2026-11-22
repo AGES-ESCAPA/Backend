@@ -1,9 +1,9 @@
 package com.escapa.backend.adapters.dto.course;
 
-import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.domain.course.CourseStatus;
-
 import java.util.UUID;
+
+import com.escapa.backend.domain.course.CourseStatus;
+import com.escapa.backend.domain.entity.Course;
 
 public record AdminCourseListItemResponse(
         UUID id,

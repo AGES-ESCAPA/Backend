@@ -191,6 +191,34 @@ class CreateUserUseCaseTest {
 - O Checkstyle (`checkstyle.xml`) roda na fase `validate` do Maven e quebra o build em caso de violação — rode `mvn checkstyle:check` antes de abrir MR.
 - O projeto deve continuar funcionando em Maven e em Docker Compose (o `Dockerfile` precisa copiar `checkstyle.xml`, não só `pom.xml`, para o build multi-stage não quebrar).
 
+### 🧪 Testes: implementação e critérios
+
+- Crie testes em `src/test/java`, no mesmo pacote da classe testada, com o sufixo `Test`.
+- **Casos de uso:** use os fakes `InMemory*Port` existentes em `src/test/java/.../application/usecase/`.
+  Teste regras, valores retornados, exceções e efeitos no estado; não introduza Mockito para
+  substituir um fake disponível.
+- **Controllers:** use `MockMvcBuilders.standaloneSetup(...)` com `GlobalExceptionHandler`.
+  Verifique status HTTP, campos relevantes do envelope/JSON, validação e caminhos de acesso
+  (401/403 quando aplicável).
+- **Persistência, JPA e migrations:** estenda `PostgresIntegrationTest`, que compartilha o
+  container Testcontainers. Não crie outro container por classe; valide o comportamento no
+  PostgreSQL real e a correspondência entre entidade e migration.
+- **Domínio:** teste regras e transições com entradas válidas, inválidas e limites relevantes,
+  sem depender de Spring ou infraestrutura.
+- Cada teste deve falhar se a implementação deixar de atender ao comportamento descrito.
+  Nomes precisam refletir o assert; teste de ausência precisa preparar um cenário em que o dado
+  apareceria se houvesse regressão. Prefira valores exatos e evite asserts redundantes, cenários
+  duplicados ou verificações genéricas como `assertNotNull` sem valor comportamental.
+- Isole os dados por teste e não dependa da ordem de execução. Não use espera real nem serviços
+  externos quando um fake ou recurso de teste existente atende ao caso.
+- As metas mínimas do JaCoCo são **mais de 92% de cobertura agregada de linhas** e
+  **mais de 90% de cobertura de branches**. Inspecione também caminhos de erro; uma linha coberta
+  não garante que todos os seus caminhos condicionais foram exercitados.
+- Execute `mvn clean verify` antes do MR; esse é o job principal da CI e requer Docker para os
+  testes de integração. Os testes `@Tag("pdf")` com Chromium são executados separadamente:
+  `mvn test -Dsurefire.excludedGroups= -Dgroups=pdf`. Consulte no `README.md` a seção
+  **"Testes Automatizados: como criar, executar e medir a cobertura"** para comandos e relatório.
+
 ---
 
 ### 🧩 Convenções de Implementação

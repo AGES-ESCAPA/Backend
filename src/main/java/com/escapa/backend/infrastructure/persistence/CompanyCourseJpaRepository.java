@@ -1,16 +1,17 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.infrastructure.persistence.entity.CompanyCourseEntity;
-import com.escapa.backend.infrastructure.persistence.entity.CompanyCourseId;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import com.escapa.backend.infrastructure.persistence.entity.CompanyCourseEntity;
+import com.escapa.backend.infrastructure.persistence.entity.CompanyCourseId;
 
 public interface CompanyCourseJpaRepository extends JpaRepository<CompanyCourseEntity, CompanyCourseId> {
 
@@ -74,6 +75,36 @@ interface AcquiredCourseRow {
     @Query("select cc.id.courseId as courseId, c.deadline as deadline from CompanyCourseEntity cc "
             + "join cc.course c where cc.id.companyId = :companyId and cc.revokedAt is null")
     List<AcquiredCourseRow> findAcquiredCourses(@Param("companyId") UUID companyId);
+
+    interface EmployeeCourseAssignmentRow {
+        UUID getCourseId();
+
+        String getTitle();
+
+        String getCategory();
+
+        boolean getAssigned();
+    }
+
+    @Query("""
+            select c.id as courseId,
+                   c.title as title,
+                   c.category as category,
+                   (select count(enrollment.id.userId)
+                      from UserCourseEntity enrollment
+                     where enrollment.id.userId = :employeeId
+                       and enrollment.id.courseId = c.id
+                       and enrollment.revokedAt is null) > 0 as assigned
+              from CompanyCourseEntity cc
+              join cc.course c
+             where cc.id.companyId = :companyId
+               and cc.revokedAt is null
+               and c.status = com.escapa.backend.domain.course.CourseStatus.PUBLISHED
+             order by c.title asc
+            """)
+    List<EmployeeCourseAssignmentRow> findEmployeeCourseAssignments(
+            @Param("companyId") UUID companyId,
+            @Param("employeeId") UUID employeeId);
 
     /** Revoga o curso da empresa, sem apagar o registro. */
     @Modifying

@@ -1,10 +1,11 @@
 package com.escapa.backend.adapters.dto;
 
-import com.escapa.backend.application.model.CompanyEmployeeProgress;
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.escapa.backend.application.model.CompanyEmployeeProgress;
 
 @Schema(description = "Progress of one employee in one course of the company")
 public record CompanyEmployeeProgressResponse(

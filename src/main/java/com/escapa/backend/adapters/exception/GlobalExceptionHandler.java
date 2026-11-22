@@ -5,13 +5,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import jakarta.persistence.PersistenceException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.validation.FieldError;
@@ -24,46 +26,44 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import com.escapa.backend.domain.certificate.CertificateAccessDeniedException;
 import com.escapa.backend.domain.certificate.CertificateGenerationException;
 import com.escapa.backend.domain.certificate.CertificateGenerationUnavailableException;
-import com.escapa.backend.domain.certificate.CertificateAccessDeniedException;
-import com.escapa.backend.domain.course.CourseReviewNotAllowedException;
 import com.escapa.backend.domain.certificate.CertificateNotFoundException;
-import com.escapa.backend.domain.order.InvalidOrderTransitionException;
-import com.escapa.backend.domain.order.OrderNotFoundException;
-import com.escapa.backend.domain.order.SeatsInUseException;
 import com.escapa.backend.domain.company.CompanyEmployeeNotFoundException;
 import com.escapa.backend.domain.company.CompanyNotFoundException;
 import com.escapa.backend.domain.company.NoSeatsAvailableException;
-import com.escapa.backend.domain.user.EmployeeNotPendingException;
 import com.escapa.backend.domain.content.ContentNotFoundException;
+import com.escapa.backend.domain.content.InvalidContentFileException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.course.CourseNotFoundException;
+import com.escapa.backend.domain.course.CourseReviewNotAllowedException;
 import com.escapa.backend.domain.course.CourseValidationException;
+import com.escapa.backend.domain.course.InvalidCourseThumbnailException;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
 import com.escapa.backend.domain.notification.NotificationNotFoundException;
 import com.escapa.backend.domain.order.CourseAlreadyActiveException;
+import com.escapa.backend.domain.order.InvalidOrderTransitionException;
 import com.escapa.backend.domain.order.OrderNotFoundException;
 import com.escapa.backend.domain.order.OrderValidationException;
+import com.escapa.backend.domain.order.SeatsInUseException;
+import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.user.AdminAccessDeniedException;
 import com.escapa.backend.domain.user.CompanyEmployeeCannotDeactivateException;
+import com.escapa.backend.domain.user.EmployeeNotPendingException;
 import com.escapa.backend.domain.user.InactiveUserException;
-import com.escapa.backend.domain.content.InvalidContentFileException;
-import com.escapa.backend.domain.course.InvalidCourseThumbnailException;
 import com.escapa.backend.domain.user.InvalidAvatarFileException;
 import com.escapa.backend.domain.user.InvalidCredentialsException;
 import com.escapa.backend.domain.user.InvalidCurrentPasswordException;
 import com.escapa.backend.domain.user.InviteExpiredException;
 import com.escapa.backend.domain.user.InviteNotFoundException;
+import com.escapa.backend.domain.user.PasswordResetTokenExpiredException;
+import com.escapa.backend.domain.user.PasswordResetTokenNotFoundException;
 import com.escapa.backend.domain.user.PendingUserException;
-import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.user.ProfileNotEditableException;
 import com.escapa.backend.domain.user.UserAlreadyInactiveException;
 import com.escapa.backend.domain.user.UserNotFoundException;
 import com.escapa.backend.infrastructure.persistence.RegularUserRepositoryAdapter;
-
-import jakarta.persistence.PersistenceException;
-import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -105,6 +105,7 @@ public class GlobalExceptionHandler {
             NotificationNotFoundException.class,
             CompanyNotFoundException.class,
             InviteNotFoundException.class,
+            PasswordResetTokenNotFoundException.class,
             CompanyEmployeeNotFoundException.class
     })
     public ResponseEntity<ApiError> handleNotFoundException(RuntimeException ex, HttpServletRequest request) {
@@ -126,9 +127,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(InviteExpiredException.class)
-    public ResponseEntity<ApiError> handleInviteExpiredException(
-            InviteExpiredException ex, HttpServletRequest request) {
+    @ExceptionHandler({
+            InviteExpiredException.class,
+            PasswordResetTokenExpiredException.class
+    })
+    public ResponseEntity<ApiError> handleGoneException(RuntimeException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.GONE, ex.getMessage(), request);
     }
 

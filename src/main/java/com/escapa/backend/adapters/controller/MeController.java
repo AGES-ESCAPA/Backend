@@ -2,6 +2,7 @@ package com.escapa.backend.adapters.controller;
 
 import java.util.UUID;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,8 +13,6 @@ import com.escapa.backend.adapters.dto.ApiResponse;
 import com.escapa.backend.adapters.dto.DeactivateAccountRequest;
 import com.escapa.backend.adapters.security.AuthenticationContext;
 import com.escapa.backend.application.usecase.DeactivateAccountUseCase;
-
-import jakarta.validation.Valid;
 
 /**
  * Endpoints da conta do proprio usuario autenticado (US-24), identificado pelo token.

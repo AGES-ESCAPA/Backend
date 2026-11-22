@@ -1,18 +1,19 @@
 package com.escapa.backend.application.usecase;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import com.escapa.backend.application.port.ContentRepositoryPort;
 import com.escapa.backend.application.port.ModuleRepositoryPort;
 import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
 import com.escapa.backend.domain.content.ContentTypeRules;
+import com.escapa.backend.domain.content.QuizQuestion;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 public class CreateContentUseCase {
 
@@ -36,7 +37,7 @@ public class CreateContentUseCase {
             String description,
             Boolean isFree
     ) {
-        return execute(moduleId, title, type, url, durationMinutes, description, isFree, List.of());
+        return execute(moduleId, title, type, url, durationMinutes, description, isFree, List.of(), List.of());
     }
 
     public Content execute(
@@ -48,6 +49,20 @@ public class CreateContentUseCase {
             String description,
             Boolean isFree,
             List<ContentResource> resources
+    ) {
+        return execute(moduleId, title, type, url, durationMinutes, description, isFree, resources, List.of());
+    }
+
+    public Content execute(
+            UUID moduleId,
+            String title,
+            ContentType type,
+            String url,
+            Integer durationMinutes,
+            String description,
+            Boolean isFree,
+            List<ContentResource> resources,
+            List<QuizQuestion> quizQuestions
     ) {
         if (moduleId == null) {
             throw new IllegalArgumentException("moduleId is required");
@@ -67,6 +82,7 @@ public class CreateContentUseCase {
         content.setDescription(description);
         content.setIsFree(isFree != null && isFree);
         content.setResources(resources == null ? new ArrayList<>() : new ArrayList<>(resources));
+        content.setQuizQuestions(quizQuestions == null ? new ArrayList<>() : new ArrayList<>(quizQuestions));
         content.setOrder(contentRepositoryPort.nextOrder(moduleId));
         content.setCreatedAt(LocalDateTime.now());
         content.setCoursePublished(module.isCoursePublished());

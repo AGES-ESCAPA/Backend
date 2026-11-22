@@ -1,16 +1,7 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CompanyEmployeeProgress;
-import com.escapa.backend.application.model.CompanyReportFigures;
-import com.escapa.backend.application.model.CompanyReportFigures.JobTitleFigures;
-import com.escapa.backend.application.model.CompanyReportFigures.MonthFigures;
-import com.escapa.backend.application.model.CompanyReportOverview;
-import com.escapa.backend.application.model.CompanyReportPeriod;
-import com.escapa.backend.application.model.EmployeeProgressStatus;
-import com.escapa.backend.application.port.CompanyReportRepositoryPort;
-import com.escapa.backend.domain.company.CompanyNotFoundException;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -21,8 +12,18 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CompanyEmployeeProgress;
+import com.escapa.backend.application.model.CompanyReportFigures;
+import com.escapa.backend.application.model.CompanyReportFigures.JobTitleFigures;
+import com.escapa.backend.application.model.CompanyReportFigures.MonthFigures;
+import com.escapa.backend.application.model.CompanyReportOverview;
+import com.escapa.backend.application.model.CompanyReportPeriod;
+import com.escapa.backend.application.model.EmployeeProgressStatus;
+import com.escapa.backend.application.port.CompanyReportRepositoryPort;
+import com.escapa.backend.domain.company.CompanyNotFoundException;
 
 class GetCompanyReportOverviewUseCaseTest {
 
@@ -126,6 +127,21 @@ class GetCompanyReportOverviewUseCaseTest {
         assertEquals(List.of("ATENDIMENTO", "GOVERNANCA", "RECEPCAO"),
                 byTitle.stream().map(CompanyReportOverview.JobTitleCompletion::jobTitle).toList());
         assertEquals(List.of(100.0, 0.0, 25.0),
+                byTitle.stream().map(CompanyReportOverview.JobTitleCompletion::completionRate).toList());
+    }
+
+    @Test
+    void completionByJobTitleMergesAliasesThatOnlyDifferByCaseOrAccents() {
+        port.figures = new CompanyReportFigures(5, 10, 5, 0, 0, 0, 0, 0, List.of(
+                new JobTitleFigures("RECEPCAO", 2, 0),
+                new JobTitleFigures("Recepção", 2, 2),
+                new JobTitleFigures("COZINHA", 1, 1)), List.of());
+
+        final List<CompanyReportOverview.JobTitleCompletion> byTitle = useCase().execute(COMPANY_ID).completionByJobTitle();
+
+        assertEquals(List.of("COZINHA", "Recepção"),
+                byTitle.stream().map(CompanyReportOverview.JobTitleCompletion::jobTitle).toList());
+        assertEquals(List.of(100.0, 50.0),
                 byTitle.stream().map(CompanyReportOverview.JobTitleCompletion::completionRate).toList());
     }
 

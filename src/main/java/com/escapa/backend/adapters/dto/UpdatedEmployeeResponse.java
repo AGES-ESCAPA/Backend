@@ -1,11 +1,12 @@
 package com.escapa.backend.adapters.dto;
 
+import java.util.UUID;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import com.escapa.backend.application.model.CompanyEmployee;
 import com.escapa.backend.application.model.UpdatedEmployee;
 import com.escapa.backend.domain.user.UserStatus;
-import io.swagger.v3.oas.annotations.media.Schema;
-
-import java.util.UUID;
 
 @Schema(description = "The employee after the edit, as listed in the employees table")
 public record UpdatedEmployeeResponse(

@@ -1,10 +1,11 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.port.CompanyEmployeeUnlinkPort;
-import org.springframework.jdbc.core.simple.JdbcClient;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+
+import com.escapa.backend.application.port.CompanyEmployeeUnlinkPort;
 
 public class CompanyEmployeeUnlinkAdapter implements CompanyEmployeeUnlinkPort {
 
@@ -43,6 +44,35 @@ public class CompanyEmployeeUnlinkAdapter implements CompanyEmployeeUnlinkPort {
                 .param("employeeId", employeeId)
                 .param("companyId", companyId)
                 .update();
+    }
+
+    @Override
+    public boolean revokeCompanyCourseEnrollment(
+            UUID companyId, UUID employeeId, UUID courseId, LocalDateTime revokedAt) {
+        return jdbcClient.sql("""
+                update user_courses enrollment
+                   set revoked_at = :revokedAt
+                 where enrollment.user_id = :employeeId
+                   and enrollment.course_id = :courseId
+                   and enrollment.revoked_at is null
+                   and exists (
+                       select 1 from company_courses owned
+                        where owned.company_id = :companyId
+                          and owned.course_id = :courseId
+                          and owned.revoked_at is null)
+                   and not exists (
+                       select 1 from orders purchase
+                        where purchase.buyer_user_id = enrollment.user_id
+                          and purchase.course_id = enrollment.course_id
+                          and purchase.type = 'INDIVIDUAL'
+                          and purchase.item_type = 'COURSE'
+                          and purchase.status = 'APPROVED')
+                """)
+                .param("revokedAt", revokedAt)
+                .param("employeeId", employeeId)
+                .param("courseId", courseId)
+                .param("companyId", companyId)
+                .update() > 0;
     }
 
     @Override

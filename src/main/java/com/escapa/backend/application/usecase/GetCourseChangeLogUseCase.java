@@ -1,10 +1,10 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.dto.ChangeLogEntry;
 import com.escapa.backend.application.dto.PageResult;
 import com.escapa.backend.application.port.CourseChangeLogRepositoryPort;
-
-import java.util.UUID;
 
 public class GetCourseChangeLogUseCase {
 

@@ -1,24 +1,30 @@
 package com.escapa.backend.adapters.controller;
 
+import java.util.UUID;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.QuizSubmitResponse;
 import com.escapa.backend.adapters.dto.StudentCourseCurriculumResponse;
 import com.escapa.backend.adapters.dto.StudentLessonResponse;
+import com.escapa.backend.adapters.dto.SubmitQuizRequest;
 import com.escapa.backend.adapters.security.AuthenticationContext;
 import com.escapa.backend.application.model.LessonDetails;
 import com.escapa.backend.application.model.StudentCourseCurriculum;
 import com.escapa.backend.application.usecase.CompleteStudentLessonUseCase;
 import com.escapa.backend.application.usecase.GetStudentCourseCurriculumUseCase;
 import com.escapa.backend.application.usecase.OpenStudentLessonUseCase;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.UUID;
+import com.escapa.backend.application.usecase.SubmitQuizUseCase;
 
 /**
  * Endpoints do aluno (US-11), identificado pelo token Bearer da requisicao.
@@ -31,15 +37,18 @@ public class StudentLessonController {
     private final OpenStudentLessonUseCase openStudentLessonUseCase;
     private final GetStudentCourseCurriculumUseCase getStudentCourseCurriculumUseCase;
     private final CompleteStudentLessonUseCase completeStudentLessonUseCase;
+    private final SubmitQuizUseCase submitQuizUseCase;
 
     public StudentLessonController(
             OpenStudentLessonUseCase openStudentLessonUseCase,
             GetStudentCourseCurriculumUseCase getStudentCourseCurriculumUseCase,
-            CompleteStudentLessonUseCase completeStudentLessonUseCase
+            CompleteStudentLessonUseCase completeStudentLessonUseCase,
+            SubmitQuizUseCase submitQuizUseCase
     ) {
         this.openStudentLessonUseCase = openStudentLessonUseCase;
         this.getStudentCourseCurriculumUseCase = getStudentCourseCurriculumUseCase;
         this.completeStudentLessonUseCase = completeStudentLessonUseCase;
+        this.submitQuizUseCase = submitQuizUseCase;
     }
 
     @GetMapping("/courses/{courseId}/lessons/{lessonId}")
@@ -55,6 +64,21 @@ public class StudentLessonController {
         final UUID userId = AuthenticationContext.requireUser().id();
         final LessonDetails lesson = openStudentLessonUseCase.execute(userId, courseId, lessonId);
         return ResponseEntity.ok(ApiResponse.success(StudentLessonResponse.from(lesson)));
+    }
+
+    @PostMapping("/courses/{courseId}/lessons/{lessonId}/quiz/submit")
+    @Operation(summary = "Submit quiz answers for a quiz lesson")
+    public ResponseEntity<ApiResponse<QuizSubmitResponse>> submitQuiz(
+            @PathVariable UUID courseId,
+            @PathVariable UUID lessonId,
+            @Valid @RequestBody SubmitQuizRequest request
+    ) {
+        final UUID userId = AuthenticationContext.requireUser().id();
+        final var answers = request.answers().stream()
+                .map(a -> new SubmitQuizUseCase.QuizAnswer(a.questionId(), a.optionId()))
+                .toList();
+        final var result = submitQuizUseCase.execute(userId, courseId, lessonId, answers);
+        return ResponseEntity.ok(ApiResponse.success(QuizSubmitResponse.from(result)));
     }
 
     @PostMapping("/courses/{courseId}/lessons/{lessonId}/complete")

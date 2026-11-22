@@ -1,12 +1,12 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.model.CompanyEmployeeCounts;
 import com.escapa.backend.application.model.CompanySeatsSummary;
 import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
 import com.escapa.backend.application.port.CompanySeatsPort;
 import com.escapa.backend.domain.company.CompanyNotFoundException;
-
-import java.util.UUID;
 
 /**
  * Resumo das vagas contratadas e em uso da empresa (US-30). A empresa é sempre a do token; nenhuma
@@ -34,7 +34,7 @@ public class GetCompanySeatsSummaryUseCase {
             throw new CompanyNotFoundException(companyId);
         }
 
-        final int seatsTotal = companySeatsPort.findSeatsTotal(companyId);
+        final int purchasedSeats = companySeatsPort.findSeatsTotal(companyId);
         final CompanyEmployeeCounts employees = companyEmployeeRepositoryPort.countEmployees(companyId);
 
         // Todo colaborador vinculado ocupa uma vaga, então as vagas em uso são os colaboradores. Uma
@@ -42,8 +42,10 @@ public class GetCompanySeatsSummaryUseCase {
         // desvínculo no meio da leitura.
         final int seatsUsed = employees.total();
 
-        // Com mais colaboradores que vagas (dado antigo ou vaga reduzida), as livres ficam em zero.
-        final int seatsAvailable = Math.max(0, seatsTotal - seatsUsed);
+        // Contratadas nunca ficam abaixo das ocupadas (dado legado / seed inconsistente): a UI
+        // mostra o teto efetivo e as livres só existem acima desse piso.
+        final int seatsTotal = Math.max(purchasedSeats, seatsUsed);
+        final int seatsAvailable = seatsTotal - seatsUsed;
 
         return new CompanySeatsSummary(seatsTotal, seatsUsed, seatsAvailable, employees.total(), employees.active());
     }

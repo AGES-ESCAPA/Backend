@@ -1,15 +1,16 @@
 package com.escapa.backend.infrastructure.email;
 
-import com.escapa.backend.application.port.EmailSenderPort;
+import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
-import java.nio.charset.StandardCharsets;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.escapa.backend.application.port.EmailSenderPort;
 
 /**
  * Envia o e-mail pelo SMTP configurado em {@code spring.mail.*}. Com o modo de teste

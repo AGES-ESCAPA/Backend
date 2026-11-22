@@ -1,12 +1,8 @@
 package com.escapa.backend.adapters.controller;
 
-import com.escapa.backend.adapters.dto.ApiResponse;
-import com.escapa.backend.adapters.dto.CreateUserRequest;
-import com.escapa.backend.adapters.dto.UserResponse;
-import com.escapa.backend.application.usecase.CreateUserUseCase;
-import com.escapa.backend.application.usecase.GetUserByIdUseCase;
-import com.escapa.backend.application.usecase.ListUsersUseCase;
-import com.escapa.backend.domain.entity.User;
+import java.util.List;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -19,8 +15,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.UUID;
+import com.escapa.backend.adapters.dto.ApiResponse;
+import com.escapa.backend.adapters.dto.CreateUserRequest;
+import com.escapa.backend.adapters.dto.UserResponse;
+import com.escapa.backend.application.usecase.CreateUserUseCase;
+import com.escapa.backend.application.usecase.GetUserByIdUseCase;
+import com.escapa.backend.application.usecase.ListUsersUseCase;
+import com.escapa.backend.domain.entity.User;
 
 @RestController
 @Tag(name = "Users", description = "User registration and lookup")
@@ -54,7 +55,7 @@ public class UserController {
     @Operation(summary = "List users")
     public ResponseEntity<ApiResponse<List<UserResponse>>> list() {
         final List<UserResponse> users = listUsersUseCase.execute().stream()
-                .map(UserResponse::from)
+                .map(user -> UserResponse.from(user, listUsersUseCase.resolveProfile(user)))
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(users));
     }
@@ -63,6 +64,7 @@ public class UserController {
     @Operation(summary = "Get a user by id")
     public ResponseEntity<ApiResponse<UserResponse>> getById(@PathVariable UUID id) {
         final User user = getUserByIdUseCase.execute(id);
-        return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
+        return ResponseEntity.ok(ApiResponse.success(
+                UserResponse.from(user, listUsersUseCase.resolveProfile(user))));
     }
 }

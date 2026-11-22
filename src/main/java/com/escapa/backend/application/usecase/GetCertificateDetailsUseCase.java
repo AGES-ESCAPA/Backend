@@ -1,11 +1,11 @@
 package com.escapa.backend.application.usecase;
 
+import java.util.UUID;
+
 import com.escapa.backend.application.model.CertificateDetails;
 import com.escapa.backend.application.model.CertificateView;
 import com.escapa.backend.application.port.CertificateRepositoryPort;
 import com.escapa.backend.domain.certificate.CertificateNotFoundException;
-
-import java.util.UUID;
 
 /**
  * Dados da tela de certificado digital pelo codigo de verificacao (US-18).

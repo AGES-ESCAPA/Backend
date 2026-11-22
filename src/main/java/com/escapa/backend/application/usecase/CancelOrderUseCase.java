@@ -1,5 +1,12 @@
 package com.escapa.backend.application.usecase;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.escapa.backend.application.port.CompanySeatsPort;
 import com.escapa.backend.application.port.OrderAccessRevocationPort;
 import com.escapa.backend.application.port.OrderRepositoryPort;
@@ -8,12 +15,6 @@ import com.escapa.backend.domain.order.OrderItemType;
 import com.escapa.backend.domain.order.OrderNotFoundException;
 import com.escapa.backend.domain.order.OrderType;
 import com.escapa.backend.domain.order.SeatsInUseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.time.Clock;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Cancela um pedido aprovado e retira o acesso que ele liberou, sem apagar matrícula,

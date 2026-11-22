@@ -1,13 +1,13 @@
 package com.escapa.backend.application.usecase;
 
+import java.time.Clock;
+import java.time.LocalDate;
+import java.util.UUID;
+
 import com.escapa.backend.application.model.Enrollment;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.domain.content.LessonAccessDeniedException;
 import com.escapa.backend.domain.content.LessonAccessDeniedException.Reason;
-
-import java.time.Clock;
-import java.time.LocalDate;
-import java.util.UUID;
 
 /**
  * Valida se um aluno tem acesso a um curso: matricula iniciada e, quando o

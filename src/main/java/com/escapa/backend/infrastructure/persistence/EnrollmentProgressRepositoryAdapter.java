@@ -1,12 +1,13 @@
 package com.escapa.backend.infrastructure.persistence;
 
-import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
-import com.escapa.backend.infrastructure.persistence.entity.UserCourseId;
+import java.time.LocalDate;
+import java.util.UUID;
+
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.UUID;
+import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
+import com.escapa.backend.infrastructure.persistence.entity.UserCourseId;
 
 @Repository
 public class EnrollmentProgressRepositoryAdapter implements EnrollmentProgressRepositoryPort {

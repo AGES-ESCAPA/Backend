@@ -1,10 +1,10 @@
 package com.escapa.backend.application.dto;
 
-import com.escapa.backend.domain.order.OrderStatus;
-import com.escapa.backend.domain.order.OrderType;
-
 import java.time.LocalDate;
 import java.util.UUID;
+
+import com.escapa.backend.domain.order.OrderStatus;
+import com.escapa.backend.domain.order.OrderType;
 
 /**
  * Filtros opcionais para a listagem administrativa de pedidos; {@code null} não filtra.

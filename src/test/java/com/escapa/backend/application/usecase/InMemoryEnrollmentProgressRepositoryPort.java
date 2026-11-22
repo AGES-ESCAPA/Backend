@@ -1,11 +1,11 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
-
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import com.escapa.backend.application.port.EnrollmentProgressRepositoryPort;
 
 public final class InMemoryEnrollmentProgressRepositoryPort implements EnrollmentProgressRepositoryPort {
     private record Key(UUID userId, UUID courseId) {

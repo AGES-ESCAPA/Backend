@@ -1,11 +1,5 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.dto.PageResult;
-import com.escapa.backend.application.model.CompanyEmployee;
-import com.escapa.backend.application.model.CompanyEmployeeCounts;
-import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
-import com.escapa.backend.domain.user.UserStatus;
-
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -14,6 +8,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
+import com.escapa.backend.application.dto.PageResult;
+import com.escapa.backend.application.model.CompanyEmployee;
+import com.escapa.backend.application.model.CompanyEmployeeCounts;
+import com.escapa.backend.application.port.CompanyEmployeeRepositoryPort;
+import com.escapa.backend.domain.user.UserStatus;
 
 /**
  * Vínculos colaborador-empresa em memória, só o que o cadastro, o reenvio de convite, a compra e a
@@ -45,6 +45,15 @@ public final class FakeEmployeeLinks implements CompanyEmployeeRepositoryPort {
     @Override
     public void updateJobTitle(UUID companyId, UUID userId, String jobTitle) {
         jobTitles.put(key(companyId, userId), jobTitle);
+    }
+
+    @Override
+    public List<String> findJobTitles(UUID companyId) {
+        return links.getOrDefault(companyId, Set.of()).stream()
+                .map(userId -> jobTitles.get(key(companyId, userId)))
+                .filter(title -> title != null && !title.isBlank())
+                .distinct()
+                .toList();
     }
 
     String jobTitle(UUID companyId, UUID userId) {

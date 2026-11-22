@@ -1,14 +1,16 @@
 package com.escapa.backend.adapters.dto;
 
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import com.escapa.backend.application.model.LessonConcept;
 import com.escapa.backend.application.model.LessonDetails;
 import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.content.QuizPresentation;
+import com.escapa.backend.domain.content.StudentQuizQuestion;
 import com.escapa.backend.domain.entity.Content;
-
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Aula para o player e o cabecalho da Sala de Aula. {@code description} ja vem
@@ -25,6 +27,8 @@ public record StudentLessonResponse(
         Boolean isFree,
         Integer order,
         List<ContentResource> resources,
+        List<StudentQuizQuestion> quizQuestions,
+        Integer minQuizPassPercentage,
         List<String> concepts,
         List<ReferenceResponse> references,
         ModuleInfo module
@@ -46,6 +50,9 @@ public record StudentLessonResponse(
                 .map(r -> new ReferenceResponse(r.title(), r.url()))
                 .collect(Collectors.toList());
 
+        final List<StudentQuizQuestion> quizQuestions =
+                QuizPresentation.withoutCorrectAnswers(content.getQuizQuestions());
+
         return new StudentLessonResponse(
                 content.getId(),
                 lesson.courseId(),
@@ -57,10 +64,11 @@ public record StudentLessonResponse(
                 content.getIsFree(),
                 content.getOrder(),
                 content.getResources(),
+                quizQuestions,
+                lesson.minQuizPassPercentage(),
                 conceptNames,
                 refs,
                 new ModuleInfo(content.getModuleId(), lesson.moduleTitle(), lesson.moduleOrder())
         );
     }
 }
-

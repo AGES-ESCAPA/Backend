@@ -1,5 +1,15 @@
 package com.escapa.backend.adapters.controller;
 
+import java.util.UUID;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.escapa.backend.adapters.dto.ApiResponse;
 import com.escapa.backend.adapters.dto.CompanyEmployeeProgressResponse;
 import com.escapa.backend.adapters.dto.CompanyReportOverviewResponse;
@@ -10,15 +20,6 @@ import com.escapa.backend.application.model.CompanyEmployeeProgress;
 import com.escapa.backend.application.model.EmployeeProgressStatus;
 import com.escapa.backend.application.usecase.GetCompanyReportOverviewUseCase;
 import com.escapa.backend.application.usecase.ListCompanyEmployeeProgressUseCase;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.UUID;
 
 /**
  * Relatório de progresso da equipe da empresa autenticada (US-35). A empresa é sempre a do token

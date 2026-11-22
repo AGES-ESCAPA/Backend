@@ -1,8 +1,10 @@
 package com.escapa.backend.application.usecase;
-import com.escapa.backend.application.dto.CompanyCourseSummary;
-import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
+
 import java.util.List;
 import java.util.UUID;
+
+import com.escapa.backend.application.dto.CompanyCourseSummary;
+import com.escapa.backend.application.port.CompanyCourseRepositoryPort;
 
 public class ListCompanyCoursesUseCase {
     private final CompanyCourseRepositoryPort companyCourseRepositoryPort;

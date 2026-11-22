@@ -1,15 +1,16 @@
 package com.escapa.backend.infrastructure.persistence.course;
 
-import com.escapa.backend.domain.course.CoursePendingDraft;
-import com.escapa.backend.domain.entity.Course;
-import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.domain.course.CoursePendingDraft;
+import com.escapa.backend.domain.entity.Course;
+import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
 
 class CourseMapperPendingDraftTest {
 
@@ -23,7 +24,7 @@ class CourseMapperPendingDraftTest {
         course.setPendingDraft(new CoursePendingDraft(
                 "Rascunho", "resumo", "descricao", null, null, instructorId,
                 "Hotelaria", "INICIANTE", 12, 30, 99.0, List.of("objetivo"),
-                false, true, List.of(prerequisiteId)));
+                false, true, 70, List.of(prerequisiteId)));
 
         final CourseEntity entity = new CourseEntity();
         CourseMapper.applyToEntity(course, entity);

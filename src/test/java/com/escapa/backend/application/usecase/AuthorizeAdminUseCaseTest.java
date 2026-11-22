@@ -1,14 +1,15 @@
 package com.escapa.backend.application.usecase;
 
-import com.escapa.backend.application.port.UserRepositoryPort;
-import com.escapa.backend.domain.entity.User;
-import com.escapa.backend.domain.user.AdminAccessDeniedException;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+
+import com.escapa.backend.application.port.UserRepositoryPort;
+import com.escapa.backend.domain.entity.User;
+import com.escapa.backend.domain.user.AdminAccessDeniedException;
 
 class AuthorizeAdminUseCaseTest {
 

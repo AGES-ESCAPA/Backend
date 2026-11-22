@@ -1,5 +1,19 @@
 package com.escapa.backend.infrastructure.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.LocalDate;
+import java.util.Map;
+import java.util.UUID;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+
 import com.escapa.backend.application.model.CreateOrderCommand;
 import com.escapa.backend.application.port.EnrollmentRepositoryPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
@@ -12,19 +26,6 @@ import com.escapa.backend.domain.order.CourseAlreadyActiveException;
 import com.escapa.backend.domain.order.OrderItemType;
 import com.escapa.backend.domain.order.PaymentMethod;
 import com.escapa.backend.infrastructure.persistence.entity.CourseEntity;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import java.time.LocalDate;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Nova compra de um curso cujo pedido foi cancelado (US-27 / US-28), contra o banco real. */
 class OrderRepurchaseIntegrationTest extends PostgresIntegrationTest {
