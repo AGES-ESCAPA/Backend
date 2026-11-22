@@ -37,6 +37,8 @@ public class PasswordResetMailer {
     /** @return {@code true} se o e-mail foi enviado; {@code false} se o envio falhou */
     public boolean send(String name, String email, String token) {
         final Map<String, String> variables = Map.of(
+                "titulo", "Redefinir senha — Escapa!",
+                "preheader", "Recebemos um pedido para redefinir a senha da sua conta.",
                 "nome", name,
                 "link", frontendUrl + "/redefinir-senha?token=" + token);
         try {

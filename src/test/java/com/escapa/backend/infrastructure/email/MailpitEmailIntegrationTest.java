@@ -55,7 +55,11 @@ class MailpitEmailIntegrationTest {
         final SmtpEmailSenderAdapter sender = new SmtpEmailSenderAdapter(mailSender, FROM, true, "");
         final ResourceEmailTemplateAdapter templates = new ResourceEmailTemplateAdapter();
         final Map<String, String> variables = Map.of(
-                "nome", "Ana", "empresa", "Pousada Vista Mar", "link", "http://localhost:3000/convite?token=abc");
+                "titulo", "Convite para a Escapa!",
+                "preheader", "Você foi convidado(a) para acessar os cursos.",
+                "nome", "Ana",
+                "empresa", "Pousada Vista Mar",
+                "link", "http://localhost:3000/convite?token=abc");
 
         sender.send(TO, "Convite para a Escapa!",
                 templates.render("convite-colaborador.html", variables),
@@ -70,6 +74,9 @@ class MailpitEmailIntegrationTest {
         final String html = message.path("HTML").asText();
         assertTrue(html.contains(SmtpEmailSenderAdapter.TEST_NOTICE));
         assertTrue(html.contains("Pousada Vista Mar"));
+        assertTrue(html.contains("cid:escapa-logo"));
+        assertTrue(html.contains("background-color:#0c0c1a"));
+        assertTrue(html.contains("Equipe Escapa!"));
         assertTrue(message.path("Text").asText().startsWith(SmtpEmailSenderAdapter.TEST_NOTICE));
     }
 

@@ -36,6 +36,8 @@ public class EmailChangeMailer {
     /** @return {@code true} se o e-mail foi enviado; {@code false} se o envio falhou */
     public boolean send(String name, String newEmail, String token) {
         final Map<String, String> variables = Map.of(
+                "titulo", "Confirme seu novo e-mail — Escapa!",
+                "preheader", "Confirme a alteração do e-mail da sua conta na Escapa!.",
                 "nome", name,
                 "novoEmail", newEmail,
                 "link", frontendUrl + "/confirmar-email?token=" + token);

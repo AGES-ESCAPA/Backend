@@ -32,6 +32,8 @@ public class EmployeeInviteMailer {
     /** @return {@code true} se o e-mail foi enviado; {@code false} se o envio falhou */
     public boolean send(String name, String email, String companyName, String token) {
         final Map<String, String> variables = Map.of(
+                "titulo", "Convite para a Escapa!",
+                "preheader", "Você foi convidado(a) para acessar os cursos da Escapa!.",
                 "nome", name,
                 "empresa", companyName,
                 "link", frontendUrl + "/criar-senha?token=" + token);

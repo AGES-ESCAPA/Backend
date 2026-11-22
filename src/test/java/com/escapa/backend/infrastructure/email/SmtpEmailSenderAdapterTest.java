@@ -38,6 +38,17 @@ class SmtpEmailSenderAdapterTest {
     }
 
     @Test
+    void shouldAttachTheBrandLogoWhenTheHtmlReferencesTheCid() throws Exception {
+        final String brandedHtml = "<html><body><img src=\"cid:escapa-logo\" alt=\"escapa!\"></body></html>";
+
+        new SmtpEmailSenderAdapter(mailSender, FROM, false, "").send(TO, SUBJECT, brandedHtml, TEXT);
+
+        final MimeMessage message = mailSender.single();
+        assertEquals(brandedHtml, body(message, "text/html"));
+        assertTrue(hasInlinePart(message, "escapa-logo"));
+    }
+
+    @Test
     void shouldMarkSubjectHtmlAndTextAsTestWhenTestModeIsOn() throws Exception {
         new SmtpEmailSenderAdapter(mailSender, FROM, true, "").send(TO, SUBJECT, HTML, TEXT);
 
@@ -108,6 +119,24 @@ class SmtpEmailSenderAdapterTest {
             }
         }
         return null;
+    }
+
+    private static boolean hasInlinePart(Part part, String contentId) throws Exception {
+        if (part.getHeader("Content-ID") != null) {
+            for (final String header : part.getHeader("Content-ID")) {
+                if (header.contains(contentId)) {
+                    return true;
+                }
+            }
+        }
+        if (part.getContent() instanceof Multipart multipart) {
+            for (int i = 0; i < multipart.getCount(); i++) {
+                if (hasInlinePart(multipart.getBodyPart(i), contentId)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** Guarda a mensagem em vez de abrir conexão com o SMTP. */

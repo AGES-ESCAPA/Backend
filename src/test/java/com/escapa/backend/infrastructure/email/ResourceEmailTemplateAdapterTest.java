@@ -12,11 +12,26 @@ import org.junit.jupiter.api.Test;
 class ResourceEmailTemplateAdapterTest {
 
     private static final Map<String, String> VARIABLES = Map.of(
+            "titulo", "Convite para a Escapa!",
+            "preheader", "Você foi convidado(a) para acessar os cursos.",
             "nome", "Ana",
             "empresa", "Silva & Filhos <ME>",
             "link", "http://localhost:3000/convite?token=abc&origem=email");
 
     private final ResourceEmailTemplateAdapter adapter = new ResourceEmailTemplateAdapter();
+
+    @Test
+    void shouldWrapTheHtmlContentInTheBrandLayout() {
+        final String html = adapter.render("convite-colaborador.html", VARIABLES);
+
+        assertTrue(html.contains("cid:escapa-logo"));
+        assertTrue(html.contains("background-color:#0c0c1a"));
+        assertTrue(html.contains("background-color:#5be5ff"));
+        assertTrue(html.contains("Equipe Escapa!"));
+        assertTrue(html.contains("<title>Convite para a Escapa!</title>"));
+        // Variáveis HTML passam por HtmlUtils: acentos viram entidades (ê → &ecirc;).
+        assertTrue(html.contains("Voc&ecirc; foi convidado(a) para acessar os cursos."));
+    }
 
     @Test
     void shouldReplaceTheMarkersAndEscapeTheValuesInTheHtmlTemplate() {
@@ -36,6 +51,7 @@ class ResourceEmailTemplateAdapterTest {
         assertTrue(text.contains("Silva & Filhos <ME>"));
         assertTrue(text.contains("http://localhost:3000/convite?token=abc&origem=email"));
         assertFalse(text.contains("{{"));
+        assertFalse(text.contains("cid:escapa-logo"));
     }
 
     @Test
@@ -45,6 +61,34 @@ class ResourceEmailTemplateAdapterTest {
 
         assertFalse(html.contains("TESTE"));
         assertFalse(text.contains("TESTE"));
+    }
+
+    @Test
+    void shouldApplyTheBrandLayoutToEveryExistingHtmlEmail() {
+        final Map<String, String> invite = VARIABLES;
+        final Map<String, String> reset = Map.of(
+                "titulo", "Redefinir senha — Escapa!",
+                "preheader", "Recebemos um pedido para redefinir a senha.",
+                "nome", "Ana",
+                "link", "http://localhost:3000/redefinir-senha?token=abc");
+        final Map<String, String> emailChange = Map.of(
+                "titulo", "Confirme seu novo e-mail — Escapa!",
+                "preheader", "Confirme a alteração do e-mail da sua conta.",
+                "nome", "Ana",
+                "novoEmail", "novo@email.com",
+                "link", "http://localhost:3000/confirmar-email?token=abc");
+
+        for (final String html : new String[] {
+                adapter.render("convite-colaborador.html", invite),
+                adapter.render("recuperacao-senha.html", reset),
+                adapter.render("confirmacao-email.html", emailChange)
+        }) {
+            assertTrue(html.contains("cid:escapa-logo"));
+            assertTrue(html.contains("background-color:#0c0c1a"));
+            assertTrue(html.contains("background-color:#2b6fe7"));
+            assertTrue(html.contains("Equipe Escapa!"));
+            assertFalse(html.contains("{{"));
+        }
     }
 
     @Test

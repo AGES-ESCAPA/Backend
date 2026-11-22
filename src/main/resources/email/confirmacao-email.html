@@ -1,16 +1,27 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Confirme seu novo e-mail — Escapa!</title>
-</head>
-<body style="font-family: sans-serif; color: #1f1f1f; line-height: 1.5;">
-    <p>Olá, {{nome}}!</p>
-    <p>Recebemos um pedido para alterar o e-mail da sua conta na Escapa! para <strong>{{novoEmail}}</strong>.</p>
-    <p>Para confirmar a alteração, use o link abaixo:</p>
-    <p><a href="{{link}}">Confirmar meu novo e-mail</a></p>
-    <p>Se o botão não funcionar, copie e cole este endereço no navegador:<br>{{link}}</p>
-    <p>Se você não pediu essa alteração, ignore este e-mail. Seu endereço atual continua válido.</p>
-    <p>Equipe Escapa!</p>
-</body>
-</html>
+<h1 style="margin:0 0 20px 0;font-size:22px;line-height:1.25;font-weight:700;color:#17191c;">
+  Olá, {{nome}}!
+</h1>
+<p style="margin:0 0 16px 0;font-size:16px;line-height:1.5;color:#2e3338;">
+  Recebemos um pedido para alterar o e-mail da sua conta na Escapa! para <strong style="color:#17191c;">{{novoEmail}}</strong>.
+</p>
+<p style="margin:0 0 28px 0;font-size:16px;line-height:1.5;color:#2e3338;">
+  Para confirmar a alteração, use o botão abaixo:
+</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 28px 0;">
+  <tr>
+    <td align="center" bgcolor="#2b6fe7" style="border-radius:8px;background-color:#2b6fe7;">
+      <a href="{{link}}" target="_blank" style="display:inline-block;padding:14px 28px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:16px;font-weight:600;line-height:1.25;color:#ffffff;text-decoration:none;border-radius:8px;">
+        Confirmar meu novo e-mail
+      </a>
+    </td>
+  </tr>
+</table>
+<p style="margin:0 0 8px 0;font-size:13px;line-height:1.5;color:#65707b;">
+  Se o botão não funcionar, copie e cole este endereço no navegador:
+</p>
+<p style="margin:0 0 24px 0;font-size:13px;line-height:1.5;word-break:break-all;">
+  <a href="{{link}}" style="color:#2b6fe7;text-decoration:underline;">{{link}}</a>
+</p>
+<p style="margin:0;font-size:13px;line-height:1.5;color:#848f9a;">
+  Se você não pediu essa alteração, ignore este e-mail. Seu endereço atual continua válido.
+</p>
