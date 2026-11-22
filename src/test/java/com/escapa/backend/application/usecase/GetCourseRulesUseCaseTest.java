@@ -79,6 +79,7 @@ class GetCourseRulesUseCaseTest {
 
         assertEquals(false, rules.requireSequentialProgress());
         assertEquals(true, rules.enforceDeadlineBlock());
+        assertEquals(80, rules.minQuizPassPercentage());
         assertEquals(1, rules.prerequisites().size());
         assertEquals(prerequisite.getId(), rules.prerequisites().get(0).courseId());
     }

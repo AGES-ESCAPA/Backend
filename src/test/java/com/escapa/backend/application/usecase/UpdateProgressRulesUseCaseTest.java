@@ -114,6 +114,38 @@ class UpdateProgressRulesUseCaseTest {
     }
 
     @Test
+    void shouldRejectMinQuizPassPercentageOutsideValidRange() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final Course course = courseRepository.save(course(adminUser()));
+        final UpdateProgressRulesUseCase useCase =
+                new UpdateProgressRulesUseCase(courseRepository, new InMemoryCourseChangeLogRepositoryPort(),
+                        new InMemoryCoursePrerequisiteRepositoryPort());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute(course.getId(), true, false, -1, null));
+        assertThrows(IllegalArgumentException.class,
+                () -> useCase.execute(course.getId(), true, false, 101, null));
+    }
+
+    @Test
+    void shouldPersistMinQuizPassPercentageOnPublishedCourseDraft() {
+        final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
+        final Course course = courseRepository.save(course(adminUser()));
+        course.setStatus(CourseStatus.PUBLISHED);
+        course.setMinQuizPassPercentage(70);
+        courseRepository.save(course);
+        final UpdateProgressRulesUseCase useCase =
+                new UpdateProgressRulesUseCase(courseRepository, new InMemoryCourseChangeLogRepositoryPort(),
+                        new InMemoryCoursePrerequisiteRepositoryPort());
+
+        useCase.execute(course.getId(), true, false, 85, null);
+
+        final Course updated = courseRepository.findById(course.getId()).orElseThrow();
+        assertEquals(70, updated.getMinQuizPassPercentage());
+        assertEquals(85, updated.getPendingDraft().minQuizPassPercentage());
+    }
+
+    @Test
     void shouldThrowWhenCourseNotFound() {
         final InMemoryCourseRepositoryPort courseRepository = new InMemoryCourseRepositoryPort();
         final UpdateProgressRulesUseCase useCase =

@@ -93,6 +93,28 @@ class CoursePendingDraftTest {
     }
 
     @Test
+    void shouldUpdateMinQuizPassPercentageWithRules() {
+        final CoursePendingDraft updated = sampleDraft().withRules(false, true, 90);
+
+        assertFalse(updated.requireSequentialProgress());
+        assertTrue(updated.enforceDeadlineBlock());
+        assertEquals(90, updated.minQuizPassPercentage());
+    }
+
+    @Test
+    void shouldApplyMinQuizPassPercentageAndSkipWhenDraftValueIsNull() {
+        final Course course = new Course();
+        course.setMinQuizPassPercentage(55);
+        sampleDraft().applyTo(course);
+        assertEquals(70, course.getMinQuizPassPercentage());
+
+        new CoursePendingDraft(
+                null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null).applyTo(course);
+        assertEquals(70, course.getMinQuizPassPercentage());
+    }
+
+    @Test
     void shouldManagePrerequisitesAndApplyNullableRules() {
         final UUID prerequisiteId = UUID.fromString("00000000-0000-0000-0000-000000000001");
         final UUID anotherId = UUID.randomUUID();

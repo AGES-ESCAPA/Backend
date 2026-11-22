@@ -11,6 +11,8 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import com.escapa.backend.domain.content.QuizOption;
+import com.escapa.backend.domain.content.QuizQuestion;
 import com.escapa.backend.domain.entity.Content;
 
 class ContentPendingDraftTest {
@@ -40,6 +42,24 @@ class ContentPendingDraftTest {
         assertFalse(matchingDraft.differsFrom(content));
         assertTrue(changedDraft.differsFrom(content));
         assertEquals("Aula publicada", matchingDraft.title());
+    }
+
+    @Test
+    void shouldCopyQuizQuestionsWhenApplyingDraft() {
+        final Content content = content("Aula", "Descrição", false);
+        final List<QuizQuestion> questions = List.of(new QuizQuestion(
+                UUID.randomUUID(),
+                "Pergunta",
+                List.of(
+                        new QuizOption(UUID.randomUUID(), "A", true),
+                        new QuizOption(UUID.randomUUID(), "B", false))));
+        final ContentPendingDraft draft = new ContentPendingDraft(
+                "Quiz", "Avaliação", ContentType.QUIZ, null, null, false, List.of(), questions);
+
+        draft.applyTo(content);
+
+        assertEquals(ContentType.QUIZ, content.getType());
+        assertEquals(questions, content.getQuizQuestions());
     }
 
     @Test

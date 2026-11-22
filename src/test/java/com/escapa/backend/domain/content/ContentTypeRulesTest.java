@@ -10,8 +10,6 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import com.escapa.backend.domain.content.QuizOption;
-import com.escapa.backend.domain.content.QuizQuestion;
 import com.escapa.backend.domain.entity.Content;
 
 class ContentTypeRulesTest {
@@ -84,6 +82,64 @@ class ContentTypeRulesTest {
 
         final Content withoutQuestions = content(ContentType.QUIZ, null, "Quiz", null);
         assertThrows(IllegalArgumentException.class, () -> ContentTypeRules.validate(withoutQuestions));
+    }
+
+    @Test
+    void shouldRejectInvalidQuizQuestionShapes() {
+        final Content quiz = content(ContentType.QUIZ, null, "Quiz", null);
+
+        quiz.setQuizQuestions(Arrays.asList((QuizQuestion) null));
+        assertThrows(IllegalArgumentException.class, () -> ContentTypeRules.validate(quiz));
+
+        quiz.setQuizQuestions(List.of(new QuizQuestion(null, "Pergunta", twoOptions(true, false))));
+        assertThrows(IllegalArgumentException.class, () -> ContentTypeRules.validate(quiz));
+
+        quiz.setQuizQuestions(List.of(new QuizQuestion(UUID.randomUUID(), "  ", twoOptions(true, false))));
+        assertThrows(IllegalArgumentException.class, () -> ContentTypeRules.validate(quiz));
+
+        quiz.setQuizQuestions(List.of(new QuizQuestion(UUID.randomUUID(), "Pergunta", List.of(
+                new QuizOption(UUID.randomUUID(), "Só uma", true)))));
+        assertThrows(IllegalArgumentException.class, () -> ContentTypeRules.validate(quiz));
+
+        quiz.setQuizQuestions(List.of(new QuizQuestion(UUID.randomUUID(), "Pergunta", null)));
+        assertThrows(IllegalArgumentException.class, () -> ContentTypeRules.validate(quiz));
+
+        quiz.setQuizQuestions(List.of(new QuizQuestion(
+                UUID.randomUUID(), "Pergunta", Arrays.asList((QuizOption) null, null))));
+        assertThrows(IllegalArgumentException.class, () -> ContentTypeRules.validate(quiz));
+
+        quiz.setQuizQuestions(List.of(new QuizQuestion(
+                UUID.randomUUID(),
+                "Pergunta",
+                List.of(new QuizOption(null, "A", true), new QuizOption(UUID.randomUUID(), "B", false)))));
+        assertThrows(IllegalArgumentException.class, () -> ContentTypeRules.validate(quiz));
+
+        quiz.setQuizQuestions(List.of(new QuizQuestion(
+                UUID.randomUUID(),
+                "Pergunta",
+                List.of(new QuizOption(UUID.randomUUID(), " ", true),
+                        new QuizOption(UUID.randomUUID(), "B", false)))));
+        assertThrows(IllegalArgumentException.class, () -> ContentTypeRules.validate(quiz));
+
+        quiz.setQuizQuestions(List.of(new QuizQuestion(
+                UUID.randomUUID(),
+                "Pergunta",
+                List.of(new QuizOption(UUID.randomUUID(), "A", true),
+                        new QuizOption(UUID.randomUUID(), "B", true)))));
+        assertThrows(IllegalArgumentException.class, () -> ContentTypeRules.validate(quiz));
+
+        quiz.setQuizQuestions(List.of(new QuizQuestion(
+                UUID.randomUUID(),
+                "Pergunta",
+                List.of(new QuizOption(UUID.randomUUID(), "A", false),
+                        new QuizOption(UUID.randomUUID(), "B", false)))));
+        assertThrows(IllegalArgumentException.class, () -> ContentTypeRules.validate(quiz));
+    }
+
+    private static List<QuizOption> twoOptions(boolean firstCorrect, boolean secondCorrect) {
+        return List.of(
+                new QuizOption(UUID.randomUUID(), "A", firstCorrect),
+                new QuizOption(UUID.randomUUID(), "B", secondCorrect));
     }
 
     @Test

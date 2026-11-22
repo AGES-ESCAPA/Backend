@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 
 import com.escapa.backend.domain.content.ContentResource;
 import com.escapa.backend.domain.content.ContentType;
+import com.escapa.backend.domain.content.QuizOption;
+import com.escapa.backend.domain.content.QuizQuestion;
 import com.escapa.backend.domain.entity.Content;
 import com.escapa.backend.domain.entity.Module;
 import com.escapa.backend.domain.module.ModuleNotFoundException;
@@ -167,5 +169,23 @@ class CreateContentUseCaseTest {
         final Content content = useCase.execute(moduleId, "Aula", ContentType.TEXT, null, null, "Texto", null);
 
         assertFalse(content.getIsFree());
+    }
+
+    @Test
+    void shouldCreateQuizContentWithQuestions() {
+        final UUID questionId = UUID.randomUUID();
+        final List<QuizQuestion> questions = List.of(new QuizQuestion(
+                questionId,
+                "Pergunta",
+                List.of(
+                        new QuizOption(UUID.randomUUID(), "A", true),
+                        new QuizOption(UUID.randomUUID(), "B", false))));
+
+        final Content content = useCase.execute(
+                moduleId, "Quiz introdutório", ContentType.QUIZ, null, null, "Avaliação", false,
+                List.of(), questions);
+
+        assertEquals(ContentType.QUIZ, content.getType());
+        assertEquals(questions, content.getQuizQuestions());
     }
 }
