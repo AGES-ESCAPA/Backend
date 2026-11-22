@@ -52,6 +52,7 @@ public class CompanyReportAdapter implements CompanyReportRepositoryPort {
               join users u on u.id = link.user_id
               join user_courses enrollment
                 on enrollment.user_id = u.id and enrollment.revoked_at is null
+              join courses course on course.id = enrollment.course_id and course.status = 'PUBLISHED'
               join company_courses owned
                 on owned.course_id = enrollment.course_id and owned.company_id = link.company_id
                and owned.revoked_at is null
@@ -65,6 +66,7 @@ public class CompanyReportAdapter implements CompanyReportRepositoryPort {
               join user_content_progress progress on progress.user_id = u.id
               join content lesson on lesson.id = progress.content_id
               join modules course_module on course_module.id = lesson.module_id
+              join courses course on course.id = course_module.course_id and course.status = 'PUBLISHED'
               join user_courses enrollment
                 on enrollment.user_id = u.id and enrollment.course_id = course_module.course_id
                and enrollment.revoked_at is null
@@ -211,9 +213,7 @@ public class CompanyReportAdapter implements CompanyReportRepositoryPort {
     }
 
     private static String listFrom() {
-        return ENROLLMENTS_FROM.replace(
-                "where link.company_id = :companyId",
-                "join courses course on course.id = enrollment.course_id\n where link.company_id = :companyId");
+        return ENROLLMENTS_FROM;
     }
 
     private static String filters(String pattern, EmployeeProgressStatus status) {

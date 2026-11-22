@@ -188,4 +188,13 @@ class CreateContentUseCaseTest {
         assertEquals(ContentType.QUIZ, content.getType());
         assertEquals(questions, content.getQuizQuestions());
     }
+
+    @Test
+    void shouldTreatNullResourcesAndQuizQuestionsAsEmptyLists() {
+        final Content content = useCase.execute(
+                moduleId, "Resumo", ContentType.TEXT, null, null, "Texto", false, null, null);
+
+        assertTrue(content.getResources().isEmpty());
+        assertTrue(content.getQuizQuestions().isEmpty());
+    }
 }

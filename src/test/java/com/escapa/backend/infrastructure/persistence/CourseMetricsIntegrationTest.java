@@ -79,7 +79,7 @@ class CourseMetricsIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
-    void shouldCountOnlyNonRevokedEnrollmentsOfNonDraftCoursesFromUserCourses() {
+    void shouldCountOnlyNonRevokedEnrollmentsOfPublishedCoursesFromUserCourses() {
         final CourseEntity publishedCourse = givenCourse("Turismo de Aventura", "Hospitalidade", CourseStatus.PUBLISHED);
         final CourseEntity archivedCourse = givenCourse("IA no Turismo", "Inteligência Artificial", CourseStatus.ARCHIVED);
         final CourseEntity draftCourse = givenCourse("Curso Rascunho", "Hospitalidade", CourseStatus.DRAFT);
@@ -100,9 +100,9 @@ class CourseMetricsIntegrationTest extends PostgresIntegrationTest {
         final Map<UUID, Long> enrollmentsByCourse = counts.stream()
                 .collect(Collectors.toMap(CourseEnrollmentCount::courseId, CourseEnrollmentCount::enrollments));
 
-        assertEquals(2, counts.size());
+        assertEquals(1, counts.size());
         assertEquals(2L, enrollmentsByCourse.get(publishedCourse.getId()));
-        assertEquals(1L, enrollmentsByCourse.get(archivedCourse.getId()));
+        assertNull(enrollmentsByCourse.get(archivedCourse.getId()));
         assertNull(enrollmentsByCourse.get(draftCourse.getId()));
         assertNull(enrollmentsByCourse.get(emptyCourse.getId()));
 
@@ -110,10 +110,9 @@ class CourseMetricsIntegrationTest extends PostgresIntegrationTest {
         assertEquals(
                 new CourseRanking(publishedCourse.getId(), "Turismo de Aventura", 2L),
                 metrics.mostAccessedCourse());
-        assertEquals(2, metrics.categoriesCount());
+        assertEquals(1, metrics.categoriesCount());
         assertEquals(List.of(
-                new CategoryShare("Hospitalidade", new BigDecimal("66.67")),
-                new CategoryShare("Inteligência Artificial", new BigDecimal("33.33"))
+                new CategoryShare("Hospitalidade", new BigDecimal("100.00"))
         ), metrics.enrollmentsByCategory());
     }
 

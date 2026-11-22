@@ -117,7 +117,7 @@ public final class InMemoryEnrollmentRepositoryPort implements EnrollmentReposit
                 continue;
             }
             final CourseRecord course = courses.get(key.courseId());
-            if (course == null || course.status() == CourseStatus.DRAFT) {
+            if (course == null || course.status() != CourseStatus.PUBLISHED) {
                 continue;
             }
             countsByCourse.merge(course.courseId(), 1L, Long::sum);

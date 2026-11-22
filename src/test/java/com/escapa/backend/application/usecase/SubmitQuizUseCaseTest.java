@@ -58,10 +58,16 @@ class SubmitQuizUseCaseTest {
     private final UUID courseId = UUID.randomUUID();
 
     private Content givenQuizLesson(int minPassPercent) {
-        return givenQuizLesson(minPassPercent, false, defaultQuestions());
+        return givenQuizLesson(minPassPercent, false, false, defaultQuestions());
     }
 
     private Content givenQuizLesson(int minPassPercent, boolean isFree, List<QuizQuestion> questions) {
+        return givenQuizLesson(minPassPercent, isFree, false, questions);
+    }
+
+    private Content givenQuizLesson(
+            int minPassPercent, boolean isFree, boolean enforceDeadlineBlock, List<QuizQuestion> questions
+    ) {
         final UUID moduleId = moduleRepository.findByCourseId(courseId).stream()
                 .findFirst()
                 .map(Module::getId)
@@ -79,7 +85,8 @@ class SubmitQuizUseCaseTest {
         module.getContents().add(content);
         moduleRepository.save(module);
         lessonRepository.add(new LessonDetails(
-                content, courseId, "Modulo", 1, false, minPassPercent, new LessonSupplement(List.of(), List.of())));
+                content, courseId, "Modulo", 1, enforceDeadlineBlock, minPassPercent,
+                new LessonSupplement(List.of(), List.of())));
         return content;
     }
 
@@ -156,6 +163,8 @@ class SubmitQuizUseCaseTest {
         givenEnrollment();
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(
+                userId, courseId, quiz.getId(), null));
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(
                 userId, courseId, quiz.getId(), List.of()));
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(
                 userId, courseId, quiz.getId(),
@@ -195,6 +204,28 @@ class SubmitQuizUseCaseTest {
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(
                 userId, courseId, text.getId(),
+                List.of(new SubmitQuizUseCase.QuizAnswer(QUESTION_ID, CORRECT_OPTION_ID))));
+    }
+
+    @Test
+    void shouldAllowFreeQuizForEnrolledStudent() {
+        final Content quiz = givenQuizLesson(70, true, defaultQuestions());
+        givenEnrollment();
+
+        final var result = useCase.execute(
+                userId, courseId, quiz.getId(),
+                List.of(new SubmitQuizUseCase.QuizAnswer(QUESTION_ID, CORRECT_OPTION_ID)));
+
+        assertTrue(result.passed());
+    }
+
+    @Test
+    void shouldDenyQuizWhenEnrollmentExpiredAndDeadlineIsEnforced() {
+        final Content quiz = givenQuizLesson(70, false, true, defaultQuestions());
+        enrollmentRepository.enroll(userId, courseId, new Enrollment(TODAY.minusDays(30), TODAY.minusDays(1)));
+
+        assertThrows(LessonAccessDeniedException.class, () -> useCase.execute(
+                userId, courseId, quiz.getId(),
                 List.of(new SubmitQuizUseCase.QuizAnswer(QUESTION_ID, CORRECT_OPTION_ID))));
     }
 

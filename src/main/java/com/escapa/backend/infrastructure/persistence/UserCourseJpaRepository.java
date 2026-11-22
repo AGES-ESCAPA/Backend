@@ -42,6 +42,7 @@ public interface UserCourseJpaRepository
                 JOIN FETCH uc.course c
                 LEFT JOIN FETCH c.instructor
                 WHERE uc.user.id = :userId AND uc.revokedAt IS NULL
+                AND c.status = com.escapa.backend.domain.course.CourseStatus.PUBLISHED
                 AND (:titlePattern = '%%' OR LOWER(c.title) LIKE :titlePattern)
                 AND (
                     :status IS NULL
@@ -56,6 +57,7 @@ public interface UserCourseJpaRepository
                 SELECT COUNT(uc) FROM UserCourseEntity uc
                 JOIN uc.course c
                 WHERE uc.user.id = :userId AND uc.revokedAt IS NULL
+                AND c.status = com.escapa.backend.domain.course.CourseStatus.PUBLISHED
                 AND (:titlePattern = '%%' OR LOWER(c.title) LIKE :titlePattern)
                 AND (
                     :status IS NULL
@@ -194,7 +196,7 @@ public interface UserCourseJpaRepository
                 + "from UserCourseEntity uc "
                 + "join uc.course course "
                 + "where uc.revokedAt is null "
-                + "and course.status <> com.escapa.backend.domain.course.CourseStatus.DRAFT "
+                + "and course.status = com.escapa.backend.domain.course.CourseStatus.PUBLISHED "
                 + "group by course.id, course.title, course.category")
             List<CourseEnrollmentCountView> countEligibleEnrollmentsByCourse();
 }

@@ -188,4 +188,23 @@ class UpdateContentUseCaseTest {
         assertEquals(questions, updated.getQuizQuestions());
         assertEquals(List.of(created.getId()), lessonNotificationPort.notifiedLessonIds());
     }
+
+    @Test
+    void shouldClearQuizQuestionsWhenNullIsProvided() {
+        final Content created = createUseCase.execute(
+                moduleId, "Quiz", ContentType.QUIZ, null, null, "Avaliação", false,
+                List.of(), List.of(new QuizQuestion(
+                        UUID.randomUUID(),
+                        "Pergunta",
+                        List.of(
+                                new QuizOption(UUID.randomUUID(), "A", true),
+                                new QuizOption(UUID.randomUUID(), "B", false)))));
+        assertFalse(created.getQuizQuestions().isEmpty());
+
+        final Content updated = useCase.execute(
+                created.getId(), "Agora é texto", ContentType.TEXT, null, null, "Conteúdo", false,
+                null, null);
+
+        assertTrue(updated.getQuizQuestions().isEmpty());
+    }
 }

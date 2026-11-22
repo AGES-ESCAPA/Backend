@@ -172,7 +172,7 @@ INSERT INTO courses (
      'Estratégias avançadas de precificação e gestão de receita para meios de hospedagem',
      'http://localhost:9000/escapa-media/courses/revenue-management-hotelaria.png',
      NULL,
-     'PUBLISHED',
+     'ARCHIVED',
      'a0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000002',
      'Marketing', 'AVANCADO', 1200, 365, 147,
      '["Calcular RevPAR, ADR e occupancy com segurança","Montar uma grade tarifária por segmento","Prever demanda e ajustar preços no dia a dia","Equilibrar OTAs, site oficial e contratos","Definir limites de overbooking com dados de no-show","Implantar um ritual semanal de revenue na operação"]',
