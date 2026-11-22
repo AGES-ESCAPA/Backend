@@ -17,5 +17,15 @@ class UserResponseTest {
         final UserResponse response = UserResponse.from(user);
 
         assertEquals(UserStatus.ACTIVE.name(), response.status());
+        assertEquals("STUDENT", response.userType());
+    }
+
+    @Test
+    void shouldAcceptAResolvedProfileDistinctFromTheStoredRole() {
+        final User user = new User("Luciana", "luciana@example.com", "hash", "STUDENT");
+
+        final UserResponse response = UserResponse.from(user, "EMPLOYEE");
+
+        assertEquals("EMPLOYEE", response.userType());
     }
 }

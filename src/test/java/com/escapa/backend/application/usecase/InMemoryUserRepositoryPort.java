@@ -62,7 +62,7 @@ public final class InMemoryUserRepositoryPort implements UserRepositoryPort {
         return companyLinkedUserIds.contains(userId);
     }
 
-    void linkUserToCompany(UUID userId) {
+    public void linkUserToCompany(UUID userId) {
         if (userId != null) {
             companyLinkedUserIds.add(userId);
         }
