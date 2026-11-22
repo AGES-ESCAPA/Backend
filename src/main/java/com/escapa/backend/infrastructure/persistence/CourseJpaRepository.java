@@ -31,20 +31,26 @@ public interface CourseJpaRepository extends JpaRepository<CourseEntity, UUID> {
         Integer getMajorVersion();
 
         Integer getMinorVersion();
+
+        String getInstructorName();
     }
 
     @Query("""
             SELECT c.id AS id, c.title AS title, c.category AS category, c.price AS price,
-                   c.status AS status, c.majorVersion AS majorVersion, c.minorVersion AS minorVersion
+                   c.status AS status, c.majorVersion AS majorVersion, c.minorVersion AS minorVersion,
+                   instructor.name AS instructorName
             FROM CourseEntity c
+            LEFT JOIN c.instructor instructor
             WHERE c.status <> :excludedStatus
             """)
     List<ListingRow> findListingRowsExcludingStatus(@Param("excludedStatus") CourseStatus excludedStatus);
 
     @Query("""
             SELECT c.id AS id, c.title AS title, c.category AS category, c.price AS price,
-                   c.status AS status, c.majorVersion AS majorVersion, c.minorVersion AS minorVersion
+                   c.status AS status, c.majorVersion AS majorVersion, c.minorVersion AS minorVersion,
+                   instructor.name AS instructorName
             FROM CourseEntity c
+            LEFT JOIN c.instructor instructor
             """)
     List<ListingRow> findAllListingRows();
 

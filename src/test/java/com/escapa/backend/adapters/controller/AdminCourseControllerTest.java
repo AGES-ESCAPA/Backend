@@ -1,5 +1,6 @@
 package com.escapa.backend.adapters.controller;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -121,18 +122,22 @@ class AdminCourseControllerTest {
 
     @Test
     void shouldListAllCoursesIncludingArchivedSortedByTitle() throws Exception {
-        saveCourse("beta", CourseStatus.DRAFT);
-        saveCourse("Alfa", CourseStatus.PUBLISHED);
-        saveCourse("Gama", CourseStatus.ARCHIVED);
+        final User instructor = userRepository.findById(UUID.fromString(adminId)).orElseThrow();
+        saveCourse("beta", CourseStatus.DRAFT, instructor);
+        saveCourse("Alfa", CourseStatus.PUBLISHED, instructor);
+        saveCourse("Gama", CourseStatus.ARCHIVED, null);
 
         mockMvc.perform(get(COURSES_URL).header(USER_HEADER, adminId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.length()").value(3))
                 .andExpect(jsonPath("$.data[0].title").value("Alfa"))
+                .andExpect(jsonPath("$.data[0].instructorName").value("Admin Um"))
                 .andExpect(jsonPath("$.data[1].title").value("beta"))
+                .andExpect(jsonPath("$.data[1].instructorName").value("Admin Um"))
                 .andExpect(jsonPath("$.data[2].title").value("Gama"))
-                .andExpect(jsonPath("$.data[2].status").value("ARCHIVED"));
+                .andExpect(jsonPath("$.data[2].status").value("ARCHIVED"))
+                .andExpect(jsonPath("$.data[2].instructorName").value(nullValue()));
     }
 
     @Test
@@ -287,9 +292,14 @@ class AdminCourseControllerTest {
     }
 
     private UUID saveCourse(String title, CourseStatus status) {
+        return saveCourse(title, status, null);
+    }
+
+    private UUID saveCourse(String title, CourseStatus status, User instructor) {
         final Course course = new Course();
         course.setTitle(title);
         course.setStatus(status);
+        course.setInstructor(instructor);
         return courseRepository.save(course).getId();
     }
 }

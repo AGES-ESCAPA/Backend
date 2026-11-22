@@ -109,6 +109,11 @@ class CourseMapperTest {
             public Integer getMinorVersion() {
                 return 3;
             }
+
+            @Override
+            public String getInstructorName() {
+                return "Dra. Mariana";
+            }
         });
 
         assertEquals(courseId, summary.id());
@@ -118,6 +123,7 @@ class CourseMapperTest {
         assertEquals(CourseStatus.PUBLISHED, listing.getStatus());
         assertEquals(2, listing.getMajorVersion());
         assertEquals(3, listing.getMinorVersion());
+        assertEquals("Dra. Mariana", listing.getInstructor().getName());
     }
 
     @Test
