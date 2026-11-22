@@ -76,6 +76,9 @@ public class CourseEntity implements Persistable<UUID> {
     @Column(name = "level")
     private String level;
 
+    @Column(name = "featured", nullable = false)
+    private Boolean featured = false;
+
     @Column(name = "duration_time")
     private Integer durationTime;
 

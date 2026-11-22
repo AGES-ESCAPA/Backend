@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -84,6 +85,13 @@ public final class InMemoryCourseRepositoryPort implements CourseRepositoryPort 
     }
 
     @Override
+    public List<Course> findAllForListing() {
+        return coursesById.values().stream()
+                .map(InMemoryCourseRepositoryPort::copyOf)
+                .toList();
+    }
+
+    @Override
     public List<Course> searchByTitle(String title, UUID excludedCourseId) {
         final String normalized = title == null ? "" : title.toLowerCase(Locale.ROOT);
         return coursesById.values().stream()
@@ -95,13 +103,15 @@ public final class InMemoryCourseRepositoryPort implements CourseRepositoryPort 
 
     @Override
     public PageResult<CourseSummary> findPublished(
-            String title, String category, String level, int page, int size) {
+            String title, String category, String level, Boolean featured, int page, int size) {
         final List<CourseSummary> filtered = courses.stream()
                 .filter(c -> title == null
                         || c.title().toLowerCase(Locale.ROOT).contains(title.toLowerCase(Locale.ROOT)))
                 .filter(c -> category == null || category.equals(c.category()))
                 .filter(c -> level == null || level.equals(c.level()))
                 .toList();
+        // Parametro `featured` ignorado aqui: CourseSummary em memória nao carrega o flag (filtro real no JPA).
+        Objects.requireNonNullElse(featured, Boolean.FALSE);
 
         final int total = filtered.size();
         final int start = page * size;
@@ -156,6 +166,7 @@ public final class InMemoryCourseRepositoryPort implements CourseRepositoryPort 
         copy.setInstructor(source.getInstructor());
         copy.setCategory(source.getCategory());
         copy.setLevel(source.getLevel());
+        copy.setFeatured(source.getFeatured());
         copy.setDurationTime(source.getDurationTime());
         copy.setDeadline(source.getDeadline());
         copy.setPrice(source.getPrice());

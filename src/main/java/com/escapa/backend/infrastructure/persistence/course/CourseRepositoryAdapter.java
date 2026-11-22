@@ -101,6 +101,13 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
     }
 
     @Override
+    public List<Course> findAllForListing() {
+        return courseJpaRepository.findAllListingRows().stream()
+                .map(CourseMapper::toListingDomain)
+                .toList();
+    }
+
+    @Override
     public List<Course> searchByTitle(String title, UUID excludedCourseId) {
         return courseJpaRepository.findByTitleContainingIgnoreCaseAndIdNot(title, excludedCourseId).stream()
                 .map(CourseMapper::toDomain)
@@ -109,14 +116,14 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
 
     @Override
     public PageResult<CourseSummary> findPublished(
-            String title, String category, String level, int page, int size) {
+            String title, String category, String level, Boolean featured, int page, int size) {
         final Pageable pageable = PageRequest.of(page, size);
         final String titlePattern = title != null ? "%" + title.toLowerCase() + "%" : "%%";
         final String safeCategory = category != null ? category : "";
         final String safeLevel = level != null ? level : "";
 
         final Page<CourseEntity> jpaPage = courseJpaRepository.findPublishedCourses(
-                CourseStatus.PUBLISHED, titlePattern, safeCategory, safeLevel, pageable);
+                CourseStatus.PUBLISHED, titlePattern, safeCategory, safeLevel, featured, pageable);
         final List<CourseSummary> content = jpaPage.getContent().stream()
                 .map(CourseMapper::toSummary)
                 .toList();

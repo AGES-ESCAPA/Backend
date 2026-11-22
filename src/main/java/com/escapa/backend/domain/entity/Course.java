@@ -32,6 +32,8 @@ public class Course {
     private User instructor;
     private String category;
     private String level;
+    /** Quando true, o curso publicado entra em “Cursos em Destaque” no catálogo. */
+    private Boolean featured = false;
     private Integer durationTime;
     private Integer deadline;
     private Double price;
@@ -54,6 +56,16 @@ public class Course {
                   Integer durationTime, Integer deadline, Double price,
                   List<String> learningObjectives, Boolean requireSequentialProgress,
                   Boolean enforceDeadlineBlock, User createdBy) {
+        this(title, shortDescription, description, thumbnailUrl, teaserVideoUrl, instructor, category, level,
+                false, durationTime, deadline, price, learningObjectives, requireSequentialProgress,
+                enforceDeadlineBlock, createdBy);
+    }
+
+    public Course(String title, String shortDescription, String description, String thumbnailUrl,
+                  String teaserVideoUrl, User instructor, String category, String level, Boolean featured,
+                  Integer durationTime, Integer deadline, Double price,
+                  List<String> learningObjectives, Boolean requireSequentialProgress,
+                  Boolean enforceDeadlineBlock, User createdBy) {
         this.title = title;
         this.shortDescription = shortDescription;
         this.description = description;
@@ -62,6 +74,7 @@ public class Course {
         this.instructor = instructor;
         this.category = category;
         this.level = level;
+        this.featured = featured != null ? featured : false;
         this.durationTime = durationTime;
         this.deadline = deadline;
         this.price = price;

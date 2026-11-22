@@ -89,6 +89,7 @@ public final class CourseMapper {
     private static void mapEntityDetails(Course course, CourseEntity entity) {
         entity.setCategory(course.getCategory());
         entity.setLevel(course.getLevel());
+        entity.setFeatured(course.getFeatured() != null ? course.getFeatured() : false);
         entity.setDurationTime(course.getDurationTime());
         entity.setDeadline(course.getDeadline());
         entity.setPrice(course.getPrice());
@@ -179,6 +180,7 @@ public final class CourseMapper {
     private static void mapDomainDetails(CourseEntity entity, Course course) {
         course.setCategory(entity.getCategory());
         course.setLevel(entity.getLevel());
+        course.setFeatured(entity.getFeatured() != null ? entity.getFeatured() : false);
         course.setDurationTime(entity.getDurationTime());
         course.setDeadline(entity.getDeadline());
         course.setPrice(entity.getPrice());

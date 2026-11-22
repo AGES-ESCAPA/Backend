@@ -24,8 +24,7 @@ class CreateCourseUseCaseTest {
         final CreateCourseUseCase useCase = new CreateCourseUseCase(courseRepository, userRepository);
 
         final Course course = useCase.execute(
-                "Fundamentos de Design", null, null, null, null, null, null, null,
-                null, null, null, null, null, null, admin.getId());
+                "Fundamentos de Design", null, null, null, null, null, null, null, null, null, null, null, null, null, null, admin.getId());
 
         assertEquals("Fundamentos de Design", course.getTitle());
         assertEquals(CourseStatus.DRAFT, course.getStatus());
@@ -41,10 +40,7 @@ class CreateCourseUseCaseTest {
         final User instructor = userRepository.save(new User("Instrutora Um", "instrutora@escapa.com", "hash", "ADMIN"));
         final CreateCourseUseCase useCase = new CreateCourseUseCase(courseRepository, userRepository);
 
-        final Course course = useCase.execute(
-                "Fundamentos de Design", "Resumo", "Descricao", null, null, instructor.getId(),
-                "Design", "INICIANTE", 40, 365, 499.00,
-                List.of("Objetivo 1"), true, false, admin.getId());
+        final Course course = useCase.execute("Fundamentos de Design", "Resumo", "Descricao", null, null, instructor.getId(), "Design", "INICIANTE", null, 40, 365, 499.00, List.of("Objetivo 1"), true, false, admin.getId());
 
         assertEquals(instructor.getId(), course.getInstructor().getId());
         assertEquals(admin.getId(), course.getCreatedBy().getId());
@@ -58,8 +54,7 @@ class CreateCourseUseCaseTest {
         final CreateCourseUseCase useCase = new CreateCourseUseCase(courseRepository, userRepository);
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(
-                " ", null, null, null, null, null, null, null,
-                null, null, null, null, null, null, admin.getId()));
+                " ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, admin.getId()));
     }
 
     @Test
@@ -70,9 +65,7 @@ class CreateCourseUseCaseTest {
         final User student = userRepository.save(new User("Aluno Um", "aluno@escapa.com", "hash", "STUDENT"));
         final CreateCourseUseCase useCase = new CreateCourseUseCase(courseRepository, userRepository);
 
-        assertThrows(IllegalArgumentException.class, () -> useCase.execute(
-                "Curso", null, null, null, null, student.getId(), null, null,
-                null, null, null, null, null, null, admin.getId()));
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute("Curso", null, null, null, null, student.getId(), null, null, null, null, null, null, null, null, null, admin.getId()));
     }
 
     @Test
@@ -82,7 +75,6 @@ class CreateCourseUseCaseTest {
         final CreateCourseUseCase useCase = new CreateCourseUseCase(courseRepository, userRepository);
 
         assertThrows(UserNotFoundException.class, () -> useCase.execute(
-                "Curso", null, null, null, null, null, null, null,
-                null, null, null, null, null, null, UUID.randomUUID()));
+                "Curso", null, null, null, null, null, null, null, null, null, null, null, null, null, null, UUID.randomUUID()));
     }
 }
