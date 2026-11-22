@@ -193,6 +193,11 @@ class GetCompanySeatsSummaryUseCaseTest {
         }
 
         @Override
+        public List<String> findJobTitles(UUID companyId) {
+            throw new UnsupportedOperationException("not used by the seats summary");
+        }
+
+        @Override
         public int countSeatsInUse(UUID companyId) {
             seatsInUseCalls++;
             return seatsInUseCount != null ? seatsInUseCount : employeesOf.getOrDefault(companyId, List.of()).size();

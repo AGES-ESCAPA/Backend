@@ -255,6 +255,11 @@ class ListCompanyEmployeesUseCaseTest {
         }
 
         @Override
+        public List<String> findJobTitles(UUID companyId) {
+            throw new UnsupportedOperationException("not used by the employees list");
+        }
+
+        @Override
         public PageResult<CompanyEmployee> findEmployees(UUID companyId, String search, int page, int size) {
             lastSearch = search;
             final String term = search == null ? null : search.toLowerCase(Locale.ROOT);

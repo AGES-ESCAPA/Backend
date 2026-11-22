@@ -97,6 +97,20 @@ class UpdateCompanyEmployeeUseCaseTest {
     }
 
     @Test
+    void shouldReuseAnExistingJobTitleSpellingWhenOnlyCaseOrAccentsDiffer() {
+        final User first = givenEmployee(COMPANY_ID, UserStatus.ACTIVE);
+        useCase.execute(COMPANY_ID, first.getId(),
+                new EmployeeChanges("Ana", "ana@" + first.getId() + ".com", "Recepção", UserStatus.ACTIVE));
+        final User second = givenEmployee(COMPANY_ID, UserStatus.ACTIVE);
+
+        final UpdatedEmployee updated = useCase.execute(COMPANY_ID, second.getId(),
+                new EmployeeChanges("Bruno", "bruno@" + second.getId() + ".com", "RECEPCAO", UserStatus.ACTIVE));
+
+        assertEquals("Recepção", updated.employee().jobTitle());
+        assertEquals("Recepção", links.jobTitle(COMPANY_ID, second.getId()));
+    }
+
+    @Test
     void shouldInactivateAnActiveEmployeeKeepingTheLink() {
         final User employee = givenEmployee(COMPANY_ID, UserStatus.ACTIVE);
 

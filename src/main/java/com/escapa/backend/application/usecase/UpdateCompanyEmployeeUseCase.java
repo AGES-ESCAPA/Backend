@@ -13,6 +13,7 @@ import com.escapa.backend.application.port.ContactValidatorPort;
 import com.escapa.backend.application.port.UserRepositoryPort;
 import com.escapa.backend.domain.company.CompanyEmployeeNotFoundException;
 import com.escapa.backend.domain.company.CompanyNotFoundException;
+import com.escapa.backend.domain.company.JobTitleNormalizer;
 import com.escapa.backend.domain.entity.User;
 import com.escapa.backend.domain.registration.DuplicateRegistrationException;
 import com.escapa.backend.domain.user.AccountInvite;
@@ -64,7 +65,7 @@ public class UpdateCompanyEmployeeUseCase {
     public UpdatedEmployee execute(UUID companyId, UUID employeeId, EmployeeChanges changes) {
         final String name = validator.requireName(changes.name());
         final String email = validator.requireValidEmail(changes.email());
-        final String jobTitle = validator.requireJobTitle(changes.jobTitle());
+        final String requestedJobTitle = validator.requireJobTitle(changes.jobTitle());
         final UserStatus requestedStatus = requireEditableStatus(changes.status());
 
         // Colaborador de outra empresa é "não encontrado", para não revelar que ele existe.
@@ -74,6 +75,8 @@ public class UpdateCompanyEmployeeUseCase {
                 .orElseThrow(() -> new CompanyEmployeeNotFoundException(companyId, employeeId));
         requireEmailAvailable(email, employeeId);
 
+        final String jobTitle = JobTitleNormalizer.resolveForCompany(
+                requestedJobTitle, companyEmployeeRepositoryPort.findJobTitles(companyId));
         final UserStatus previousStatus = user.getStatus();
         final boolean emailChanged = !email.equals(user.getEmail());
         final UserStatus newStatus = resolveStatus(user, requestedStatus);

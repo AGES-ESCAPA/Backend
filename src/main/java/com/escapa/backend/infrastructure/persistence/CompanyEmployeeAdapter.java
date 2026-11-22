@@ -168,6 +168,19 @@ public class CompanyEmployeeAdapter implements CompanyEmployeeRepositoryPort {
                 .update();
     }
 
+    @Override
+    public List<String> findJobTitles(UUID companyId) {
+        return jdbcClient.sql("""
+                select distinct link.role
+                  from users_company link
+                 where link.company_id = :companyId
+                 order by link.role
+                """)
+                .param("companyId", companyId)
+                .query(String.class)
+                .list();
+    }
+
     private static CompanyEmployee toEmployee(ResultSet rs, int rowNum) throws SQLException {
         return new CompanyEmployee(
                 rs.getObject("id", UUID.class),

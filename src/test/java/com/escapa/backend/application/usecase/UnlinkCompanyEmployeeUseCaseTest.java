@@ -338,6 +338,11 @@ class UnlinkCompanyEmployeeUseCaseTest {
         }
 
         @Override
+        public List<String> findJobTitles(UUID companyId) {
+            throw new UnsupportedOperationException("not used by the unlink");
+        }
+
+        @Override
         public CompanyEmployeeCounts countEmployees(UUID companyId) {
             final List<UUID> members = links.entrySet().stream()
                     .filter(entry -> entry.getValue().equals(companyId))
