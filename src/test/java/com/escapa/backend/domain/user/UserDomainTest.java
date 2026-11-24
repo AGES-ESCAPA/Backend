@@ -1,6 +1,8 @@
 package com.escapa.backend.domain.user;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -36,6 +38,28 @@ class UserDomainTest {
 
         assertEquals(id, user.getId());
         assertEquals(UserStatus.INACTIVE, user.getStatus());
+    }
+
+    @Test
+    void shouldDetectAdminIgnoringCase() {
+        assertTrue(new User("Admin", "admin@escapa.com", "hash", "ADMIN").isAdmin());
+        assertTrue(new User("Admin", "admin@escapa.com", "hash", "admin").isAdmin());
+        assertFalse(new User("Aluno", "aluno@email.com", "hash", "STUDENT").isAdmin());
+    }
+
+    @Test
+    void shouldDefaultNullStatusToActiveInFullConstructor() {
+        final User user = new User(
+                UUID.randomUUID(),
+                "Sem Status",
+                "sem@email.com",
+                "hash",
+                "STUDENT",
+                null,
+                null,
+                LocalDateTime.of(2026, 6, 15, 10, 0));
+
+        assertEquals(UserStatus.ACTIVE, user.getStatus());
     }
 
     @Test

@@ -2,10 +2,17 @@ package com.escapa.backend.adapters.controller;
 
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
@@ -17,6 +24,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.escapa.backend.adapters.exception.GlobalExceptionHandler;
 import com.escapa.backend.adapters.security.AdminRequestGuard;
@@ -73,6 +81,34 @@ class AdminCourseThumbnailControllerTest {
         mockMvc.perform(multipart(THUMBNAIL_URL).file(file))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Unsupported file type: image/gif"));
+    }
+
+    @Test
+    void shouldRejectEmptyFile() throws Exception {
+        final MockMultipartFile file = new MockMultipartFile(
+                "file", "capa.png", "image/png", new byte[]{});
+
+        mockMvc.perform(multipart(THUMBNAIL_URL).file(file))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldWrapInputStreamFailures() throws Exception {
+        final MultipartFile broken = mock(MultipartFile.class);
+        when(broken.isEmpty()).thenReturn(false);
+        when(broken.getSize()).thenReturn(3L);
+        when(broken.getContentType()).thenReturn("image/png");
+        when(broken.getInputStream()).thenThrow(new IOException("disk failed"));
+        final AdminCourseThumbnailController controller = new AdminCourseThumbnailController(
+                new UploadCourseThumbnailUseCase(new InMemoryFileStoragePort()),
+                new AdminRequestGuard(new AuthorizeAdminUseCase(userRepository)));
+
+        final UncheckedIOException error = assertThrows(
+                UncheckedIOException.class,
+                () -> controller.upload(broken));
+
+        assertEquals("Failed to read uploaded file", error.getMessage());
+        assertInstanceOf(IOException.class, error.getCause());
     }
 
     private static void authenticate(String userId) {
