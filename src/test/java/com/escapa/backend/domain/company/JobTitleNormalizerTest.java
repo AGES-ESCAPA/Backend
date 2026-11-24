@@ -37,5 +37,15 @@ class JobTitleNormalizerTest {
     void shouldPreferAccentedOrTitleCaseLabelsWhenChoosing() {
         assertEquals("Recepção", JobTitleNormalizer.preferLabel("RECEPCAO", "Recepção"));
         assertEquals("Cozinha", JobTitleNormalizer.preferLabel("COZINHA", "Cozinha"));
+        assertEquals("Bar", JobTitleNormalizer.preferLabel("Bar", "Cozinha"));
+        assertEquals("Bar", JobTitleNormalizer.preferLabel("Bar", "Baz"));
+    }
+
+    @Test
+    void shouldHandleNullAndBlankInputs() {
+        assertEquals("", JobTitleNormalizer.key(null));
+        assertEquals("", JobTitleNormalizer.display(null));
+        assertEquals("", JobTitleNormalizer.display("   "));
+        assertEquals("", JobTitleNormalizer.resolveForCompany("   ", List.of("Recepção")));
     }
 }
