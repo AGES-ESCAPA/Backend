@@ -3,6 +3,8 @@ package com.escapa.backend.adapters.exception;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.hibernate.exception.ConstraintViolationException;
@@ -13,8 +15,28 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.transaction.TransactionSystemException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+
+import com.escapa.backend.domain.certificate.CertificateGenerationException;
+import com.escapa.backend.domain.certificate.CertificateGenerationUnavailableException;
+import com.escapa.backend.domain.content.LessonAccessDeniedException;
+import com.escapa.backend.domain.content.LessonAccessDeniedException.Reason;
+import com.escapa.backend.domain.course.CourseValidationException;
+import com.escapa.backend.domain.order.CourseAlreadyActiveException;
+import com.escapa.backend.domain.order.OrderValidationException;
+import com.escapa.backend.domain.order.SeatsInUseException;
+import com.escapa.backend.domain.user.CannotDeactivateOwnAccountException;
+import com.escapa.backend.domain.user.EmailChangeTokenExpiredException;
+import com.escapa.backend.domain.user.EmailChangeTokenNotFoundException;
+import com.escapa.backend.domain.user.InactiveUserException;
+import com.escapa.backend.domain.user.InvalidAvatarFileException;
+import com.escapa.backend.domain.user.InvalidCredentialsException;
+import com.escapa.backend.domain.user.InvalidCurrentPasswordException;
+import com.escapa.backend.domain.user.UserAlreadyInactiveException;
 
 class GlobalExceptionHandlerTest {
 
@@ -92,5 +114,84 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getStatusCode().value());
         assertEquals("Unexpected error occurred", response.getBody().message());
+    }
+
+    @Test
+    void shouldMapDomainExceptionsToExpectedHttpStatuses() {
+        assertEquals(HttpStatus.BAD_REQUEST.value(),
+                handler.handleInvalidCurrentPasswordException(new InvalidCurrentPasswordException(), request)
+                        .getStatusCode().value());
+        assertEquals(HttpStatus.NOT_FOUND.value(),
+                handler.handleNotFoundException(new EmailChangeTokenNotFoundException(), request)
+                        .getStatusCode().value());
+        assertEquals(HttpStatus.FORBIDDEN.value(),
+                handler.handleForbiddenAccountChange(new CannotDeactivateOwnAccountException(), request)
+                        .getStatusCode().value());
+        assertEquals(HttpStatus.CONFLICT.value(),
+                handler.handleUserAlreadyInactiveException(
+                        new UserAlreadyInactiveException(UUID.randomUUID()), request)
+                        .getStatusCode().value());
+        assertEquals(HttpStatus.GONE.value(),
+                handler.handleGoneException(new EmailChangeTokenExpiredException(), request)
+                        .getStatusCode().value());
+        assertEquals(HttpStatus.UNAUTHORIZED.value(),
+                handler.handleInvalidCredentialsException(new InvalidCredentialsException(), request)
+                        .getStatusCode().value());
+        assertEquals(HttpStatus.FORBIDDEN.value(),
+                handler.handleInactiveUserException(new InactiveUserException(), request)
+                        .getStatusCode().value());
+        assertEquals(HttpStatus.BAD_REQUEST.value(),
+                handler.handleInvalidUploadedFileException(
+                        InvalidAvatarFileException.unsupportedType("text/plain"), request)
+                        .getStatusCode().value());
+        assertEquals(HttpStatus.FORBIDDEN.value(),
+                handler.handleAccessDeniedException(
+                        new LessonAccessDeniedException(Reason.NOT_ENROLLED, UUID.randomUUID()), request)
+                        .getStatusCode().value());
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(),
+                handler.handleCertificateGenerationUnavailableException(
+                        new CertificateGenerationUnavailableException("busy"), request)
+                        .getStatusCode().value());
+        assertEquals("Could not generate the certificate PDF",
+                handler.handleCertificateGenerationException(
+                        new CertificateGenerationException("chromium", null), request)
+                        .getBody().message());
+        assertEquals("Course incomplete: title, category",
+                handler.handleCourseValidationException(
+                        new CourseValidationException("Course incomplete", List.of("title", "category")), request)
+                        .getBody().message());
+    }
+
+    @Test
+    void shouldMapRequestParameterFailuresAndResponseStatusExceptions() {
+        assertEquals("Invalid value for parameter 'page'",
+                handler.handleTypeMismatchException(
+                        new MethodArgumentTypeMismatchException(
+                                "x", Integer.class, "page", null, new NumberFormatException()),
+                        request)
+                        .getBody().message());
+        assertEquals("Missing required parameter 'file'",
+                handler.handleMissingParameterException(
+                        new MissingServletRequestParameterException("file", "MultipartFile"), request)
+                        .getBody().message());
+        assertEquals(HttpStatus.UNAUTHORIZED.value(),
+                handler.handleResponseStatusException(
+                        new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing or invalid access token"),
+                        request)
+                        .getStatusCode().value());
+        assertEquals(HttpStatus.BAD_REQUEST.value(),
+                handler.handleIllegalArgumentException(new IllegalArgumentException("Name is required"), request)
+                        .getStatusCode().value());
+        assertEquals(HttpStatus.CONFLICT.value(),
+                handler.handleOrderConflictException(new SeatsInUseException(3, 1), request)
+                        .getStatusCode().value());
+        assertEquals(HttpStatus.BAD_REQUEST.value(),
+                handler.handleOrderValidationException(
+                        new OrderValidationException("paymentMethod CARD is required"), request)
+                        .getStatusCode().value());
+        assertEquals(HttpStatus.CONFLICT.value(),
+                handler.handleCourseAlreadyActiveException(
+                        new CourseAlreadyActiveException("Course already active"), request)
+                        .getStatusCode().value());
     }
 }
