@@ -205,8 +205,14 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
                 instructor.getName(),
                 instructor.getHeadline(),
                 instructor.getBio(),
-                instructor.getAvatarUrl()
+                instructorPhoto(instructor)
         );
+    }
+
+    /** Foto do usuário vinculado. O retrato em admins só entra se ele ainda não tiver foto. */
+    private static String instructorPhoto(AdminEntity instructor) {
+        final String userPhoto = instructor.getProfileAvatarUrl();
+        return userPhoto != null ? userPhoto : instructor.getAvatarUrl();
     }
 
     private static List<CourseDetails.Material> toMaterials(
