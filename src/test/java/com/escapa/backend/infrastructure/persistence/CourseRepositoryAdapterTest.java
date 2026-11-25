@@ -280,6 +280,22 @@ class CourseRepositoryAdapterTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void shouldUseLinkedUserPhotoAsInstructorAvatar() {
+        final AdminEntity instructor = createInstructor("Instrutora Foto");
+        instructor.setProfileAvatarUrl("https://cdn.example.com/user-photo.png");
+        instructor.setAvatarUrl("https://cdn.example.com/admin-portrait.png");
+        userJpaRepository.save(instructor);
+
+        final CourseEntity course = buildCourse(
+                "Curso com foto", "Turismo", "INICIANTE", CourseStatus.PUBLISHED, instructor);
+        courseJpaRepository.saveAndFlush(course);
+
+        final CourseDetails details = courseRepositoryPort.findDetailsById(course.getId()).orElseThrow();
+
+        assertEquals("https://cdn.example.com/user-photo.png", details.instructor().avatarUrl());
+    }
+
+    @Test
     void shouldReturnEmptyDetailsWhenCourseIsNotPublished() {
         final CourseEntity course = persistCourseWithFullGraph(CourseStatus.DRAFT);
 
